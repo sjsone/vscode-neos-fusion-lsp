@@ -4,7 +4,7 @@
 	"version": "0.0.1",
 	"author": "Simon J. Schmidt",
 	"license": "MIT",
-	"publisher": "SimonSchmidt"
+	"publisher": "SimonSchmidt",
 	"engines": {
 		"node": "*"
 	},
