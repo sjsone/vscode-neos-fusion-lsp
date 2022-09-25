@@ -20,7 +20,7 @@
 		"AFX",
 		"EEL"
 	],
-	"publisher": "SimonSchmidt"
+	"publisher": "SimonSchmidt",
 	"engines": {
 		"vscode": "^1.71.0"
 	},
