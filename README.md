@@ -2,7 +2,7 @@
 
 This package is still **WIP**
 
-The HTML tokenizer is a slightly simplified version of [html-tokenizer ](https://github.com/greim/html-tokenizer) by [Greg Reimer](https://twitter.com/greim). 
+The HTML tokenizer is a slightly simplified version of [html-tokenizer](https://github.com/greim/html-tokenizer) by [Greg Reimer](https://twitter.com/greim). You can check the status of the Merge Request [here](https://github.com/greim/html-tokenizer/pull/6).
 
 The Fusion Syntax highlighting is copied from [Neos Fusion Language support](https://github.com/networkteam/vscode-neos-fusion) created by [networkteam](https://networkteam.com).
 
