@@ -1,0 +1,102 @@
+{
+	"name": "vscode-neos-fusion-lsp",
+	"displayName": "NEOS Fusion & AFX Language Server",
+	"description": "Language server for Neos Fusion (and AFX)",
+	"author": "Simon J. Schmidt",
+	"icon": "images/logo.png",
+	"galleryBanner": {
+		"color": "#6600CC",
+		"theme": "dark"
+	  },
+	"license": "MIT",
+	"version": "0.0.1",
+	"categories": [
+		"Programming Languages"
+	],
+	"keywords": [
+		"Neos",
+		"NEOS CMS",
+		"Fusion",
+		"AFX",
+		"EEL"
+	],
+	"publisher": "Simon Schmidt",
+	"engines": {
+		"vscode": "^1.71.0"
+	},
+	"activationEvents": [
+		"onLanguage:fusion",
+		"workspaceContains:**/*.fusion"
+	],
+	"extensionKind":[
+		"workspace",
+		"ui"
+	],
+	"main": "./client/out/extension",
+	"contributes": {
+		"languages": [
+			{
+				"id": "fusion",
+				"aliases": [
+					"Fusion",
+					"fusion"
+				],
+				"extensions": [
+					".fusion"
+				],
+				"configuration": "./language-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "fusion",
+				"scopeName": "text.html.fusion",
+				"path": "./syntaxes/fusion.tmLanguage.json",
+				"embeddedLanguages": {
+					"meta.embedded.block.html": "html"
+				}
+			}
+		],
+		"configuration": {
+			"type": "object",
+			"title": "Neos Fusion Language Server",
+			"properties": {
+				"neosFusionLsp.enable": {
+					"scope": "resource",
+					"type": "boolean",
+					"default": true,
+					"description": "Controls the enablement."
+				},
+				"neosFusionLsp.trace.server": {
+					"scope": "window",
+					"type": "string",
+					"enum": [
+						"off",
+						"messages",
+						"verbose"
+					],
+					"default": "messages",
+					"description": "Traces the communication between VSCode and the language server."
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -b",
+		"watch": "tsc -b -w",
+		"lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
+		"postinstall": "cd client && npm install && cd ../server && npm install && cd .."
+	},
+	"devDependencies": {
+		"@types/mocha": "^5.2.0",
+		"@types/node": "^16.11.7",
+		"@typescript-eslint/eslint-plugin": "^5.30.0",
+		"@typescript-eslint/parser": "^5.30.0",
+		"eslint": "^8.13.0",
+		"typescript": "^4.7.2"
+	},
+	"dependencies": {
+		"ts-fusion-parser": "^0.0.12"
+	}
+}

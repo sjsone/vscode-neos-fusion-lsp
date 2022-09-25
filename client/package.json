@@ -1,0 +1,18 @@
+{
+	"name": "vscode-neos-fusion-lsp-client",
+	"description": "Neos Fusinon Language Server Client for VSCode",
+	"author": "Simon J. Schmidt",
+	"license": "MIT",
+	"version": "0.0.1",
+	"publisher": "Simon Schmidt",
+	"engines": {
+		"vscode": "^1.52.0"
+	},
+	"scripts": {},
+	"dependencies": {
+		"vscode-languageclient": "^8.0.0"
+	},
+	"devDependencies": {
+		"@types/vscode": "^1.52.0"
+	}
+}
