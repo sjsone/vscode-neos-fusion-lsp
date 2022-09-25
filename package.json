@@ -7,7 +7,7 @@
 	"galleryBanner": {
 		"color": "#6600CC",
 		"theme": "dark"
-	  },
+	},
 	"license": "MIT",
 	"version": "0.0.1",
 	"categories": [
@@ -28,7 +28,7 @@
 		"onLanguage:fusion",
 		"workspaceContains:**/*.fusion"
 	],
-	"extensionKind":[
+	"extensionKind": [
 		"workspace",
 		"ui"
 	],
@@ -98,5 +98,6 @@
 	},
 	"dependencies": {
 		"ts-fusion-parser": "^0.0.12"
-	}
+	},
+	"repository": "git@github.com:sjsone/vscode-neos-fusion-lsp.git"
 }
