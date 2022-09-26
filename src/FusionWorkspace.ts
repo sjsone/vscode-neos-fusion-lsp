@@ -2,6 +2,7 @@ import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { TextDocumentChangeEvent } from 'vscode-languageserver'
 import { TextDocument } from "vscode-languageserver-textdocument";
+import { type ExtensionConfiguration } from './configuration';
 import { NodeByLine, ParsedFile } from './ParsedFile'
 import { getFiles } from './util'
 
@@ -10,7 +11,6 @@ export class FusionWorkspace {
 	public name: string
 
 	public parsedFiles: ParsedFile[] = []
-
     public filesWithErrors: string[] = []
 
 	constructor(name: string, uri: string) {
@@ -18,40 +18,25 @@ export class FusionWorkspace {
 		this.uri = uri
 	}
 
-	init() {
-        const ignoreFolders = ["source/Packages/Libraries"]
+	init(configuration: ExtensionConfiguration) {
+        const workspacePath = this.uri.replace("file://", "")
 
-		const workspacePath = this.uri.replace("file://", "")
-        const sourcePath = NodePath.join(workspacePath, "source")
+        const ignoreFolders = configuration.folders.ignore
+        const packagesRootPaths = configuration.folders.packages.filter(path => NodeFs.existsSync(path))
+        const filteredPackagesRootPaths = packagesRootPaths.filter(packagePath => !ignoreFolders.find(ignoreFolder => packagePath.startsWith(NodePath.join(workspacePath, ignoreFolder))))
 
-        const packagesPaths: string[] = []
+        const packagesPaths = []
 
-        const distributionPackagesBasePath = NodePath.join(sourcePath, "DistributionPackages")
-        if(NodeFs.existsSync(distributionPackagesBasePath)) {
-            const distributionPackages = NodeFs.readdirSync(distributionPackagesBasePath)
-            packagesPaths.push(...distributionPackages.map(packageName => NodePath.join(distributionPackagesBasePath, packageName)))     
+        for(const filteredPackagesRootPath of filteredPackagesRootPaths) {
+            for(const folder of NodeFs.readdirSync(filteredPackagesRootPath, {withFileTypes: true})) {
+                if(folder.isSymbolicLink() || folder.name.startsWith(".")) continue
+                packagesPaths.push(NodePath.join(filteredPackagesRootPath, folder.name))
+            }
         }
-        
-        const packagesBasePath = NodePath.join(sourcePath, "Packages")
-        if(NodeFs.existsSync(packagesBasePath)) {
-            const packageTypes = NodeFs.readdirSync(packagesBasePath, { withFileTypes: true }).filter(e => e.isDirectory())
 
-            for(const packageType of packageTypes) {
-                const packageTypePath = NodePath.join(packagesBasePath, packageType.name)
-                if(!NodeFs.existsSync(packageTypePath)) {
-                    continue
-                }
-                const packages = NodeFs.readdirSync(packageTypePath, { withFileTypes: true }).filter(e => e.isDirectory() && !e.isSymbolicLink())
-                packagesPaths.push(...packages.map(p => NodePath.join(packageTypePath, p.name)))
-            }    
-        }
-        
-        const filteredPackagesPaths = packagesPaths.filter(packagePath => !ignoreFolders.find(ignoreFolder => packagePath.startsWith(NodePath.join(workspacePath, ignoreFolder))))
-
-        for (const packagePath of filteredPackagesPaths) {
-            for (const fusionTypeFolder of ['Fusion', 'FusionModules', 'FusionPlugins']) {
-                const prefix = `Resources/Private`
-                const fusionFolderPath = NodePath.join(packagePath, prefix, fusionTypeFolder)
+        for (const packagePath of packagesPaths) {
+            for (const packageFusionFolderPath of configuration.folders.fusion) {
+                const fusionFolderPath = NodePath.join(packagePath, packageFusionFolderPath)
 
                 if (!NodeFs.existsSync(fusionFolderPath)) {
                     continue
@@ -65,7 +50,6 @@ export class FusionWorkspace {
                     } catch(e) {
                         this.filesWithErrors.push(`file://${fusionFilePath}`)
                     }
-                    
                 }
             }
         }
@@ -81,7 +65,6 @@ export class FusionWorkspace {
         }catch(e) {
             this.filesWithErrors.push(parsedFile.uri)
         }
-        
     }
 
     updateFileByChange(change: TextDocumentChangeEvent<TextDocument>) {

@@ -6,7 +6,7 @@ const fileUri = "/Users/simon/Downloads/bauwerk-capital-website-master/source/Di
 
 
 const fusionWorkspace = new FusionWorkspace("test", `file://${"/Users/simon/Projects/hogast-jobportal"}`)
-fusionWorkspace.init()
+fusionWorkspace.init({ "folders": { "packages": ["source/DistributionPackages", "source/Packages/Application", "source/Packages/Framework", "source/Packages/Plugins", "source/Packages/Sites"], "fusion": ["Resources/Private/Fusion", "Resources/Private/FusionModules", "Resources/Private/FusionPlugins"], "ignore": ["source/Packages/Libraries", "Packages/Libraries"] }})
 
 
 

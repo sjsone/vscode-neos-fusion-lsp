@@ -5,15 +5,14 @@ import {
     TextDocumentSyncKind,
     CompletionItem,
     TextDocumentPositionParams,
-    Location,
     DefinitionLink,
     CompletionItemKind,
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { FusionWorkspace } from './FusionWorkspace';
-import { NodeByLine, ParsedFile } from './ParsedFile';
 import { FusionObjectValue } from 'ts-fusion-parser/out/core/objectTreeParser/ast/FusionObjectValue';
 import { PrototypePathSegment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/PrototypePathSegment';
+import { type ExtensionConfiguration } from './configuration';
 
 const connection = createConnection(ProposedFeatures.all);
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
@@ -49,14 +48,12 @@ documents.onDidOpen((event) => {
 connection.onInitialize((params) => {
     for (const workspaceFolder of params.workspaceFolders) {
         const fusionWorkspace = new FusionWorkspace(workspaceFolder.name, workspaceFolder.uri)
-        fusionWorkspace.init()
         fusionWorkspaces.push(fusionWorkspace)
     }
 
     connection.console.log(
         `[Server(${process.pid}) ${params.workspaceFolders.map(folder => folder.name + "/" + folder.uri).join(",")}] Started and initialize received`
     );
-
 
     return {
         capabilities: {
@@ -76,6 +73,15 @@ connection.onDidChangeWatchedFiles((_change) => {
     connection.console.log("We received a file change event");
 });
 
+connection.onDidChangeConfiguration((params) => {
+    const configuration: ExtensionConfiguration = params.settings.neosFusionLsp
+
+    connection.console.log("params.settings: " + JSON.stringify(configuration))
+    for(const fusionWorkspace of fusionWorkspaces) {
+        fusionWorkspace.init(configuration)
+    }
+})
+
 connection.onDefinition((params) => {
     const line = params.position.line + 1
     const column = params.position.character + 1
@@ -92,9 +98,7 @@ connection.onDefinition((params) => {
 
     connection.console.log(`GOTO: node type "${foundNodeByLine.node.constructor.name}"`)
 
-
     let goToPrototypeName = ''
-
 
     // PrototypePathSegment // FusionObjectValue
     if(foundNodeByLine.node instanceof FusionObjectValue) {
@@ -103,33 +107,32 @@ connection.onDefinition((params) => {
         goToPrototypeName = foundNodeByLine.node.identifier
     }
 
-    if(goToPrototypeName !== "") {
-        connection.console.log(`GOTO: goToPrototypeName "${goToPrototypeName}"`)
-        const locations: DefinitionLink[] = []
+    if(goToPrototypeName === "") return null
 
-        for(const otherParsedFile of workspace.parsedFiles) {
-            for(const otherNode of [...otherParsedFile.prototypeCreations, ...otherParsedFile.prototypeOverwrites ]) {
-                if(otherNode.node.identifier !== goToPrototypeName) continue
-                const targetRange = {
-                    start: {line: otherNode.line-1, character: otherNode.startColumn-1},
-                    end: {line: otherNode.line-1, character: otherNode.endColumn-1}
-                }
-                
-                locations.push({
-                    targetUri: otherParsedFile.uri,
-                    targetRange,
-                    targetSelectionRange: targetRange,
-                    originSelectionRange: {
-                        start: {line: foundNodeByLine.line-1, character: foundNodeByLine.startColumn-1},
-                        end: {line: foundNodeByLine.line-1, character: foundNodeByLine.endColumn-1}
-                    }
-                })
+    connection.console.log(`GOTO: goToPrototypeName "${goToPrototypeName}"`)
+    const locations: DefinitionLink[] = []
+
+    for(const otherParsedFile of workspace.parsedFiles) {
+        for(const otherNode of [...otherParsedFile.prototypeCreations, ...otherParsedFile.prototypeOverwrites ]) {
+            if(otherNode.node.identifier !== goToPrototypeName) continue
+            const targetRange = {
+                start: {line: otherNode.line-1, character: otherNode.startColumn-1},
+                end: {line: otherNode.line-1, character: otherNode.endColumn-1}
             }
+            
+            locations.push({
+                targetUri: otherParsedFile.uri,
+                targetRange,
+                targetSelectionRange: targetRange,
+                originSelectionRange: {
+                    start: {line: foundNodeByLine.line-1, character: foundNodeByLine.startColumn-1},
+                    end: {line: foundNodeByLine.line-1, character: foundNodeByLine.endColumn-1}
+                }
+            })
         }
-        return locations
     }
 
-    return null;
+    return locations
 });
 
 connection.onCompletion((textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
@@ -140,7 +143,7 @@ connection.onCompletion((textDocumentPosition: TextDocumentPositionParams): Comp
     return foundNodes.reduce((prev, cur) => {
         const completions = cur.nodes.map(node => ({
             label: node.node.identifier,
-            kind: CompletionItemKind.Keyword,
+            kind: CompletionItemKind.Keyword
         }))
         prev.push(...completions)
         return prev
