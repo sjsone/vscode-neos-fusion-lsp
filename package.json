@@ -77,6 +77,12 @@
 					],
 					"description": "Folders with packages"
 				},
+				"neosFusionLsp.folders.workspaceAsPackageFallback": {
+					"scope": "window",
+					"type": "boole",
+					"default": true,
+					"description": "If no packages folders can be found, treat the workspace as a package"
+				},
 				"neosFusionLsp.folders.fusion": {
 					"scope": "window",
 					"type": "array",

@@ -34,6 +34,10 @@ export class FusionWorkspace {
             }
         }
 
+        if(packagesPaths.length === 0 && configuration.folders.workspaceAsPackageFallback) {
+            packagesPaths.push(workspacePath)
+        }
+
         for (const packagePath of packagesPaths) {
             for (const packageFusionFolderPath of configuration.folders.fusion) {
                 const fusionFolderPath = NodePath.join(packagePath, packageFusionFolderPath)
