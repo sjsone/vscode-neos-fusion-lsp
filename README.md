@@ -9,5 +9,3 @@ The Fusion Syntax highlighting is copied from [Neos Fusion Language support](htt
 ## Functions
 
 Currently the Extension supports simple completion and go-to-definition for Fusion Prototypes.
-
-Due to incomplete parsing of EEL-Expressions the lexer can stop working midway through a file and functionality will be reduced.
