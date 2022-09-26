@@ -79,7 +79,7 @@
 				},
 				"neosFusionLsp.folders.workspaceAsPackageFallback": {
 					"scope": "window",
-					"type": "boole",
+					"type": "boolean",
 					"default": true,
 					"description": "If no packages folders can be found, treat the workspace as a package"
 				},
