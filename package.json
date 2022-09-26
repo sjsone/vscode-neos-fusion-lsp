@@ -61,22 +61,48 @@
 			"type": "object",
 			"title": "Neos Fusion Language Server",
 			"properties": {
-				"neosFusionLsp.enable": {
-					"scope": "resource",
-					"type": "boolean",
-					"default": true,
-					"description": "Controls the enablement."
-				},
-				"neosFusionLsp.trace.server": {
+				"neosFusionLsp.folders.packages": {
 					"scope": "window",
-					"type": "string",
-					"enum": [
-						"off",
-						"messages",
-						"verbose"
+					"type": "array",
+					"items": {
+						"type": "string",
+						"title": "Folder path"
+					},
+					"default": [
+						"source/DistributionPackages",
+						"source/Packages/Application",
+						"source/Packages/Framework",
+						"source/Packages/Plugins",
+						"source/Packages/Sites"
 					],
-					"default": "messages",
-					"description": "Traces the communication between VSCode and the language server."
+					"description": "Folders with packages"
+				},
+				"neosFusionLsp.folders.fusion": {
+					"scope": "window",
+					"type": "array",
+					"items": {
+						"type": "string",
+						"title": "Folder path inside Package"
+					},
+					"default": [
+						"Resources/Private/Fusion",
+						"Resources/Private/FusionModules",
+						"Resources/Private/FusionPlugins"
+					],
+					"description": "Fusion Folder inside Package"
+				},
+				"neosFusionLsp.folders.ignore": {
+					"scope": "window",
+					"type": "array",
+					"items": {
+						"type": "string",
+						"title": "Folder path"
+					},
+					"default": [
+						"source/Packages/Libraries",
+						"Packages/Libraries"
+					],
+					"description": "Folders to ignore"
 				}
 			}
 		}

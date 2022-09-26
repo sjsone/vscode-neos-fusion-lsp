@@ -4,7 +4,7 @@ import {
 } from 'vscode';
 
 import {
-	LanguageClient, LanguageClientOptions, TransportKind
+	LanguageClient, LanguageClientOptions, ServerOptions, TransportKind
 } from 'vscode-languageclient/node';
 
 const clients: Map<string, LanguageClient> = new Map();
@@ -58,8 +58,8 @@ export function activate(context: ExtensionContext) {
 
 		if (!clients.has(folder.uri.toString())) {
 			const debugOptions = { execArgv: ["--nolazy", `--inspect=${6011 + clients.size}`] };
-			const serverOptions = {
-				run: { module, transport: TransportKind.ipc },
+			const serverOptions: ServerOptions = {
+				run: { module, transport: TransportKind.ipc , options: { } },
 				debug: { module, transport: TransportKind.ipc, options: debugOptions }
 			};
 			const clientOptions: LanguageClientOptions = {
@@ -68,7 +68,10 @@ export function activate(context: ExtensionContext) {
 				],
 				diagnosticCollectionName: 'vscode-neos-fusion-lsp',
 				workspaceFolder: folder,
-				outputChannel: outputChannel
+				outputChannel: outputChannel,
+				synchronize: {
+					configurationSection: 'neosFusionLsp',
+				}
 			};
 			const client = new LanguageClient('vscode-neos-fusion-lsp', 'LSP For Neos Fusion (and AFX)', serverOptions, clientOptions);
 			client.start();
