@@ -33,30 +33,10 @@
 		"ui"
 	],
 	"main": "./client/out/extension",
+	"extensionDependencies": [
+		"networkteam.neos-fusion"
+	],
 	"contributes": {
-		"languages": [
-			{
-				"id": "fusion",
-				"aliases": [
-					"Fusion",
-					"fusion"
-				],
-				"extensions": [
-					".fusion"
-				],
-				"configuration": "./language-configuration.json"
-			}
-		],
-		"grammars": [
-			{
-				"language": "fusion",
-				"scopeName": "text.html.fusion",
-				"path": "./syntaxes/fusion.tmLanguage.json",
-				"embeddedLanguages": {
-					"meta.embedded.block.html": "html"
-				}
-			}
-		],
 		"configuration": {
 			"type": "object",
 			"title": "Neos Fusion Language Server",
