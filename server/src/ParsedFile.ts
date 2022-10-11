@@ -20,6 +20,7 @@ export class ParsedFile {
 
 	public prototypeCreations: LinePositionedNode<AbstractNode>[] = []
 	public prototypeOverwrites: LinePositionedNode<AbstractNode>[] = []
+	public prototypeExtends: LinePositionedNode<AbstractNode>[] = []
 
 	public nodesByLine: { [key: string]: LinePositionedNode<AbstractNode>[] } = {}
 	public nodesByType: Map<any, LinePositionedNode<AbstractNode>[]> = new Map()
@@ -114,6 +115,7 @@ export class ParsedFile {
 		this.tokens = []
 		this.prototypeCreations = []
 		this.prototypeOverwrites = []
+		this.prototypeExtends = []
 		this.nodesByLine = {}
 		this.nodesByType = new Map()
 	}
@@ -134,17 +136,26 @@ export class ParsedFile {
 
 	readObjectStatement(statement: ObjectStatement, text: string) {
 		const firstPathSegment = statement.path.segments[0]
+		const operation = statement.operation
 		if (firstPathSegment instanceof PrototypePathSegment) {
 			const nodeByLine = this.createNodeByLine(firstPathSegment, text)
-			if (statement.operation instanceof ValueCopy) {
+			if (operation instanceof ValueCopy) {
 				this.prototypeCreations.push(nodeByLine)
+
+				const sourceFusionPrototype = operation.assignedObjectPath.objectPath.segments[0]
+				if(sourceFusionPrototype instanceof PrototypePathSegment) {
+					this.prototypeExtends.push(this.createNodeByLine(sourceFusionPrototype, text))
+					console.log("tescht", sourceFusionPrototype.identifier)
+
+				}
+
 			} else {
 				this.prototypeOverwrites.push(nodeByLine)
 				// console.log("pushing to overwrite: ", firstPathSegment.identifier)
 			}
-		} else if (statement.operation instanceof ValueAssignment) {
-			if (statement.operation.pathValue instanceof FusionObjectValue) {
-				// console.log(statement.operation.pathValue)
+		} else if (operation instanceof ValueAssignment) {
+			if (operation.pathValue instanceof FusionObjectValue) {
+				// console.log(operation.pathValue)
 			}
 		}
 

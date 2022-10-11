@@ -1,10 +1,10 @@
-import { DefinitionLink, DefinitionParams } from 'vscode-languageserver/node';
+import { Location, ReferenceParams } from 'vscode-languageserver/node';
 import { getPrototypeNameFromNode } from '../util';
 import { AbstractCapability } from './AbstractCapability';
 
-export class DefinitionCapability extends AbstractCapability {
+export class ReferenceCapability extends AbstractCapability {
 
-	public run(params: DefinitionParams) {
+	public run(params: ReferenceParams): any {
 		const line = params.position.line + 1
 		const column = params.position.character + 1
 		this.log(`${line}/${column} ${params.textDocument.uri} ${params.workDoneToken}`);
@@ -18,22 +18,21 @@ export class DefinitionCapability extends AbstractCapability {
 		const foundNodeByLine = parsedFile.getNodeByLineAndColumn(line, column)
 		if (foundNodeByLine === undefined) return null
 
-		const foundNodeByLineBegin = foundNodeByLine.getBegin()
-		const foundNodeByLineEnd = foundNodeByLine.getEnd()
-
 		this.log(`node type "${foundNodeByLine.getNode().constructor.name}"`)
 
 		const goToPrototypeName = getPrototypeNameFromNode(foundNodeByLine.getNode())
 		if (goToPrototypeName === "") return null
 
 		this.log(`goToPrototypeName "${goToPrototypeName}"`)
-		const locations: DefinitionLink[] = []
+		const locations: Location[] = []
 
 		for (const otherParsedFile of workspace.parsedFiles) {
-			for (const otherNode of [...otherParsedFile.prototypeCreations, ...otherParsedFile.prototypeOverwrites]) {
+			for (const otherNode of otherParsedFile.prototypeExtends) {
 				if (otherNode.getNode()["identifier"] !== goToPrototypeName) continue
 				const otherNodeBegin = otherNode.getBegin()
 				const otherNodeEnd = otherNode.getEnd()
+
+				console.log("otherNode", otherNode, otherParsedFile.uri)
 
 				const targetRange = {
 					start: { line: otherNodeBegin.line - 1, character: otherNodeBegin.column - 1 },
@@ -41,17 +40,13 @@ export class DefinitionCapability extends AbstractCapability {
 				}
 
 				locations.push({
-					targetUri: otherParsedFile.uri,
-					targetRange,
-					targetSelectionRange: targetRange,
-					originSelectionRange: {
-						start: { line: foundNodeByLineBegin.line - 1, character: foundNodeByLineBegin.column - 1 },
-						end: { line: foundNodeByLineEnd.line - 1, character: foundNodeByLineEnd.column - 1 }
-					}
+					uri: otherParsedFile.uri,
+					range: targetRange
 				})
 			}
 		}
 
 		return locations
 	}
+
 }

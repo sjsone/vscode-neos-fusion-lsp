@@ -19,6 +19,10 @@ export class FusionWorkspace {
         this.uri = uri
     }
 
+    getUri() {
+        return this.uri
+    }
+
     init(configuration: ExtensionConfiguration) {
         const workspacePath = uriToPath(this.uri)
 
