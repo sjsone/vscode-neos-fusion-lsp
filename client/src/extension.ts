@@ -39,7 +39,7 @@ function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
 }
 
 export function activate(context: ExtensionContext) {
-	const module = context.asAbsolutePath(path.join('server', 'out', 'server.js'));
+	const module = context.asAbsolutePath(path.join('server', 'out', 'main.js'));
 	const outputChannel: OutputChannel = Window.createOutputChannel('vscode-neos-fusion-lsp');
 
 	function didOpenTextDocument(document: TextDocument): void {
