@@ -3,7 +3,8 @@ import * as NodePath from "path"
 import { TextDocumentChangeEvent } from 'vscode-languageserver'
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { type ExtensionConfiguration } from './configuration';
-import { NodeByLine, ParsedFile } from './ParsedFile'
+import { LinePositionedNode } from './LinePositionedNode';
+import { ParsedFile } from './ParsedFile'
 import { getFiles } from './util'
 
 export class FusionWorkspace {
@@ -86,7 +87,7 @@ export class FusionWorkspace {
 		return this.parsedFiles.find(file => file.uri === uri)
 	}
 
-    getNodesByType<T extends abstract new (...args: any) => any>(type: T): Array<{uri: string, nodes: NodeByLine<InstanceType<T>>[]}> {
+    getNodesByType<T extends abstract new (...args: any) => any>(type: T): Array<{uri: string, nodes: LinePositionedNode<InstanceType<T>>[]}> {
         const nodes = []
         for(const file of this.parsedFiles) {
             const fileNodes = file.nodesByType.get(type)

@@ -95,16 +95,19 @@ connection.onDefinition((params) => {
 
     const foundNodeByLine = parsedFile.getNodeByLineAndColumn(line, column)
     if(foundNodeByLine === undefined) return null
+    const foundNodeByLineBegin = foundNodeByLine.getBegin()
+    const foundNodeByLineEnd = foundNodeByLine.getEnd()
+    
 
-    connection.console.log(`GOTO: node type "${foundNodeByLine.node.constructor.name}"`)
+    connection.console.log(`GOTO: node type "${foundNodeByLine.getNode().constructor.name}"`)
 
     let goToPrototypeName = ''
 
     // PrototypePathSegment // FusionObjectValue
-    if(foundNodeByLine.node instanceof FusionObjectValue) {
-        goToPrototypeName = foundNodeByLine.node.value
-    } else if (foundNodeByLine.node instanceof PrototypePathSegment) {
-        goToPrototypeName = foundNodeByLine.node.identifier
+    if(foundNodeByLine.getNode() instanceof FusionObjectValue) {
+        goToPrototypeName = foundNodeByLine.getNode().value
+    } else if (foundNodeByLine.getNode() instanceof PrototypePathSegment) {
+        goToPrototypeName = foundNodeByLine.getNode().identifier
     }
 
     if(goToPrototypeName === "") return null
@@ -114,10 +117,13 @@ connection.onDefinition((params) => {
 
     for(const otherParsedFile of workspace.parsedFiles) {
         for(const otherNode of [...otherParsedFile.prototypeCreations, ...otherParsedFile.prototypeOverwrites ]) {
-            if(otherNode.node.identifier !== goToPrototypeName) continue
+            if(otherNode.getNode().identifier !== goToPrototypeName) continue
+            const otherNodeBegin = otherNode.getBegin()
+            const otherNodeEnd = otherNode.getEnd()
+
             const targetRange = {
-                start: {line: otherNode.line-1, character: otherNode.startColumn-1},
-                end: {line: otherNode.line-1, character: otherNode.endColumn-1}
+                start: {line: otherNodeBegin.line-1, character: otherNodeBegin.column-1},
+                end: {line: otherNodeEnd.line-1, character: otherNodeEnd.column-1}
             }
             
             locations.push({
@@ -125,8 +131,8 @@ connection.onDefinition((params) => {
                 targetRange,
                 targetSelectionRange: targetRange,
                 originSelectionRange: {
-                    start: {line: foundNodeByLine.line-1, character: foundNodeByLine.startColumn-1},
-                    end: {line: foundNodeByLine.line-1, character: foundNodeByLine.endColumn-1}
+                    start: {line: foundNodeByLineBegin.line-1, character: foundNodeByLineBegin.column-1},
+                    end: {line: foundNodeByLineEnd.line-1, character: foundNodeByLineEnd.column-1}
                 }
             })
         }
@@ -142,7 +148,7 @@ connection.onCompletion((textDocumentPosition: TextDocumentPositionParams): Comp
 
     return foundNodes.reduce((prev, cur) => {
         const completions = cur.nodes.map(node => ({
-            label: node.node.identifier,
+            label: node.getNode().identifier,
             kind: CompletionItemKind.Keyword
         }))
         prev.push(...completions)
