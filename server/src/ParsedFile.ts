@@ -1,5 +1,4 @@
 import * as NodeFs from "fs"
-import * as NodePath from "path"
 import { ObjectTreeParser } from 'ts-fusion-parser'
 import { AbstractNode } from 'ts-fusion-parser/out/core/objectTreeParser/ast/AbstractNode'
 import { DslExpressionValue } from 'ts-fusion-parser/out/core/objectTreeParser/ast/DslExpressionValue'
@@ -10,25 +9,18 @@ import { PrototypePathSegment } from 'ts-fusion-parser/out/core/objectTreeParser
 import { StatementList } from 'ts-fusion-parser/out/core/objectTreeParser/ast/StatementList'
 import { ValueAssignment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/ValueAssignment'
 import { ValueCopy } from 'ts-fusion-parser/out/core/objectTreeParser/ast/ValueCopy'
-import { AttributeToken, ClosingTagToken, OpeningTagToken, Token, Tokenizer } from './html'
-import { getlineNumberOfChar } from './util'
-
-export interface NodeByLine<T> {
-	node: T
-	startColumn: number
-	endColumn: number,
-	line: number
-}
+import { AttributeToken, ClosingTagToken, OpeningTagToken, Tokenizer } from './html'
+import { LinePositionedNode } from './LinePositionedNode'
 
 export class ParsedFile {
 	public uri: string
 	public tokens: any[] = []
 
-	public prototypeCreations: NodeByLine<any>[] = []
-	public prototypeOverwrites: NodeByLine<any>[] = []
+	public prototypeCreations: LinePositionedNode<any>[] = []
+	public prototypeOverwrites: LinePositionedNode<any>[] = []
 
-	public nodesByLine: {[key: string]: NodeByLine<AbstractNode>[]} = {}
-	public nodesByType: Map<any, NodeByLine<AbstractNode>[]> = new Map()
+	public nodesByLine: {[key: string]: LinePositionedNode<AbstractNode>[]} = {}
+	public nodesByType: Map<any, LinePositionedNode<AbstractNode>[]> = new Map()
 
 	public ignoredDueToError = false
 	public igoredErrorsByParser: Error[] = []
@@ -67,10 +59,14 @@ export class ParsedFile {
 	addNode(node: AbstractNode, text: string) {
 		if(node["position"] === undefined) return
 		const nodeByLine = this.createNodeByLine(node, text)
-		if(this.nodesByLine[nodeByLine.line] === undefined) {
-			this.nodesByLine[nodeByLine.line] = []
+
+		for(let line = nodeByLine.getBegin().line; line <= nodeByLine.getEnd().line; line++) {
+			if(this.nodesByLine[line] === undefined) {
+				this.nodesByLine[line] = []
+			}
+			this.nodesByLine[line].push(nodeByLine)
 		}
-		this.nodesByLine[nodeByLine.line].push(nodeByLine)
+
 		this.addToNodeByType(node.constructor, nodeByLine)
 	}
 
@@ -107,7 +103,7 @@ export class ParsedFile {
 		// TODO: handle EEL in atributes. 
 	}
 
-	protected addToNodeByType(type: any, node: NodeByLine<AbstractNode>) {
+	protected addToNodeByType(type: any, node: LinePositionedNode<AbstractNode>) {
 		const nodesWithType = this.nodesByType.get(type) ?? []
 		nodesWithType.push(node)
 		this.nodesByType.set(type, nodesWithType)
@@ -122,13 +118,7 @@ export class ParsedFile {
 	}
 
 	createNodeByLine(node: AbstractNode, text: string) {
-		const textStartPosition = getlineNumberOfChar(text, node["position"].start)
-		return {
-			node,
-			startColumn: textStartPosition.column,
-			endColumn: getlineNumberOfChar(text, node["position"].end).column,
-			line: textStartPosition.line
-		}
+		return new LinePositionedNode(node, text)
 	}
 
 	readStatementList(statementList: StatementList, text: string) {
@@ -162,11 +152,11 @@ export class ParsedFile {
 		}
 	}
 
-	getNodeByLineAndColumn(line: number, column): NodeByLine<any>|undefined {
+	getNodeByLineAndColumn(line: number, column): LinePositionedNode<any>|undefined {
 		const lineNodes = this.nodesByLine[line]
 		if(lineNodes === undefined) return undefined
 		for(const lineNode of lineNodes) {
-			if(column >= lineNode.startColumn && column <= lineNode.endColumn) {
+			if(column >= lineNode.getBegin().column && column <= lineNode.getEnd().column) {
 				return lineNode
 			}
 		}

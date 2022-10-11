@@ -1,7 +1,7 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
 
-export function getlineNumberOfChar(data: string, index: number, name: string = "") {
+export function getLineNumberOfChar(data: string, index: number, name: string = "") {
     const debug = name === "Test.Test:Component"
 
     const perLine = data.split('\n');
