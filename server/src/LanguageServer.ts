@@ -7,7 +7,7 @@ import {
 	_Connection,
 } from "vscode-languageserver/node";
 import { FusionWorkspace } from './FusionWorkspace';
-import { type ExtensionConfiguration } from './configuration';
+import { type ExtensionConfiguration } from './ExtensionConfiguration';
 import { FusionDocument } from './main';
 import { AbstractCapability } from './capabilities/AbstractCapability';
 import { DefinitionCapability } from './capabilities/DefinitionCapability';
@@ -33,7 +33,6 @@ export class LanguageServer {
 	public getCapability(name: string) {
 		return this.capabilities.get(name)
 	}
-
 
 	public getWorspaceFromFileUri = (uri: string): FusionWorkspace | undefined => {
 		return this.fusionWorkspaces.find(w => w.isResponsibleForUri(uri))

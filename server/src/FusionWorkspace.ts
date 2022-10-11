@@ -2,7 +2,7 @@ import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { TextDocumentChangeEvent } from 'vscode-languageserver'
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { type ExtensionConfiguration } from './configuration';
+import { type ExtensionConfiguration } from './ExtensionConfiguration';
 import { LinePositionedNode } from './LinePositionedNode';
 import { ParsedFile } from './ParsedFile'
 import { getFiles, pathToUri, uriToPath } from './util'
