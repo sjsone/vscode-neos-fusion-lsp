@@ -5,22 +5,22 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import { type ExtensionConfiguration } from './configuration';
 import { LinePositionedNode } from './LinePositionedNode';
 import { ParsedFile } from './ParsedFile'
-import { getFiles } from './util'
+import { getFiles, pathToUri, uriToPath } from './util'
 
 export class FusionWorkspace {
-	public uri: string
-	public name: string
+    public uri: string
+    public name: string
 
-	public parsedFiles: ParsedFile[] = []
+    public parsedFiles: ParsedFile[] = []
     public filesWithErrors: string[] = []
 
-	constructor(name: string, uri: string) {
-		this.name = name
-		this.uri = uri
-	}
+    constructor(name: string, uri: string) {
+        this.name = name
+        this.uri = uri
+    }
 
-	init(configuration: ExtensionConfiguration) {
-        const workspacePath = this.uri.replace("file://", "")
+    init(configuration: ExtensionConfiguration) {
+        const workspacePath = uriToPath(this.uri)
 
         const ignoreFolders = configuration.folders.ignore
         const packagesRootPaths = configuration.folders.packages.filter(path => NodeFs.existsSync(path))
@@ -28,14 +28,14 @@ export class FusionWorkspace {
 
         const packagesPaths = []
 
-        for(const filteredPackagesRootPath of filteredPackagesRootPaths) {
-            for(const folder of NodeFs.readdirSync(filteredPackagesRootPath, {withFileTypes: true})) {
-                if(folder.isSymbolicLink() || folder.name.startsWith(".")) continue
+        for (const filteredPackagesRootPath of filteredPackagesRootPaths) {
+            for (const folder of NodeFs.readdirSync(filteredPackagesRootPath, { withFileTypes: true })) {
+                if (folder.isSymbolicLink() || folder.name.startsWith(".")) continue
                 packagesPaths.push(NodePath.join(filteredPackagesRootPath, folder.name))
             }
         }
 
-        if(packagesPaths.length === 0 && configuration.folders.workspaceAsPackageFallback) {
+        if (packagesPaths.length === 0 && configuration.folders.workspaceAsPackageFallback) {
             packagesPaths.push(workspacePath)
         }
 
@@ -49,32 +49,32 @@ export class FusionWorkspace {
 
                 for (const fusionFilePath of getFiles(fusionFolderPath)) {
                     try {
-                        const parsedFile = new ParsedFile(`file://${fusionFilePath}`)
+                        const parsedFile = new ParsedFile(pathToUri(fusionFilePath))
                         this.initParsedFile(parsedFile)
                         this.parsedFiles.push(parsedFile)
-                    } catch(e) {
-                        this.filesWithErrors.push(`file://${fusionFilePath}`)
+                    } catch (e) {
+                        this.filesWithErrors.push(pathToUri(fusionFilePath))
                     }
                 }
             }
         }
-	}
+    }
 
     initParsedFile(parsedFile: ParsedFile, text: string = undefined) {
-        if(this.filesWithErrors.includes(parsedFile.uri)) return
+        if (this.filesWithErrors.includes(parsedFile.uri)) return
 
         try {
-            if(!parsedFile.init(text)) {
+            if (!parsedFile.init(text)) {
                 this.filesWithErrors.push(parsedFile.uri)
             }
-        }catch(e) {
+        } catch (e) {
             this.filesWithErrors.push(parsedFile.uri)
         }
     }
 
     updateFileByChange(change: TextDocumentChangeEvent<TextDocument>) {
         const file = this.getParsedFileByUri(change.document.uri)
-        if(file === undefined) return
+        if (file === undefined) return
         file.clear()
         this.initParsedFile(file, change.document.getText())
     }
@@ -83,15 +83,15 @@ export class FusionWorkspace {
         return uri.startsWith(this.uri)
     }
 
-	getParsedFileByUri(uri: string) {
-		return this.parsedFiles.find(file => file.uri === uri)
-	}
+    getParsedFileByUri(uri: string) {
+        return this.parsedFiles.find(file => file.uri === uri)
+    }
 
-    getNodesByType<T extends abstract new (...args: any) => any>(type: T): Array<{uri: string, nodes: LinePositionedNode<InstanceType<T>>[]}> {
+    getNodesByType<T extends abstract new (...args: any) => any>(type: T): Array<{ uri: string, nodes: LinePositionedNode<InstanceType<T>>[] }> {
         const nodes = []
-        for(const file of this.parsedFiles) {
+        for (const file of this.parsedFiles) {
             const fileNodes = file.nodesByType.get(type)
-            if(fileNodes) {
+            if (fileNodes) {
                 nodes.push({
                     uri: file.uri,
                     nodes: fileNodes
