@@ -8,4 +8,8 @@ export abstract class AbstractCapability {
 	}
 
 	public abstract run(...args: any): any
+
+	protected log(text: string) {
+		this.languageServer.log(`[${this.constructor.name}]: `+text)
+	}
 }

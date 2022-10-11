@@ -42,6 +42,10 @@ connection.onDefinition((params) => {
     return languageserver.getCapability("onDefinition").run(params)
 });
 
+connection.onReferences(params => {
+    return languageserver.getCapability("onReferences").run(params)
+})
+
 connection.onCompletion((textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
     return languageserver.getCapability("onCompletion").run(textDocumentPosition)
 });

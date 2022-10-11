@@ -5,6 +5,7 @@ import {
 	InitializeParams,
 	TextDocumentChangeEvent,
 	_Connection,
+	InitializeResult,
 } from "vscode-languageserver/node";
 import { FusionWorkspace } from './FusionWorkspace';
 import { type ExtensionConfiguration } from './ExtensionConfiguration';
@@ -13,6 +14,8 @@ import { AbstractCapability } from './capabilities/AbstractCapability';
 import { DefinitionCapability } from './capabilities/DefinitionCapability';
 import { CompletionCapability } from './capabilities/CompletionCapability';
 import { HoverCapability } from './capabilities/HoverCapability';
+import { ReferenceCapability } from './capabilities/ReferenceCapability';
+import { uriToPath } from './util';
 
 export class LanguageServer {
 
@@ -28,6 +31,7 @@ export class LanguageServer {
 		this.capabilities.set("onDefinition", new DefinitionCapability(this))
 		this.capabilities.set("onCompletion", new CompletionCapability(this))
 		this.capabilities.set("onHover", new HoverCapability(this))
+		this.capabilities.set("onReferences", new ReferenceCapability(this))
 	}
 
 	public getCapability(name: string) {
@@ -47,7 +51,7 @@ export class LanguageServer {
 		if (workspace === undefined) return null
 
 		workspace.updateFileByChange(change)
-		this.log(`Document changed: ${change.document.uri}`);
+		this.log(`Document changed: ${change.document.uri.replace(workspace.getUri(), "")}`);
 	}
 
 	public onDidOpen(event: TextDocumentChangeEvent<FusionDocument>) {
@@ -55,10 +59,10 @@ export class LanguageServer {
 		if (workspace === undefined) return null
 
 		workspace.updateFileByChange(event)
-		this.log(`Document opened: ${event.document.uri}`)
+		this.log(`Document opened: ${event.document.uri.replace(workspace.getUri(), "")}`)
 	}
 
-	public onInitialize(params: InitializeParams) {
+	public onInitialize(params: InitializeParams): InitializeResult<any> {
 		for (const workspaceFolder of params.workspaceFolders) {
 			const fusionWorkspace = new FusionWorkspace(workspaceFolder.name, workspaceFolder.uri)
 			this.fusionWorkspaces.push(fusionWorkspace)
@@ -69,14 +73,15 @@ export class LanguageServer {
 		return {
 			capabilities: {
 				completionProvider: {
-					resolveProvider: true,
+					resolveProvider: true
 				},
 				textDocumentSync: {
 					openClose: true,
-					change: TextDocumentSyncKind.Full,
+					change: TextDocumentSyncKind.Full
 				},
 				definitionProvider: true,
-				hoverProvider: true
+				hoverProvider: true,
+				referencesProvider: true
 			},
 		};
 	}
