@@ -9,10 +9,12 @@ import { PrototypePathSegment } from 'ts-fusion-parser/out/core/objectTreeParser
 import { StatementList } from 'ts-fusion-parser/out/core/objectTreeParser/ast/StatementList'
 import { ValueAssignment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/ValueAssignment'
 import { ValueCopy } from 'ts-fusion-parser/out/core/objectTreeParser/ast/ValueCopy'
+import { FusionWorkspace } from './FusionWorkspace'
 import { AttributeToken, ClosingTagToken, OpeningTagToken, Tokenizer } from './html'
 import { LinePositionedNode } from './LinePositionedNode'
 
 export class ParsedFile {
+	public workspace: FusionWorkspace
 	public uri: string
 	public tokens: any[] = []
 
@@ -25,8 +27,9 @@ export class ParsedFile {
 	public ignoredDueToError = false
 	public igoredErrorsByParser: Error[] = []
 
-	constructor(uri: string) {
+	constructor(uri: string, workspace: FusionWorkspace) {
 		this.uri = uri
+		this.workspace = workspace
 	}
 
 	init(text: string = undefined) {

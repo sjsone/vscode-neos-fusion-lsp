@@ -30,6 +30,7 @@ export class FusionWorkspace {
 
         for (const filteredPackagesRootPath of filteredPackagesRootPaths) {
             for (const folder of NodeFs.readdirSync(filteredPackagesRootPath, { withFileTypes: true })) {
+                // TODO: make symbolic link following and hidden folder configurable
                 if (folder.isSymbolicLink() || folder.name.startsWith(".")) continue
                 packagesPaths.push(NodePath.join(filteredPackagesRootPath, folder.name))
             }
@@ -42,14 +43,11 @@ export class FusionWorkspace {
         for (const packagePath of packagesPaths) {
             for (const packageFusionFolderPath of configuration.folders.fusion) {
                 const fusionFolderPath = NodePath.join(packagePath, packageFusionFolderPath)
-
-                if (!NodeFs.existsSync(fusionFolderPath)) {
-                    continue
-                }
+                if (!NodeFs.existsSync(fusionFolderPath)) continue
 
                 for (const fusionFilePath of getFiles(fusionFolderPath)) {
                     try {
-                        const parsedFile = new ParsedFile(pathToUri(fusionFilePath))
+                        const parsedFile = new ParsedFile(pathToUri(fusionFilePath), this)
                         this.initParsedFile(parsedFile)
                         this.parsedFiles.push(parsedFile)
                     } catch (e) {
