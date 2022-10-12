@@ -5,6 +5,7 @@ import { DslExpressionValue } from 'ts-fusion-parser/out/core/objectTreeParser/a
 import { FusionObjectValue } from 'ts-fusion-parser/out/core/objectTreeParser/ast/FusionObjectValue'
 import { NodePosition } from 'ts-fusion-parser/out/core/objectTreeParser/ast/NodePosition'
 import { ObjectStatement } from 'ts-fusion-parser/out/core/objectTreeParser/ast/ObjectStatement'
+import { PathSegment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/PrototypePathSegment'
 import { StatementList } from 'ts-fusion-parser/out/core/objectTreeParser/ast/StatementList'
 import { ValueAssignment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/ValueAssignment'
@@ -60,6 +61,10 @@ export class ParsedFile {
 		}
 	}
 
+	getNodesByType<T extends AbstractNode>(type: new(...args: any) => T): LinePositionedNode<T>[]|undefined {
+		return <LinePositionedNode<T>[]|undefined>this.nodesByType.get(type)
+	}
+
 	addNode(node: AbstractNode, text: string) {
 		if (node["position"] === undefined) return
 		const nodeByLine = this.createNodeByLine(node, text)
@@ -101,8 +106,30 @@ export class ParsedFile {
 	}
 
 	handleAfxAttribute(locationOffset: number, htmlToken: AttributeToken, text: string) {
-		if (!(htmlToken.value.startsWith("{") && htmlToken.value.endsWith("}"))) return
-		// TODO: handle EEL in atributes. 
+		if (htmlToken.quote !== "{") return
+		
+		const prefixRegex = /(.*=\s*{)/
+		const propsRegex = /props\.([a-zA-Z]+)/g
+		const txt = text.substring(locationOffset+htmlToken.startPos, locationOffset+htmlToken.endPos)
+		const offset = prefixRegex.exec(txt)[1].length
+
+		let lastIndex = offset
+		let match = propsRegex.exec(txt);
+
+		while (match != null) {
+			const identifier = match[1]
+			const identifierIndex = txt.substring(lastIndex).indexOf(identifier) + lastIndex
+
+			const startPos = locationOffset+htmlToken.startPos + identifierIndex
+			const endPos = locationOffset+htmlToken.startPos + identifierIndex + identifier.length
+
+			const node = new PathSegment(identifier, new NodePosition(startPos, endPos))
+
+			this.addNode(node, text)
+
+			lastIndex = lastIndex + identifierIndex
+			match = propsRegex.exec(txt);
+		}
 	}
 
 	protected addToNodeByType(type: any, node: LinePositionedNode<AbstractNode>) {
@@ -151,6 +178,8 @@ export class ParsedFile {
 				this.prototypeOverwrites.push(nodeByLine)
 				// console.log("pushing to overwrite: ", firstPathSegment.identifier)
 			}
+		} else if(firstPathSegment instanceof PathSegment) {
+			this.addNode(firstPathSegment, text)
 		} else if (operation instanceof ValueAssignment) {
 			if (operation.pathValue instanceof FusionObjectValue) {
 				// console.log(operation.pathValue)
