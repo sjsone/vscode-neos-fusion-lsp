@@ -11,7 +11,7 @@ import { StatementList } from 'ts-fusion-parser/out/core/objectTreeParser/ast/St
 import { ValueAssignment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/ValueAssignment'
 import { ValueCopy } from 'ts-fusion-parser/out/core/objectTreeParser/ast/ValueCopy'
 import { FusionWorkspace } from './FusionWorkspace'
-import { AttributeToken, ClosingTagToken, OpeningTagToken, Tokenizer } from './html'
+import { AttributeToken, ClosingTagToken, OpeningTagToken, TextToken, Tokenizer } from './html'
 import { LinePositionedNode } from './LinePositionedNode'
 
 export class ParsedFile {
@@ -90,6 +90,9 @@ export class ParsedFile {
 				case "attribute":
 					this.handleAfxAttribute(locationOffset, htmlToken, text)
 					break;
+				case "text":
+					this.handleAfxText(locationOffset , htmlToken, text)
+					break;
 				default:
 					break;
 			}
@@ -108,10 +111,10 @@ export class ParsedFile {
 	handleAfxAttribute(locationOffset: number, htmlToken: AttributeToken, text: string) {
 		if (htmlToken.quote !== "{") return
 		
-		const prefixRegex = /(.*=\s*{)/
-		const propsRegex = /props\.([a-zA-Z]+)/g
 		const txt = text.substring(locationOffset+htmlToken.startPos, locationOffset+htmlToken.endPos)
+		const prefixRegex = /(.*=\s*{)/
 		const offset = prefixRegex.exec(txt)[1].length
+		const propsRegex = /props\.([a-zA-Z]+)/g
 
 		let lastIndex = offset
 		let match = propsRegex.exec(txt);
@@ -124,12 +127,44 @@ export class ParsedFile {
 			const endPos = locationOffset+htmlToken.startPos + identifierIndex + identifier.length
 
 			const node = new PathSegment(identifier, new NodePosition(startPos, endPos))
-
 			this.addNode(node, text)
 
 			lastIndex = lastIndex + identifierIndex
 			match = propsRegex.exec(txt);
 		}
+	}
+
+	handleAfxText(locationOffset: number, htmlToken: TextToken, text: string) {
+		const debug = this.uri.endsWith("Image.Figure.fusion")
+		const prefixRegex = /(\s*{)/
+		const prefixResult = prefixRegex.exec(htmlToken.text)
+		if(prefixResult === null) return 
+		
+		const prefix = prefixResult[1]
+		const rest = htmlToken.text.substring(prefix.length)
+		if(debug) console.log("rest >"+rest+"<")
+
+		const propsRegex = /props\.([a-zA-Z]+)/g
+
+		const offset = prefix.length
+
+		let lastIndex = offset
+		let match = propsRegex.exec(rest);
+
+		while (match != null) {
+			const identifier = match[1]
+			const identifierIndex = rest.substring(lastIndex).indexOf(identifier) + lastIndex
+
+			const startPos = locationOffset+htmlToken.startPos - htmlToken.text.length + offset + "props.".length
+			const endPos = startPos + identifier.length
+			
+			const node = new PathSegment(identifier, new NodePosition(startPos, endPos))
+			this.addNode(node, text)
+
+			lastIndex = lastIndex + identifierIndex
+			match = propsRegex.exec(rest);
+		}
+		
 	}
 
 	protected addToNodeByType(type: any, node: LinePositionedNode<AbstractNode>) {
