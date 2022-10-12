@@ -114,7 +114,7 @@ export class ParsedFile {
 		const txt = text.substring(locationOffset+htmlToken.startPos, locationOffset+htmlToken.endPos)
 		const prefixRegex = /(.*=\s*{)/
 		const offset = prefixRegex.exec(txt)[1].length
-		const propsRegex = /props\.([a-zA-Z]+)/g
+		const propsRegex = /props\.([a-zA-Z0-9]+)/g
 
 		let lastIndex = offset
 		let match = propsRegex.exec(txt);
@@ -135,16 +135,14 @@ export class ParsedFile {
 	}
 
 	handleAfxText(locationOffset: number, htmlToken: TextToken, text: string) {
-		const debug = this.uri.endsWith("Image.Figure.fusion")
 		const prefixRegex = /(\s*{)/
 		const prefixResult = prefixRegex.exec(htmlToken.text)
 		if(prefixResult === null) return 
 		
 		const prefix = prefixResult[1]
 		const rest = htmlToken.text.substring(prefix.length)
-		if(debug) console.log("rest >"+rest+"<")
 
-		const propsRegex = /props\.([a-zA-Z]+)/g
+		const propsRegex = /props\.([a-zA-Z0-9]+)/g
 
 		const offset = prefix.length
 
@@ -164,7 +162,6 @@ export class ParsedFile {
 			lastIndex = lastIndex + identifierIndex
 			match = propsRegex.exec(rest);
 		}
-		
 	}
 
 	protected addToNodeByType(type: any, node: LinePositionedNode<AbstractNode>) {
