@@ -36,7 +36,7 @@ export const getTagEnd = chunker(/(\s*(\/?>))/g);
 /**
  * Attribute name chunker function.
  */
-export const getAttributeName = chunker(/(\s+(([a-z0-9\-_]+:)?[a-z0-9\-_]+)(\s*=\s*)?)/ig);
+export const getAttributeName = chunker(/(\s+(([a-z0-9\-_]+:)?[a-z0-9\-_@.]+)(\s*=\s*)?)/ig);
 
 function chunker(regex: RegExp) {
   return (str: string, pos: number) => {
