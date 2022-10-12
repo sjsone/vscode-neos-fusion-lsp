@@ -1,4 +1,3 @@
-import { posix } from 'path';
 import { AbstractNode } from 'ts-fusion-parser/out/core/objectTreeParser/ast/AbstractNode';
 import { getLineNumberOfChar } from './util';
 

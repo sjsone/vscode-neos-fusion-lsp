@@ -1,4 +1,10 @@
-import { DefinitionLink, DefinitionParams } from 'vscode-languageserver/node';
+import { FusionObjectValue } from 'ts-fusion-parser/out/core/objectTreeParser/ast/FusionObjectValue';
+import { PathSegment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/PathSegment';
+import { PrototypePathSegment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/PrototypePathSegment';
+import { DefinitionLink, DefinitionParams, Location } from 'vscode-languageserver/node';
+import { FusionWorkspace } from '../FusionWorkspace';
+import { LinePositionedNode } from '../LinePositionedNode';
+import { ParsedFile } from '../ParsedFile';
 import { getPrototypeNameFromNode } from '../util';
 import { AbstractCapability } from './AbstractCapability';
 
@@ -18,15 +24,28 @@ export class DefinitionCapability extends AbstractCapability {
 		const foundNodeByLine = parsedFile.getNodeByLineAndColumn(line, column)
 		if (foundNodeByLine === undefined) return null
 
+		
+		const node = foundNodeByLine.getNode()
+		this.log(`node type "${foundNodeByLine.getNode().constructor.name}"`)
+		switch(true) {
+			case node instanceof FusionObjectValue:
+			case node instanceof PrototypePathSegment:
+				return this.getPrototypeDefinitions(workspace, foundNodeByLine)
+			case node instanceof PathSegment:
+				return this.getPropertyDefinitions(parsedFile, foundNodeByLine)
+		}
+		
+		return null
+	}
+
+	getPrototypeDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<any>) {
 		const foundNodeByLineBegin = foundNodeByLine.getBegin()
 		const foundNodeByLineEnd = foundNodeByLine.getEnd()
-
-		this.log(`node type "${foundNodeByLine.getNode().constructor.name}"`)
 
 		const goToPrototypeName = getPrototypeNameFromNode(foundNodeByLine.getNode())
 		if (goToPrototypeName === "") return null
 
-		this.log(`goToPrototypeName "${goToPrototypeName}"`)
+		// this.log(`goToPrototypeName "${goToPrototypeName}"`)
 		const locations: DefinitionLink[] = []
 
 		for (const otherParsedFile of workspace.parsedFiles) {
@@ -51,6 +70,31 @@ export class DefinitionCapability extends AbstractCapability {
 				})
 			}
 		}
+
+		return locations
+	}
+
+	getPropertyDefinitions(parsedFile: ParsedFile, foundNodeByLine: LinePositionedNode<PathSegment>) {
+		const locations: Location[] = []
+
+		const pathSegments = parsedFile.getNodesByType(PathSegment)
+		if(pathSegments === undefined) return null
+
+		for(const pathSegment of pathSegments) {
+			if(pathSegment.getNode().identifier !== foundNodeByLine.getNode().identifier) continue
+			if(pathSegment.getNode() === foundNodeByLine.getNode()) continue
+			// Skip if it occours multiple times in one line. Happens in AFX quite a lot
+			if(pathSegment.getBegin().line === foundNodeByLine.getBegin().line) continue
+			
+			locations.push({
+				uri: parsedFile.uri,
+				range: {
+					start: { line: pathSegment.getBegin().line - 1, character: pathSegment.getBegin().column - 1 },
+					end: { line: pathSegment.getEnd().line - 1, character: pathSegment.getEnd().column - 1 }
+				}
+			})
+		}
+
 
 		return locations
 	}

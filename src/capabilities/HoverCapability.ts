@@ -1,5 +1,6 @@
 import { AbstractNode } from 'ts-fusion-parser/out/core/objectTreeParser/ast/AbstractNode';
 import { FusionObjectValue } from 'ts-fusion-parser/out/core/objectTreeParser/ast/FusionObjectValue';
+import { PathSegment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/PathSegment';
 import { PrototypePathSegment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/PrototypePathSegment';
 import { DefinitionParams } from 'vscode-languageserver/node';
 import { getPrototypeNameFromNode } from '../util';
@@ -13,15 +14,16 @@ export class HoverCapability extends AbstractCapability {
 				const prototypeName = getPrototypeNameFromNode(node)
 				if (prototypeName === null) return null
 				return `prototype **${prototypeName}**`
+			case node instanceof PathSegment:
+				return `property **${node["identifier"]}**`
 			default:
-				return null
+				return null // `Type: ${node.constructor.name}`
 		}
 	}
 
 	public run(params: DefinitionParams) {
 		const line = params.position.line + 1
 		const column = params.position.character + 1
-		// this.log(`${line}/${column}`);
 
 		const workspace = this.languageServer.getWorspaceFromFileUri(params.textDocument.uri)
 		if (workspace === undefined) return null
@@ -31,20 +33,21 @@ export class HoverCapability extends AbstractCapability {
 
 		const foundNodeByLine = parsedFile.getNodeByLineAndColumn(line, column)
 		if (foundNodeByLine === undefined) return null
+
 		const nodeBegin = foundNodeByLine.getBegin()
 		const nodeEnd = foundNodeByLine.getEnd()
 
-		// console.log(`FoundNode: `, foundNodeByLine.getNode())
-
 		const node = foundNodeByLine.getNode()
+		this.log(`FoundNode: ` + node.constructor.name)
+
 		const markdown = this.getMarkdownByNode(node)
 		if (markdown === null) return null
 
 		return {
 			contents: { kind: "markdown", value: markdown },
 			range: {
-				start: { line: nodeBegin.line, character: nodeBegin.column },
-				end: { line: nodeEnd.line, character: nodeEnd.column }
+				start: { line: nodeBegin.line-1, character: nodeBegin.column-1 },
+				end: { line: nodeEnd.line-1, character: nodeEnd.column-1 }
 			}
 		}
 	}
