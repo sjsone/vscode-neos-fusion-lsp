@@ -9,13 +9,20 @@ export class CompletionCapability extends AbstractCapability {
 		if (fusionWorkspace === undefined) return []
 		const foundNodes = fusionWorkspace.getNodesByType(PrototypePathSegment)
 
-		return foundNodes.reduce((prev, cur) => {
-			const completions = cur.nodes.map(node => ({
-				label: node.getNode().identifier,
-				kind: CompletionItemKind.Keyword
-			}))
-			prev.push(...completions)
-			return prev
-		}, [])
+		const completions = []
+		
+		for (const fileNodes of foundNodes) {
+			for(const fileNode of fileNodes.nodes) {
+				const label = fileNode.getNode().identifier
+				if(!completions.find(completion => completion.label === label)) {
+					completions.push({
+						label,
+						kind: CompletionItemKind.Class
+					})
+				}
+			}
+		}
+
+		return completions
 	}
 }
