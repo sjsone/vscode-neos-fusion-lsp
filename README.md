@@ -10,11 +10,11 @@ This package is **WIP**
 
 ## Functionality
 
-### Goto Definition (*CMD + Click*)
+### [Goto Definition](https://code.visualstudio.com/docs/editor/editingevolved#_go-to-definition) (*CMD + Click*)
 
-Currently works on **Prototypes** only.
+Currently works on **Prototypes**. **Properties** are only supported via name comparison so false positives are more than likely!
 
-Support for EEL as well as Fusion-Properties will be added in the future.
+Support for EEL will be added in the future.
 
 #### Find References (*Shift + CMD + Click*)
 
@@ -24,15 +24,15 @@ Support for EEL as well as Fusion-Properties will be added in the future.
 
 #### Hover
 
-Currently works on **Prototypes** only and only shows the name. Will provide more information from the yaml-configuration in the future. 
+Currently works on **Prototypes** and **Properties** only and just shows the name. Will provide more information from the yaml-configuration in the future.
 
-Support for EEL as well as Fusion-Properties will be added in the future.
+Support for EEL will be added in the future.
 
 #### Autocompletion
 
-Currently works on **Prototype-Names** only and it does autocomplete them on every point inside the fusion-file. Which is better than typing it by hand but still far from perfect.
+Currently works on **Prototype-Names** and **Fusion-Properties** only and it does autocomplete them on every point inside the fusion-file. Which is better than typing it by hand but still far from perfect.
 
-Support for EEL as well as Fusion-Properties will be added in the *not so far but still far* future.
+Real support (not just string comparison) will be added in the *not so far but still far* future.
 
 ## FAQ
 
