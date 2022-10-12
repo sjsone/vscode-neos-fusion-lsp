@@ -145,8 +145,6 @@ export class ParsedFile {
 				const sourceFusionPrototype = operation.assignedObjectPath.objectPath.segments[0]
 				if(sourceFusionPrototype instanceof PrototypePathSegment) {
 					this.prototypeExtends.push(this.createNodeByLine(sourceFusionPrototype, text))
-					console.log("tescht", sourceFusionPrototype.identifier)
-
 				}
 
 			} else {
