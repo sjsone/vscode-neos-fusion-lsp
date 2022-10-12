@@ -53,6 +53,7 @@ export interface AttributeToken {
   type: 'attribute';
   name: string;
   value: string;
+  quote: string;
 }
 
 /**
@@ -224,9 +225,9 @@ export class Tokenizer {
           if (hasVal) {
             const read = readAttribute(html, pos);
             pos += read.length;
-            yield {startPos, endPos: pos, type: 'attribute', name, value: deentify(read.value, this.entityMap) };
+            yield {startPos, endPos: pos, type: 'attribute', name, value: deentify(read.value, this.entityMap), quote: read.quote };
           } else {
-            yield {startPos, endPos: pos, type: 'attribute', name, value: '' };
+            yield {startPos, endPos: pos, type: 'attribute', name, value: '', quote: '' };
           }
         } else if (next = chunks.getTagEnd(html, pos)) {
           pos += next.length;
