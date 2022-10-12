@@ -2,7 +2,9 @@
 
 This package is **WIP**
 
-![goto_definition](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/goto_definition.gif?raw=true)
+<p align="center">
+  <img src="https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/goto_definition.gif?raw=true" alt="animated" />
+</p>
 
 > The HTML tokenizer is a modified version of [html-tokenizer](https://github.com/greim/html-tokenizer) by [Greg Reimer](https://twitter.com/greim). You can check the status of the Merge Request [here](https://github.com/greim/html-tokenizer/pull/6).
 
