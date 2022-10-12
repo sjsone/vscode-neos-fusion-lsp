@@ -32,8 +32,6 @@ export class ReferenceCapability extends AbstractCapability {
 				const otherNodeBegin = otherNode.getBegin()
 				const otherNodeEnd = otherNode.getEnd()
 
-				console.log("otherNode", otherNode, otherParsedFile.uri)
-
 				const targetRange = {
 					start: { line: otherNodeBegin.line - 1, character: otherNodeBegin.column - 1 },
 					end: { line: otherNodeEnd.line - 1, character: otherNodeEnd.column - 1 }
