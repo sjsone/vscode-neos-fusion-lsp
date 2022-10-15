@@ -4,12 +4,15 @@ import { TextDocumentChangeEvent } from 'vscode-languageserver'
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { type ExtensionConfiguration } from './ExtensionConfiguration';
 import { LinePositionedNode } from './LinePositionedNode';
+import { NeosWorkspace } from './neos/NeosWorkspace';
 import { ParsedFile } from './ParsedFile'
 import { getFiles, pathToUri, uriToPath } from './util'
 
 export class FusionWorkspace {
     public uri: string
     public name: string
+
+    public neosWorkspace: NeosWorkspace
 
     public parsedFiles: ParsedFile[] = []
     public filesWithErrors: string[] = []
@@ -44,7 +47,13 @@ export class FusionWorkspace {
             packagesPaths.push(workspacePath)
         }
 
+        this.neosWorkspace = new NeosWorkspace(workspacePath) 
+
         for (const packagePath of packagesPaths) {
+            this.neosWorkspace.addPackage(packagePath)
+        }
+
+        for(const packagePath of packagesPaths) {
             for (const packageFusionFolderPath of configuration.folders.fusion) {
                 const fusionFolderPath = NodePath.join(packagePath, packageFusionFolderPath)
                 if (!NodeFs.existsSync(fusionFolderPath)) continue

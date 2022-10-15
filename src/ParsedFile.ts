@@ -1,7 +1,9 @@
 import * as NodeFs from "fs"
+import * as NodePath from "path"
 import { ObjectTreeParser } from 'ts-fusion-parser'
 import { AbstractNode } from 'ts-fusion-parser/out/core/objectTreeParser/ast/AbstractNode'
 import { DslExpressionValue } from 'ts-fusion-parser/out/core/objectTreeParser/ast/DslExpressionValue'
+import { EelExpressionValue } from 'ts-fusion-parser/out/core/objectTreeParser/ast/EelExpressionValue'
 import { FusionObjectValue } from 'ts-fusion-parser/out/core/objectTreeParser/ast/FusionObjectValue'
 import { NodePosition } from 'ts-fusion-parser/out/core/objectTreeParser/ast/NodePosition'
 import { ObjectStatement } from 'ts-fusion-parser/out/core/objectTreeParser/ast/ObjectStatement'
@@ -10,6 +12,7 @@ import { PrototypePathSegment } from 'ts-fusion-parser/out/core/objectTreeParser
 import { StatementList } from 'ts-fusion-parser/out/core/objectTreeParser/ast/StatementList'
 import { ValueAssignment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/ValueAssignment'
 import { ValueCopy } from 'ts-fusion-parser/out/core/objectTreeParser/ast/ValueCopy'
+import { EelHelperNode } from './fusion/EelHelperNode'
 import { FusionWorkspace } from './FusionWorkspace'
 import { AttributeToken, ClosingTagToken, OpeningTagToken, TextToken, Tokenizer } from './html'
 import { LinePositionedNode } from './LinePositionedNode'
@@ -49,6 +52,10 @@ export class ParsedFile {
 				for (const node of objectTree.nodesByType.get(nodeType)) {
 					if (node instanceof DslExpressionValue) {
 						this.handleAfxDsl(node, text)
+						continue
+					}
+					if(node instanceof EelExpressionValue) {
+						this.handleEelExpression(node, text)
 						continue
 					}
 					this.addNode(node, text)
@@ -164,6 +171,32 @@ export class ParsedFile {
 		}
 	}
 
+	handleEelExpression(node: EelExpressionValue, text: string) {
+		
+		for(const eelHelper of this.workspace.neosWorkspace.getEelHelperFileUris()) {
+			const regex = new RegExp(eelHelper.regex, 'g')
+
+			let lastIndex = 0
+			const rest = node.value
+			let match = regex.exec(rest);
+
+			while (match != null) {
+				const identifier = match[1]
+				const method = match[2]
+				const identifierIndex = rest.substring(lastIndex).indexOf(identifier) + lastIndex 
+
+				const startPos = node["position"].start + identifierIndex
+				const endPos = startPos + identifier.length
+				
+				const eelHelperNode = new EelHelperNode(identifier, method, new NodePosition(startPos, endPos))
+				this.addNode(eelHelperNode, text)
+
+				lastIndex = lastIndex + identifierIndex
+				match = regex.exec(rest);
+			}
+		}
+	}
+
 	protected addToNodeByType(type: any, node: LinePositionedNode<AbstractNode>) {
 		const nodesWithType = this.nodesByType.get(type) ?? []
 		nodesWithType.push(node)
@@ -226,11 +259,23 @@ export class ParsedFile {
 	getNodeByLineAndColumn(line: number, column: number): LinePositionedNode<any> | undefined {
 		const lineNodes = this.nodesByLine[line]
 		if (lineNodes === undefined) return undefined
+		const foundNodesByWeight: {[key: number]: LinePositionedNode<AbstractNode>} = {}
 		for (const lineNode of lineNodes) {
 			if (column >= lineNode.getBegin().column && column <= lineNode.getEnd().column) {
-				return lineNode
+				let weight = 0
+				switch(true) {
+					case lineNode.getNode() instanceof EelHelperNode:
+						weight = 10;
+						break;
+				}
+				if(foundNodesByWeight[weight] === undefined) {
+					foundNodesByWeight[weight] = lineNode
+				}
 			}
 		}
-		return undefined
+
+		const sortedKeys = Object.keys(foundNodesByWeight).sort((a, b) => parseInt(b) - parseInt(a))
+		if(sortedKeys.length === 0) return undefined
+		return foundNodesByWeight[sortedKeys[0]]
 	}
 }

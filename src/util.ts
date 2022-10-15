@@ -23,14 +23,14 @@ export function getLineNumberOfChar(data: string, index: number, name: string = 
     return { line: i + 1, column }
 }
 
-export function* getFiles(dir) {
+export function* getFiles(dir: string, withExtension: string = ".fusion") {
     const dirents = NodeFs.readdirSync(dir, { withFileTypes: true });
     for (const dirent of dirents) {
         if (dirent.isSymbolicLink()) continue
         const res = NodePath.resolve(dir, dirent.name);
         if (dirent.isDirectory()) {
             yield* getFiles(res);
-        } else if (NodePath.extname(res) === ".fusion") {
+        } else if (NodePath.extname(res) === withExtension) {
             yield res;
         }
     }
@@ -51,4 +51,19 @@ export function getPrototypeNameFromNode(node: AbstractNode) {
         return node.identifier
     }
     return null
+}
+
+export function mergeObjects(source: Object, target: Object) {
+	// https://gist.github.com/ahtcx/0cd94e62691f539160b32ecda18af3d6?permalink_comment_id=3889214#gistcomment-3889214
+    for (const [key, val] of Object.entries(source)) {
+        if (val !== null && typeof val === `object`) {
+            if (target[key] === undefined) {
+                target[key] = new val["__proto__"].constructor();
+            }
+            mergeObjects(val, target[key]);
+        } else {
+            target[key] = val;
+        }
+    }
+    return target; // we're replacing in-situ, so this is more for chaining than anything else
 }

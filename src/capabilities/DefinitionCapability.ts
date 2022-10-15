@@ -2,6 +2,7 @@ import { FusionObjectValue } from 'ts-fusion-parser/out/core/objectTreeParser/as
 import { PathSegment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/PathSegment';
 import { PrototypePathSegment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/PrototypePathSegment';
 import { DefinitionLink, DefinitionParams, Location } from 'vscode-languageserver/node';
+import { EelHelperNode } from '../fusion/EelHelperNode';
 import { FusionWorkspace } from '../FusionWorkspace';
 import { LinePositionedNode } from '../LinePositionedNode';
 import { ParsedFile } from '../ParsedFile';
@@ -27,14 +28,16 @@ export class DefinitionCapability extends AbstractCapability {
 		
 		const node = foundNodeByLine.getNode()
 		this.log(`node type "${foundNodeByLine.getNode().constructor.name}"`)
-		switch(true) {
+		switch (true) {
 			case node instanceof FusionObjectValue:
 			case node instanceof PrototypePathSegment:
 				return this.getPrototypeDefinitions(workspace, foundNodeByLine)
 			case node instanceof PathSegment:
 				return this.getPropertyDefinitions(parsedFile, foundNodeByLine)
+			case node instanceof EelHelperNode:
+				return this.getEelHelperDefinitions(workspace, foundNodeByLine)
 		}
-		
+
 		return null
 	}
 
@@ -78,14 +81,14 @@ export class DefinitionCapability extends AbstractCapability {
 		const locations: Location[] = []
 
 		const pathSegments = parsedFile.getNodesByType(PathSegment)
-		if(pathSegments === undefined) return null
+		if (pathSegments === undefined) return null
 
-		for(const pathSegment of pathSegments) {
-			if(pathSegment.getNode().identifier !== foundNodeByLine.getNode().identifier) continue
-			if(pathSegment.getNode() === foundNodeByLine.getNode()) continue
+		for (const pathSegment of pathSegments) {
+			if (pathSegment.getNode().identifier !== foundNodeByLine.getNode().identifier) continue
+			if (pathSegment.getNode() === foundNodeByLine.getNode()) continue
 			// Skip if it occours multiple times in one line. Happens in AFX quite a lot
-			if(pathSegment.getBegin().line === foundNodeByLine.getBegin().line) continue
-			
+			if (pathSegment.getBegin().line === foundNodeByLine.getBegin().line) continue
+
 			locations.push({
 				uri: parsedFile.uri,
 				range: {
@@ -95,7 +98,24 @@ export class DefinitionCapability extends AbstractCapability {
 			})
 		}
 
-
 		return locations
+	}
+
+	getEelHelperDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<EelHelperNode>) {
+		for (const eelHelper of workspace.neosWorkspace.getEelHelperFileUris()) {
+			if (eelHelper.name === foundNodeByLine.getNode().identifier) {
+				return [
+					{
+						uri: eelHelper.uri,
+						range: {
+							start: { line: 0, character: 0 },
+							end: { line: 0, character: 0 }
+						}
+					}
+				]
+			}
+		}
+
+		return null
 	}
 }
