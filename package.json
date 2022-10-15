@@ -109,7 +109,7 @@
 		"typescript": "^4.7.2"
 	},
 	"dependencies": {
-		"ts-fusion-parser": "^0.0.15"
+		"ts-fusion-parser": "^0.0.16"
 	},
 	"repository": "git@github.com:sjsone/vscode-neos-fusion-lsp.git"
 }
