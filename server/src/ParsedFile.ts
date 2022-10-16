@@ -12,6 +12,7 @@ import { PrototypePathSegment } from 'ts-fusion-parser/out/core/objectTreeParser
 import { StatementList } from 'ts-fusion-parser/out/core/objectTreeParser/ast/StatementList'
 import { ValueAssignment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/ValueAssignment'
 import { ValueCopy } from 'ts-fusion-parser/out/core/objectTreeParser/ast/ValueCopy'
+import { EelHelperMethodNode } from './fusion/EelHelperMethodNode'
 import { EelHelperNode } from './fusion/EelHelperNode'
 import { FusionWorkspace } from './FusionWorkspace'
 import { AttributeToken, ClosingTagToken, OpeningTagToken, TextToken, Tokenizer } from './html'
@@ -190,7 +191,15 @@ export class ParsedFile {
 				const startPos = node["position"].start + identifierIndex
 				const endPos = startPos + identifier.length + (method ? method.length : 0)
 				
-				const eelHelperNode = new EelHelperNode(identifier, method, new NodePosition(startPos, endPos))
+				let eelHelperMethodNode = null
+				if(method) {
+					const methodStartPos = endPos - method.length // +1 because of the [dot]: Array[.]length
+
+					eelHelperMethodNode = new EelHelperMethodNode(method, new NodePosition(methodStartPos, endPos))
+					this.addNode(eelHelperMethodNode, text)
+				}
+
+				const eelHelperNode = new EelHelperNode(identifier, eelHelperMethodNode, new NodePosition(startPos, endPos))
 				this.addNode(eelHelperNode, text)
 
 				lastIndex = lastIndex + identifierIndex
@@ -264,9 +273,13 @@ export class ParsedFile {
 		const foundNodesByWeight: {[key: number]: LinePositionedNode<AbstractNode>} = {}
 		for (const lineNode of lineNodes) {
 			if (column >= lineNode.getBegin().column && column <= lineNode.getEnd().column) {
+				const node = lineNode.getNode()
 				let weight = 0
 				switch(true) {
-					case lineNode.getNode() instanceof EelHelperNode:
+					case node instanceof EelHelperMethodNode:
+						weight = 15;
+						break;
+					case node instanceof EelHelperNode:
 						weight = 10;
 						break;
 				}

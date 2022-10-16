@@ -38,4 +38,8 @@ export class NeosWorkspace {
 		}
 		return fileUris
 	}
+
+	getEelHelperFileUriByName(name: string) {
+		return this.getEelHelperFileUris().find(eelHelper => eelHelper.name === name)
+	}
 }

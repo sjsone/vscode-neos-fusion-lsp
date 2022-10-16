@@ -12,7 +12,16 @@ export interface EELHelperToken {
 		begin: { line: number, column: number },
 		end: { line: number, column: number }
 	},
-	methods: Array<{name: string, position: { begin: { line: number, column: number }, end: { line: number, column: number } }}>
+	methods: EELHelperMethodToken[]
+}
+
+export interface EELHelperMethodToken {
+	name: string, 
+	description: string|undefined, 
+	position: { 
+		begin: { line: number,  column: number }, 
+		end: { line: number, column: number } 
+	}
 }
 export class NeosPackage {
 	protected path: string
@@ -34,8 +43,6 @@ export class NeosPackage {
 		this.debug = this.getName() === "neos/fusion"
 
 		this.initNamespaceLoading()
-
-		this.log("DEBUG")
 	}
 
 	protected initComposerJson() {
@@ -59,7 +66,7 @@ export class NeosPackage {
 		if(neosConfiguration["parsedYamlConfiguration"] === null) return undefined
 		
 		const defaultNeosFusionContext = neosConfiguration.get<any>("Neos.Fusion.defaultContext")
-		this.log("defaultNeosFusionContext", defaultNeosFusionContext)
+		// this.log("defaultNeosFusionContext", defaultNeosFusionContext)
 
 		if(!defaultNeosFusionContext) return undefined
 		for (const eelHelperPrefix in defaultNeosFusionContext) {

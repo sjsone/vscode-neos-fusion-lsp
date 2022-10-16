@@ -6,6 +6,10 @@ This package is **WIP**
   <img src="https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/goto_definition.gif?raw=true" alt="animated" />
 </p>
 
+<p align="center">
+  <img src="https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/goto_eel_helper_method.gif?raw=true" alt="animated" />
+</p>
+
 > The HTML tokenizer is a modified version of [html-tokenizer](https://github.com/greim/html-tokenizer) by [Greg Reimer](https://twitter.com/greim). You can check the status of the Merge Request [here](https://github.com/greim/html-tokenizer/pull/6).
 
 ## Functionality
@@ -54,4 +58,4 @@ Yes. Including goto-definition on at least `props.` in AFX etc. But for that to 
 
 #### What about EEL-Helper and NodeType-Configuration
 
-It is planned to add Goto-Definition/-References and Hover capability regarding EEL-Helper and NodeTypes. But to fully support it, the files have to be parsed in the correct order. So a composer dependency handling is needed first. This should be optional for EEL-Helper but namespace-handling is a key component to get to the right php-file so these two features are closely related.
+There is rudimentary support for EEL-Helper. Hover and Goto-Definition is currently (somewhat) supported.
