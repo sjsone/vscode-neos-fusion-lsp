@@ -2,6 +2,7 @@ import { FusionObjectValue } from 'ts-fusion-parser/out/core/objectTreeParser/as
 import { PathSegment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/PathSegment';
 import { PrototypePathSegment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/PrototypePathSegment';
 import { DefinitionLink, DefinitionParams, Location } from 'vscode-languageserver/node';
+import { EelHelperMethodNode } from '../fusion/EelHelperMethodNode';
 import { EelHelperNode } from '../fusion/EelHelperNode';
 import { FusionWorkspace } from '../FusionWorkspace';
 import { LinePositionedNode } from '../LinePositionedNode';
@@ -34,6 +35,8 @@ export class DefinitionCapability extends AbstractCapability {
 				return this.getPrototypeDefinitions(workspace, foundNodeByLine)
 			case node instanceof PathSegment:
 				return this.getPropertyDefinitions(parsedFile, foundNodeByLine)
+			case node instanceof EelHelperMethodNode:
+				return this.getEelHelperMethodDefinitions(workspace, foundNodeByLine)
 			case node instanceof EelHelperNode:
 				return this.getEelHelperDefinitions(workspace, foundNodeByLine)
 		}
@@ -101,22 +104,38 @@ export class DefinitionCapability extends AbstractCapability {
 	}
 
 	getEelHelperDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<EelHelperNode>) {
+		const node = foundNodeByLine.getNode()
 		for (const eelHelper of workspace.neosWorkspace.getEelHelperFileUris()) {
-			if (eelHelper.name === foundNodeByLine.getNode().identifier) {
-				let position = eelHelper.position
-				const nodeMethod = foundNodeByLine.getNode().method
-				
-				if(nodeMethod !== null) {
-					const foundMethod = eelHelper.methods.find(method => '.'+method.name === nodeMethod)
-					if(foundMethod) position = foundMethod.position
-				}
+			if (eelHelper.name === node.identifier) {
+				return [
+					{
+						uri: eelHelper.uri,
+						range: {
+							start: { line: eelHelper.position.begin.line - 1, character: eelHelper.position.begin.column - 1 },
+							end: { line: eelHelper.position.end.line - 1, character: eelHelper.position.end.column - 1 }
+						}
+					}
+				]
+			}
+		}
+
+		return null
+	}
+
+	getEelHelperMethodDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<EelHelperMethodNode>) {
+		const node = foundNodeByLine.getNode()
+
+		for (const eelHelper of workspace.neosWorkspace.getEelHelperFileUris()) {
+			if (eelHelper.name === node.eelHelper.identifier) {
+				const method = eelHelper.methods.find(method => '.'+method.name === node.identifier)
+				if(!method) continue
 
 				return [
 					{
 						uri: eelHelper.uri,
 						range: {
-							start: { line: position.begin.line - 1, character: position.begin.column - 1 },
-							end: { line: position.end.line - 1, character: position.end.column - 1 }
+							start: { line: method.position.begin.line - 1, character: method.position.begin.column - 1 },
+							end: { line: method.position.end.line - 1, character: method.position.end.column - 1 }
 						}
 					}
 				]

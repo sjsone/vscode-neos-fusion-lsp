@@ -3,11 +3,14 @@ import { FusionObjectValue } from 'ts-fusion-parser/out/core/objectTreeParser/as
 import { PathSegment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/PathSegment';
 import { PrototypePathSegment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/PrototypePathSegment';
 import { DefinitionParams } from 'vscode-languageserver/node';
+import { EelHelperMethodNode } from '../fusion/EelHelperMethodNode';
+import { EelHelperNode } from '../fusion/EelHelperNode';
+import { FusionWorkspace } from '../FusionWorkspace';
 import { getPrototypeNameFromNode } from '../util';
 import { AbstractCapability } from './AbstractCapability';
 
 export class HoverCapability extends AbstractCapability {
-	protected getMarkdownByNode(node: AbstractNode) {
+	protected getMarkdownByNode(node: AbstractNode, workspace: FusionWorkspace) {
 		switch (true) {
 			case node instanceof FusionObjectValue:
 			case node instanceof PrototypePathSegment:
@@ -16,6 +19,21 @@ export class HoverCapability extends AbstractCapability {
 				return `prototype **${prototypeName}**`
 			case node instanceof PathSegment:
 				return `property **${node["identifier"]}**`
+			case node instanceof EelHelperNode:
+				return `EEL-Helper **${(<EelHelperNode>node).identifier}**`
+			case node instanceof EelHelperMethodNode:
+				let description = undefined
+				node = <EelHelperMethodNode>node
+
+				const eelHelper = workspace.neosWorkspace.getEelHelperFileUriByName((<EelHelperMethodNode>node).eelHelper.identifier)
+				if(eelHelper) {
+					const method = eelHelper.methods.find(method => '.'+method.name === (<EelHelperMethodNode>node).identifier)
+					if(method) description = method.description
+				}
+
+				const header = `EEL-Helper *${(<EelHelperMethodNode>node).eelHelper.identifier}***${(<EelHelperMethodNode>node).identifier}**`
+
+				return `${header}` + (description ? '\n\n'+description : '')
 			default:
 				return null // `Type: ${node.constructor.name}`
 		}
@@ -40,7 +58,7 @@ export class HoverCapability extends AbstractCapability {
 		const node = foundNodeByLine.getNode()
 		this.log(`FoundNode: ` + node.constructor.name)
 
-		const markdown = this.getMarkdownByNode(node)
+		const markdown = this.getMarkdownByNode(node, workspace)
 		if (markdown === null) return null
 
 		return {

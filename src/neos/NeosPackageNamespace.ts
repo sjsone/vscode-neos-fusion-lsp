@@ -1,8 +1,7 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { getLineNumberOfChar, pathToUri } from '../util'
-
-
+import { EELHelperMethodToken } from './NeosPackage'
 
 
 export class NeosPackageNamespace {
@@ -74,15 +73,22 @@ export class NeosPackageNamespace {
 		const rest = phpFileSource
 		let match = methodsRegex.exec(rest);
 
-		const methods: {name: string, position: { begin: { line: number, column: number }, end: { line: number, column: number } }}[] = []
+		const methods: EELHelperMethodToken[] = []
 
 		while (match != null) {
 			const fullDefinition = match[1]
 			const name = match[2]
 			const identifierIndex = rest.substring(lastIndex).indexOf(fullDefinition) + lastIndex
+			// There should be another way but it is what it is 
+			const methodDescriptionRegexString = `${classMatch}[\\S\\s]*\\/\\*\\*\\s*\\n\\s*\\*\\s*((?!@)[\\w\\s]*\\n)[\\S\\s]*${fullDefinition.replace("(", "")}`
+			const methodDescriptionRegex = new RegExp(methodDescriptionRegexString)
+			const descriptionMatch = methodDescriptionRegex.exec(phpFileSource)
+
+			const description = descriptionMatch !== null ? descriptionMatch[1] : undefined
 
 			methods.push({
 				name: name,
+				description,
 				position: {
 					begin: getLineNumberOfChar(phpFileSource, identifierIndex),
 					end: getLineNumberOfChar(phpFileSource, identifierIndex  + fullDefinition.length)
