@@ -12,8 +12,22 @@ export class NeosWorkspace {
 	}
 
 	addPackage(packagePath: string) {
-		const neosPackage = new NeosPackage(NodePath.join(this.workspacePath, packagePath))
+		const neosPackage = new NeosPackage(NodePath.join(this.workspacePath, packagePath), this)
 		this.packages.set(neosPackage.getName(), neosPackage)
+	}
+
+	getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
+		for(const neosPackage of this.packages.values()) {
+			const eelHelper = neosPackage.getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName)
+			if(eelHelper) return eelHelper
+		}
+		return undefined
+	}
+
+	initEelHelpers() {
+		for(const neosPackage of this.packages.values()) {
+			neosPackage.initEelHelper()
+		}
 	}
 
 	getEelHelperFileUris() {

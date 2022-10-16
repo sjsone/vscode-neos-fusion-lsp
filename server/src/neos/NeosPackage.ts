@@ -2,6 +2,7 @@ import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { FlowConfiguration } from './FlowConfiguration'
 import { NeosPackageNamespace } from './NeosPackageNamespace'
+import { NeosWorkspace } from './NeosWorkspace'
 
 export interface EELHelperToken {
 	name: string,
@@ -15,19 +16,26 @@ export interface EELHelperToken {
 }
 export class NeosPackage {
 	protected path: string
+	protected neosWorkspace: NeosWorkspace
 
 	protected composerJson: any
 
 	protected namespaces: Map<string, NeosPackageNamespace> = new Map()
 	protected eelHelpers: EELHelperToken[] = []
 
-	constructor(path: string) {
-		this.path = path
+	protected debug: boolean
 
+	constructor(path: string, neosWorkspace: NeosWorkspace) {
+		this.path = path
+		this.neosWorkspace = neosWorkspace
 
 		this.initComposerJson()
+
+		this.debug = this.getName() === "neos/fusion"
+
 		this.initNamespaceLoading()
-		this.initConfiguration()
+
+		this.log("DEBUG")
 	}
 
 	protected initComposerJson() {
@@ -36,22 +44,29 @@ export class NeosPackage {
 	}
 
 	protected initNamespaceLoading() {
-		const autoloadNamespaces = this.composerJson.autoload["psr-4"]
+		const autoloadNamespaces = this.composerJson?.autoload?.["psr-4"] ?? []
 		for (const namespace in autoloadNamespaces) {
 			const namespacePath = autoloadNamespaces[namespace]
 			this.namespaces.set(namespace, new NeosPackageNamespace(namespace, NodePath.join(this.path, namespacePath)))
 		}
 	}
 
-	protected initConfiguration() {
+	public initEelHelper() {
 		const configurationFolderPath = NodePath.join(this.path, "Configuration")
+		if(!NodeFs.existsSync(configurationFolderPath)) return undefined
 		const neosConfiguration = FlowConfiguration.FromFolder(configurationFolderPath)
+
+		if(neosConfiguration["parsedYamlConfiguration"] === null) return undefined
+		
 		const defaultNeosFusionContext = neosConfiguration.get<any>("Neos.Fusion.defaultContext")
-		// this.log("defaultNeosFusionContext", defaultNeosFusionContext)
+		this.log("defaultNeosFusionContext", defaultNeosFusionContext)
+
+		if(!defaultNeosFusionContext) return undefined
 		for (const eelHelperPrefix in defaultNeosFusionContext) {
 			const fqcn = defaultNeosFusionContext[eelHelperPrefix]
-			const eelHelper = this.getEelHelperFromFullyQualifiedClassName(fqcn)
+			const eelHelper = this.neosWorkspace.getEelHelperFromFullyQualifiedClassName(fqcn)
 			if (eelHelper !== undefined) {
+				// this.log("Found EEL-Helper", eelHelper)
 				const location = {
 					name: eelHelperPrefix,
 					uri: eelHelper.uri,
@@ -73,6 +88,7 @@ export class NeosPackage {
 				return namespaceEntry[1].getFileUriFromFullyQualifiedClassName(fullyQualifiedClassName)
 			}
 		}
+		return undefined
 	}
 
 	getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
@@ -81,6 +97,7 @@ export class NeosPackage {
 				return namespaceEntry[1].getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName)
 			}
 		}
+		return undefined
 	}
 
 	getEelHelpers() {
@@ -92,6 +109,6 @@ export class NeosPackage {
 	}
 
 	log(...text: any) {
-		console.log("[NeosPackage]", ...text)
+		if(this.debug) console.log("[NeosPackage]", ...text)
 	}
 }

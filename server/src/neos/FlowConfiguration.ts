@@ -13,6 +13,7 @@ export class FlowConfiguration {
 	}	
 
 	get<T extends ParsedYaml>(path: string|string[], parsedYamlConfiguration = this.parsedYamlConfiguration): T {
+		if(parsedYamlConfiguration === undefined || parsedYamlConfiguration === null) return undefined
 		if(!Array.isArray(path)) path = path.split(".")
 		const key = path.shift()
 		const value = parsedYamlConfiguration[key]
@@ -26,13 +27,15 @@ export class FlowConfiguration {
 		let configuration = {}
         for (const configurationFilePath of getFiles(folderPath, ".yaml")) {
             const configurationFile = NodeFs.readFileSync(configurationFilePath).toString()
-
             const parsedYaml = parseYaml(configurationFile)
+
             try {
-                configuration = mergeObjects(configuration, parsedYaml)
+				const mergedConfiguration = mergeObjects(configuration, parsedYaml)
+                configuration = mergedConfiguration ? mergedConfiguration : configuration
             } catch (e) {
                 if (e instanceof Error) {
-                    console.log("ERROR", e.message)
+					console.log("ERROR: configuration", configuration)
+                    console.log("ERROR: ", e.message, e.stack)
                 }
             }
         }

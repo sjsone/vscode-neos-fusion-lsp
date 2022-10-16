@@ -63,7 +63,10 @@ export class ParsedFile {
 			}
 			return true
 		} catch (e) {
-			console.log("Caught: ",)
+			if(e instanceof Error) {
+				console.log("Caught: ",e.message, e.stack)
+			}
+			
 			return false
 		}
 	}
@@ -185,7 +188,7 @@ export class ParsedFile {
 				const identifierIndex = rest.substring(lastIndex).indexOf(identifier) + lastIndex 
 
 				const startPos = node["position"].start + identifierIndex
-				const endPos = startPos + identifier.length + (method !== null ? method.length : 0)
+				const endPos = startPos + identifier.length + (method ? method.length : 0)
 				
 				const eelHelperNode = new EelHelperNode(identifier, method, new NodePosition(startPos, endPos))
 				this.addNode(eelHelperNode, text)
