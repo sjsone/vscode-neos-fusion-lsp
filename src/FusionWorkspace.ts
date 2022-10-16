@@ -53,6 +53,8 @@ export class FusionWorkspace {
             this.neosWorkspace.addPackage(packagePath)
         }
 
+        this.neosWorkspace.initEelHelpers()
+
         for(const packagePath of packagesPaths) {
             for (const packageFusionFolderPath of configuration.folders.fusion) {
                 const fusionFolderPath = NodePath.join(packagePath, packageFusionFolderPath)
