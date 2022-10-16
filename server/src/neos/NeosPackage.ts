@@ -3,14 +3,24 @@ import * as NodePath from "path"
 import { FlowConfiguration } from './FlowConfiguration'
 import { NeosPackageNamespace } from './NeosPackageNamespace'
 
+export interface EELHelperToken {
+	name: string,
+	uri: string, 
+	regex: RegExp,
+	position: {
+		begin: { line: number, column: number },
+		end: { line: number, column: number }
+	},
+	methods: Array<{name: string, position: { begin: { line: number, column: number }, end: { line: number, column: number } }}>
+}
 export class NeosPackage {
 	protected path: string
 
 	protected composerJson: any
 
 	protected namespaces: Map<string, NeosPackageNamespace> = new Map()
-	protected eelHelpers: {name: string, uri: string, regex: RegExp}[] = []
-	
+	protected eelHelpers: EELHelperToken[] = []
+
 	constructor(path: string) {
 		this.path = path
 
@@ -27,7 +37,7 @@ export class NeosPackage {
 
 	protected initNamespaceLoading() {
 		const autoloadNamespaces = this.composerJson.autoload["psr-4"]
-		for(const namespace in autoloadNamespaces) {
+		for (const namespace in autoloadNamespaces) {
 			const namespacePath = autoloadNamespaces[namespace]
 			this.namespaces.set(namespace, new NeosPackageNamespace(namespace, NodePath.join(this.path, namespacePath)))
 		}
@@ -38,24 +48,37 @@ export class NeosPackage {
 		const neosConfiguration = FlowConfiguration.FromFolder(configurationFolderPath)
 		const defaultNeosFusionContext = neosConfiguration.get<any>("Neos.Fusion.defaultContext")
 		// this.log("defaultNeosFusionContext", defaultNeosFusionContext)
-		for(const eelHelperPrefix in defaultNeosFusionContext) {
+		for (const eelHelperPrefix in defaultNeosFusionContext) {
 			const fqcn = defaultNeosFusionContext[eelHelperPrefix]
-			const eelHelperFileUri = this.getFileUriFromFullyQualifiedClassName(fqcn)
-			if(eelHelperFileUri !== undefined) {
-				this.log("Found EEL-Helper", eelHelperPrefix, eelHelperFileUri)
-				this.eelHelpers.push({
+			const eelHelper = this.getEelHelperFromFullyQualifiedClassName(fqcn)
+			if (eelHelper !== undefined) {
+				const location = {
 					name: eelHelperPrefix,
-					uri: eelHelperFileUri,
-					regex: RegExp(`(${eelHelperPrefix.split('.').join('\\.')})(\\.\\w+)?`)
-				})
-			} 
+					uri: eelHelper.uri,
+					regex: RegExp(`(${eelHelperPrefix.split('.').join('\\.')})(\\.\\w+)?`),
+					position: {
+						begin: eelHelper.position.begin,
+						end: eelHelper.position.end
+					},
+					methods: eelHelper.methods
+				}
+				this.eelHelpers.push(location)
+			}
 		}
 	}
 
 	getFileUriFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
-		for(const namespaceEntry of this.namespaces.entries()) {
-			if(fullyQualifiedClassName.startsWith(namespaceEntry[0])) {
+		for (const namespaceEntry of this.namespaces.entries()) {
+			if (fullyQualifiedClassName.startsWith(namespaceEntry[0])) {
 				return namespaceEntry[1].getFileUriFromFullyQualifiedClassName(fullyQualifiedClassName)
+			}
+		}
+	}
+
+	getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
+		for (const namespaceEntry of this.namespaces.entries()) {
+			if (fullyQualifiedClassName.startsWith(namespaceEntry[0])) {
+				return namespaceEntry[1].getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName)
 			}
 		}
 	}

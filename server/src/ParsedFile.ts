@@ -172,7 +172,6 @@ export class ParsedFile {
 	}
 
 	handleEelExpression(node: EelExpressionValue, text: string) {
-		
 		for(const eelHelper of this.workspace.neosWorkspace.getEelHelperFileUris()) {
 			const regex = new RegExp(eelHelper.regex, 'g')
 
@@ -186,7 +185,7 @@ export class ParsedFile {
 				const identifierIndex = rest.substring(lastIndex).indexOf(identifier) + lastIndex 
 
 				const startPos = node["position"].start + identifierIndex
-				const endPos = startPos + identifier.length
+				const endPos = startPos + identifier.length + (method !== null ? method.length : 0)
 				
 				const eelHelperNode = new EelHelperNode(identifier, method, new NodePosition(startPos, endPos))
 				this.addNode(eelHelperNode, text)

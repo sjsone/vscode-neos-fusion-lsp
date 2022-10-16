@@ -1,21 +1,17 @@
+import * as NodeFs from "fs"
+import * as NodePath from "path"
 import { FusionObjectValue } from 'ts-fusion-parser/out/core/objectTreeParser/ast/FusionObjectValue'
 import { FusionWorkspace } from './FusionWorkspace'
+import { getLineNumberOfChar } from './util'
 
-const fusionWorkspace = new FusionWorkspace("test", `file://${"/Users/simon/Projects/hogast-jobportal"}`)
-fusionWorkspace.init({
-	folders: {
-		packages: [
-			"source/DistributionPackages",
-			"source/Packages/Application",
-			"source/Packages/Framework",
-			"source/Packages/Plugins",
-			"source/Packages/Sites"
-		],
-		fusion: ["Resources/Private/Fusion", "Resources/Private/FusionModules", "Resources/Private/FusionPlugins"],
-		ignore: ["source/Packages/Libraries", "Packages/Libraries"],
-		workspaceAsPackageFallback: true
-	}
-})
 
-const nodesByType = fusionWorkspace.getNodesByType(FusionObjectValue)
-// console.log(nodesByType[0])
+
+const filePath = "/Users/simon/Downloads/bauwerk-capital-website-master/source/DistributionPackages/BauwerkCapital.Website/Classes/Eel/Helper/SearchHelper.php"
+
+const file = NodeFs.readFileSync(filePath).toString()
+
+
+const start = 22818 
+const end = 22856
+console.log(file.substring(start, end))
+// console.log(getLineNumberOfChar(file, start, true))
