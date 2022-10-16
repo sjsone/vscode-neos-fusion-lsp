@@ -4,21 +4,20 @@ import { AbstractNode } from 'ts-fusion-parser/out/core/objectTreeParser/ast/Abs
 import { FusionObjectValue } from 'ts-fusion-parser/out/core/objectTreeParser/ast/FusionObjectValue';
 import { PrototypePathSegment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/PrototypePathSegment';
 
-export function getLineNumberOfChar(data: string, index: number, name: string = "") {
-    const debug = name === "Test.Test:Component"
-
+export function getLineNumberOfChar(data: string, index: number, debug: boolean = false) {
     const perLine = data.split('\n');
-    if (debug) console.log(`  perLine.length ${perLine.length}`)
+    if (debug) console.log(` perLine.length ${perLine.length}`)
     let total_length = 0;
     let column = index + 1
     let i = 0
     for (i; i < perLine.length; i++) {
+        if(debug) console.log("  Line: ", perLine[i])
         total_length += perLine[i].length + 1;
-        if (debug) console.log(` [${i}] total_length`, total_length)
+        if (debug) console.log(`  [${i}] total_length`, total_length)
         if (total_length >= index)
             return { line: i + 1, column }
         column -= perLine[i].length + 1
-        if (debug) console.log(` [${i}] column`, column)
+        if (debug) console.log(`  [${i}] column`, column)
     }
     return { line: i + 1, column }
 }

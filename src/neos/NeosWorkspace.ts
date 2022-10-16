@@ -1,7 +1,7 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { FlowConfiguration } from './FlowConfiguration'
-import { NeosPackage } from './NeosPackage'
+import { EELHelperToken, NeosPackage } from './NeosPackage'
 export class NeosWorkspace {
 	protected workspacePath: string 
 
@@ -17,7 +17,7 @@ export class NeosWorkspace {
 	}
 
 	getEelHelperFileUris() {
-		const fileUris: {name: string, uri: string, regex: RegExp}[] = []
+		const fileUris: EELHelperToken[] = []
 
 		for(const neosPackage of this.packages.values()) {
 			fileUris.push(...neosPackage.getEelHelpers())

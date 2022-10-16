@@ -48,7 +48,6 @@ export class DefinitionCapability extends AbstractCapability {
 		const goToPrototypeName = getPrototypeNameFromNode(foundNodeByLine.getNode())
 		if (goToPrototypeName === "") return null
 
-		// this.log(`goToPrototypeName "${goToPrototypeName}"`)
 		const locations: DefinitionLink[] = []
 
 		for (const otherParsedFile of workspace.parsedFiles) {
@@ -104,12 +103,20 @@ export class DefinitionCapability extends AbstractCapability {
 	getEelHelperDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<EelHelperNode>) {
 		for (const eelHelper of workspace.neosWorkspace.getEelHelperFileUris()) {
 			if (eelHelper.name === foundNodeByLine.getNode().identifier) {
+				let position = eelHelper.position
+				const nodeMethod = foundNodeByLine.getNode().method
+				
+				if(nodeMethod !== null) {
+					const foundMethod = eelHelper.methods.find(method => '.'+method.name === nodeMethod)
+					if(foundMethod) position = foundMethod.position
+				}
+
 				return [
 					{
 						uri: eelHelper.uri,
 						range: {
-							start: { line: 0, character: 0 },
-							end: { line: 0, character: 0 }
+							start: { line: position.begin.line - 1, character: position.begin.column - 1 },
+							end: { line: position.end.line - 1, character: position.end.column - 1 }
 						}
 					}
 				]
