@@ -29,6 +29,7 @@ export class FusionWorkspace extends Logger {
     }
 
     init(configuration: ExtensionConfiguration) {
+        this.clear()
         const workspacePath = uriToPath(this.uri)
 
         const ignoreFolders = configuration.folders.ignore
@@ -126,5 +127,10 @@ export class FusionWorkspace extends Logger {
             }
         }
         return nodes
+    }
+
+    protected clear() {
+        this.parsedFiles = []
+        this.filesWithErrors = []
     }
 }
