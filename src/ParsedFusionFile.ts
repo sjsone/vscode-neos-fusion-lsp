@@ -18,7 +18,7 @@ import { FusionWorkspace } from './FusionWorkspace'
 import { AttributeToken, ClosingTagToken, OpeningTagToken, TextToken, Tokenizer } from './html'
 import { LinePositionedNode } from './LinePositionedNode'
 
-export class ParsedFile {
+export class ParsedFusionFile {
 	public workspace: FusionWorkspace
 	public uri: string
 	public tokens: any[] = []
@@ -55,7 +55,7 @@ export class ParsedFile {
 						this.handleAfxDsl(node, text)
 						continue
 					}
-					if(node instanceof EelExpressionValue) {
+					if (node instanceof EelExpressionValue) {
 						this.handleEelExpression(node, text)
 						continue
 					}
@@ -64,16 +64,16 @@ export class ParsedFile {
 			}
 			return true
 		} catch (e) {
-			if(e instanceof Error) {
-				console.log("Caught: ",e.message, e.stack)
+			if (e instanceof Error) {
+				console.log("Caught: ", e.message, e.stack)
 			}
-			
+
 			return false
 		}
 	}
 
-	getNodesByType<T extends AbstractNode>(type: new(...args: any) => T): LinePositionedNode<T>[]|undefined {
-		return <LinePositionedNode<T>[]|undefined>this.nodesByType.get(type)
+	getNodesByType<T extends AbstractNode>(type: new (...args: any) => T): LinePositionedNode<T>[] | undefined {
+		return <LinePositionedNode<T>[] | undefined>this.nodesByType.get(type)
 	}
 
 	addNode(node: AbstractNode, text: string) {
@@ -102,7 +102,7 @@ export class ParsedFile {
 					this.handleAfxAttribute(locationOffset, htmlToken, text)
 					break;
 				case "text":
-					this.handleAfxText(locationOffset , htmlToken, text)
+					this.handleAfxText(locationOffset, htmlToken, text)
 					break;
 				default:
 					break;
@@ -121,8 +121,8 @@ export class ParsedFile {
 
 	handleAfxAttribute(locationOffset: number, htmlToken: AttributeToken, text: string) {
 		if (htmlToken.quote !== "{") return
-		
-		const txt = text.substring(locationOffset+htmlToken.startPos, locationOffset+htmlToken.endPos)
+
+		const txt = text.substring(locationOffset + htmlToken.startPos, locationOffset + htmlToken.endPos)
 		const prefixRegex = /(.*=\s*{)/
 		const offset = prefixRegex.exec(txt)[1].length
 		const propsRegex = /props\.([a-zA-Z0-9]+)/g
@@ -134,8 +134,8 @@ export class ParsedFile {
 			const identifier = match[1]
 			const identifierIndex = txt.substring(lastIndex).indexOf(identifier) + lastIndex
 
-			const startPos = locationOffset+htmlToken.startPos + identifierIndex
-			const endPos = locationOffset+htmlToken.startPos + identifierIndex + identifier.length
+			const startPos = locationOffset + htmlToken.startPos + identifierIndex
+			const endPos = locationOffset + htmlToken.startPos + identifierIndex + identifier.length
 
 			const node = new PathSegment(identifier, new NodePosition(startPos, endPos))
 			this.addNode(node, text)
@@ -148,8 +148,8 @@ export class ParsedFile {
 	handleAfxText(locationOffset: number, htmlToken: TextToken, text: string) {
 		const prefixRegex = /(\s*{)/
 		const prefixResult = prefixRegex.exec(htmlToken.text)
-		if(prefixResult === null) return 
-		
+		if (prefixResult === null) return
+
 		const prefix = prefixResult[1]
 		const rest = htmlToken.text.substring(prefix.length)
 
@@ -164,9 +164,9 @@ export class ParsedFile {
 			const identifier = match[1]
 			const identifierIndex = rest.substring(lastIndex).indexOf(identifier) + lastIndex
 
-			const startPos = locationOffset+htmlToken.startPos - htmlToken.text.length + offset + "props.".length
+			const startPos = locationOffset + htmlToken.startPos - htmlToken.text.length + offset + "props.".length
 			const endPos = startPos + identifier.length
-			
+
 			const node = new PathSegment(identifier, new NodePosition(startPos, endPos))
 			this.addNode(node, text)
 
@@ -176,7 +176,7 @@ export class ParsedFile {
 	}
 
 	handleEelExpression(node: EelExpressionValue, text: string) {
-		for(const eelHelper of this.workspace.neosWorkspace.getEelHelperFileUris()) {
+		for (const eelHelper of this.workspace.neosWorkspace.getEelHelperFileUris()) {
 			const regex = new RegExp(eelHelper.regex, 'g')
 
 			let lastIndex = 0
@@ -186,13 +186,13 @@ export class ParsedFile {
 			while (match != null) {
 				const identifier = match[1]
 				const method = match[2]
-				const identifierIndex = rest.substring(lastIndex).indexOf(identifier) + lastIndex 
+				const identifierIndex = rest.substring(lastIndex).indexOf(identifier) + lastIndex
 
 				const startPos = node["position"].start + identifierIndex
 				const endPos = startPos + identifier.length + (method ? method.length : 0)
-				
+
 				let eelHelperMethodNode = null
-				if(method) {
+				if (method) {
 					const methodStartPos = endPos - method.length // +1 because of the [dot]: Array[.]length
 
 					eelHelperMethodNode = new EelHelperMethodNode(method, new NodePosition(methodStartPos, endPos))
@@ -246,7 +246,7 @@ export class ParsedFile {
 				this.prototypeCreations.push(nodeByLine)
 
 				const sourceFusionPrototype = operation.assignedObjectPath.objectPath.segments[0]
-				if(sourceFusionPrototype instanceof PrototypePathSegment) {
+				if (sourceFusionPrototype instanceof PrototypePathSegment) {
 					this.prototypeExtends.push(this.createNodeByLine(sourceFusionPrototype, text))
 				}
 
@@ -254,7 +254,7 @@ export class ParsedFile {
 				this.prototypeOverwrites.push(nodeByLine)
 				// console.log("pushing to overwrite: ", firstPathSegment.identifier)
 			}
-		} else if(firstPathSegment instanceof PathSegment) {
+		} else if (firstPathSegment instanceof PathSegment) {
 			this.addNode(firstPathSegment, text)
 		} else if (operation instanceof ValueAssignment) {
 			if (operation.pathValue instanceof FusionObjectValue) {
@@ -270,12 +270,12 @@ export class ParsedFile {
 	getNodeByLineAndColumn(line: number, column: number): LinePositionedNode<any> | undefined {
 		const lineNodes = this.nodesByLine[line]
 		if (lineNodes === undefined) return undefined
-		const foundNodesByWeight: {[key: number]: LinePositionedNode<AbstractNode>} = {}
+		const foundNodesByWeight: { [key: number]: LinePositionedNode<AbstractNode> } = {}
 		for (const lineNode of lineNodes) {
 			if (column >= lineNode.getBegin().column && column <= lineNode.getEnd().column) {
 				const node = lineNode.getNode()
 				let weight = 0
-				switch(true) {
+				switch (true) {
 					case node instanceof EelHelperMethodNode:
 						weight = 15;
 						break;
@@ -283,14 +283,14 @@ export class ParsedFile {
 						weight = 10;
 						break;
 				}
-				if(foundNodesByWeight[weight] === undefined) {
+				if (foundNodesByWeight[weight] === undefined) {
 					foundNodesByWeight[weight] = lineNode
 				}
 			}
 		}
 
 		const sortedKeys = Object.keys(foundNodesByWeight).sort((a, b) => parseInt(b) - parseInt(a))
-		if(sortedKeys.length === 0) return undefined
+		if (sortedKeys.length === 0) return undefined
 		return foundNodesByWeight[sortedKeys[0]]
 	}
 }

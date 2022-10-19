@@ -5,7 +5,7 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import { type ExtensionConfiguration } from './ExtensionConfiguration';
 import { LinePositionedNode } from './LinePositionedNode';
 import { NeosWorkspace } from './neos/NeosWorkspace';
-import { ParsedFile } from './ParsedFile'
+import { ParsedFusionFile } from './ParsedFusionFile'
 import { getFiles, pathToUri, uriToPath } from './util'
 
 export class FusionWorkspace {
@@ -14,7 +14,7 @@ export class FusionWorkspace {
 
     public neosWorkspace: NeosWorkspace
 
-    public parsedFiles: ParsedFile[] = []
+    public parsedFiles: ParsedFusionFile[] = []
     public filesWithErrors: string[] = []
 
     constructor(name: string, uri: string) {
@@ -47,7 +47,7 @@ export class FusionWorkspace {
             packagesPaths.push(workspacePath)
         }
 
-        this.neosWorkspace = new NeosWorkspace(workspacePath) 
+        this.neosWorkspace = new NeosWorkspace(workspacePath)
 
         for (const packagePath of packagesPaths) {
             this.neosWorkspace.addPackage(packagePath)
@@ -55,14 +55,14 @@ export class FusionWorkspace {
 
         this.neosWorkspace.initEelHelpers()
 
-        for(const packagePath of packagesPaths) {
+        for (const packagePath of packagesPaths) {
             for (const packageFusionFolderPath of configuration.folders.fusion) {
                 const fusionFolderPath = NodePath.join(packagePath, packageFusionFolderPath)
                 if (!NodeFs.existsSync(fusionFolderPath)) continue
 
                 for (const fusionFilePath of getFiles(fusionFolderPath)) {
                     try {
-                        const parsedFile = new ParsedFile(pathToUri(fusionFilePath), this)
+                        const parsedFile = new ParsedFusionFile(pathToUri(fusionFilePath), this)
                         this.initParsedFile(parsedFile)
                         this.parsedFiles.push(parsedFile)
                     } catch (e) {
@@ -73,7 +73,7 @@ export class FusionWorkspace {
         }
     }
 
-    initParsedFile(parsedFile: ParsedFile, text: string = undefined) {
+    initParsedFile(parsedFile: ParsedFusionFile, text: string = undefined) {
         if (this.filesWithErrors.includes(parsedFile.uri)) return
 
         try {

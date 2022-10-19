@@ -6,7 +6,7 @@ import { EelHelperMethodNode } from '../fusion/EelHelperMethodNode';
 import { EelHelperNode } from '../fusion/EelHelperNode';
 import { FusionWorkspace } from '../FusionWorkspace';
 import { LinePositionedNode } from '../LinePositionedNode';
-import { ParsedFile } from '../ParsedFile';
+import { ParsedFusionFile } from '../ParsedFusionFile';
 import { getPrototypeNameFromNode } from '../util';
 import { AbstractCapability } from './AbstractCapability';
 
@@ -79,7 +79,7 @@ export class DefinitionCapability extends AbstractCapability {
 		return locations
 	}
 
-	getPropertyDefinitions(parsedFile: ParsedFile, foundNodeByLine: LinePositionedNode<PathSegment>) {
+	getPropertyDefinitions(parsedFile: ParsedFusionFile, foundNodeByLine: LinePositionedNode<PathSegment>) {
 		const locations: Location[] = []
 
 		const pathSegments = parsedFile.getNodesByType(PathSegment)
