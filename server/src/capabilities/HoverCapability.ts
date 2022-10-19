@@ -56,7 +56,7 @@ export class HoverCapability extends AbstractCapability {
 		const nodeEnd = foundNodeByLine.getEnd()
 
 		const node = foundNodeByLine.getNode()
-		this.log(`FoundNode: ` + node.constructor.name)
+		this.logVerbose(`FoundNode: ` + node.constructor.name)
 
 		const markdown = this.getMarkdownByNode(node, workspace)
 		if (markdown === null) return null

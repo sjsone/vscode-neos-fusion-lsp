@@ -15,7 +15,7 @@ export class DefinitionCapability extends AbstractCapability {
 	public run(params: DefinitionParams) {
 		const line = params.position.line + 1
 		const column = params.position.character + 1
-		this.log(`${line}/${column} ${params.textDocument.uri} ${params.workDoneToken}`);
+		this.logVerbose(`${line}/${column} ${params.textDocument.uri} ${params.workDoneToken}`);
 
 		const workspace = this.languageServer.getWorspaceFromFileUri(params.textDocument.uri)
 		if (workspace === undefined) return null
@@ -28,7 +28,7 @@ export class DefinitionCapability extends AbstractCapability {
 
 		
 		const node = foundNodeByLine.getNode()
-		this.log(`node type "${foundNodeByLine.getNode().constructor.name}"`)
+		this.logVerbose(`node type "${foundNodeByLine.getNode().constructor.name}"`)
 		switch (true) {
 			case node instanceof FusionObjectValue:
 			case node instanceof PrototypePathSegment:

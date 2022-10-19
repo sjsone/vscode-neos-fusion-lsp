@@ -90,7 +90,17 @@
 						"Packages/Libraries"
 					],
 					"description": "Folders to ignore"
-				}
+				},
+				"neosFusionLsp.logging.level": {
+					"type": "string",
+					"default": "info",
+					"enum": ["info", "verbose", "debug"],
+					"enumDescriptions": [
+					  "Just some general information",
+					  "A bit more explaining and additional information",
+					  "Shows everything it can"
+					]
+				  }
 			}
 		}
 	},

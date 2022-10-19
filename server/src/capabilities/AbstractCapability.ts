@@ -1,15 +1,13 @@
 import { LanguageServer } from '../LanguageServer';
+import { Logger } from '../Logging';
 
-export abstract class AbstractCapability {
+export abstract class AbstractCapability extends Logger {
 	protected languageServer: LanguageServer
 
 	constructor(languageServer: LanguageServer) {
+		super()
 		this.languageServer = languageServer
 	}
 
 	public abstract run(...args: any): any
-
-	protected log(text: string) {
-		this.languageServer.log(`[${this.constructor.name}]: `+text)
-	}
 }

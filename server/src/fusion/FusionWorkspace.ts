@@ -2,13 +2,14 @@ import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { TextDocumentChangeEvent } from 'vscode-languageserver'
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { type ExtensionConfiguration } from '../ExtensionConfiguration';
+import { LoggingLevel, type ExtensionConfiguration } from '../ExtensionConfiguration';
 import { LinePositionedNode } from '../LinePositionedNode';
 import { NeosWorkspace } from '../neos/NeosWorkspace';
 import { ParsedFusionFile } from './ParsedFusionFile'
 import { getFiles, pathToUri, uriToPath } from '../util'
+import { Logger, LogService } from '../Logging';
 
-export class FusionWorkspace {
+export class FusionWorkspace extends Logger {
     public uri: string
     public name: string
 
@@ -18,6 +19,7 @@ export class FusionWorkspace {
     public filesWithErrors: string[] = []
 
     constructor(name: string, uri: string) {
+        super()
         this.name = name
         this.uri = uri
     }
@@ -68,6 +70,18 @@ export class FusionWorkspace {
                     } catch (e) {
                         this.filesWithErrors.push(pathToUri(fusionFilePath))
                     }
+                }
+            }
+        }
+
+        this.logInfo(`Successfully parsed ${this.parsedFiles.length} fusion files. `)
+        if(this.filesWithErrors.length > 0) {
+            this.logInfo(`  Could not parse ${this.filesWithErrors.length} files due to errors`)
+
+            if(LogService.isLogLevel(LoggingLevel.Verbose)) {
+                this.logVerbose(`  Files:`)
+                for(const fileWithError of this.filesWithErrors) {
+                    this.logVerbose(`    ${fileWithError}`)
                 }
             }
         }

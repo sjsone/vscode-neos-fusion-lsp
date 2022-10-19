@@ -17,6 +17,8 @@ export class CompletionCapability extends AbstractCapability {
 		const parsedFile = fusionWorkspace.getParsedFileByUri(textDocumentPosition.textDocument.uri)
 		if (parsedFile) completions.push(...this.getFusionPropertyCompletions(parsedFile))
 
+		this.logVerbose(`Found ${completions.length} completions `)
+
 		return completions
 	}
 
