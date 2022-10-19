@@ -7,3 +7,9 @@
 contributing.md
 .travis.yml
 *.svg
+images/
+!images/logo.png
+
+**/package-lock.json
+**/package.json
+**/README.md
