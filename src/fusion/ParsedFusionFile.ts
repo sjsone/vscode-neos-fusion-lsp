@@ -12,11 +12,11 @@ import { PrototypePathSegment } from 'ts-fusion-parser/out/core/objectTreeParser
 import { StatementList } from 'ts-fusion-parser/out/core/objectTreeParser/ast/StatementList'
 import { ValueAssignment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/ValueAssignment'
 import { ValueCopy } from 'ts-fusion-parser/out/core/objectTreeParser/ast/ValueCopy'
-import { EelHelperMethodNode } from './fusion/EelHelperMethodNode'
-import { EelHelperNode } from './fusion/EelHelperNode'
+import { EelHelperMethodNode } from './EelHelperMethodNode'
+import { EelHelperNode } from './EelHelperNode'
 import { FusionWorkspace } from './FusionWorkspace'
-import { AttributeToken, ClosingTagToken, OpeningTagToken, TextToken, Tokenizer } from './html'
-import { LinePositionedNode } from './LinePositionedNode'
+import { AttributeToken, ClosingTagToken, OpeningTagToken, TextToken, Tokenizer } from '../html'
+import { LinePositionedNode } from '../LinePositionedNode'
 
 export class ParsedFusionFile {
 	public workspace: FusionWorkspace
