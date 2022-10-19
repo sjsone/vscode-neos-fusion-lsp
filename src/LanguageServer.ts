@@ -15,9 +15,9 @@ import { DefinitionCapability } from './capabilities/DefinitionCapability';
 import { CompletionCapability } from './capabilities/CompletionCapability';
 import { HoverCapability } from './capabilities/HoverCapability';
 import { ReferenceCapability } from './capabilities/ReferenceCapability';
-import { uriToPath } from './util';
+import { Logger, LogService } from './Logging';
 
-export class LanguageServer {
+export class LanguageServer extends Logger {
 
 	protected connection: _Connection<any>
 	protected documents: TextDocuments<FusionDocument>
@@ -25,6 +25,7 @@ export class LanguageServer {
 	protected capabilities: Map<string, AbstractCapability> = new Map()
 
 	constructor(connection: _Connection<any>, documents: TextDocuments<FusionDocument>) {
+		super()
 		this.connection = connection
 		this.documents = documents
 
@@ -42,16 +43,12 @@ export class LanguageServer {
 		return this.fusionWorkspaces.find(w => w.isResponsibleForUri(uri))
 	}
 
-	public log(text: string) {
-		this.connection.console.log(`[Server(${process.pid})] ${text}`);
-	}
-
 	public onDidChangeContent(change: TextDocumentChangeEvent<FusionDocument>) {
 		const workspace = this.getWorspaceFromFileUri(change.document.uri)
 		if (workspace === undefined) return null
 
 		workspace.updateFileByChange(change)
-		this.log(`Document changed: ${change.document.uri.replace(workspace.getUri(), "")}`);
+		this.logVerbose(`Document changed: ${change.document.uri.replace(workspace.getUri(), "")}`);
 	}
 
 	public onDidOpen(event: TextDocumentChangeEvent<FusionDocument>) {
@@ -59,7 +56,7 @@ export class LanguageServer {
 		if (workspace === undefined) return null
 
 		workspace.updateFileByChange(event)
-		this.log(`Document opened: ${event.document.uri.replace(workspace.getUri(), "")}`)
+		this.logVerbose(`Document opened: ${event.document.uri.replace(workspace.getUri(), "")}`)
 	}
 
 	public onInitialize(params: InitializeParams): InitializeResult<any> {
@@ -68,7 +65,7 @@ export class LanguageServer {
 			this.fusionWorkspaces.push(fusionWorkspace)
 		}
 
-		this.log(`${params.workspaceFolders.map(folder => folder.name + "/" + folder.uri).join(",")}] Started and initialize received`);
+		this.logInfo(`${params.workspaceFolders.map(folder => folder.name + "/" + folder.uri).join(",")}] Started and initialize received`);
 
 		return {
 			capabilities: {
@@ -89,7 +86,9 @@ export class LanguageServer {
 	public onDidChangeConfiguration(params: DidChangeConfigurationParams) {
 		const configuration: ExtensionConfiguration = params.settings.neosFusionLsp
 
-		this.log("params.settings: " + JSON.stringify(configuration))
+		LogService.setLogLevel(configuration.logging.level)
+
+		this.logVerbose("Configuration: " + JSON.stringify(configuration))
 		for (const fusionWorkspace of this.fusionWorkspaces) {
 			fusionWorkspace.init(configuration)
 		}

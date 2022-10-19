@@ -9,7 +9,7 @@ export class ReferenceCapability extends AbstractCapability {
 	public run(params: ReferenceParams): any {
 		const line = params.position.line + 1
 		const column = params.position.character + 1
-		this.log(`${line}/${column} ${params.textDocument.uri} ${params.workDoneToken}`);
+		this.logDebug(`${line}/${column} ${params.textDocument.uri} ${params.workDoneToken}`);
 
 		const workspace = this.languageServer.getWorspaceFromFileUri(params.textDocument.uri)
 		if (workspace === undefined) return null
@@ -20,12 +20,12 @@ export class ReferenceCapability extends AbstractCapability {
 		const foundNodeByLine = parsedFile.getNodeByLineAndColumn(line, column)
 		if (foundNodeByLine === undefined) return null
 
-		this.log(`node type "${foundNodeByLine.getNode().constructor.name}"`)
+		this.logVerbose(`Found node type "${foundNodeByLine.getNode().constructor.name}"`)
 
 		const goToPrototypeName = getPrototypeNameFromNode(foundNodeByLine.getNode())
 		if (goToPrototypeName === "") return null
 
-		this.log(`goToPrototypeName "${goToPrototypeName}"`)
+		this.logVerbose(`goToPrototypeName "${goToPrototypeName}"`)
 		const locations: Location[] = []
 
 		for (const otherParsedFile of workspace.parsedFiles) {

@@ -1,44 +1,52 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { parse as parseYaml } from 'yaml'
+import { LoggingLevel } from '../ExtensionConfiguration';
+import { Logger, LogService } from '../Logging';
 import { getFiles, mergeObjects } from '../util';
 
-export type ParsedYaml = string | null | number | {[key: string]: ParsedYaml}
+export type ParsedYaml = string | null | number | { [key: string]: ParsedYaml }
 
-export class FlowConfiguration {
+export class FlowConfiguration extends Logger {
 	protected parsedYamlConfiguration: ParsedYaml
 
 	constructor(parsedYamlConfiguration: ParsedYaml) {
+		super()
 		this.parsedYamlConfiguration = parsedYamlConfiguration
-	}	
+	}
 
-	get<T extends ParsedYaml>(path: string|string[], parsedYamlConfiguration = this.parsedYamlConfiguration): T {
-		if(parsedYamlConfiguration === undefined || parsedYamlConfiguration === null) return undefined
-		if(!Array.isArray(path)) path = path.split(".")
+	get<T extends ParsedYaml>(path: string | string[], parsedYamlConfiguration = this.parsedYamlConfiguration): T {
+		if (parsedYamlConfiguration === undefined || parsedYamlConfiguration === null) return undefined
+		if (!Array.isArray(path)) path = path.split(".")
 		const key = path.shift()
 		const value = parsedYamlConfiguration[key]
-		if(path.length === 0) return value
-		if(value === undefined || value === null) return undefined
+		if (path.length === 0) return value
+		if (value === undefined || value === null) return undefined
 		return (typeof value === 'object' && typeof value !== 'function') ? this.get(path, value) : undefined
 	}
-	
 
 	static FromFolder(folderPath: string) {
 		let configuration = {}
-        for (const configurationFilePath of getFiles(folderPath, ".yaml")) {
-            const configurationFile = NodeFs.readFileSync(configurationFilePath).toString()
-            const parsedYaml = parseYaml(configurationFile)
+		for (const configurationFilePath of getFiles(folderPath, ".yaml")) {
+			const configurationFile = NodeFs.readFileSync(configurationFilePath).toString()
+			const parsedYaml = parseYaml(configurationFile)
 
-            try {
+			try {
 				const mergedConfiguration = mergeObjects(configuration, parsedYaml)
-                configuration = mergedConfiguration ? mergedConfiguration : configuration
-            } catch (e) {
-                if (e instanceof Error) {
+				configuration = mergedConfiguration ? mergedConfiguration : configuration
+				if (LogService.isLogLevel(LoggingLevel.Debug)) {
+					Logger.LogNameAndLevel(LoggingLevel.Debug, 'FlowConfiguration:FromFolder', 'Read configuration from: ' + configurationFilePath)
+				}
+			} catch (e) {
+				if (e instanceof Error) {
 					console.log("ERROR: configuration", configuration)
-                    console.log("ERROR: ", e.message, e.stack)
-                }
-            }
-        }
-        return new FlowConfiguration(configuration)
+					console.log("ERROR: ", e.message, e.stack)
+				}
+			}
+		}
+		if (LogService.isLogLevel(LoggingLevel.Verbose)) {
+			Logger.LogNameAndLevel(LoggingLevel.Verbose, 'FlowConfiguration:FromFolder', 'Created FlowConfiguration from: ' + folderPath)
+		}
+		return new FlowConfiguration(configuration)
 	}
 }
