@@ -7,7 +7,7 @@ import {
 	_Connection,
 	InitializeResult,
 } from "vscode-languageserver/node";
-import { FusionWorkspace } from './FusionWorkspace';
+import { FusionWorkspace } from './fusion/FusionWorkspace';
 import { type ExtensionConfiguration } from './ExtensionConfiguration';
 import { FusionDocument } from './main';
 import { AbstractCapability } from './capabilities/AbstractCapability';

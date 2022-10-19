@@ -1,8 +1,8 @@
 import { PathSegment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/PathSegment';
 import { PrototypePathSegment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/PrototypePathSegment';
 import { CompletionItemKind, TextDocumentPositionParams } from 'vscode-languageserver/node';
-import { FusionWorkspace } from '../FusionWorkspace';
-import { ParsedFusionFile } from '../ParsedFusionFile';
+import { FusionWorkspace } from '../fusion/FusionWorkspace';
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
 import { AbstractCapability } from './AbstractCapability';
 
 export class CompletionCapability extends AbstractCapability {

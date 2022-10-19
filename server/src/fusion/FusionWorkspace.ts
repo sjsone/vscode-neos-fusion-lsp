@@ -2,11 +2,11 @@ import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { TextDocumentChangeEvent } from 'vscode-languageserver'
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { type ExtensionConfiguration } from './ExtensionConfiguration';
-import { LinePositionedNode } from './LinePositionedNode';
-import { NeosWorkspace } from './neos/NeosWorkspace';
+import { type ExtensionConfiguration } from '../ExtensionConfiguration';
+import { LinePositionedNode } from '../LinePositionedNode';
+import { NeosWorkspace } from '../neos/NeosWorkspace';
 import { ParsedFusionFile } from './ParsedFusionFile'
-import { getFiles, pathToUri, uriToPath } from './util'
+import { getFiles, pathToUri, uriToPath } from '../util'
 
 export class FusionWorkspace {
     public uri: string

@@ -4,9 +4,9 @@ import { PrototypePathSegment } from 'ts-fusion-parser/out/core/objectTreeParser
 import { DefinitionLink, DefinitionParams, Location } from 'vscode-languageserver/node';
 import { EelHelperMethodNode } from '../fusion/EelHelperMethodNode';
 import { EelHelperNode } from '../fusion/EelHelperNode';
-import { FusionWorkspace } from '../FusionWorkspace';
+import { FusionWorkspace } from '../fusion/FusionWorkspace';
 import { LinePositionedNode } from '../LinePositionedNode';
-import { ParsedFusionFile } from '../ParsedFusionFile';
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
 import { getPrototypeNameFromNode } from '../util';
 import { AbstractCapability } from './AbstractCapability';
 

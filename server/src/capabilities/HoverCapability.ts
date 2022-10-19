@@ -5,7 +5,7 @@ import { PrototypePathSegment } from 'ts-fusion-parser/out/core/objectTreeParser
 import { DefinitionParams } from 'vscode-languageserver/node';
 import { EelHelperMethodNode } from '../fusion/EelHelperMethodNode';
 import { EelHelperNode } from '../fusion/EelHelperNode';
-import { FusionWorkspace } from '../FusionWorkspace';
+import { FusionWorkspace } from '../fusion/FusionWorkspace';
 import { getPrototypeNameFromNode } from '../util';
 import { AbstractCapability } from './AbstractCapability';
 
