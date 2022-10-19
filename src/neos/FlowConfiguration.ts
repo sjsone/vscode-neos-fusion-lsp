@@ -35,7 +35,7 @@ export class FlowConfiguration extends Logger {
 				const mergedConfiguration = mergeObjects(configuration, parsedYaml)
 				configuration = mergedConfiguration ? mergedConfiguration : configuration
 				if (LogService.isLogLevel(LoggingLevel.Debug)) {
-					Logger.LogNameAndLevel(LoggingLevel.Debug, 'FlowConfiguration:FromFolder', 'Read configuration from: ' + configurationFilePath)
+					Logger.LogNameAndLevel(LoggingLevel.Debug.toUpperCase(), 'FlowConfiguration:FromFolder', 'Read configuration from: ' + configurationFilePath)
 				}
 			} catch (e) {
 				if (e instanceof Error) {
@@ -45,7 +45,7 @@ export class FlowConfiguration extends Logger {
 			}
 		}
 		if (LogService.isLogLevel(LoggingLevel.Verbose)) {
-			Logger.LogNameAndLevel(LoggingLevel.Verbose, 'FlowConfiguration:FromFolder', 'Created FlowConfiguration from: ' + folderPath)
+			Logger.LogNameAndLevel(LoggingLevel.Verbose.toUpperCase(), 'FlowConfiguration:FromFolder', 'Created FlowConfiguration from: ' + folderPath)
 		}
 		return new FlowConfiguration(configuration)
 	}
