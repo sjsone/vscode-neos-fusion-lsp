@@ -16,6 +16,7 @@ import { CompletionCapability } from './capabilities/CompletionCapability';
 import { HoverCapability } from './capabilities/HoverCapability';
 import { ReferenceCapability } from './capabilities/ReferenceCapability';
 import { Logger, LogService } from './Logging';
+import { uriToPath } from './util';
 
 export class LanguageServer extends Logger {
 
@@ -60,12 +61,14 @@ export class LanguageServer extends Logger {
 	}
 
 	public onInitialize(params: InitializeParams): InitializeResult<any> {
+		this.logVerbose("onInitialize")
+
 		for (const workspaceFolder of params.workspaceFolders) {
 			const fusionWorkspace = new FusionWorkspace(workspaceFolder.name, workspaceFolder.uri)
 			this.fusionWorkspaces.push(fusionWorkspace)
-		}
 
-		this.logInfo(`${params.workspaceFolders.map(folder => folder.name + "/" + folder.uri).join(",")}] Started and initialize received`);
+			this.logInfo(`Added FusionWorkspace ${workspaceFolder.name} with path ${uriToPath(workspaceFolder.uri)}`)
+		}
 
 		return {
 			capabilities: {
