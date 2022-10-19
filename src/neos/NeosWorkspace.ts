@@ -12,7 +12,7 @@ export class NeosWorkspace {
 	}
 
 	addPackage(packagePath: string) {
-		const neosPackage = new NeosPackage(NodePath.join(this.workspacePath, packagePath), this)
+		const neosPackage = new NeosPackage(NodePath.resolve(this.workspacePath, packagePath), this)
 		this.packages.set(neosPackage.getName(), neosPackage)
 	}
 
