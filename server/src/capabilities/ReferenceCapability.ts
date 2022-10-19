@@ -1,6 +1,6 @@
 import { FusionObjectValue } from 'ts-fusion-parser/out/core/objectTreeParser/ast/FusionObjectValue';
 import { Location, ReferenceParams } from 'vscode-languageserver/node';
-import { ParsedFile } from '../ParsedFile';
+import { ParsedFusionFile } from '../ParsedFusionFile';
 import { getPrototypeNameFromNode } from '../util';
 import { AbstractCapability } from './AbstractCapability';
 
@@ -49,7 +49,7 @@ export class ReferenceCapability extends AbstractCapability {
 		return locations
 	}
 
-	protected getOtherNodesFromOtherParsedFile(otherParsedFile: ParsedFile) {
+	protected getOtherNodesFromOtherParsedFile(otherParsedFile: ParsedFusionFile) {
 		const fusionObjectValues = otherParsedFile.getNodesByType(FusionObjectValue) || []
 		return [...otherParsedFile.prototypeExtends, ...fusionObjectValues]
 	}

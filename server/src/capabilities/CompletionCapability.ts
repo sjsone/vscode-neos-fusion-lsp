@@ -1,9 +1,8 @@
-import { FusionFile } from 'ts-fusion-parser/out/core/objectTreeParser/ast/FusionFile';
 import { PathSegment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/PathSegment';
 import { PrototypePathSegment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/PrototypePathSegment';
 import { CompletionItemKind, TextDocumentPositionParams } from 'vscode-languageserver/node';
 import { FusionWorkspace } from '../FusionWorkspace';
-import { ParsedFile } from '../ParsedFile';
+import { ParsedFusionFile } from '../ParsedFusionFile';
 import { AbstractCapability } from './AbstractCapability';
 
 export class CompletionCapability extends AbstractCapability {
@@ -21,7 +20,7 @@ export class CompletionCapability extends AbstractCapability {
 		return completions
 	}
 
-	protected getFusionPropertyCompletions(parsedFile: ParsedFile) {
+	protected getFusionPropertyCompletions(parsedFile: ParsedFusionFile) {
 		const completions = []
 
 		const foundNodes = parsedFile.getNodesByType(PathSegment)
