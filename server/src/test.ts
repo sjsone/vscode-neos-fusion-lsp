@@ -1,6 +1,6 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
-import { FusionObjectValue } from 'ts-fusion-parser/out/core/objectTreeParser/ast/FusionObjectValue'
+import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
 import { FusionWorkspace } from './fusion/FusionWorkspace'
 import { getLineNumberOfChar } from './util'
 

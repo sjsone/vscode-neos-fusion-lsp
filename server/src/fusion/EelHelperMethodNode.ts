@@ -1,6 +1,6 @@
-import { AbstractNode } from 'ts-fusion-parser/out/core/objectTreeParser/ast/AbstractNode';
-import { NodePosition } from 'ts-fusion-parser/out/core/objectTreeParser/ast/NodePosition';
-import { AstNodeVisitorInterface } from 'ts-fusion-parser/out/core/objectTreeParser/astNodeVisitorInterface';
+import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode';
+import { NodePosition } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/NodePosition';
+import { AstNodeVisitorInterface } from 'ts-fusion-parser/out/fusion/objectTreeParser/astNodeVisitorInterface';
 import { EelHelperNode } from './EelHelperNode';
 
 export class EelHelperMethodNode extends AbstractNode {

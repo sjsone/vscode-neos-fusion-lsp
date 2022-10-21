@@ -1,4 +1,4 @@
-import { FusionObjectValue } from 'ts-fusion-parser/out/core/objectTreeParser/ast/FusionObjectValue';
+import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue';
 import { Location, ReferenceParams } from 'vscode-languageserver/node';
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
 import { getPrototypeNameFromNode } from '../util';

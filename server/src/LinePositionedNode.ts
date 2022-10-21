@@ -1,4 +1,4 @@
-import { AbstractNode } from 'ts-fusion-parser/out/core/objectTreeParser/ast/AbstractNode';
+import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode';
 import { getLineNumberOfChar } from './util';
 
 export interface LinePosition {

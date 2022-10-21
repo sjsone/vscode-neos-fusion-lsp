@@ -1,5 +1,5 @@
-import { PathSegment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/PathSegment';
-import { PrototypePathSegment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/PrototypePathSegment';
+import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment';
+import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment';
 import { CompletionItemKind, TextDocumentPositionParams } from 'vscode-languageserver/node';
 import { FusionWorkspace } from '../fusion/FusionWorkspace';
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
