@@ -1,6 +1,6 @@
-import { FusionObjectValue } from 'ts-fusion-parser/out/core/objectTreeParser/ast/FusionObjectValue';
-import { PathSegment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/PathSegment';
-import { PrototypePathSegment } from 'ts-fusion-parser/out/core/objectTreeParser/ast/PrototypePathSegment';
+import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue';
+import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment';
+import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment';
 import { DefinitionLink, DefinitionParams, Location } from 'vscode-languageserver/node';
 import { EelHelperMethodNode } from '../fusion/EelHelperMethodNode';
 import { EelHelperNode } from '../fusion/EelHelperNode';
