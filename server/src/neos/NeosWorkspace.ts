@@ -1,13 +1,14 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
-import { FlowConfiguration } from './FlowConfiguration'
+import { Logger } from '../Logging'
 import { EELHelperToken, NeosPackage } from './NeosPackage'
-export class NeosWorkspace {
+export class NeosWorkspace extends Logger {
 	protected workspacePath: string 
 
 	protected packages: Map<string,NeosPackage> = new Map()
 
-	constructor(workspacePath: string) {
+	constructor(workspacePath: string, name: string) {
+		super(name)
 		this.workspacePath = workspacePath
 	}
 

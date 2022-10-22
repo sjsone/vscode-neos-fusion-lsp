@@ -19,7 +19,7 @@ export class FusionWorkspace extends Logger {
     public filesWithErrors: string[] = []
 
     constructor(name: string, uri: string) {
-        super()
+        super(name)
         this.name = name
         this.uri = uri
     }
@@ -50,7 +50,7 @@ export class FusionWorkspace extends Logger {
             packagesPaths.push(workspacePath)
         }
 
-        this.neosWorkspace = new NeosWorkspace(workspacePath)
+        this.neosWorkspace = new NeosWorkspace(workspacePath, this.name)
 
         for (const packagePath of packagesPaths) {
             this.neosWorkspace.addPackage(packagePath)

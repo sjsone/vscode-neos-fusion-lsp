@@ -1,5 +1,6 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
+import { Logger } from '../Logging'
 import { FlowConfiguration } from './FlowConfiguration'
 import { NeosPackageNamespace } from './NeosPackageNamespace'
 import { NeosWorkspace } from './NeosWorkspace'
@@ -23,7 +24,7 @@ export interface EELHelperMethodToken {
 		end: { line: number, column: number } 
 	}
 }
-export class NeosPackage {
+export class NeosPackage extends Logger {
 	protected path: string
 	protected neosWorkspace: NeosWorkspace
 
@@ -35,19 +36,19 @@ export class NeosPackage {
 	protected debug: boolean
 
 	constructor(path: string, neosWorkspace: NeosWorkspace) {
+		const composerJsonFilePath = NodePath.join(path, "composer.json")
+		const composerJson = JSON.parse(NodeFs.readFileSync(composerJsonFilePath).toString())
+
+		super(composerJson.name)
+		
 		this.path = path
 		this.neosWorkspace = neosWorkspace
 
-		this.initComposerJson()
+		this.composerJson = composerJson
 
 		this.debug = this.getName() === "neos/fusion"
 
 		this.initNamespaceLoading()
-	}
-
-	protected initComposerJson() {
-		const composerJsonFilePath = NodePath.join(this.path, "composer.json")
-		this.composerJson = JSON.parse(NodeFs.readFileSync(composerJsonFilePath).toString())
 	}
 
 	protected initNamespaceLoading() {
@@ -69,6 +70,7 @@ export class NeosPackage {
 		// this.log("defaultNeosFusionContext", defaultNeosFusionContext)
 
 		if(!defaultNeosFusionContext) return undefined
+		this.logVerbose("Found EEL-Helpers:")
 		for (const eelHelperPrefix in defaultNeosFusionContext) {
 			// TODO: Handle methods like "Neos\Eel\FlowQuery\FlowQuery::q" 
 			const fqcn = defaultNeosFusionContext[eelHelperPrefix]
@@ -82,8 +84,12 @@ export class NeosPackage {
 					methods: eelHelper.methods
 				}
 				this.eelHelpers.push(location)
+				this.logVerbose(`|-"${eelHelperPrefix}" with ${eelHelper.methods.length} methods`)
+				this.logDebug(` \\- Methods: ${eelHelper.methods.map(method => method.name).join(", ")}`)
 			}
 		}
+
+		this.logVerbose(`Found ${this.eelHelpers.length} EEL-Helpers`)
 	}
 
 	getFileUriFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
