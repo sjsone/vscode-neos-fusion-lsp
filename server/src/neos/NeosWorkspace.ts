@@ -1,45 +1,45 @@
-import * as NodeFs from "fs";
-import * as NodePath from "path";
-import { Logger } from '../Logging';
-import { EELHelperToken, NeosPackage } from './NeosPackage';
+import * as NodeFs from "fs"
+import * as NodePath from "path"
+import { Logger } from '../Logging'
+import { EELHelperToken, NeosPackage } from './NeosPackage'
 export class NeosWorkspace extends Logger {
-	protected workspacePath: string; 
+	protected workspacePath: string 
 
-	protected packages: Map<string,NeosPackage> = new Map();
+	protected packages: Map<string,NeosPackage> = new Map()
 
 	constructor(workspacePath: string, name: string) {
-		super(name);
-		this.workspacePath = workspacePath;
+		super(name)
+		this.workspacePath = workspacePath
 	}
 
 	addPackage(packagePath: string) {
-		const neosPackage = new NeosPackage(NodePath.resolve(this.workspacePath, packagePath), this);
-		this.packages.set(neosPackage.getName(), neosPackage);
+		const neosPackage = new NeosPackage(NodePath.resolve(this.workspacePath, packagePath), this)
+		this.packages.set(neosPackage.getName(), neosPackage)
 	}
 
 	getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
 		for(const neosPackage of this.packages.values()) {
-			const eelHelper = neosPackage.getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName);
-			if(eelHelper) return eelHelper;
+			const eelHelper = neosPackage.getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName)
+			if(eelHelper) return eelHelper
 		}
-		return undefined;
+		return undefined
 	}
 
 	initEelHelpers() {
 		for(const neosPackage of this.packages.values()) {
-			neosPackage.initEelHelper();
+			neosPackage.initEelHelper()
 		}
 	}
 
 	getEelHelperTokens() {
-		const eelHelperTokens: EELHelperToken[] = [];
+		const eelHelperTokens: EELHelperToken[] = []
 		for(const neosPackage of this.packages.values()) {
-			eelHelperTokens.push(...neosPackage.getEelHelpers());
+			eelHelperTokens.push(...neosPackage.getEelHelpers())
 		}
-		return eelHelperTokens;
+		return eelHelperTokens
 	}
 
 	getEelHelperTokensByName(name: string) {
-		return this.getEelHelperTokens().find(eelHelper => eelHelper.name === name);
+		return this.getEelHelperTokens().find(eelHelper => eelHelper.name === name)
 	}
 }

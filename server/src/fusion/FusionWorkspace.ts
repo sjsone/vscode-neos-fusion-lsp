@@ -1,136 +1,136 @@
-import * as NodeFs from "fs";
-import * as NodePath from "path";
-import { TextDocumentChangeEvent } from 'vscode-languageserver';
-import { TextDocument } from "vscode-languageserver-textdocument";
-import { LoggingLevel, type ExtensionConfiguration } from '../ExtensionConfiguration';
-import { LinePositionedNode } from '../LinePositionedNode';
-import { NeosWorkspace } from '../neos/NeosWorkspace';
-import { ParsedFusionFile } from './ParsedFusionFile';
-import { getFiles, pathToUri, uriToPath } from '../util';
-import { Logger, LogService } from '../Logging';
+import * as NodeFs from "fs"
+import * as NodePath from "path"
+import { TextDocumentChangeEvent } from 'vscode-languageserver'
+import { TextDocument } from "vscode-languageserver-textdocument"
+import { LoggingLevel, type ExtensionConfiguration } from '../ExtensionConfiguration'
+import { LinePositionedNode } from '../LinePositionedNode'
+import { NeosWorkspace } from '../neos/NeosWorkspace'
+import { ParsedFusionFile } from './ParsedFusionFile'
+import { getFiles, pathToUri, uriToPath } from '../util'
+import { Logger, LogService } from '../Logging'
 
 export class FusionWorkspace extends Logger {
-    public uri: string;
-    public name: string;
+    public uri: string
+    public name: string
 
-    public neosWorkspace: NeosWorkspace;
+    public neosWorkspace: NeosWorkspace
 
-    public parsedFiles: ParsedFusionFile[] = [];
-    public filesWithErrors: string[] = [];
+    public parsedFiles: ParsedFusionFile[] = []
+    public filesWithErrors: string[] = []
 
     constructor(name: string, uri: string) {
-        super(name);
-        this.name = name;
-        this.uri = uri;
+        super(name)
+        this.name = name
+        this.uri = uri
     }
 
     getUri() {
-        return this.uri;
+        return this.uri
     }
 
     init(configuration: ExtensionConfiguration) {
-        this.clear();
-        const workspacePath = uriToPath(this.uri);
+        this.clear()
+        const workspacePath = uriToPath(this.uri)
 
-        const ignoreFolders = configuration.folders.ignore;
-        const packagesRootPaths = configuration.folders.packages.filter(path => NodeFs.existsSync(path));
-        const filteredPackagesRootPaths = packagesRootPaths.filter(packagePath => !ignoreFolders.find(ignoreFolder => packagePath.startsWith(NodePath.join(workspacePath, ignoreFolder))));
+        const ignoreFolders = configuration.folders.ignore
+        const packagesRootPaths = configuration.folders.packages.filter(path => NodeFs.existsSync(path))
+        const filteredPackagesRootPaths = packagesRootPaths.filter(packagePath => !ignoreFolders.find(ignoreFolder => packagePath.startsWith(NodePath.join(workspacePath, ignoreFolder))))
 
-        const packagesPaths = [];
+        const packagesPaths = []
 
         for (const filteredPackagesRootPath of filteredPackagesRootPaths) {
             for (const folder of NodeFs.readdirSync(filteredPackagesRootPath, { withFileTypes: true })) {
                 // TODO: make symbolic link following and hidden folder configurable
-                if (folder.isSymbolicLink() || folder.name.startsWith(".")) continue;
-                packagesPaths.push(NodePath.join(filteredPackagesRootPath, folder.name));
+                if (folder.isSymbolicLink() || folder.name.startsWith(".")) continue
+                packagesPaths.push(NodePath.join(filteredPackagesRootPath, folder.name))
             }
         }
 
         if (packagesPaths.length === 0 && configuration.folders.workspaceAsPackageFallback) {
-            packagesPaths.push(workspacePath);
+            packagesPaths.push(workspacePath)
         }
 
-        this.neosWorkspace = new NeosWorkspace(workspacePath, this.name);
+        this.neosWorkspace = new NeosWorkspace(workspacePath, this.name)
 
         for (const packagePath of packagesPaths) {
-            this.neosWorkspace.addPackage(packagePath);
+            this.neosWorkspace.addPackage(packagePath)
         }
 
-        this.neosWorkspace.initEelHelpers();
+        this.neosWorkspace.initEelHelpers()
 
         for (const packagePath of packagesPaths) {
             for (const packageFusionFolderPath of configuration.folders.fusion) {
-                const fusionFolderPath = NodePath.join(packagePath, packageFusionFolderPath);
-                if (!NodeFs.existsSync(fusionFolderPath)) continue;
+                const fusionFolderPath = NodePath.join(packagePath, packageFusionFolderPath)
+                if (!NodeFs.existsSync(fusionFolderPath)) continue
 
                 for (const fusionFilePath of getFiles(fusionFolderPath)) {
                     try {
-                        const parsedFile = new ParsedFusionFile(pathToUri(fusionFilePath), this);
-                        this.initParsedFile(parsedFile);
-                        this.parsedFiles.push(parsedFile);
+                        const parsedFile = new ParsedFusionFile(pathToUri(fusionFilePath), this)
+                        this.initParsedFile(parsedFile)
+                        this.parsedFiles.push(parsedFile)
                     } catch (e) {
-                        this.filesWithErrors.push(pathToUri(fusionFilePath));
+                        this.filesWithErrors.push(pathToUri(fusionFilePath))
                     }
                 }
             }
         }
 
-        this.logInfo(`Successfully parsed ${this.parsedFiles.length} fusion files. `);
+        this.logInfo(`Successfully parsed ${this.parsedFiles.length} fusion files. `)
         if(this.filesWithErrors.length > 0) {
-            this.logInfo(`  Could not parse ${this.filesWithErrors.length} files due to errors`);
+            this.logInfo(`  Could not parse ${this.filesWithErrors.length} files due to errors`)
 
             if(LogService.isLogLevel(LoggingLevel.Verbose)) {
-                this.logVerbose(`  Files:`);
+                this.logVerbose(`  Files:`)
                 for(const fileWithError of this.filesWithErrors) {
-                    this.logVerbose(`    ${fileWithError}`);
+                    this.logVerbose(`    ${fileWithError}`)
                 }
             }
         }
     }
 
     initParsedFile(parsedFile: ParsedFusionFile, text: string = undefined) {
-        if (this.filesWithErrors.includes(parsedFile.uri)) return;
+        if (this.filesWithErrors.includes(parsedFile.uri)) return
 
         try {
             if (!parsedFile.init(text)) {
-                this.filesWithErrors.push(parsedFile.uri);
+                this.filesWithErrors.push(parsedFile.uri)
             }
         } catch (e) {
-            this.filesWithErrors.push(parsedFile.uri);
+            this.filesWithErrors.push(parsedFile.uri)
         }
     }
 
     updateFileByChange(change: TextDocumentChangeEvent<TextDocument>) {
-        const file = this.getParsedFileByUri(change.document.uri);
-        if (file === undefined) return;
-        file.clear();
-        this.initParsedFile(file, change.document.getText());
+        const file = this.getParsedFileByUri(change.document.uri)
+        if (file === undefined) return
+        file.clear()
+        this.initParsedFile(file, change.document.getText())
     }
 
     isResponsibleForUri(uri: string) {
-        return uri.startsWith(this.uri);
+        return uri.startsWith(this.uri)
     }
 
     getParsedFileByUri(uri: string) {
-        return this.parsedFiles.find(file => file.uri === uri);
+        return this.parsedFiles.find(file => file.uri === uri)
     }
 
     getNodesByType<T extends abstract new (...args: any) => any>(type: T): Array<{ uri: string, nodes: LinePositionedNode<InstanceType<T>>[] }> {
-        const nodes = [];
+        const nodes = []
         for (const file of this.parsedFiles) {
-            const fileNodes = file.nodesByType.get(type);
+            const fileNodes = file.nodesByType.get(type)
             if (fileNodes) {
                 nodes.push({
                     uri: file.uri,
                     nodes: fileNodes
-                });
+                })
             }
         }
-        return nodes;
+        return nodes
     }
 
     protected clear() {
-        this.parsedFiles = [];
-        this.filesWithErrors = [];
+        this.parsedFiles = []
+        this.filesWithErrors = []
     }
 }
