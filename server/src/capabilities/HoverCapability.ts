@@ -1,7 +1,7 @@
+import { AbstractNode } from 'ts-fusion-parser/out/afx/nodes/AbstractNode';
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectFunctionPathNode';
 import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode';
 import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode';
-import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode';
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue';
 import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/MetaPathSegment';
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement';
@@ -9,7 +9,6 @@ import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/Pa
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment';
 import { StatementList } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StatementList';
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueAssignment';
-import { ValueCopy } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueCopy';
 import { DefinitionParams } from 'vscode-languageserver/node';
 import { EelHelperMethodNode } from '../fusion/EelHelperMethodNode';
 import { EelHelperNode } from '../fusion/EelHelperNode';
@@ -25,9 +24,7 @@ export class HoverCapability extends AbstractCapability {
 		switch (true) {
 			case node instanceof FusionObjectValue:
 			case node instanceof PrototypePathSegment:
-				const prototypeName = getPrototypeNameFromNode(node);
-				if (prototypeName === null) return null;
-				return `prototype **${prototypeName}**`;
+				return this.getMarkdownForPrototypeName(node);
 			case node instanceof PathSegment:
 				return `property **${node["identifier"]}**`;
 			case node instanceof EelHelperNode:
@@ -37,17 +34,7 @@ export class HoverCapability extends AbstractCapability {
 			case node instanceof ObjectPathNode:
 				return this.getMarkdownForObjectPath(parsedFile, foundNodeByLine);
 			case node instanceof EelHelperMethodNode:
-				let description = undefined;
-
-				const eelHelper = workspace.neosWorkspace.getEelHelperTokensByName((<EelHelperMethodNode>node).eelHelper.identifier);
-				if (eelHelper) {
-					const method = eelHelper.methods.find(method => method.name === (<EelHelperMethodNode>node).identifier);
-					if (method) description = method.description;
-				}
-
-				const header = `EEL-Helper *${(<EelHelperMethodNode>node).eelHelper.identifier}*.**${(<EelHelperMethodNode>node).identifier}**`;
-
-				return `${header}` + (description ? '\n\n' + description : '');
+				return this.getMarkdownForEelHelperMethod(node, workspace);
 			default:
 				return null; // `Type: ${node.constructor.name}`
 		}
@@ -82,6 +69,12 @@ export class HoverCapability extends AbstractCapability {
 				end: { line: nodeEnd.line - 1, character: nodeEnd.column - 1 }
 			}
 		};
+	}
+
+	getMarkdownForPrototypeName(node: FusionObjectValue | PrototypePathSegment) {
+		const prototypeName = getPrototypeNameFromNode(node);
+		if (prototypeName === null) return null;
+		return `prototype **${prototypeName}**`;
 	}
 
 	getMarkdownForObjectPath(parsedFile: ParsedFusionFile, foundNodeByLine: LinePositionedNode<any>) {
@@ -126,5 +119,19 @@ export class HoverCapability extends AbstractCapability {
 		}
 
 		return `EEL **${(<ObjectPathNode><unknown>node)["value"]}**`;
+	}
+
+	getMarkdownForEelHelperMethod(node: EelHelperMethodNode, workspace: FusionWorkspace) {
+		let description = undefined;
+
+		const eelHelper = workspace.neosWorkspace.getEelHelperTokensByName((<EelHelperMethodNode>node).eelHelper.identifier);
+		if (eelHelper) {
+			const method = eelHelper.methods.find(method => method.name === (<EelHelperMethodNode>node).identifier);
+			if (method) description = method.description;
+		}
+
+		const header = `EEL-Helper *${(<EelHelperMethodNode>node).eelHelper.identifier}*.**${(<EelHelperMethodNode>node).identifier}**`;
+
+		return `${header}` + (description ? '\n\n' + description : '');
 	}
 }
