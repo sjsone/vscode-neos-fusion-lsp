@@ -1,55 +1,55 @@
-import { LoggingLevel } from './ExtensionConfiguration';
+import { LoggingLevel } from './ExtensionConfiguration'
 
 class LogService {
-	protected logLevel: LoggingLevel = LoggingLevel.Info;
+	protected logLevel: LoggingLevel = LoggingLevel.Info
 
 	setLogLevel(level: LoggingLevel) {
-		this.logLevel = level;
+		this.logLevel = level
 	}
 
 	getLogLevel() {
-		return this.logLevel;
+		return this.logLevel
 	}
 
 	isLogLevel(level: LoggingLevel) {
-		return this.logLevel == level;
+		return this.logLevel == level
 	}
 }
-const logServiceInstance = new LogService();
-export { logServiceInstance as LogService, LogService as LogServiceClass };
+const logServiceInstance = new LogService()
+export { logServiceInstance as LogService, LogService as LogServiceClass }
 
 export class Logger {
-	private loggerLogName: string;
+	private loggerLogName: string
 
 	static LogNameAndLevel = (level: string, name: string, ...things: any) => {
-		console.log(`[${level.padStart(7, " ")}] [${name}]`, ...things);
-	};
+		console.log(`[${level.padStart(7, " ")}] [${name}]`, ...things)
+	}
 
 	constructor(suffix: string | undefined = undefined) {
-		this.loggerLogName = this.constructor.name;
-		if(suffix) this.loggerLogName += "|"+suffix;
+		this.loggerLogName = this.constructor.name
+		if(suffix) this.loggerLogName += "|"+suffix
 	}
 
 	private logLevel(level: string, ...things: any) {
-		Logger.LogNameAndLevel(level.toUpperCase().padStart(7, " "), this.loggerLogName, ...things);
+		Logger.LogNameAndLevel(level.toUpperCase().padStart(7, " "), this.loggerLogName, ...things)
 	}
 
 	log(...things: any) {
-		this.logLevel('log', ...things);
+		this.logLevel('log', ...things)
 	}
 
 	logInfo(...things: any) {
-		this.logLevel(LoggingLevel.Info, ...things);
+		this.logLevel(LoggingLevel.Info, ...things)
 	}
 
 	logVerbose(...things: any) {
-		const currentLogLevel = logServiceInstance.getLogLevel();
+		const currentLogLevel = logServiceInstance.getLogLevel()
 		if (currentLogLevel === LoggingLevel.Verbose || currentLogLevel === LoggingLevel.Debug) {
-			this.logLevel(LoggingLevel.Verbose, ...things);
+			this.logLevel(LoggingLevel.Verbose, ...things)
 		}
 	}
 
 	logDebug(...things: any) {
-		if (logServiceInstance.isLogLevel(LoggingLevel.Debug)) this.logLevel(LoggingLevel.Debug, ...things);
+		if (logServiceInstance.isLogLevel(LoggingLevel.Debug)) this.logLevel(LoggingLevel.Debug, ...things)
 	}
 }
