@@ -41,7 +41,7 @@ export class HoverCapability extends AbstractCapability {
 
 				const eelHelper = workspace.neosWorkspace.getEelHelperTokensByName((<EelHelperMethodNode>node).eelHelper.identifier)
 				if (eelHelper) {
-					const method = eelHelper.methods.find(method => '.' + method.name === (<EelHelperMethodNode>node).identifier)
+					const method = eelHelper.methods.find(method => method.name === (<EelHelperMethodNode>node).identifier)
 					if (method) description = method.description
 				}
 
