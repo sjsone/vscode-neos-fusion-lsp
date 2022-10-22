@@ -2,8 +2,6 @@ import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { ObjectTreeParser } from 'ts-fusion-parser'
 import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode'
-import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/DslExpressionValue'
-import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/EelExpressionValue'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
 import { NodePosition } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/NodePosition'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement'
@@ -15,8 +13,10 @@ import { ValueCopy } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/Valu
 import { EelHelperMethodNode } from './EelHelperMethodNode'
 import { EelHelperNode } from './EelHelperNode'
 import { FusionWorkspace } from './FusionWorkspace'
-import { AttributeToken, ClosingTagToken, OpeningTagToken, TextToken, Tokenizer } from '../html'
 import { LinePositionedNode } from '../LinePositionedNode'
+import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode'
+import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectFunctionPathNode'
+import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
 
 export class ParsedFusionFile {
 	public workspace: FusionWorkspace
@@ -33,9 +33,12 @@ export class ParsedFusionFile {
 	public ignoredDueToError = false
 	public igoredErrorsByParser: Error[] = []
 
+	protected debug: boolean
+
 	constructor(uri: string, workspace: FusionWorkspace) {
 		this.uri = uri
 		this.workspace = workspace
+		this.debug = uri.endsWith("FormatD.NodeTypes/Resources/Private/Fusion/Atoms/Test.fusion")
 	}
 
 	init(text: string = undefined) {
@@ -51,14 +54,7 @@ export class ParsedFusionFile {
 
 			for (const nodeType of objectTree.nodesByType.keys()) {
 				for (const node of objectTree.nodesByType.get(nodeType)) {
-					if (node instanceof DslExpressionValue) {
-						this.handleAfxDsl(node, text)
-						continue
-					}
-					if (node instanceof EelExpressionValue) {
-						this.handleEelExpression(node, text)
-						continue
-					}
+					if (node instanceof ObjectNode) this.handleEelObjectNode(node, text)
 					this.addNode(node, text)
 				}
 			}
@@ -69,6 +65,47 @@ export class ParsedFusionFile {
 			}
 
 			return false
+		}
+	}
+
+	handleEelObjectNode(node: ObjectNode, text: string) {
+		const path = node.path.map(part => part["value"]).join(".")
+		const eelHelperTokens = this.workspace.neosWorkspace.getEelHelperTokens()
+		
+		let currentPath: ObjectPathNode[] = []
+		for (const part of node.path) {
+			currentPath.push(part)
+
+			if (part instanceof ObjectFunctionPathNode) {
+				if (currentPath.length === 1) {
+					// TODO: Allow immidiate EEL-Helper (like "q(...)")
+					continue
+				}
+				
+				const methodNode = currentPath.pop()
+				const eelHelperMethodNodePosition = new NodePosition(methodNode["position"].begin, methodNode["position"].begin + methodNode["value"].length)
+				const eelHelperMethodNode = new EelHelperMethodNode(methodNode["value"], eelHelperMethodNodePosition)
+
+				const position = new NodePosition(-1, -1)
+				let nameParts = []
+				for (const method of currentPath) {
+					const value = method["value"]
+					nameParts.push(value)
+					if (position.start === -1) position.start = method["position"].begin
+					position.end = method["position"].end
+				}
+
+				const eelHelperIdentifier = nameParts.join(".")
+				for (const eelHelper of eelHelperTokens) {
+					if (eelHelper.name === eelHelperIdentifier) {
+						const method = eelHelper.methods.find(method => method.name === methodNode["value"])
+						if(!method) continue
+						this.addNode(eelHelperMethodNode, text)
+						const eelHelperNode = new EelHelperNode(eelHelperIdentifier, eelHelperMethodNode, position)
+						this.addNode(eelHelperNode, text)
+					}
+				}	
+			}
 		}
 	}
 
@@ -86,126 +123,6 @@ export class ParsedFusionFile {
 		}
 
 		this.addToNodeByType(node.constructor, nodeByLine)
-	}
-
-	handleAfxDsl(node: DslExpressionValue, text: string) {
-		const locationOffset = node["position"].start + node.identifier.length + 1 // id + `
-		if (node.identifier !== "afx") return
-
-		for (const htmlToken of Tokenizer.tokenize(node.code)) {
-			switch (htmlToken.type) {
-				case "opening-tag":
-				case "closing-tag":
-					this.handleAfxTagName(locationOffset, htmlToken, text)
-					break;
-				case "attribute":
-					this.handleAfxAttribute(locationOffset, htmlToken, text)
-					break;
-				case "text":
-					this.handleAfxText(locationOffset, htmlToken, text)
-					break;
-				default:
-					break;
-			}
-		}
-	}
-
-	handleAfxTagName(locationOffset: number, htmlToken: OpeningTagToken | ClosingTagToken, text: string) {
-		if (!htmlToken.name.includes(":")) return
-		const startPos = locationOffset + htmlToken.startPos + (htmlToken.type === "opening-tag" ? 1 : 2)
-		const endPos = locationOffset + htmlToken.endPos + (htmlToken.type === "opening-tag" ? 0 : -1)
-		const node = new FusionObjectValue(htmlToken.name, new NodePosition(startPos, endPos))
-
-		this.addNode(node, text)
-	}
-
-	handleAfxAttribute(locationOffset: number, htmlToken: AttributeToken, text: string) {
-		if (htmlToken.quote !== "{") return
-
-		const txt = text.substring(locationOffset + htmlToken.startPos, locationOffset + htmlToken.endPos)
-		const prefixRegex = /(.*=\s*{)/
-		const offset = prefixRegex.exec(txt)[1].length
-		const propsRegex = /props\.([a-zA-Z0-9]+)/g
-
-		let lastIndex = offset
-		let match = propsRegex.exec(txt);
-
-		while (match != null) {
-			const identifier = match[1]
-			const identifierIndex = txt.substring(lastIndex).indexOf(identifier) + lastIndex
-
-			const startPos = locationOffset + htmlToken.startPos + identifierIndex
-			const endPos = locationOffset + htmlToken.startPos + identifierIndex + identifier.length
-
-			const node = new PathSegment(identifier, new NodePosition(startPos, endPos))
-			this.addNode(node, text)
-
-			lastIndex = lastIndex + identifierIndex
-			match = propsRegex.exec(txt);
-		}
-	}
-
-	handleAfxText(locationOffset: number, htmlToken: TextToken, text: string) {
-		const prefixRegex = /(\s*{)/
-		const prefixResult = prefixRegex.exec(htmlToken.text)
-		if (prefixResult === null) return
-
-		const prefix = prefixResult[1]
-		const rest = htmlToken.text.substring(prefix.length)
-
-		const propsRegex = /props\.([a-zA-Z0-9]+)/g
-
-		const offset = prefix.length
-
-		let lastIndex = offset
-		let match = propsRegex.exec(rest);
-
-		while (match != null) {
-			const identifier = match[1]
-			const identifierIndex = rest.substring(lastIndex).indexOf(identifier) + lastIndex
-
-			const startPos = locationOffset + htmlToken.startPos - htmlToken.text.length + offset + "props.".length
-			const endPos = startPos + identifier.length
-
-			const node = new PathSegment(identifier, new NodePosition(startPos, endPos))
-			this.addNode(node, text)
-
-			lastIndex = lastIndex + identifierIndex
-			match = propsRegex.exec(rest);
-		}
-	}
-
-	handleEelExpression(node: EelExpressionValue, text: string) {
-		for (const eelHelper of this.workspace.neosWorkspace.getEelHelperFileUris()) {
-			const regex = new RegExp(eelHelper.regex, 'g')
-
-			let lastIndex = 0
-			const rest = node.value
-			let match = regex.exec(rest);
-
-			while (match != null) {
-				const identifier = match[1]
-				const method = match[2]
-				const identifierIndex = rest.substring(lastIndex).indexOf(identifier) + lastIndex
-
-				const startPos = node["position"].start + identifierIndex
-				const endPos = startPos + identifier.length + (method ? method.length : 0)
-
-				let eelHelperMethodNode = null
-				if (method) {
-					const methodStartPos = endPos - method.length // +1 because of the [dot]: Array[.]length
-
-					eelHelperMethodNode = new EelHelperMethodNode(method, new NodePosition(methodStartPos, endPos))
-					this.addNode(eelHelperMethodNode, text)
-				}
-
-				const eelHelperNode = new EelHelperNode(identifier, eelHelperMethodNode, new NodePosition(startPos, endPos))
-				this.addNode(eelHelperNode, text)
-
-				lastIndex = lastIndex + identifierIndex
-				match = regex.exec(rest);
-			}
-		}
 	}
 
 	protected addToNodeByType(type: any, node: LinePositionedNode<AbstractNode>) {
@@ -276,8 +193,14 @@ export class ParsedFusionFile {
 				const node = lineNode.getNode()
 				let weight = 0
 				switch (true) {
+					case node instanceof ObjectPathNode:
+						weight = 25;
+						break;
+					case node instanceof ObjectStatement:
+						weight = 20;
+						break;
 					case node instanceof EelHelperMethodNode:
-						weight = 15;
+						weight = 55;
 						break;
 					case node instanceof EelHelperNode:
 						weight = 10;

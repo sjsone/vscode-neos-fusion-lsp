@@ -30,16 +30,15 @@ export class NeosWorkspace {
 		}
 	}
 
-	getEelHelperFileUris() {
-		const fileUris: EELHelperToken[] = []
-
+	getEelHelperTokens() {
+		const eelHelperTokens: EELHelperToken[] = []
 		for(const neosPackage of this.packages.values()) {
-			fileUris.push(...neosPackage.getEelHelpers())
+			eelHelperTokens.push(...neosPackage.getEelHelpers())
 		}
-		return fileUris
+		return eelHelperTokens
 	}
 
-	getEelHelperFileUriByName(name: string) {
-		return this.getEelHelperFileUris().find(eelHelper => eelHelper.name === name)
+	getEelHelperTokensByName(name: string) {
+		return this.getEelHelperTokens().find(eelHelper => eelHelper.name === name)
 	}
 }

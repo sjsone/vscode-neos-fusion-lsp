@@ -1,8 +1,13 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
+import { AbstractNode as AbstractEelNode } from 'ts-fusion-parser/out/eel/nodes/AbstractNode';
+import { LiteralStringNode } from 'ts-fusion-parser/out/eel/nodes/LiteralStringNode';
+import { LiteralNumberNode } from 'ts-fusion-parser/out/eel/nodes/LiteralNumberNode';
 import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode';
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue';
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment';
+import { StringValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StringValue';
+import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/EelExpressionValue';
 
 export function getLineNumberOfChar(data: string, index: number, debug: boolean = false) {
     const perLine = data.split('\n');
@@ -11,7 +16,7 @@ export function getLineNumberOfChar(data: string, index: number, debug: boolean 
     let column = index + 1
     let i = 0
     for (i; i < perLine.length; i++) {
-        if(debug) console.log("  Line: ", perLine[i])
+        if (debug) console.log("  Line: ", perLine[i])
         total_length += perLine[i].length + 1;
         if (debug) console.log(`  [${i}] total_length`, total_length)
         if (total_length >= index)
@@ -44,7 +49,7 @@ export function pathToUri(path: string) {
 }
 
 export function getPrototypeNameFromNode(node: AbstractNode) {
-    if(node instanceof FusionObjectValue) {
+    if (node instanceof FusionObjectValue) {
         return node.value
     } else if (node instanceof PrototypePathSegment) {
         return node.identifier
@@ -53,7 +58,7 @@ export function getPrototypeNameFromNode(node: AbstractNode) {
 }
 
 export function mergeObjects(source: Object, target: Object) {
-	// https://gist.github.com/ahtcx/0cd94e62691f539160b32ecda18af3d6?permalink_comment_id=3889214#gistcomment-3889214
+    // https://gist.github.com/ahtcx/0cd94e62691f539160b32ecda18af3d6?permalink_comment_id=3889214#gistcomment-3889214
     for (const [key, val] of Object.entries(source)) {
         if (val !== null && typeof val === `object`) {
             if (target[key] === undefined) {
@@ -65,4 +70,23 @@ export function mergeObjects(source: Object, target: Object) {
         }
     }
     return target; // we're replacing in-situ, so this is more for chaining than anything else
+}
+
+export function findParent(node: any, parentType: typeof AbstractNode) {
+    let parent = node["parent"]
+    while (parent) {
+        if (parent instanceof parentType) {
+            return parent
+        }
+        parent = parent["parent"]
+    }
+    return undefined
+}
+
+export function abstractNodeToString(node: AbstractEelNode | AbstractNode): string | undefined {
+    // TODO: This should be node.toString() but for now...
+    if (node instanceof StringValue) return `"${node["value"]}"`
+    if (node instanceof LiteralNumberNode || node instanceof LiteralStringNode || node instanceof FusionObjectValue) return node["value"]
+    if (node instanceof EelExpressionValue) return Array.isArray(node.nodes) ? undefined : abstractNodeToString(<AbstractEelNode>node.nodes)
+    return undefined
 }

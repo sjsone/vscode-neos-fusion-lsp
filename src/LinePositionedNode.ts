@@ -1,3 +1,4 @@
+import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode';
 import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode';
 import { getLineNumberOfChar } from './util';
 
@@ -16,7 +17,8 @@ export class LinePositionedNode<T extends AbstractNode> {
 		this.node = node
 
 		if(node["position"] !== undefined && text !== undefined) {
-			this.begin = getLineNumberOfChar(text, node["position"].start)
+			const begin = node["position"].start ?? (<any>node["position"]).begin
+			this.begin = getLineNumberOfChar(text, begin)
 			this.end = getLineNumberOfChar(text, node["position"].end)
 		}
 	}

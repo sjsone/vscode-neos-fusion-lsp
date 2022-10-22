@@ -45,7 +45,7 @@ export class FlowConfiguration extends Logger {
 			}
 		}
 		if (LogService.isLogLevel(LoggingLevel.Verbose)) {
-			Logger.LogNameAndLevel(LoggingLevel.Verbose.toUpperCase(), 'FlowConfiguration:FromFolder', 'Created FlowConfiguration from: ' + folderPath)
+			// Logger.LogNameAndLevel(LoggingLevel.Verbose.toUpperCase(), 'FlowConfiguration:FromFolder', 'Created FlowConfiguration from: ' + folderPath)
 		}
 		return new FlowConfiguration(configuration)
 	}
