@@ -10,24 +10,24 @@ import {
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { LanguageServer } from './LanguageServer';
 
-export interface FusionDocument extends TextDocument { }
+export type FusionDocument = TextDocument
 
 const connection = createConnection(ProposedFeatures.all);
 const documents: TextDocuments<FusionDocument> = new TextDocuments(TextDocument);
 
-const languageserver = new LanguageServer(connection, documents)
+const languageserver = new LanguageServer(connection, documents);
 
 
 documents.onDidChangeContent(change => {
-    languageserver.onDidChangeContent(change)
+    languageserver.onDidChangeContent(change);
 });
 
 documents.onDidOpen((event) => {
-    languageserver.onDidOpen(event)
+    languageserver.onDidOpen(event);
 });
 
 connection.onInitialize((params) => {
-    return <any>languageserver.onInitialize(params)
+    return <any>languageserver.onInitialize(params);
 });
 
 connection.onDidChangeWatchedFiles((_change) => {
@@ -35,24 +35,24 @@ connection.onDidChangeWatchedFiles((_change) => {
 });
 
 connection.onDidChangeConfiguration((params) => {
-    languageserver.onDidChangeConfiguration(params)
-})
+    languageserver.onDidChangeConfiguration(params);
+});
 
 connection.onDefinition((params) => {
-    return languageserver.getCapability("onDefinition").run(params)
+    return languageserver.getCapability("onDefinition").run(params);
 });
 
 connection.onReferences(params => {
-    return languageserver.getCapability("onReferences").run(params)
-})
+    return languageserver.getCapability("onReferences").run(params);
+});
 
 connection.onCompletion((textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-    return languageserver.getCapability("onCompletion").run(textDocumentPosition)
+    return languageserver.getCapability("onCompletion").run(textDocumentPosition);
 });
 
 connection.onHover((params: HoverParams): Hover => {
-    return languageserver.getCapability("onHover").run(params)
-})
+    return languageserver.getCapability("onHover").run(params);
+});
 
 connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
 

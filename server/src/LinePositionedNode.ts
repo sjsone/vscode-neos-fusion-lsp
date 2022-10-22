@@ -8,38 +8,38 @@ export interface LinePosition {
 }
 
 export class LinePositionedNode<T extends AbstractNode> {
-	protected node: T
+	protected node: T;
 
-	protected begin: LinePosition
-	protected end: LinePosition
+	protected begin: LinePosition;
+	protected end: LinePosition;
 
 	constructor(node: T, text: string = undefined) {
-		this.node = node
+		this.node = node;
 
 		if(node["position"] !== undefined && text !== undefined) {
-			const begin = node["position"].start ?? (<any>node["position"]).begin
-			this.begin = getLineNumberOfChar(text, begin)
-			this.end = getLineNumberOfChar(text, node["position"].end)
+			const begin = node["position"].start ?? (<any>node["position"]).begin;
+			this.begin = getLineNumberOfChar(text, begin);
+			this.end = getLineNumberOfChar(text, node["position"].end);
 		}
 	}
 
 	getNode() {
-		return this.node
+		return this.node;
 	}
 	
 	setBegin(begin: LinePosition) {
-		this.begin = begin
+		this.begin = begin;
 	}
 
 	setEnd(end: LinePosition) {
-		this.end = end
+		this.end = end;
 	}
 
 	getBegin() {
-		return this.begin
+		return this.begin;
 	}
 
 	getEnd() {
-		return this.end
+		return this.end;
 	}
 }
