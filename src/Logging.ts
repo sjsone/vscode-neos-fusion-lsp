@@ -19,13 +19,19 @@ const logServiceInstance = new LogService()
 export { logServiceInstance as LogService, LogService as LogServiceClass }
 
 export class Logger {
+	private loggerLogName: string
 
 	static LogNameAndLevel = (level: string, name: string, ...things: any) => {
 		console.log(`[${level}] [${name}]`, ...things)
 	}
 
+	constructor(suffix: string | undefined = undefined) {
+		this.loggerLogName = this.constructor.name
+		if(suffix) this.loggerLogName += "|"+suffix
+	}
+
 	private logLevel(level: string, ...things: any) {
-		Logger.LogNameAndLevel(level.toUpperCase(), this.constructor.name, ...things)
+		Logger.LogNameAndLevel(level.toUpperCase(), this.loggerLogName, ...things)
 	}
 
 	log(...things: any) {
