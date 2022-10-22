@@ -4,16 +4,16 @@ import { AstNodeVisitorInterface } from 'ts-fusion-parser/out/fusion/objectTreeP
 import { EelHelperMethodNode } from './EelHelperMethodNode';
 
 export class EelHelperNode extends AbstractNode {
-	public identifier: string
-	public method: EelHelperMethodNode|null
+	public identifier: string;
+	public method: EelHelperMethodNode|null;
 
 	constructor(identifier: string, method: EelHelperMethodNode|null, position: NodePosition) {
-		super()
-		this.identifier = identifier
-		this.method = method
-		this.position = position
+		super();
+		this.identifier = identifier;
+		this.method = method;
+		this.position = position;
 
-		if(this.method) this.method.eelHelper = this
+		if(this.method) this.method.eelHelper = this;
 	}
 
 
