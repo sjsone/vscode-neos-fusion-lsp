@@ -6,6 +6,7 @@ import {
 	TextDocumentChangeEvent,
 	_Connection,
 	InitializeResult,
+	MessageType
 } from "vscode-languageserver/node"
 import { FusionWorkspace } from './fusion/FusionWorkspace'
 import { type ExtensionConfiguration } from './ExtensionConfiguration'
@@ -34,6 +35,7 @@ export class LanguageServer extends Logger {
 		this.capabilities.set("onCompletion", new CompletionCapability(this))
 		this.capabilities.set("onHover", new HoverCapability(this))
 		this.capabilities.set("onReferences", new ReferenceCapability(this))
+
 	}
 
 	public getCapability(name: string) {
@@ -86,8 +88,26 @@ export class LanguageServer extends Logger {
 		}
 	}
 
+	public showMessage(message: string, type: MessageType = MessageType.Info) {
+		return this.connection.sendNotification("window/showMessage", { type, message })
+	}
+
+	public sendBusyCreate(id: string, configuration: undefined | {[key: string]: any} = undefined) {
+		return this.connection.sendNotification("custom/busy/create", { id, configuration })
+	}
+
+	public sendBusyDispose(id: string) {
+		return this.connection.sendNotification("custom/busy/dispose", { id })
+	}
+
 	public onDidChangeConfiguration(params: DidChangeConfigurationParams) {
 		const configuration: ExtensionConfiguration = params.settings.neosFusionLsp
+		this.sendBusyCreate('configuration', {
+			busy: true,
+			text: "$(rocket)",
+			detail: "initializing language server",
+			name: "initializing"
+		})
 
 		LogService.setLogLevel(configuration.logging.level)
 
@@ -95,6 +115,8 @@ export class LanguageServer extends Logger {
 		for (const fusionWorkspace of this.fusionWorkspaces) {
 			fusionWorkspace.init(configuration)
 		}
+
+		this.sendBusyDispose('configuration')
 	}
 }
 

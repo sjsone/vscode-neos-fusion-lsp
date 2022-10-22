@@ -1,11 +1,12 @@
 import * as path from 'path'
 import {
-	workspace as Workspace, window as Window, ExtensionContext, TextDocument, OutputChannel, WorkspaceFolder, Uri
+	workspace as Workspace, window as Window, ExtensionContext, TextDocument, OutputChannel, WorkspaceFolder, Uri, languages
 } from 'vscode'
 
 import {
-	LanguageClient, LanguageClientOptions, ServerOptions, TransportKind
+	LanguageClient, LanguageClientOptions, ProgressType, ServerOptions, TransportKind
 } from 'vscode-languageclient/node'
+import { StatusItemService } from './statusItemService'
 
 const clients: Map<string, LanguageClient> = new Map()
 
@@ -62,10 +63,9 @@ export function activate(context: ExtensionContext) {
 				run: { module, transport: TransportKind.ipc , options: { } },
 				debug: { module, transport: TransportKind.ipc, options: debugOptions }
 			}
+			const documentSelector = [{ scheme: 'file', language: 'fusion', pattern: `${folder.uri.fsPath}/**/*` }]
 			const clientOptions: LanguageClientOptions = {
-				documentSelector: [
-					{ scheme: 'file', language: 'fusion', pattern: `${folder.uri.fsPath}/**/*` }
-				],
+				documentSelector,
 				diagnosticCollectionName: 'vscode-neos-fusion-lsp',
 				workspaceFolder: folder,
 				outputChannel: outputChannel,
@@ -73,9 +73,20 @@ export function activate(context: ExtensionContext) {
 					configurationSection: 'neosFusionLsp',
 				}
 			}
+			
+			const statusItemService = new StatusItemService(documentSelector)			
 			const client = new LanguageClient('vscode-neos-fusion-lsp', 'LSP For Neos Fusion (and AFX)', serverOptions, clientOptions)
+
+			client.onNotification('custom/busy/create', ({id, configuration}) => {
+				statusItemService.createStatusItem(id, configuration)
+			})
+
 			client.start()
 			clients.set(folder.uri.toString(), client)
+
+			client.onNotification('custom/busy/dispose', ({id}) => {
+				statusItemService.disposeStatusItem(id)
+			})
 		}
 	}
 
