@@ -70,18 +70,15 @@ export class NeosPackage {
 
 		if(!defaultNeosFusionContext) return undefined
 		for (const eelHelperPrefix in defaultNeosFusionContext) {
+			// TODO: Handle methods like "Neos\Eel\FlowQuery\FlowQuery::q" 
 			const fqcn = defaultNeosFusionContext[eelHelperPrefix]
 			const eelHelper = this.neosWorkspace.getEelHelperFromFullyQualifiedClassName(fqcn)
 			if (eelHelper !== undefined) {
-				// this.log("Found EEL-Helper", eelHelper)
 				const location = {
 					name: eelHelperPrefix,
 					uri: eelHelper.uri,
 					regex: RegExp(`(${eelHelperPrefix.split('.').join('\\.')})(\\.\\w+)?`),
-					position: {
-						begin: eelHelper.position.begin,
-						end: eelHelper.position.end
-					},
+					position: eelHelper.position,
 					methods: eelHelper.methods
 				}
 				this.eelHelpers.push(location)
