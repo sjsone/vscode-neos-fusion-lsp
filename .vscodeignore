@@ -9,7 +9,9 @@ contributing.md
 *.svg
 images/
 !images/logo.png
-
+@types
 **/package-lock.json
 **/package.json
 **/README.md
+
+# 639 files, out of which 582 
