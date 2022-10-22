@@ -22,7 +22,7 @@ export class Logger {
 	private loggerLogName: string
 
 	static LogNameAndLevel = (level: string, name: string, ...things: any) => {
-		console.log(`[${level}] [${name}]`, ...things)
+		console.log(`[${level.padStart(7, " ")}] [${name}]`, ...things)
 	}
 
 	constructor(suffix: string | undefined = undefined) {
@@ -31,7 +31,7 @@ export class Logger {
 	}
 
 	private logLevel(level: string, ...things: any) {
-		Logger.LogNameAndLevel(level.toUpperCase(), this.loggerLogName, ...things)
+		Logger.LogNameAndLevel(level.toUpperCase().padStart(7, " "), this.loggerLogName, ...things)
 	}
 
 	log(...things: any) {
