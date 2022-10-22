@@ -194,16 +194,16 @@ export class ParsedFusionFile {
 				let weight = 0
 				switch (true) {
 					case node instanceof ObjectPathNode:
-						weight = 25;
+						weight = 15;
 						break;
 					case node instanceof ObjectStatement:
-						weight = 20;
+						weight = 10;
 						break;
 					case node instanceof EelHelperMethodNode:
-						weight = 55;
+						weight = 25;
 						break;
 					case node instanceof EelHelperNode:
-						weight = 10;
+						weight = 20;
 						break;
 				}
 				if (foundNodesByWeight[weight] === undefined) {
