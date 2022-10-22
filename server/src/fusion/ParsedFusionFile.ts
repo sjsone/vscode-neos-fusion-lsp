@@ -17,6 +17,8 @@ import { LinePositionedNode } from '../LinePositionedNode';
 import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode';
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectFunctionPathNode';
 import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode';
+import { TagNameNode } from 'ts-fusion-parser/out/afx/nodes/TagNameNode';
+import { TagNode } from 'ts-fusion-parser/out/afx/nodes/TagNode';
 
 export class ParsedFusionFile {
 	public workspace: FusionWorkspace;
@@ -55,6 +57,7 @@ export class ParsedFusionFile {
 			for (const nodeType of objectTree.nodesByType.keys()) {
 				for (const node of objectTree.nodesByType.get(nodeType)) {
 					if (node instanceof ObjectNode) this.handleEelObjectNode(node, text);
+					if(node instanceof TagNode) this.handleTagNameNode(node, text)
 					this.addNode(node, text);
 				}
 			}
@@ -107,6 +110,14 @@ export class ParsedFusionFile {
 				}	
 			}
 		}
+	}
+
+	handleTagNameNode(node: TagNode, text: string) {
+		const prototypePath = new PrototypePathSegment(node["name"], new NodePosition(
+			node["position"].begin + 1,
+			node["position"].begin + 1 + node["name"].length
+		))
+		this.addNode(prototypePath, text)
 	}
 
 	getNodesByType<T extends AbstractNode>(type: new (...args: any) => T): LinePositionedNode<T>[] | undefined {
