@@ -8,20 +8,23 @@ import { NeosWorkspace } from '../neos/NeosWorkspace'
 import { ParsedFusionFile } from './ParsedFusionFile'
 import { getFiles, pathToUri, uriToPath } from '../util'
 import { Logger, LogService } from '../Logging'
+import { LanguageServer } from '../LanguageServer'
 
 export class FusionWorkspace extends Logger {
     public uri: string
     public name: string
+    public languageServer: LanguageServer
 
     public neosWorkspace: NeosWorkspace
 
     public parsedFiles: ParsedFusionFile[] = []
     public filesWithErrors: string[] = []
 
-    constructor(name: string, uri: string) {
+    constructor(name: string, uri: string, languageServer: LanguageServer) {
         super(name)
         this.name = name
         this.uri = uri
+        this.languageServer = languageServer
     }
 
     getUri() {
@@ -30,6 +33,7 @@ export class FusionWorkspace extends Logger {
 
     init(configuration: ExtensionConfiguration) {
         this.clear()
+        this.languageServer.sendProgressNotificationCreate("fusion_workspace_init", "Fusion")
         const workspacePath = uriToPath(this.uri)
 
         const ignoreFolders = configuration.folders.ignore
@@ -58,6 +62,9 @@ export class FusionWorkspace extends Logger {
 
         this.neosWorkspace.initEelHelpers()
 
+
+        const incrementPerPackage = 100 / packagesPaths.length
+
         for (const packagePath of packagesPaths) {
             for (const packageFusionFolderPath of configuration.folders.fusion) {
                 const fusionFolderPath = NodePath.join(packagePath, packageFusionFolderPath)
@@ -73,19 +80,25 @@ export class FusionWorkspace extends Logger {
                     }
                 }
             }
+            this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
+                message: `Package: ${packagePath}`,
+                increment: incrementPerPackage
+            })
         }
 
         this.logInfo(`Successfully parsed ${this.parsedFiles.length} fusion files. `)
-        if(this.filesWithErrors.length > 0) {
+        if (this.filesWithErrors.length > 0) {
             this.logInfo(`  Could not parse ${this.filesWithErrors.length} files due to errors`)
 
-            if(LogService.isLogLevel(LoggingLevel.Verbose)) {
+            if (LogService.isLogLevel(LoggingLevel.Verbose)) {
                 this.logVerbose(`  Files:`)
-                for(const fileWithError of this.filesWithErrors) {
+                for (const fileWithError of this.filesWithErrors) {
                     this.logVerbose(`    ${fileWithError}`)
                 }
             }
         }
+
+        this.languageServer.sendProgressNotificationFinish("fusion_workspace_init")
     }
 
     initParsedFile(parsedFile: ParsedFusionFile, text: string = undefined) {
