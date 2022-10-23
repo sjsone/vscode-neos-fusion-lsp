@@ -36,7 +36,7 @@ export class HoverCapability extends AbstractCapability {
 			case node instanceof EelHelperMethodNode:
 				return this.getMarkdownForEelHelperMethod(node, workspace)
 			default:
-				return null // `Type: ${node.constructor.name}`
+				return `Type: ${node.constructor.name}`
 		}
 	}
 

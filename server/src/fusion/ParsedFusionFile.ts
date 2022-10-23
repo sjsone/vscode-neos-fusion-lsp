@@ -225,6 +225,9 @@ export class ParsedFusionFile {
 					case node instanceof EelHelperNode:
 						weight = 20
 						break
+					case node instanceof FusionObjectValue:
+						weight = 30
+						break
 				}
 				if (foundNodesByWeight[weight] === undefined) {
 					foundNodesByWeight[weight] = lineNode

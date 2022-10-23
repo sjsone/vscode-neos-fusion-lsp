@@ -49,12 +49,12 @@
             "title": "Folder path"
           },
           "default": [
-            "source/DistributionPackages",
-            "source/Packages/Application",
-            "source/Packages/Framework",
-            "source/Packages/Plugins",
-            "source/Packages/Sites",
-            "source/Packages/Neos"
+            "DistributionPackages",
+            "Packages/Application",
+            "Packages/Framework",
+            "Packages/Plugins",
+            "Packages/Sites",
+            "Packages/Neos"
           ],
           "description": "Folders with packages"
         },
@@ -86,7 +86,6 @@
             "title": "Folder path"
           },
           "default": [
-            "source/Packages/Libraries",
             "Packages/Libraries"
           ],
           "description": "Folders to ignore"

@@ -45,7 +45,7 @@ export class FusionWorkspace extends Logger {
         for (const filteredPackagesRootPath of filteredPackagesRootPaths) {
             for (const folder of NodeFs.readdirSync(filteredPackagesRootPath, { withFileTypes: true })) {
                 // TODO: make symbolic link following and hidden folder configurable
-                if (folder.isSymbolicLink() || folder.name.startsWith(".")) continue
+                if (folder.isSymbolicLink() || folder.name.startsWith(".") || !folder.isDirectory()) continue
                 packagesPaths.push(NodePath.join(filteredPackagesRootPath, folder.name))
             }
         }
