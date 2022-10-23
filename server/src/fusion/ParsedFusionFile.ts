@@ -189,13 +189,11 @@ export class ParsedFusionFile {
 
 			} else {
 				this.prototypeOverwrites.push(nodeByLine)
-				// console.log("pushing to overwrite: ", firstPathSegment.identifier)
 			}
 		} else if (firstPathSegment instanceof PathSegment) {
 			this.addNode(firstPathSegment, text)
 		} else if (operation instanceof ValueAssignment) {
 			if (operation.pathValue instanceof FusionObjectValue) {
-				// console.log(operation.pathValue)
 			}
 		}
 
