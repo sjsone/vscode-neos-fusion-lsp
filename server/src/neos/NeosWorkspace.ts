@@ -3,9 +3,9 @@ import * as NodePath from "path"
 import { Logger } from '../Logging'
 import { EELHelperToken, NeosPackage } from './NeosPackage'
 export class NeosWorkspace extends Logger {
-	protected workspacePath: string 
+	protected workspacePath: string
 
-	protected packages: Map<string,NeosPackage> = new Map()
+	protected packages: Map<string, NeosPackage> = new Map()
 
 	constructor(workspacePath: string, name: string) {
 		super(name)
@@ -13,27 +13,37 @@ export class NeosWorkspace extends Logger {
 	}
 
 	addPackage(packagePath: string) {
-		const neosPackage = new NeosPackage(NodePath.resolve(this.workspacePath, packagePath), this)
-		this.packages.set(neosPackage.getName(), neosPackage)
+		try {
+			const neosPackage = new NeosPackage(NodePath.resolve(this.workspacePath, packagePath), this)
+			this.packages.set(neosPackage.getName(), neosPackage)
+		} catch (error) {
+			if (error instanceof Error) {
+				if (error["code"] === 'ENOENT') {
+					console.log('File not found!');
+				} else {
+					throw error;
+				}
+			}
+		}
 	}
 
 	getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
-		for(const neosPackage of this.packages.values()) {
+		for (const neosPackage of this.packages.values()) {
 			const eelHelper = neosPackage.getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName)
-			if(eelHelper) return eelHelper
+			if (eelHelper) return eelHelper
 		}
 		return undefined
 	}
 
 	initEelHelpers() {
-		for(const neosPackage of this.packages.values()) {
+		for (const neosPackage of this.packages.values()) {
 			neosPackage.initEelHelper()
 		}
 	}
 
 	getEelHelperTokens() {
 		const eelHelperTokens: EELHelperToken[] = []
-		for(const neosPackage of this.packages.values()) {
+		for (const neosPackage of this.packages.values()) {
 			eelHelperTokens.push(...neosPackage.getEelHelpers())
 		}
 		return eelHelperTokens
