@@ -10,6 +10,4 @@ contributing.md
 images/
 !images/logo.png
 @types
-**/package-lock.json
-**/package.json
 **/README.md
