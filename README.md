@@ -10,15 +10,14 @@ This package is **WIP**
   <img src="https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/goto_eel_helper_method.gif?raw=true" alt="animated" />
 </p>
 
-> The HTML tokenizer is a modified version of [html-tokenizer](https://github.com/greim/html-tokenizer) by [Greg Reimer](https://twitter.com/greim). You can check the status of the Merge Request [here](https://github.com/greim/html-tokenizer/pull/6).
 
 ## Functionality
 
 ### [Goto Definition](https://code.visualstudio.com/docs/editor/editingevolved#_go-to-definition) (*CMD + Click*)
 
-Currently works on **Prototypes**. **Properties** are only supported via name comparison so false positives are more than likely!
+Currently works on **Prototypes** and fusion **Properties** (detected by `this` or `props`)
 
-Support for EEL will be added in the future.
+Support for EEL-Helper is present, but currently not for functions (like `q(node)`). 
 
 #### Find References (*Shift + CMD + Click*)
 
@@ -26,11 +25,21 @@ Currently works on **Prototypes** only.
 
 Support for EEL as well as Fusion-Properties will be added in the future.
 
+![goto image](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/goto_reference.png?raw=true)
+
+![goto image](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/goto_reference_all.png?raw=true)
+
 #### Hover
 
-Currently works on **Prototypes** and **Properties** only and just shows the name. Will provide more information from the yaml-configuration in the future.
+Currently works on **Prototypes** and **Properties** only and just shows the name and sometimes the value of the property. Will provide more information from the yaml-configuration in the future.
 
-Support for EEL will be added in the future.
+Support for EEL-Helper ist present but the description parsing is not working a 100% correct.  
+
+![goto image](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/hover_props_value_prototype.png?raw=true)
+
+![goto image](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/hover_props_value_string.png?raw=true)
+
+![goto image](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/hover_eel_helper_method.png?raw=true)
 
 #### Autocompletion
 
@@ -46,16 +55,18 @@ The language-server relies heavely on the [ts-fusion-parser](https://www.npmjs.c
 
 Essentialy it reads all AST-Nodes from the fusion parser and checks if the curser is on one of these AST-Nodes. If it is, the relevant actions are carried out.
 
-To support AFX a different package is modified ([html-tokenizer](https://github.com/greim/html-tokenizer) by [Greg Reimer](https://twitter.com/greim)) and used to generate AST-Nodes on the fly.
+The AFX and EEL parser is part of the [ts-fusion-parser](https://www.npmjs.com/package/ts-fusion-parser). 
 
 #### Is there a roadmap?
 
 Currently there is no roadmap.  
 
-#### Is an EEL-Implemention planned?
-
-Yes. Including goto-definition on at least `props.` in AFX etc. But for that to work, the [ts-fusion-parser](https://www.npmjs.com/package/ts-fusion-parser) needs to at least produce an AST for EEL. This is currently worked on but will be probably after release **0.1.0**
-
 #### What about EEL-Helper and NodeType-Configuration
 
 There is rudimentary support for EEL-Helper. Hover and Goto-Definition is currently (somewhat) supported.
+
+## Known Bugs
+
+- EEL-Helper hover description will parse the first description it can find which may not be the correct one
+- EEL-Helper with the same name may be handled incorrectly
+- Autocompletion is just a list with no semantic meaning 
