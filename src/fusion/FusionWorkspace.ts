@@ -55,17 +55,18 @@ export class FusionWorkspace extends Logger {
         }
 
         this.neosWorkspace = new NeosWorkspace(workspacePath, this.name)
-
         for (const packagePath of packagesPaths) {
             this.neosWorkspace.addPackage(packagePath)
         }
-
         this.neosWorkspace.initEelHelpers()
 
 
         const incrementPerPackage = 100 / packagesPaths.length
 
         for (const packagePath of packagesPaths) {
+            this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
+                message: `Package: ${packagePath}`
+            })
             for (const packageFusionFolderPath of configuration.folders.fusion) {
                 const fusionFolderPath = NodePath.join(packagePath, packageFusionFolderPath)
                 if (!NodeFs.existsSync(fusionFolderPath)) continue
@@ -81,7 +82,6 @@ export class FusionWorkspace extends Logger {
                 }
             }
             this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
-                message: `Package: ${packagePath}`,
                 increment: incrementPerPackage
             })
         }
