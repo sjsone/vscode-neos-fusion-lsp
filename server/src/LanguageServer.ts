@@ -66,7 +66,7 @@ export class LanguageServer extends Logger {
 		this.logVerbose("onInitialize")
 
 		for (const workspaceFolder of params.workspaceFolders) {
-			const fusionWorkspace = new FusionWorkspace(workspaceFolder.name, workspaceFolder.uri)
+			const fusionWorkspace = new FusionWorkspace(workspaceFolder.name, workspaceFolder.uri, this)
 			this.fusionWorkspaces.push(fusionWorkspace)
 
 			this.logInfo(`Added FusionWorkspace ${workspaceFolder.name} with path ${uriToPath(workspaceFolder.uri)}`)
@@ -92,12 +92,24 @@ export class LanguageServer extends Logger {
 		return this.connection.sendNotification("window/showMessage", { type, message })
 	}
 
-	public sendBusyCreate(id: string, configuration: undefined | {[key: string]: any} = undefined) {
+	public sendBusyCreate(id: string, configuration: undefined | { [key: string]: any } = undefined) {
 		return this.connection.sendNotification("custom/busy/create", { id, configuration })
 	}
 
 	public sendBusyDispose(id: string) {
 		return this.connection.sendNotification("custom/busy/dispose", { id })
+	}
+
+	public sendProgressNotificationCreate(id: string, title?: string) {
+		return this.connection.sendNotification("custom/progressNotification/create", { id, title })
+	}
+
+	public sendProgressNotificationUpdate(id: string, payload: { message?: string, increment?: number }) {
+		return this.connection.sendNotification("custom/progressNotification/update", { id, payload })
+	}
+
+	public sendProgressNotificationFinish(id: string) {
+		return this.connection.sendNotification("custom/progressNotification/finish", { id })
 	}
 
 	public onDidChangeConfiguration(params: DidChangeConfigurationParams) {

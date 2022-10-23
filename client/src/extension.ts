@@ -1,11 +1,12 @@
 import * as path from 'path'
 import {
-	workspace as Workspace, window as Window, ExtensionContext, TextDocument, OutputChannel, WorkspaceFolder, Uri, languages
+	workspace as Workspace, window as Window, ExtensionContext, TextDocument, OutputChannel, WorkspaceFolder, Uri, languages, ProgressLocation, window
 } from 'vscode'
 
 import {
 	LanguageClient, LanguageClientOptions, ProgressType, ServerOptions, TransportKind
 } from 'vscode-languageclient/node'
+import { ProgressNotificationService } from './progressNotificationService'
 import { StatusItemService } from './statusItemService'
 
 const clients: Map<string, LanguageClient> = new Map()
@@ -74,19 +75,22 @@ export function activate(context: ExtensionContext) {
 				}
 			}
 			
-			const statusItemService = new StatusItemService(documentSelector)			
+			const statusItemService = new StatusItemService(documentSelector)
+			const progressNotificationService = new ProgressNotificationService()	
 			const client = new LanguageClient('vscode-neos-fusion-lsp', 'LSP For Neos Fusion (and AFX)', serverOptions, clientOptions)
 
-			client.onNotification('custom/busy/create', ({id, configuration}) => {
-				statusItemService.createStatusItem(id, configuration)
-			})
-
+			client.onNotification('custom/busy/create', ({id, configuration}) => statusItemService.createStatusItem(id, configuration))
+			client.onNotification('custom/progressNotification/create', ({id, title}) => progressNotificationService.create(id, title))
+			
 			client.start()
 			clients.set(folder.uri.toString(), client)
 
-			client.onNotification('custom/busy/dispose', ({id}) => {
-				statusItemService.disposeStatusItem(id)
-			})
+			client.onNotification('custom/progressNotification/update', ({id, payload}) => progressNotificationService.update(id, payload))
+
+
+			client.onNotification('custom/busy/dispose', ({id}) => statusItemService.disposeStatusItem(id))
+			client.onNotification('custom/progressNotification/finish', ({id}) => progressNotificationService.finish(id))
+
 		}
 	}
 

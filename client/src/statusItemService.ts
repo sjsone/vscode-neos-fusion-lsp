@@ -1,4 +1,4 @@
-import { languages, LanguageStatusItem, LanguageStatusSeverity } from 'vscode';
+import { languages, LanguageStatusItem } from 'vscode';
 import { DocumentSelector } from 'vscode-languageclient';
 
 export class StatusItemService {
