@@ -54,7 +54,8 @@
             "Packages/Framework",
             "Packages/Plugins",
             "Packages/Sites",
-            "Packages/Neos"
+            "Packages/Neos",
+            "Packages/Carbon"
           ],
           "description": "Folders with packages"
         },
