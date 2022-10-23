@@ -40,7 +40,7 @@ export class ParsedFusionFile {
 	constructor(uri: string, workspace: FusionWorkspace) {
 		this.uri = uri
 		this.workspace = workspace
-		this.debug = uri.endsWith("FormatD.NodeTypes/Resources/Private/Fusion/Atoms/Test.fusion")
+		this.debug = false
 	}
 
 	init(text: string = undefined) {
@@ -57,7 +57,7 @@ export class ParsedFusionFile {
 			for (const nodeType of objectTree.nodesByType.keys()) {
 				for (const node of objectTree.nodesByType.get(nodeType)) {
 					if (node instanceof ObjectNode) this.handleEelObjectNode(node, text)
-					if(node instanceof TagNode) this.handleTagNameNode(node, text)
+					if (node instanceof TagNode) this.handleTagNameNode(node, text)
 					this.addNode(node, text)
 				}
 			}
@@ -74,7 +74,7 @@ export class ParsedFusionFile {
 	handleEelObjectNode(node: ObjectNode, text: string) {
 		const path = node.path.map(part => part["value"]).join(".")
 		const eelHelperTokens = this.workspace.neosWorkspace.getEelHelperTokens()
-		
+
 		const currentPath: ObjectPathNode[] = []
 		for (const part of node.path) {
 			currentPath.push(part)
@@ -84,7 +84,7 @@ export class ParsedFusionFile {
 					// TODO: Allow immidiate EEL-Helper (like "q(...)")
 					continue
 				}
-				
+
 				const methodNode = currentPath.pop()
 				const eelHelperMethodNodePosition = new NodePosition(methodNode["position"].begin, methodNode["position"].begin + methodNode["value"].length)
 				const eelHelperMethodNode = new EelHelperMethodNode(methodNode["value"], eelHelperMethodNodePosition)
@@ -102,12 +102,12 @@ export class ParsedFusionFile {
 				for (const eelHelper of eelHelperTokens) {
 					if (eelHelper.name === eelHelperIdentifier) {
 						const method = eelHelper.methods.find(method => method.name === methodNode["value"])
-						if(!method) continue
+						if (!method) continue
 						this.addNode(eelHelperMethodNode, text)
 						const eelHelperNode = new EelHelperNode(eelHelperIdentifier, eelHelperMethodNode, position)
 						this.addNode(eelHelperNode, text)
 					}
-				}	
+				}
 			}
 		}
 	}
@@ -118,6 +118,15 @@ export class ParsedFusionFile {
 			node["position"].begin + 1 + node["name"].length
 		))
 		this.addNode(prototypePath, text)
+
+		if (node["selfClosing"] || node["end"] === undefined) return
+
+		const endOffset = node["end"]["name"].indexOf(node["name"])
+		const endPrototypePath = new PrototypePathSegment(node["name"], new NodePosition(
+			node["end"]["position"].begin + endOffset,
+			node["end"]["position"].begin + endOffset + node["name"].length
+		))
+		this.addNode(endPrototypePath, text)
 	}
 
 	getNodesByType<T extends AbstractNode>(type: new (...args: any) => T): LinePositionedNode<T>[] | undefined {
