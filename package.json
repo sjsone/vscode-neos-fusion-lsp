@@ -134,7 +134,7 @@
     "typescript": "^4.7.2"
   },
   "dependencies": {
-    "ts-fusion-parser": "^0.0.37"
+    "ts-fusion-parser": "^0.0.38"
   },
   "repository": {
     "type": "git",
