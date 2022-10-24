@@ -22,7 +22,7 @@
   ],
   "publisher": "SimonSchmidt",
   "engines": {
-    "vscode": "^1.71.0"
+    "vscode": "^1.70.0"
   },
   "activationEvents": [
     "onLanguage:fusion",
