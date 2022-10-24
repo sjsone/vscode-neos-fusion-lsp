@@ -72,10 +72,10 @@ export function mergeObjects(source: unknown, target: unknown) {
     return target // we're replacing in-situ, so this is more for chaining than anything else
 }
 
-export function findParent(node: any, parentType: typeof AbstractNode) {
+export function findParent<T extends new (...args: any) => AbstractNode>(node: any, parentType: T): InstanceType<T> | undefined {
     let parent = node["parent"]
     while (parent) {
-        if (parent instanceof parentType) {
+        if (parent instanceof <any>parentType) {
             return parent
         }
         parent = parent["parent"]
