@@ -1,5 +1,6 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
+
 import { ObjectTreeParser } from 'ts-fusion-parser'
 import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
@@ -17,8 +18,11 @@ import { LinePositionedNode } from '../LinePositionedNode'
 import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectFunctionPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
-import { TagNameNode } from 'ts-fusion-parser/out/afx/nodes/TagNameNode'
 import { TagNode } from 'ts-fusion-parser/out/afx/nodes/TagNode'
+import { findParent, uriToPath } from '../util'
+import { ObjectPath } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectPath'
+import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/MetaPathSegment'
+import { Block } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/Block'
 
 export class ParsedFusionFile {
 	public workspace: FusionWorkspace
@@ -40,13 +44,13 @@ export class ParsedFusionFile {
 	constructor(uri: string, workspace: FusionWorkspace) {
 		this.uri = uri
 		this.workspace = workspace
-		this.debug = false
+		this.debug = this.uri.endsWith("Test.fusion")
 	}
 
 	init(text: string = undefined) {
 		try {
 			if (text === undefined) {
-				const file = NodeFs.readFileSync(this.uri.replace("file://", ""))
+				const file = NodeFs.readFileSync(uriToPath(this.uri))
 				text = file.toString()
 			}
 
@@ -58,6 +62,9 @@ export class ParsedFusionFile {
 				for (const node of objectTree.nodesByType.get(nodeType)) {
 					if (node instanceof ObjectNode) this.handleEelObjectNode(node, text)
 					if (node instanceof TagNode) this.handleTagNameNode(node, text)
+					if (node instanceof MetaPathSegment && node.identifier.toLowerCase() === "proptypes") {				
+						this.handlePropTypes(node, text)
+					}
 					this.addNode(node, text)
 				}
 			}
@@ -68,6 +75,24 @@ export class ParsedFusionFile {
 			}
 
 			return false
+		}
+	}
+
+	handlePropTypes(node: MetaPathSegment, text: string) {
+		const propTypesObjectStatement = findParent(node, ObjectStatement)
+		for(const propTypeStatement of <ObjectStatement[]>propTypesObjectStatement.block.statementList.statements) {
+			const name = propTypeStatement.path.segments[0]["identifier"]
+			if(!(propTypeStatement.operation instanceof ValueAssignment)) continue
+			const objectNode = propTypeStatement.operation.pathValue["nodes"]
+			if(!(objectNode instanceof ObjectNode)) continue
+			const paths = <ObjectPathNode[]>objectNode["path"]
+			if(this.debug) console.log("propType", name, paths.map(p => p["value"]).join("."))
+		}
+		const prototypeBlock = findParent(propTypesObjectStatement, Block)
+		
+		for(const statement of prototypeBlock.statementList.statements) {
+			if(!(statement instanceof ObjectStatement)) continue
+			if(this.debug) console.log("statement", statement["path"].segments[0]["identifier"])
 		}
 	}
 
