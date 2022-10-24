@@ -1,11 +1,12 @@
 import * as path from 'path'
 import {
-	workspace as Workspace, window as Window, ExtensionContext, TextDocument, OutputChannel, WorkspaceFolder, Uri, languages, ProgressLocation, window
+	workspace as Workspace, window as Window, ExtensionContext, TextDocument, OutputChannel, WorkspaceFolder, Uri, workspace
 } from 'vscode'
 
 import {
-	LanguageClient, LanguageClientOptions, ProgressType, ServerOptions, TransportKind
+	LanguageClient, LanguageClientOptions, ServerOptions, TransportKind
 } from 'vscode-languageclient/node'
+import { PreferenceService } from './preferenceService'
 import { ProgressNotificationService } from './progressNotificationService'
 import { StatusItemService } from './statusItemService'
 
@@ -42,7 +43,18 @@ function getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
 
 export function activate(context: ExtensionContext) {
 	const module = context.asAbsolutePath(path.join('server', 'out', 'main.js'))
-	const outputChannel: OutputChannel = Window.createOutputChannel('vscode-neos-fusion-lsp')
+	const outputChannel: OutputChannel = Window.createOutputChannel('Neos Fusion LSP')
+
+	if(workspace.getConfiguration().get("neosFusionLsp.extensions.modify", false)) {
+		const preferenceService = new PreferenceService(outputChannel)
+
+		preferenceService.modify({
+			path: "auto-close-tag.activationOnLanguage",
+			modifier: (value: string[]) => !value.includes("fusion") ? [...value, "fusion"] : null
+		})
+	}
+
+	
 
 	function didOpenTextDocument(document: TextDocument): void {
 		if (document.languageId !== 'fusion' || (document.uri.scheme !== 'file' && document.uri.scheme !== 'untitled')) {
@@ -61,7 +73,7 @@ export function activate(context: ExtensionContext) {
 		if (!clients.has(folder.uri.toString())) {
 			const debugOptions = { execArgv: ["--nolazy", `--inspect=${6011 + clients.size}`] }
 			const serverOptions: ServerOptions = {
-				run: { module, transport: TransportKind.ipc , options: { } },
+				run: { module, transport: TransportKind.ipc, options: {} },
 				debug: { module, transport: TransportKind.ipc, options: debugOptions }
 			}
 			const documentSelector = [{ scheme: 'file', language: 'fusion', pattern: `${folder.uri.fsPath}/**/*` }]
@@ -74,22 +86,22 @@ export function activate(context: ExtensionContext) {
 					configurationSection: 'neosFusionLsp',
 				}
 			}
-			
+
 			const statusItemService = new StatusItemService(documentSelector)
-			const progressNotificationService = new ProgressNotificationService()	
+			const progressNotificationService = new ProgressNotificationService()
 			const client = new LanguageClient('vscode-neos-fusion-lsp', 'LSP For Neos Fusion (and AFX)', serverOptions, clientOptions)
 
-			client.onNotification('custom/busy/create', ({id, configuration}) => statusItemService.createStatusItem(id, configuration))
-			client.onNotification('custom/progressNotification/create', ({id, title}) => progressNotificationService.create(id, title))
-			
+			client.onNotification('custom/busy/create', ({ id, configuration }) => statusItemService.createStatusItem(id, configuration))
+			client.onNotification('custom/progressNotification/create', ({ id, title }) => progressNotificationService.create(id, title))
+
 			client.start()
 			clients.set(folder.uri.toString(), client)
 
-			client.onNotification('custom/progressNotification/update', ({id, payload}) => progressNotificationService.update(id, payload))
+			client.onNotification('custom/progressNotification/update', ({ id, payload }) => progressNotificationService.update(id, payload))
 
 
-			client.onNotification('custom/busy/dispose', ({id}) => statusItemService.disposeStatusItem(id))
-			client.onNotification('custom/progressNotification/finish', ({id}) => progressNotificationService.finish(id))
+			client.onNotification('custom/busy/dispose', ({ id }) => statusItemService.disposeStatusItem(id))
+			client.onNotification('custom/progressNotification/finish', ({ id }) => progressNotificationService.finish(id))
 
 		}
 	}

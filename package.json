@@ -36,6 +36,10 @@
   "extensionDependencies": [
     "networkteam.neos-fusion"
   ],
+  "extensionPack": [
+    "formulahendry.auto-rename-tag",
+    "formulahendry.auto-close-tag"
+  ],
   "contributes": {
     "configuration": {
       "type": "object",
@@ -104,6 +108,11 @@
             "A bit more explaining and additional information",
             "Shows everything it can"
           ]
+        },
+        "neosFusionLsp.extensions.modify": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow modification of a few settings of other extensions to improve the experience."
         }
       }
     }
