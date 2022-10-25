@@ -35,7 +35,7 @@ class NodeService {
 			// TODO: Decide what to do with "renderer"
 			if (segment.identifier === "renderer") continue
 
-			if (segment.identifier === objectNode.path[1]["value"]) {
+			if (objectNode.path.length > 1 && segment.identifier === objectNode.path[1]["value"]) {
 				return segment
 			}
 		}
