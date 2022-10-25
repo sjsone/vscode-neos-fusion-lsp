@@ -1,13 +1,10 @@
-import { AbstractNode } from 'ts-fusion-parser/out/afx/nodes/AbstractNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectFunctionPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
 import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
-import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/MetaPathSegment'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment'
-import { StatementList } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StatementList'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueAssignment'
 import { DefinitionParams } from 'vscode-languageserver/node'
 import { EelHelperMethodNode } from '../fusion/EelHelperMethodNode'
@@ -15,7 +12,8 @@ import { EelHelperNode } from '../fusion/EelHelperNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { LinePositionedNode } from '../LinePositionedNode'
-import { abstractNodeToString, getPrototypeNameFromNode } from '../util'
+import { NodeService } from '../NodeService'
+import { abstractNodeToString, findParent, getPrototypeNameFromNode } from '../util'
 import { AbstractCapability } from './AbstractCapability'
 
 export class HoverCapability extends AbstractCapability {
@@ -44,22 +42,16 @@ export class HoverCapability extends AbstractCapability {
 		const line = params.position.line + 1
 		const column = params.position.character + 1
 
-		const workspace = this.languageServer.getWorspaceFromFileUri(params.textDocument.uri)
-		if (workspace === undefined) return null
+		const context = this.buildContextFromUri(params.textDocument.uri, line, column)
+		if (context === null) return null
 
-		const parsedFile = workspace.getParsedFileByUri(params.textDocument.uri)
-		if (parsedFile === undefined) return null
+		const nodeBegin = context.foundNodeByLine.getBegin()
+		const nodeEnd = context.foundNodeByLine.getEnd()
 
-		const foundNodeByLine = parsedFile.getNodeByLineAndColumn(line, column)
-		if (foundNodeByLine === undefined) return null
-
-		const nodeBegin = foundNodeByLine.getBegin()
-		const nodeEnd = foundNodeByLine.getEnd()
-
-		const node = foundNodeByLine.getNode()
+		const node = context.foundNodeByLine.getNode()
 		this.logVerbose(`FoundNode: ` + node.constructor.name)
 
-		const markdown = this.getMarkdownByNode(foundNodeByLine, parsedFile, workspace)
+		const markdown = this.getMarkdownByNode(context.foundNodeByLine, context.parsedFile, context.workspace)
 		if (markdown === null) return null
 
 		return {
@@ -82,32 +74,15 @@ export class HoverCapability extends AbstractCapability {
 		const objectNode = node.parent
 		if (!(objectNode instanceof ObjectNode)) return null
 
-		if (objectNode.path[0]["value"] !== "this" && objectNode.path[0]["value"] !== "props") {
-			return `EEL **${(<ObjectPathNode><unknown>node)["value"]}**`
-		}
+		if (objectNode.path[0]["value"] === "this" || objectNode.path[0]["value"] === "props") {
+			const segment = NodeService.findPropertyDefinitionSegment(objectNode)
+			if (segment) {
+				const statement = findParent(segment, ObjectStatement)
+				if (!statement) return null
+				if (!(statement.operation instanceof ValueAssignment)) return null
 
-		const objectStatements = parsedFile.nodesByType.get(ObjectStatement)
-		const nodePosition = node["position"]
-		for (const objectStatement of objectStatements) {
-			const objectStatementNode = <ObjectStatement>objectStatement.getNode()
-			const objectPosition = objectStatementNode["position"]
-
-			if (!(nodePosition.begin >= objectPosition.start && nodePosition.end <= objectPosition.end)) continue
-			if (objectStatementNode["block"] === undefined) continue
-
-			const statementList: StatementList = objectStatementNode["block"].statementList
-			const statements = statementList.statements
-
-			for (const statement of statements) {
-				if (!(statement instanceof ObjectStatement)) continue
-				if (statement.path.segments === undefined) continue
-				const firstSegment = statement.path.segments[0]
-				if (firstSegment instanceof MetaPathSegment) continue
-				if (objectNode.path[1]["value"] !== firstSegment["identifier"]) continue
-				const firstSegmentPositionedNode = parsedFile.getNodesByType(PathSegment).find(pn => pn.getNode() === firstSegment)
-				if (firstSegmentPositionedNode && statement.operation instanceof ValueAssignment) {
-					const stringified = abstractNodeToString(<any>statement.operation["pathValue"])
-					if (stringified === undefined) continue
+				const stringified = abstractNodeToString(<any>statement.operation.pathValue)
+				if (stringified !== undefined) {
 					return [
 						`EEL **${(<ObjectPathNode><unknown>node)["value"]}**`,
 						'```javascript',

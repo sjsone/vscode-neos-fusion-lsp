@@ -7,13 +7,11 @@ import { EelHelperNode } from '../fusion/EelHelperNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { LinePositionedNode } from '../LinePositionedNode'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
-import { findParent, getPrototypeNameFromNode } from '../util'
+import { getPrototypeNameFromNode } from '../util'
 import { AbstractCapability } from './AbstractCapability'
 import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
-import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement'
-import { StatementList } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StatementList'
-import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/MetaPathSegment'
+import { NodeService } from '../NodeService'
 
 export class DefinitionCapability extends AbstractCapability {
 
@@ -31,21 +29,20 @@ export class DefinitionCapability extends AbstractCapability {
 		const foundNodeByLine = parsedFile.getNodeByLineAndColumn(line, column)
 		if (foundNodeByLine === undefined) return null
 
-		
 		const node = foundNodeByLine.getNode()
+
 		this.logVerbose(`node type "${foundNodeByLine.getNode().constructor.name}"`)
 		switch (true) {
 			case node instanceof FusionObjectValue:
 			case node instanceof PrototypePathSegment:
 				return this.getPrototypeDefinitions(workspace, foundNodeByLine)
 			case node instanceof PathSegment:
+			case node instanceof ObjectPathNode:
 				return this.getPropertyDefinitions(parsedFile, foundNodeByLine)
 			case node instanceof EelHelperMethodNode:
 				return this.getEelHelperMethodDefinitions(workspace, foundNodeByLine)
 			case node instanceof EelHelperNode:
 				return this.getEelHelperDefinitions(workspace, foundNodeByLine)
-			case node instanceof ObjectPathNode:
-				return this.getObjectPathDefinitions(parsedFile, foundNodeByLine)
 		}
 
 		return null
@@ -86,28 +83,29 @@ export class DefinitionCapability extends AbstractCapability {
 		return locations
 	}
 
-	getPropertyDefinitions(parsedFile: ParsedFusionFile, foundNodeByLine: LinePositionedNode<PathSegment>) {
-		const locations: Location[] = []
+	getPropertyDefinitions(parsedFile: ParsedFusionFile, foundNodeByLine: LinePositionedNode<any>): null | Location[] {
+		// PathSegment|ObjectPathNode
+		const node = <PathSegment | ObjectPathNode>foundNodeByLine.getNode()
+		const objectNode = node["parent"]
+		if (!(objectNode instanceof ObjectNode)) return null
 
-		const pathSegments = parsedFile.getNodesByType(PathSegment)
-		if (pathSegments === undefined) return null
-
-		for (const pathSegment of pathSegments) {
-			if (pathSegment.getNode().identifier !== foundNodeByLine.getNode().identifier) continue
-			if (pathSegment.getNode() === foundNodeByLine.getNode()) continue
-			// Skip if it occours multiple times in one line. Happens in AFX quite a lot
-			if (pathSegment.getBegin().line === foundNodeByLine.getBegin().line) continue
-
-			locations.push({
-				uri: parsedFile.uri,
-				range: {
-					start: { line: pathSegment.getBegin().line - 1, character: pathSegment.getBegin().column - 1 },
-					end: { line: pathSegment.getEnd().line - 1, character: pathSegment.getEnd().column - 1 }
-				}
-			})
+		if ((objectNode.path[0]["value"] !== "this" && objectNode.path[0]["value"] !== "props") || objectNode.path.length === 1) {
+			// TODO: handle context properties
+			return null
 		}
 
-		return locations
+		const segment = NodeService.findPropertyDefinitionSegment(objectNode)
+		if (segment) {
+			return [{
+				uri: parsedFile.uri,
+				range: {
+					start: { line: segment["linePositionedNode"].getBegin().line - 1, character: segment["linePositionedNode"].getBegin().column - 1 },
+					end: { line: segment["linePositionedNode"].getEnd().line - 1, character: segment["linePositionedNode"].getEnd().column - 1 }
+				}
+			}]
+		}
+
+		return null
 	}
 
 	getEelHelperDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<EelHelperNode>) {
@@ -135,7 +133,7 @@ export class DefinitionCapability extends AbstractCapability {
 		for (const eelHelper of workspace.neosWorkspace.getEelHelperTokens()) {
 			if (eelHelper.name === node.eelHelper.identifier) {
 				const method = eelHelper.methods.find(method => method.name === node.identifier)
-				if(!method) continue
+				if (!method) continue
 				return [
 					{
 						uri: eelHelper.uri,
@@ -146,51 +144,6 @@ export class DefinitionCapability extends AbstractCapability {
 					}
 				]
 			}
-		}
-
-		return null
-	}
-	
-	getObjectPathDefinitions(parsedFile: ParsedFusionFile, foundNodeByLine: LinePositionedNode<any>) {
-		const node = foundNodeByLine.getNode()
-		const objectNode = node.parent
-		if(!(objectNode instanceof ObjectNode)) return null
-
-		if(objectNode.path[0]["value"] !== "this" && objectNode.path[0]["value"] !== "props") {
-			return null
-		}
-
-		const objectStatements = parsedFile.nodesByType.get(ObjectStatement)
-		const nodePosition = node["position"]
-		for(const objectStatement of objectStatements) {
-			const objectStatementNode = objectStatement.getNode()
-			const objectPosition = objectStatementNode["position"]
-
-			if(!(nodePosition.begin >= objectPosition.start && nodePosition.end <= objectPosition.end)) continue
-			if(objectStatementNode["block"] === undefined) continue
-
-			const statementList: StatementList = objectStatementNode["block"].statementList
-			const statements = statementList.statements
-
-			for(const statement of statements) {
-				if(!(statement instanceof ObjectStatement)) continue
-				if(statement.path.segments === undefined) continue
-				const firstSegment = statement.path.segments[0]
-				if(firstSegment instanceof MetaPathSegment) continue
-				if(objectNode.path[1]["value"] !== firstSegment["identifier"]) continue
-				const firstSegmentPositionedNode = parsedFile.getNodesByType(PathSegment).find(pn => pn.getNode() === firstSegment)
-				if(firstSegmentPositionedNode) {
-					return [
-						{
-							uri: parsedFile.uri,
-							range: {
-								start: { line: firstSegmentPositionedNode.getBegin().line - 1, character: firstSegmentPositionedNode.getBegin().column - 1 },
-								end: { line: firstSegmentPositionedNode.getEnd().line - 1, character: firstSegmentPositionedNode.getEnd().column - 1 }
-							}
-						}
-					] 
-				}
-			}		
 		}
 
 		return null

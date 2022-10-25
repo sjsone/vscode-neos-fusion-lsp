@@ -1,12 +1,16 @@
 import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
 import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode'
+import { FusionFile } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionFile'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
+import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment'
+import { StatementList } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StatementList'
 import { CompletionItem, CompletionItemKind, InsertReplaceEdit, InsertTextMode, Position, TextDocumentPositionParams } from 'vscode-languageserver/node'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { LinePositionedNode } from '../LinePositionedNode'
+import { NodeService } from '../NodeService'
 import { AbstractCapability } from './AbstractCapability'
 
 export class CompletionCapability extends AbstractCapability {
@@ -17,7 +21,7 @@ export class CompletionCapability extends AbstractCapability {
 		const parsedFile = fusionWorkspace.getParsedFileByUri(textDocumentPosition.textDocument.uri)
 		if (!parsedFile) return null
 
-		const completions = [...this.getFusionPropertyCompletions(parsedFile)]
+		const completions = []
 		const foundLinePositionedNode = parsedFile.getNodeByLineAndColumn(textDocumentPosition.position.line + 1, textDocumentPosition.position.character + 1)
 
 		if (foundLinePositionedNode) {
@@ -28,7 +32,8 @@ export class CompletionCapability extends AbstractCapability {
 					completions.push(...this.getPrototypeCompletions(fusionWorkspace, foundLinePositionedNode))
 					break;
 				case foundNode instanceof ObjectPathNode:
-					completions.push(...this.getObjectPathNodeCompletions(fusionWorkspace, foundLinePositionedNode))
+					completions.push(...this.getEelHelperCompletions(fusionWorkspace, foundLinePositionedNode))
+					completions.push(...this.getFusionPropertyCompletions(parsedFile, foundLinePositionedNode))
 					break;
 			}
 		}
@@ -38,20 +43,27 @@ export class CompletionCapability extends AbstractCapability {
 		return completions
 	}
 
-	protected getFusionPropertyCompletions(parsedFile: ParsedFusionFile): CompletionItem[] {
+	protected getFusionPropertyCompletions(parsedFile: ParsedFusionFile, foundNode: LinePositionedNode<any>): CompletionItem[] {
 		const completions = []
+		console.log("foundNode", foundNode.constructor.name)
 
-		const foundNodes = parsedFile.getNodesByType(PathSegment)
-		if (!foundNodes) return null
+		const node = <ObjectPathNode>foundNode.getNode()
+		const objectNode = <ObjectNode>node["parent"]
+		if (!(objectNode instanceof ObjectNode)) return null
 
-		for (const fileNode of foundNodes) {
-			const label = fileNode.getNode().identifier
-			if (!completions.find(completion => completion.label === label)) {
-				completions.push({
-					label,
-					kind: CompletionItemKind.Field
-				})
-			}
+		if ((objectNode.path[0]["value"] !== "this" && objectNode.path[0]["value"] !== "props") || objectNode.path.length === 1) {
+			// TODO: handle context properties
+			return completions
+		}
+
+		for (const segment of NodeService.findPropertyDefinitionSegments(objectNode)) {
+			if (!(segment instanceof PathSegment)) continue
+			if (segment.identifier === "renderer" || !segment.identifier) continue
+			if (completions.find(completion => completion.label === segment.identifier)) continue
+			completions.push({
+				label: segment.identifier,
+				kind: CompletionItemKind.Property
+			})
 		}
 
 		return completions
@@ -87,7 +99,7 @@ export class CompletionCapability extends AbstractCapability {
 		return completions
 	}
 
-	protected getObjectPathNodeCompletions(fusionWorkspace: FusionWorkspace, foundNode: LinePositionedNode<any>): CompletionItem[] {
+	protected getEelHelperCompletions(fusionWorkspace: FusionWorkspace, foundNode: LinePositionedNode<any>): CompletionItem[] {
 		const node = <ObjectPathNode>foundNode.getNode()
 		const objectNode = <ObjectNode>node["parent"]
 		const linePositionedObjectNode = objectNode["linePositionedNode"]
@@ -95,11 +107,11 @@ export class CompletionCapability extends AbstractCapability {
 		const completions: CompletionItem[] = []
 
 		const eelHelpers = fusionWorkspace.neosWorkspace.getEelHelperTokens()
-		for(const eelHelper of eelHelpers) {
-			for(const method of eelHelper.methods) {
+		for (const eelHelper of eelHelpers) {
+			for (const method of eelHelper.methods) {
 				const fullName = eelHelper.name + "." + method.name
-				if(!fullName.startsWith(fullPath)) continue
-				
+				if (!fullName.startsWith(fullPath)) continue
+
 				const label = fullName
 				const insertReplaceEdit: InsertReplaceEdit = {
 					insert: linePositionedObjectNode.getPositionAsRange(),
