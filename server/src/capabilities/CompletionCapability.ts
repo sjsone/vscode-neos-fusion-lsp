@@ -63,7 +63,7 @@ export class CompletionCapability extends AbstractCapability {
 	}
 
 	protected getPrototypeCompletions(fusionWorkspace: FusionWorkspace, foundNode: LinePositionedNode<FusionObjectValue | PrototypePathSegment>): CompletionItem[] {
-		const completions = []
+		const completions: CompletionItem[] = []
 
 		const foundNodes = fusionWorkspace.getNodesByType(PrototypePathSegment)
 		if (!foundNodes) return null
@@ -72,19 +72,7 @@ export class CompletionCapability extends AbstractCapability {
 			for (const fileNode of fileNodes.nodes) {
 				const label = fileNode.getNode().identifier
 				if (!completions.find(completion => completion.label === label)) {
-					completions.push({
-						label,
-						kind: CompletionItemKind.Class,
-						insertTextMode: InsertTextMode.adjustIndentation,
-						insertText: label,
-						textEdit: {
-							range: {
-								start: { line: foundNode.getBegin().line - 1, character: foundNode.getBegin().column - 1 },
-								end: { line: foundNode.getBegin().line - 1, character: foundNode.getBegin().column + label.length - 1 },
-							},
-							newText: label
-						}
-					})
+					completions.push(this.createCompletionItem(label, foundNode, CompletionItemKind.Class))
 				}
 			}
 		}
@@ -104,27 +92,27 @@ export class CompletionCapability extends AbstractCapability {
 			for (const method of eelHelper.methods) {
 				const fullName = eelHelper.name + "." + method.name
 				if (!fullName.startsWith(fullPath)) continue
-
-				const label = fullName
-				const insertReplaceEdit: InsertReplaceEdit = {
-					insert: linePositionedObjectNode.getPositionAsRange(),
-					replace: {
-						start: { line: linePositionedObjectNode.getBegin().line - 1, character: linePositionedObjectNode.getBegin().column - 1 },
-						end: { line: linePositionedObjectNode.getEnd().line - 1, character: linePositionedObjectNode.getEnd().column + label.length - 1 },
-					},
-					newText: label
-				}
-
-				completions.push({
-					label,
-					kind: CompletionItemKind.Method,
-					insertTextMode: InsertTextMode.adjustIndentation,
-					insertText: label,
-					textEdit: insertReplaceEdit
-				})
+				completions.push(this.createCompletionItem(fullName, linePositionedObjectNode, CompletionItemKind.Method))
 			}
 		}
 
 		return completions
+	}
+
+	protected createCompletionItem(label: string, linePositionedObjectNode: LinePositionedNode<any>, kind: CompletionItemKind) {
+		return {
+			label,
+			kind,
+			insertTextMode: InsertTextMode.adjustIndentation,
+			insertText: label,
+			textEdit: {
+				insert: linePositionedObjectNode.getPositionAsRange(),
+				replace: {
+					start: { line: linePositionedObjectNode.getBegin().line - 1, character: linePositionedObjectNode.getBegin().column - 1 },
+					end: { line: linePositionedObjectNode.getEnd().line - 1, character: linePositionedObjectNode.getEnd().column + label.length - 1 },
+				},
+				newText: label
+			}
+		}
 	}
 }
