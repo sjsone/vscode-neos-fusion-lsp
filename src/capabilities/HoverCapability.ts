@@ -6,7 +6,6 @@ import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/as
 import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueAssignment'
-import { DefinitionParams } from 'vscode-languageserver/node'
 import { EelHelperMethodNode } from '../fusion/EelHelperMethodNode'
 import { EelHelperNode } from '../fusion/EelHelperNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
@@ -15,10 +14,25 @@ import { LinePositionedNode } from '../LinePositionedNode'
 import { NodeService } from '../NodeService'
 import { abstractNodeToString, findParent, getPrototypeNameFromNode } from '../util'
 import { AbstractCapability } from './AbstractCapability'
+import { CapabilityContext } from './CapabilityContext'
 
 export class HoverCapability extends AbstractCapability {
+
+	public run(context: CapabilityContext<any>) {
+		const markdown = this.getMarkdownByNode(context.foundNodeByLine, context.parsedFile, context.workspace)
+		if (markdown === null) return null
+
+		return {
+			contents: { kind: "markdown", value: markdown },
+			range: context.foundNodeByLine.getPositionAsRange()
+		}
+	}
+
 	protected getMarkdownByNode(foundNodeByLine: LinePositionedNode<any>, parsedFile: ParsedFusionFile, workspace: FusionWorkspace) {
 		const node = foundNodeByLine.getNode()
+		// console.log("node", node)
+		this.logVerbose(`FoundNode: ` + node.constructor.name)
+
 		switch (true) {
 			case node instanceof FusionObjectValue:
 			case node instanceof PrototypePathSegment:
@@ -35,31 +49,6 @@ export class HoverCapability extends AbstractCapability {
 				return this.getMarkdownForEelHelperMethod(node, workspace)
 			default:
 				return null // `Type: ${node.constructor.name}`
-		}
-	}
-
-	public run(params: DefinitionParams) {
-		const line = params.position.line + 1
-		const column = params.position.character + 1
-
-		const context = this.buildContextFromUri(params.textDocument.uri, line, column)
-		if (context === null) return null
-
-		const nodeBegin = context.foundNodeByLine.getBegin()
-		const nodeEnd = context.foundNodeByLine.getEnd()
-
-		const node = context.foundNodeByLine.getNode()
-		this.logVerbose(`FoundNode: ` + node.constructor.name)
-
-		const markdown = this.getMarkdownByNode(context.foundNodeByLine, context.parsedFile, context.workspace)
-		if (markdown === null) return null
-
-		return {
-			contents: { kind: "markdown", value: markdown },
-			range: {
-				start: { line: nodeBegin.line - 1, character: nodeBegin.column - 1 },
-				end: { line: nodeEnd.line - 1, character: nodeEnd.column - 1 }
-			}
 		}
 	}
 
@@ -106,7 +95,6 @@ export class HoverCapability extends AbstractCapability {
 		}
 
 		const header = `EEL-Helper *${(<EelHelperMethodNode>node).eelHelper.identifier}*.**${(<EelHelperMethodNode>node).identifier}**`
-
 		return `${header}` + (description ? '\n\n' + description : '')
 	}
 }

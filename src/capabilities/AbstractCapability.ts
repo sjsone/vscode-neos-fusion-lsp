@@ -1,5 +1,8 @@
+import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode'
+import { TextDocumentPositionParams } from 'vscode-languageserver/node'
 import { LanguageServer } from '../LanguageServer'
 import { Logger } from '../Logging'
+import { CapabilityContext } from './CapabilityContext'
 
 export abstract class AbstractCapability extends Logger {
 	protected languageServer: LanguageServer
@@ -9,7 +12,21 @@ export abstract class AbstractCapability extends Logger {
 		this.languageServer = languageServer
 	}
 
-	protected buildContextFromUri(uri: string, line: number, column: number) {
+	public execute(params) {
+		const context = this.buildContextFromParams(params)
+		if (!context) return null
+		return this.run(context)
+	}
+
+	protected abstract run<N extends AbstractNode>(capabilityContext: CapabilityContext<N>): any
+
+	protected buildContextFromParams(params: TextDocumentPositionParams): CapabilityContext<any> {
+		const uri = params.textDocument.uri
+		const line = params.position.line + 1
+		const column = params.position.character + 1
+
+		this.logDebug(`${line}/${column} ${params.textDocument.uri}`)
+
 		const workspace = this.languageServer.getWorspaceFromFileUri(uri)
 		if (workspace === undefined) return null
 
@@ -22,9 +39,8 @@ export abstract class AbstractCapability extends Logger {
 		return {
 			workspace,
 			parsedFile,
-			foundNodeByLine
+			foundNodeByLine,
+			params
 		}
 	}
-
-	public abstract run(...args: any): any
 }

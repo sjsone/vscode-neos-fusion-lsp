@@ -1,39 +1,32 @@
 import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
 import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode'
-import { FusionFile } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionFile'
+import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
-import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment'
-import { StatementList } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StatementList'
-import { CompletionItem, CompletionItemKind, InsertReplaceEdit, InsertTextMode, Position, TextDocumentPositionParams } from 'vscode-languageserver/node'
+import { CompletionItem, CompletionItemKind, InsertReplaceEdit, InsertTextMode } from 'vscode-languageserver/node'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { LinePositionedNode } from '../LinePositionedNode'
 import { NodeService } from '../NodeService'
 import { AbstractCapability } from './AbstractCapability'
+import { CapabilityContext } from './CapabilityContext'
 
 export class CompletionCapability extends AbstractCapability {
-	public run(textDocumentPosition: TextDocumentPositionParams) {
-		const fusionWorkspace = this.languageServer.getWorspaceFromFileUri(textDocumentPosition.textDocument.uri)
-		if (fusionWorkspace === undefined) return []
 
-		const parsedFile = fusionWorkspace.getParsedFileByUri(textDocumentPosition.textDocument.uri)
-		if (!parsedFile) return null
-
+	protected run(context: CapabilityContext<AbstractNode>) {
+		const { workspace, parsedFile, foundNodeByLine } = context
 		const completions = []
-		const foundLinePositionedNode = parsedFile.getNodeByLineAndColumn(textDocumentPosition.position.line + 1, textDocumentPosition.position.character + 1)
-
-		if (foundLinePositionedNode) {
-			const foundNode = foundLinePositionedNode.getNode()
+		if (foundNodeByLine) {
+			const foundNode = foundNodeByLine.getNode()
 			switch (true) {
 				case foundNode instanceof FusionObjectValue:
 				case foundNode instanceof PrototypePathSegment:
-					completions.push(...this.getPrototypeCompletions(fusionWorkspace, foundLinePositionedNode))
+					completions.push(...this.getPrototypeCompletions(workspace, <any>foundNodeByLine))
 					break;
 				case foundNode instanceof ObjectPathNode:
-					completions.push(...this.getEelHelperCompletions(fusionWorkspace, foundLinePositionedNode))
-					completions.push(...this.getFusionPropertyCompletions(parsedFile, foundLinePositionedNode))
+					completions.push(...this.getEelHelperCompletions(workspace, foundNodeByLine))
+					completions.push(...this.getFusionPropertyCompletions(parsedFile, foundNodeByLine))
 					break;
 			}
 		}
@@ -82,7 +75,7 @@ export class CompletionCapability extends AbstractCapability {
 					completions.push({
 						label,
 						kind: CompletionItemKind.Class,
-						insertTextMode: InsertTextMode.asIs,
+						insertTextMode: InsertTextMode.adjustIndentation,
 						insertText: label,
 						textEdit: {
 							range: {

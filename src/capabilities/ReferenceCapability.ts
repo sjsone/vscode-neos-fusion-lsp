@@ -3,22 +3,12 @@ import { Location, ReferenceParams } from 'vscode-languageserver/node'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { getPrototypeNameFromNode } from '../util'
 import { AbstractCapability } from './AbstractCapability'
+import { CapabilityContext } from './CapabilityContext'
 
 export class ReferenceCapability extends AbstractCapability {
 
-	public run(params: ReferenceParams): any {
-		const line = params.position.line + 1
-		const column = params.position.character + 1
-		this.logDebug(`${line}/${column} ${params.textDocument.uri} ${params.workDoneToken}`)
-
-		const workspace = this.languageServer.getWorspaceFromFileUri(params.textDocument.uri)
-		if (workspace === undefined) return null
-
-		const parsedFile = workspace.getParsedFileByUri(params.textDocument.uri)
-		if (parsedFile === undefined) return null
-
-		const foundNodeByLine = parsedFile.getNodeByLineAndColumn(line, column)
-		if (foundNodeByLine === undefined) return null
+	protected run(context: CapabilityContext<any>): any {
+		const { workspace, foundNodeByLine } = context
 
 		this.logVerbose(`Found node type "${foundNodeByLine.getNode().constructor.name}"`)
 
