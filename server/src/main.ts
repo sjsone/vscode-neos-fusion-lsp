@@ -39,19 +39,19 @@ connection.onDidChangeConfiguration((params) => {
 })
 
 connection.onDefinition((params) => {
-    return languageserver.getCapability("onDefinition").run(params)
+    return languageserver.getCapability("onDefinition").execute(params)
 })
 
 connection.onReferences(params => {
-    return languageserver.getCapability("onReferences").run(params)
+    return languageserver.getCapability("onReferences").execute(params)
 })
 
 connection.onCompletion((textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-    return languageserver.getCapability("onCompletion").run(textDocumentPosition)
+    return languageserver.getCapability("onCompletion").execute(textDocumentPosition)
 })
 
 connection.onHover((params: HoverParams): Hover => {
-    return languageserver.getCapability("onHover").run(params)
+    return languageserver.getCapability("onHover").execute(params)
 })
 
 connection.onCompletionResolve((item: CompletionItem): CompletionItem => {

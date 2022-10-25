@@ -1,7 +1,7 @@
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment'
-import { DefinitionLink, DefinitionParams, Location } from 'vscode-languageserver/node'
+import { DefinitionLink, Location } from 'vscode-languageserver/node'
 import { EelHelperMethodNode } from '../fusion/EelHelperMethodNode'
 import { EelHelperNode } from '../fusion/EelHelperNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
@@ -12,23 +12,13 @@ import { AbstractCapability } from './AbstractCapability'
 import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
 import { NodeService } from '../NodeService'
+import { CapabilityContext } from './CapabilityContext'
+import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode'
 
 export class DefinitionCapability extends AbstractCapability {
 
-	public run(params: DefinitionParams) {
-		const line = params.position.line + 1
-		const column = params.position.character + 1
-		this.logVerbose(`${line}/${column} ${params.textDocument.uri} ${params.workDoneToken}`)
-
-		const workspace = this.languageServer.getWorspaceFromFileUri(params.textDocument.uri)
-		if (workspace === undefined) return null
-
-		const parsedFile = workspace.getParsedFileByUri(params.textDocument.uri)
-		if (parsedFile === undefined) return null
-
-		const foundNodeByLine = parsedFile.getNodeByLineAndColumn(line, column)
-		if (foundNodeByLine === undefined) return null
-
+	protected run(context: CapabilityContext<AbstractNode>) {
+		const { workspace, parsedFile, foundNodeByLine } = context
 		const node = foundNodeByLine.getNode()
 
 		this.logVerbose(`node type "${foundNodeByLine.getNode().constructor.name}"`)
@@ -40,9 +30,9 @@ export class DefinitionCapability extends AbstractCapability {
 			case node instanceof ObjectPathNode:
 				return this.getPropertyDefinitions(parsedFile, foundNodeByLine)
 			case node instanceof EelHelperMethodNode:
-				return this.getEelHelperMethodDefinitions(workspace, foundNodeByLine)
+				return this.getEelHelperMethodDefinitions(workspace, <LinePositionedNode<EelHelperMethodNode>>foundNodeByLine)
 			case node instanceof EelHelperNode:
-				return this.getEelHelperDefinitions(workspace, foundNodeByLine)
+				return this.getEelHelperDefinitions(workspace, <LinePositionedNode<EelHelperNode>>foundNodeByLine)
 		}
 
 		return null
