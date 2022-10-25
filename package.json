@@ -9,7 +9,7 @@
     "theme": "dark"
   },
   "license": "AGPL-3.0-or-later",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "categories": [
     "Programming Languages"
   ],
@@ -134,7 +134,7 @@
     "typescript": "^4.7.2"
   },
   "dependencies": {
-    "ts-fusion-parser": "^0.0.38"
+    "ts-fusion-parser": "^0.0.41"
   },
   "repository": {
     "type": "git",
