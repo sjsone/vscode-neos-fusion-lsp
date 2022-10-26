@@ -17,7 +17,6 @@ import { LinePositionedNode } from '../LinePositionedNode'
 import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectFunctionPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
-import { TagNameNode } from 'ts-fusion-parser/out/afx/nodes/TagNameNode'
 import { TagNode } from 'ts-fusion-parser/out/afx/nodes/TagNode'
 
 export class ParsedFusionFile {
@@ -51,6 +50,7 @@ export class ParsedFusionFile {
 			}
 
 			const objectTree = ObjectTreeParser.parse(text, undefined, true)
+			this.clear()
 			this.igoredErrorsByParser = objectTree.errors
 			this.readStatementList(objectTree.statementList, text)
 
@@ -72,7 +72,6 @@ export class ParsedFusionFile {
 	}
 
 	handleEelObjectNode(node: ObjectNode, text: string) {
-		const path = node.path.map(part => part["value"]).join(".")
 		const eelHelperTokens = this.workspace.neosWorkspace.getEelHelperTokens()
 
 		const currentPath: ObjectPathNode[] = []
