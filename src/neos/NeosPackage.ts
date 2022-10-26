@@ -7,7 +7,7 @@ import { NeosWorkspace } from './NeosWorkspace'
 
 export interface EELHelperToken {
 	name: string,
-	uri: string, 
+	uri: string,
 	regex: RegExp,
 	position: {
 		begin: { line: number, column: number },
@@ -17,11 +17,11 @@ export interface EELHelperToken {
 }
 
 export interface EELHelperMethodToken {
-	name: string, 
-	description: string|undefined, 
-	position: { 
-		begin: { line: number,  column: number }, 
-		end: { line: number, column: number } 
+	name: string,
+	description: string | undefined,
+	position: {
+		begin: { line: number, column: number },
+		end: { line: number, column: number }
 	}
 }
 export class NeosPackage extends Logger {
@@ -40,7 +40,7 @@ export class NeosPackage extends Logger {
 		const composerJson = JSON.parse(NodeFs.readFileSync(composerJsonFilePath).toString())
 
 		super(composerJson.name)
-		
+
 		this.path = path
 		this.neosWorkspace = neosWorkspace
 

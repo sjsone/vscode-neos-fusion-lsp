@@ -62,12 +62,12 @@ export class NeosPackageNamespace {
 
 		const classMatch = classRegex.exec(phpFileSource)
 		if (classMatch === null) return undefined
-		
+
 		const begin = phpFileSource.indexOf(classMatch[0])
 		const end = begin + classMatch[0].length
 		const fileUri = pathToUri(possibleFilePath)
 
-		const methodsRegex = /(public\s+function\s+([a-zA-Z]+)\s?\()/g
+		const methodsRegex = /(public\s+(static\s+)?function\s+([a-zA-Z]+)\s?\()/g
 
 		let lastIndex = 0
 		const rest = phpFileSource
@@ -77,7 +77,9 @@ export class NeosPackageNamespace {
 
 		while (match != null) {
 			const fullDefinition = match[1]
-			const name = match[2]
+			const isStatic = !!match[2]
+			const name = match[3]
+
 			const identifierIndex = rest.substring(lastIndex).indexOf(fullDefinition) + lastIndex
 			// There should be another way but it is what it is 
 			const methodDescriptionRegexString = `${classMatch}[\\S\\s]*\\/\\*\\*\\s*\\n\\s*\\*\\s*((?!@)[\\w\\s]*\\n)[\\S\\s]*${fullDefinition.replace("(", "")}`
@@ -87,11 +89,11 @@ export class NeosPackageNamespace {
 			const description = descriptionMatch !== null ? descriptionMatch[1] : undefined
 
 			methods.push({
-				name: name,
+				name,
 				description,
 				position: {
 					begin: getLineNumberOfChar(phpFileSource, identifierIndex),
-					end: getLineNumberOfChar(phpFileSource, identifierIndex  + fullDefinition.length)
+					end: getLineNumberOfChar(phpFileSource, identifierIndex + fullDefinition.length)
 				}
 			})
 
