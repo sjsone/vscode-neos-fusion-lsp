@@ -27,6 +27,12 @@ export class NeosWorkspace extends Logger {
 		}
 	}
 
+	getEelHelperFromFullyQualifiedClassNameWithStaticMethod(fullyQualifiedClassName: string, staticMethod?: string) {
+		if(!staticMethod) return this.getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName)
+		
+		return undefined
+	}
+
 	getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
 		for (const neosPackage of this.packages.values()) {
 			const eelHelper = neosPackage.getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName)

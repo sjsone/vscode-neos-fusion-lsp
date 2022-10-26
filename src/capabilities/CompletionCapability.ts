@@ -92,24 +92,26 @@ export class CompletionCapability extends AbstractCapability {
 			for (const method of eelHelper.methods) {
 				const fullName = eelHelper.name + "." + method.name
 				if (!fullName.startsWith(fullPath)) continue
-				completions.push(this.createCompletionItem(fullName, linePositionedObjectNode, CompletionItemKind.Method))
+				const completionItem = this.createCompletionItem(fullName, linePositionedObjectNode, CompletionItemKind.Method)
+				completionItem.detail = method.description
+				completions.push(completionItem)
 			}
 		}
 
 		return completions
 	}
 
-	protected createCompletionItem(label: string, linePositionedObjectNode: LinePositionedNode<any>, kind: CompletionItemKind) {
+	protected createCompletionItem(label: string, linePositioneNode: LinePositionedNode<any>, kind: CompletionItemKind): CompletionItem {
 		return {
 			label,
 			kind,
 			insertTextMode: InsertTextMode.adjustIndentation,
 			insertText: label,
 			textEdit: {
-				insert: linePositionedObjectNode.getPositionAsRange(),
+				insert: linePositioneNode.getPositionAsRange(),
 				replace: {
-					start: { line: linePositionedObjectNode.getBegin().line - 1, character: linePositionedObjectNode.getBegin().column - 1 },
-					end: { line: linePositionedObjectNode.getEnd().line - 1, character: linePositionedObjectNode.getEnd().column + label.length - 1 },
+					start: { line: linePositioneNode.getBegin().line - 1, character: linePositioneNode.getBegin().column - 1 },
+					end: { line: linePositioneNode.getEnd().line - 1, character: linePositioneNode.getEnd().column + label.length - 1 },
 				},
 				newText: label
 			}
