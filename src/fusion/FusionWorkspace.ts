@@ -116,7 +116,6 @@ export class FusionWorkspace extends Logger {
     updateFileByChange(change: TextDocumentChangeEvent<TextDocument>) {
         const file = this.getParsedFileByUri(change.document.uri)
         if (file === undefined) return
-        file.clear()
         this.initParsedFile(file, change.document.getText())
     }
 
