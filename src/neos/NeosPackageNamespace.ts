@@ -13,10 +13,6 @@ export class NeosPackageNamespace {
 	constructor(name: string, path: string) {
 		this.name = name
 		this.path = path
-
-		this.log("Created", name, path)
-
-		this.log(name, path)
 	}
 
 	getFileUriFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
@@ -45,7 +41,6 @@ export class NeosPackageNamespace {
 
 
 	getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
-		// if(this.fileUriCache.has(fullyQualifiedClassName)) return this.fileUriCache.get(fullyQualifiedClassName)
 		const path = fullyQualifiedClassName.replace(this.name, "")
 
 		const pathParts = path.split("\\")
@@ -81,12 +76,8 @@ export class NeosPackageNamespace {
 			const name = match[3]
 
 			const identifierIndex = rest.substring(lastIndex).indexOf(fullDefinition) + lastIndex
-			// There should be another way but it is what it is 
-			const methodDescriptionRegexString = `${classMatch}[\\S\\s]*\\/\\*\\*\\s*\\n\\s*\\*\\s*((?!@)[\\w\\s]*\\n)[\\S\\s]*${fullDefinition.replace("(", "")}`
-			const methodDescriptionRegex = new RegExp(methodDescriptionRegexString)
-			const descriptionMatch = methodDescriptionRegex.exec(phpFileSource)
 
-			const description = descriptionMatch !== null ? descriptionMatch[1] : undefined
+			const { description } = this.parseMethodComment(identifierIndex, phpFileSource)
 
 			methods.push({
 				name,
@@ -111,7 +102,25 @@ export class NeosPackageNamespace {
 		}
 	}
 
-	log(...text: any) {
-		// console.log("[NeosPackageNamespace]", ...text)
+	protected parseMethodComment(offset: number, code: string) {
+		const reversed = code.substring(0, offset).split('').reverse().join('')
+		const reversedDescriptionRegex = /^\s*\/\*([\s\S]*?)\s*\*\*\//
+		const reversedDescriptionMatch = reversedDescriptionRegex.exec(reversed)
+
+		const descriptionParts = []
+		if (reversedDescriptionMatch) {
+			const fullDocBlock = reversedDescriptionMatch[1].split('').reverse().join('')
+			const docLineRegex = /^\s*\*\ *(@\w+)?(.+)?$/gm
+			let docLineMatch = docLineRegex.exec(fullDocBlock)
+			while (docLineMatch && docLineMatch[2]) {
+				descriptionParts.push(docLineMatch[2])
+				// docLineMatch[1] => "@return", "@param", ...
+				docLineMatch = docLineRegex.exec(fullDocBlock)
+			}
+		}
+
+		return {
+			description: descriptionParts.join("\n")
+		}
 	}
 }
