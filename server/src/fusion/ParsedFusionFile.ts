@@ -18,6 +18,7 @@ import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectFunctionPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
 import { TagNode } from 'ts-fusion-parser/out/afx/nodes/TagNode'
+import { uriToPath } from '../util'
 
 export class ParsedFusionFile {
 	public workspace: FusionWorkspace
@@ -45,8 +46,7 @@ export class ParsedFusionFile {
 	init(text: string = undefined) {
 		try {
 			if (text === undefined) {
-				const file = NodeFs.readFileSync(this.uri.replace("file://", ""))
-				text = file.toString()
+				text = NodeFs.readFileSync(uriToPath(this.uri)).toString()
 			}
 
 			const objectTree = ObjectTreeParser.parse(text, undefined, true)
