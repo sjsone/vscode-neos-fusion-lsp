@@ -1,7 +1,7 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
+import { EelHelperMethod } from '../eel/EelHelperMethod'
 import { getLineNumberOfChar, pathToUri } from '../util'
-import { EELHelperMethodToken } from './NeosPackage'
 
 
 export class NeosPackageNamespace {
@@ -68,7 +68,7 @@ export class NeosPackageNamespace {
 		const rest = phpFileSource
 		let match = methodsRegex.exec(rest)
 
-		const methods: EELHelperMethodToken[] = []
+		const methods: EelHelperMethod[] = []
 
 		while (match != null) {
 			const fullDefinition = match[1]
@@ -79,14 +79,10 @@ export class NeosPackageNamespace {
 
 			const { description } = this.parseMethodComment(identifierIndex, phpFileSource)
 
-			methods.push({
-				name,
-				description,
-				position: {
-					begin: getLineNumberOfChar(phpFileSource, identifierIndex),
-					end: getLineNumberOfChar(phpFileSource, identifierIndex + fullDefinition.length)
-				}
-			})
+			methods.push(new EelHelperMethod(name, description, {
+				begin: getLineNumberOfChar(phpFileSource, identifierIndex),
+				end: getLineNumberOfChar(phpFileSource, identifierIndex + fullDefinition.length)
+			}))
 
 			lastIndex = identifierIndex + fullDefinition.length
 			match = methodsRegex.exec(rest)

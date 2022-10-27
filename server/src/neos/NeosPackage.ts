@@ -1,5 +1,6 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
+import { EelHelperMethod } from '../eel/EelHelperMethod'
 import { Logger } from '../Logging'
 import { FlowConfiguration } from './FlowConfiguration'
 import { NeosPackageNamespace } from './NeosPackageNamespace'
@@ -13,17 +14,9 @@ export interface EELHelperToken {
 		begin: { line: number, column: number },
 		end: { line: number, column: number }
 	},
-	methods: EELHelperMethodToken[]
+	methods: EelHelperMethod[]
 }
 
-export interface EELHelperMethodToken {
-	name: string,
-	description: string | undefined,
-	position: {
-		begin: { line: number, column: number },
-		end: { line: number, column: number }
-	}
-}
 export class NeosPackage extends Logger {
 	protected path: string
 	protected neosWorkspace: NeosWorkspace

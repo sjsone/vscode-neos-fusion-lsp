@@ -122,7 +122,7 @@ export class DefinitionCapability extends AbstractCapability {
 		this.logVerbose(`Trying to find ${node.eelHelper.identifier}${node.identifier}`)
 		for (const eelHelper of workspace.neosWorkspace.getEelHelperTokens()) {
 			if (eelHelper.name === node.eelHelper.identifier) {
-				const method = eelHelper.methods.find(method => method.name === node.identifier)
+				const method = eelHelper.methods.find(method => method.valid(node.identifier))
 				if (!method) continue
 				return [
 					{
