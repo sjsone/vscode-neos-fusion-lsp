@@ -15,17 +15,26 @@ class NodeService {
 		const objectStatement = findParent(objectNode, ObjectStatement)
 		// console.log("objectNode", objectNode)
 		let statementList = findParent(objectNode, StatementList)
-		let traverseUpwards = false
+		let traverseUpwards = true
+		let skipNextStatements = false
+		let comingFromRenderer = false
 		do {
-			traverseUpwards = false
+			const parentObjectNode = findParent(statementList, ObjectStatement)
+			const parentObjectIdentifier = parentObjectNode.path.segments[0]["identifier"]
+			let foundApplyProps = false
+
 			for (const statement of statementList.statements) {
 				if (!(statement instanceof ObjectStatement)) continue
 				if (statement === objectStatement) continue // Let it not find itself
-				if (!traverseUpwards) traverseUpwards = this.shouldTraverseUpwardsTryingToFindPropertyDefinition(statement)
-				yield statement.path.segments[0]
+				if (!foundApplyProps) foundApplyProps = this.shouldTraverseUpwardsTryingToFindPropertyDefinition(statement)
+				if (!skipNextStatements) yield statement.path.segments[0]
 			}
 
+			skipNextStatements = parentObjectIdentifier !== "renderer"
+			if (!comingFromRenderer) comingFromRenderer = parentObjectIdentifier === "renderer"
+
 			statementList = findParent(statementList, StatementList)
+			traverseUpwards = (!comingFromRenderer && skipNextStatements) || foundApplyProps
 		} while (traverseUpwards && statementList && !(statementList["parent"] instanceof FusionFile))
 	}
 
