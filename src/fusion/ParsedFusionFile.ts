@@ -74,11 +74,13 @@ export class ParsedFusionFile {
 	handleEelObjectNode(node: ObjectNode, text: string) {
 		const eelHelperTokens = this.workspace.neosWorkspace.getEelHelperTokens()
 
+		if (node.path[0] && eelHelperTokens.findIndex(eelHelper => eelHelper.name === node.path[0]["value"]) === -1) return
+
 		const currentPath: ObjectPathNode[] = []
 		for (const part of node.path) {
 			currentPath.push(part)
 
-			if (part instanceof ObjectFunctionPathNode) {
+			if (part instanceof ObjectFunctionPathNode || part instanceof ObjectPathNode) {
 				if (currentPath.length === 1) {
 					// TODO: Allow immidiate EEL-Helper (like "q(...)")
 					continue
@@ -100,7 +102,7 @@ export class ParsedFusionFile {
 				const eelHelperIdentifier = nameParts.join(".")
 				for (const eelHelper of eelHelperTokens) {
 					if (eelHelper.name === eelHelperIdentifier) {
-						const method = eelHelper.methods.find(method => method.name === methodNode["value"])
+						const method = eelHelper.methods.find(method => method.valid(methodNode["value"]))
 						if (!method) continue
 						this.addNode(eelHelperMethodNode, text)
 						const eelHelperNode = new EelHelperNode(eelHelperIdentifier, eelHelperMethodNode, position)
