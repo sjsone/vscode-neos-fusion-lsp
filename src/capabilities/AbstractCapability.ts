@@ -13,9 +13,14 @@ export abstract class AbstractCapability extends Logger {
 	}
 
 	public execute(params) {
-		const context = this.buildContextFromParams(params)
-		if (!context) return null
-		return this.run(context)
+		try {
+			const context = this.buildContextFromParams(params)
+			if (!context) return null
+			return this.run(context)
+		} catch (error) {
+			if (error instanceof Error) this.logInfo("Caught Error: ", error.name, error.message)
+			return null
+		}
 	}
 
 	protected abstract run<N extends AbstractNode>(capabilityContext: CapabilityContext<N>): any
