@@ -52,4 +52,8 @@ export class LinePositionedNode<T extends AbstractNode> {
 			end: { line: this.getEnd().line - 1, character: this.getEnd().column - 1 },
 		}
 	}
+
+	static Get<T extends AbstractNode>(node: T): undefined | LinePositionedNode<T> {
+		return node["linePositionedNode"]
+	}
 }

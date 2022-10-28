@@ -88,10 +88,7 @@ export class DefinitionCapability extends AbstractCapability {
 		if (segment) {
 			return [{
 				uri: parsedFile.uri,
-				range: {
-					start: { line: segment["linePositionedNode"].getBegin().line - 1, character: segment["linePositionedNode"].getBegin().column - 1 },
-					end: { line: segment["linePositionedNode"].getEnd().line - 1, character: segment["linePositionedNode"].getEnd().column - 1 }
-				}
+				range: LinePositionedNode.Get(segment).getPositionAsRange()
 			}]
 		}
 
