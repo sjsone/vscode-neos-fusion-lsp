@@ -1,4 +1,5 @@
 import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
+import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/DslExpressionValue'
 import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/EelExpressionValue'
 import { FusionFile } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionFile'
 import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/MetaPathSegment'
@@ -12,13 +13,25 @@ class NodeService {
 
 
 	public * findPropertyDefinitionSegments(objectNode: ObjectNode) {
-		const objectStatement = findParent(objectNode, ObjectStatement)
-		// console.log("objectNode", objectNode)
+		const objectStatement = findParent(objectNode, ObjectStatement) // [props.foo]
+
+		let wasComingFromRenderer = false
+		const dsl = findParent(objectNode, DslExpressionValue)
+		if (dsl !== undefined) {
+			wasComingFromRenderer = findParent(dsl, ObjectStatement).path.segments[0]["identifier"] === "renderer"
+		}
+
 		let statementList = findParent(objectNode, StatementList)
+
 		let traverseUpwards = true
 		let skipNextStatements = false
-		let comingFromRenderer = false
+		let onlyApply = false
+		let inPrototypeSegmentList = false
+
 		do {
+			inPrototypeSegmentList = statementList["parent"] instanceof FusionFile
+			if (!onlyApply && wasComingFromRenderer) onlyApply = true
+
 			const parentObjectNode = findParent(statementList, ObjectStatement)
 			const parentObjectIdentifier = parentObjectNode.path.segments[0]["identifier"]
 			let foundApplyProps = false
@@ -26,16 +39,17 @@ class NodeService {
 			for (const statement of statementList.statements) {
 				if (!(statement instanceof ObjectStatement)) continue
 				if (statement === objectStatement) continue // Let it not find itself
-				if (!foundApplyProps) foundApplyProps = this.shouldTraverseUpwardsTryingToFindPropertyDefinition(statement)
+
+				if (!foundApplyProps) foundApplyProps = this.foundApplyProps(statement)
 				if (!skipNextStatements) yield statement.path.segments[0]
 			}
 
 			skipNextStatements = parentObjectIdentifier !== "renderer"
-			if (!comingFromRenderer) comingFromRenderer = parentObjectIdentifier === "renderer"
+			if (!wasComingFromRenderer) wasComingFromRenderer = parentObjectIdentifier === "renderer"
 
+			traverseUpwards = !onlyApply || foundApplyProps
 			statementList = findParent(statementList, StatementList)
-			traverseUpwards = (!comingFromRenderer && skipNextStatements) || foundApplyProps
-		} while (traverseUpwards && statementList && !(statementList["parent"] instanceof FusionFile))
+		} while (traverseUpwards && statementList && !inPrototypeSegmentList)
 	}
 
 	public findPropertyDefinitionSegment(objectNode: ObjectNode) {
@@ -52,7 +66,7 @@ class NodeService {
 		return undefined
 	}
 
-	public shouldTraverseUpwardsTryingToFindPropertyDefinition(statement: ObjectStatement): boolean {
+	public foundApplyProps(statement: ObjectStatement): boolean {
 		const segment = statement.path.segments[0]
 
 		if (!(segment instanceof MetaPathSegment && segment.identifier === "apply")) return false
