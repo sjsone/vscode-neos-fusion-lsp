@@ -12,8 +12,8 @@ export class EelHelperMethod {
 		this.description = description
 		this.position = position
 
-		const nameWithoutGetter = this.name.replace(/get|is/, '')
-		this.normalizedName = nameWithoutGetter[0].toLowerCase() + nameWithoutGetter.substring(1)
+		const nameWithoutGetter = this.name.replace(/get|is/, '').trim() 
+		this.normalizedName = nameWithoutGetter ? nameWithoutGetter[0].toLowerCase() + nameWithoutGetter.substring(1) : name
 	}
 
 	valid(identifier: string) {
