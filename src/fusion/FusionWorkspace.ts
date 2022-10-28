@@ -102,21 +102,41 @@ export class FusionWorkspace extends Logger {
     }
 
     initParsedFile(parsedFile: ParsedFusionFile, text: string = undefined) {
-        if (this.filesWithErrors.includes(parsedFile.uri)) return
+        if (this.filesWithErrors.includes(parsedFile.uri)) return false
 
         try {
             if (!parsedFile.init(text)) {
                 this.filesWithErrors.push(parsedFile.uri)
+                return false
             }
+            const diagnostics = parsedFile.diagnose()
+            if (diagnostics) {
+                this.languageServer.sendDiagnostics({
+                    uri: parsedFile.uri,
+                    diagnostics
+                })
+            }
+            return true
         } catch (e) {
             this.filesWithErrors.push(parsedFile.uri)
         }
+
+        return false
     }
 
-    updateFileByChange(change: TextDocumentChangeEvent<TextDocument>) {
+    async updateFileByChange(change: TextDocumentChangeEvent<TextDocument>) {
         const file = this.getParsedFileByUri(change.document.uri)
         if (file === undefined) return
-        this.initParsedFile(file, change.document.getText())
+        const initSuccess = this.initParsedFile(file, change.document.getText())
+        if (initSuccess) {
+            const diagnostics = await file.diagnose()
+            if (diagnostics) {
+                this.languageServer.sendDiagnostics({
+                    uri: file.uri,
+                    diagnostics
+                })
+            }
+        }
     }
 
     isResponsibleForUri(uri: string) {

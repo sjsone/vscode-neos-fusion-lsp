@@ -18,7 +18,10 @@ import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectFunctionPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
 import { TagNode } from 'ts-fusion-parser/out/afx/nodes/TagNode'
-import { uriToPath } from '../util'
+import { findParent, uriToPath } from '../util'
+import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver'
+import { DefinitionCapability } from '../capabilities/DefinitionCapability'
+import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/MetaPathSegment'
 
 export class ParsedFusionFile {
 	public workspace: FusionWorkspace
@@ -150,6 +153,39 @@ export class ParsedFusionFile {
 		const nodesWithType = this.nodesByType.get(type) ?? []
 		nodesWithType.push(node)
 		this.nodesByType.set(type, nodesWithType)
+	}
+
+	public diagnose(): Diagnostic[] | null {
+		const diagnostics: Diagnostic[] = []
+
+		const positionedNodes = this.nodesByType.get(ObjectNode)
+		if (positionedNodes === undefined) return diagnostics
+
+		const definitionCapability = new DefinitionCapability(this.workspace.languageServer)
+
+		for (const positionedNode of positionedNodes) {
+			const node = <ObjectNode><unknown>positionedNode.getNode()
+			const objectStatement = findParent(node, ObjectStatement)
+			if (objectStatement.path.segments[0] instanceof MetaPathSegment) continue
+			const pathBegin = node["path"][0]["value"]
+			if (pathBegin !== "props") continue
+			if (node["path"].length === 1) continue
+			if (node["path"][1]["value"] === "content") continue
+			const definition = definitionCapability.getPropertyDefinitions(this, LinePositionedNode.Get(<any>node["path"][0]))
+			if (definition) continue
+
+			const objectStatementText = node["path"].map(e => e["value"]).join(".")
+
+			const diagnostic: Diagnostic = {
+				severity: DiagnosticSeverity.Warning,
+				range: positionedNode.getPositionAsRange(),
+				message: `Could not resolve "${objectStatementText}"`,
+				source: 'Fusion LSP'
+			};
+			diagnostics.push(diagnostic)
+		}
+
+		return diagnostics
 	}
 
 	clear() {

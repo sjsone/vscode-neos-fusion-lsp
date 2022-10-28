@@ -19,11 +19,11 @@ const languageserver = new LanguageServer(connection, documents)
 
 
 documents.onDidChangeContent(change => {
-    languageserver.onDidChangeContent(change)
+    return languageserver.onDidChangeContent(change)
 })
 
 documents.onDidOpen((event) => {
-    languageserver.onDidOpen(event)
+    return languageserver.onDidOpen(event)
 })
 
 connection.onInitialize((params) => {

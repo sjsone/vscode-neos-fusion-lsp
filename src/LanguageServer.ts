@@ -6,7 +6,8 @@ import {
 	TextDocumentChangeEvent,
 	_Connection,
 	InitializeResult,
-	MessageType
+	MessageType,
+	PublishDiagnosticsParams
 } from "vscode-languageserver/node"
 import { FusionWorkspace } from './fusion/FusionWorkspace'
 import { type ExtensionConfiguration } from './ExtensionConfiguration'
@@ -46,19 +47,19 @@ export class LanguageServer extends Logger {
 		return this.fusionWorkspaces.find(w => w.isResponsibleForUri(uri))
 	}
 
-	public onDidChangeContent(change: TextDocumentChangeEvent<FusionDocument>) {
+	public async onDidChangeContent(change: TextDocumentChangeEvent<FusionDocument>) {
 		const workspace = this.getWorspaceFromFileUri(change.document.uri)
 		if (workspace === undefined) return null
 
-		workspace.updateFileByChange(change)
+		await workspace.updateFileByChange(change)
 		this.logVerbose(`Document changed: ${change.document.uri.replace(workspace.getUri(), "")}`)
 	}
 
-	public onDidOpen(event: TextDocumentChangeEvent<FusionDocument>) {
+	public async onDidOpen(event: TextDocumentChangeEvent<FusionDocument>) {
 		const workspace = this.getWorspaceFromFileUri(event.document.uri)
 		if (workspace === undefined) return null
 
-		workspace.updateFileByChange(event)
+		await workspace.updateFileByChange(event)
 		this.logVerbose(`Document opened: ${event.document.uri.replace(workspace.getUri(), "")}`)
 	}
 
@@ -110,6 +111,10 @@ export class LanguageServer extends Logger {
 
 	public sendProgressNotificationFinish(id: string) {
 		return this.connection.sendNotification("custom/progressNotification/finish", { id })
+	}
+
+	public sendDiagnostics(params: PublishDiagnosticsParams) {
+		return this.connection.sendDiagnostics(params)
 	}
 
 	public onDidChangeConfiguration(params: DidChangeConfigurationParams) {
