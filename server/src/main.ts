@@ -30,8 +30,11 @@ connection.onInitialize((params) => {
     return <any>languageserver.onInitialize(params)
 })
 
-connection.onDidChangeWatchedFiles((_change) => {
-    connection.console.log("We received a file change event")
+connection.onDidChangeWatchedFiles((params) => {
+    // TODO: Updated EEL-Helpers depending on changes
+    // for(const change of params.changes) {
+    //     connection.console.log(`  ${change.type} ${change.uri}`)
+    // }
 })
 
 connection.onDidChangeConfiguration((params) => {
@@ -49,17 +52,11 @@ connection.onReferences(params => {
 connection.onCompletion((textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
     return languageserver.getCapability("onCompletion").execute(textDocumentPosition)
 })
+connection.onCompletionResolve((item: CompletionItem): CompletionItem => item)
 
 connection.onHover((params: HoverParams): Hover => {
     return languageserver.getCapability("onHover").execute(params)
 })
 
-connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
-
-    // item.detail = fusionPrototype.occourences[0]
-    return item
-})
-
 documents.listen(connection)
-
 connection.listen()

@@ -45,7 +45,7 @@ export function activate(context: ExtensionContext) {
 	const module = context.asAbsolutePath(path.join('server', 'out', 'main.js'))
 	const outputChannel: OutputChannel = Window.createOutputChannel('Neos Fusion LSP')
 
-	if(workspace.getConfiguration().get("neosFusionLsp.extensions.modify", false)) {
+	if (workspace.getConfiguration().get("neosFusionLsp.extensions.modify", false)) {
 		const preferenceService = new PreferenceService(outputChannel)
 
 		preferenceService.modify({
@@ -54,7 +54,7 @@ export function activate(context: ExtensionContext) {
 		})
 	}
 
-	
+
 
 	function didOpenTextDocument(document: TextDocument): void {
 		if (document.languageId !== 'fusion' || (document.uri.scheme !== 'file' && document.uri.scheme !== 'untitled')) {
@@ -84,6 +84,7 @@ export function activate(context: ExtensionContext) {
 				outputChannel: outputChannel,
 				synchronize: {
 					configurationSection: 'neosFusionLsp',
+					fileEvents: workspace.createFileSystemWatcher('**/*.php')
 				}
 			}
 
@@ -102,7 +103,6 @@ export function activate(context: ExtensionContext) {
 
 			client.onNotification('custom/busy/dispose', ({ id }) => statusItemService.disposeStatusItem(id))
 			client.onNotification('custom/progressNotification/finish', ({ id }) => progressNotificationService.finish(id))
-
 		}
 	}
 
