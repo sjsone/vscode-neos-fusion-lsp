@@ -11,7 +11,7 @@ import { EelHelperNode } from '../fusion/EelHelperNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { LinePositionedNode } from '../LinePositionedNode'
-import { NodeService } from '../NodeService'
+import { ExternalObjectStatement, NodeService } from '../NodeService'
 import { abstractNodeToString, findParent, getPrototypeNameFromNode } from '../util'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext } from './CapabilityContext'
@@ -44,7 +44,7 @@ export class HoverCapability extends AbstractCapability {
 			case node instanceof ObjectFunctionPathNode:
 				return `EEL-Function **${(<ObjectPathNode><unknown>node)["value"]}**`
 			case node instanceof ObjectPathNode:
-				return this.getMarkdownForObjectPath(parsedFile, foundNodeByLine)
+				return this.getMarkdownForObjectPath(workspace, foundNodeByLine)
 			case node instanceof EelHelperMethodNode:
 				return this.getMarkdownForEelHelperMethod(node, workspace)
 			default:
@@ -58,14 +58,17 @@ export class HoverCapability extends AbstractCapability {
 		return `prototype **${prototypeName}**`
 	}
 
-	getMarkdownForObjectPath(parsedFile: ParsedFusionFile, foundNodeByLine: LinePositionedNode<any>) {
+	getMarkdownForObjectPath(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<any>) {
 		const node = foundNodeByLine.getNode()
 		const objectNode = node.parent
 		if (!(objectNode instanceof ObjectNode)) return null
 
 		if (objectNode.path[0]["value"] === "this" || objectNode.path[0]["value"] === "props") {
-			const segment = NodeService.findPropertyDefinitionSegment(objectNode)
-			if (segment) {
+			let segment = NodeService.findPropertyDefinitionSegment(objectNode, workspace)
+			if (segment instanceof ExternalObjectStatement) {
+				segment = <PathSegment>segment.statement.path.segments[0]
+			}
+			if (segment && segment instanceof PathSegment) {
 				const statement = findParent(segment, ObjectStatement)
 				if (!statement) return null
 				if (!(statement.operation instanceof ValueAssignment)) return null
