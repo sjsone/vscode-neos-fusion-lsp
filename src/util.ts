@@ -85,6 +85,17 @@ export function findParent<T extends new (...args: any) => AbstractNode>(node: a
     return undefined
 }
 
+export function findUntil<T extends new (...args: any) => AbstractNode>(node: any, condition: (AbstractNode) => boolean): InstanceType<T> | undefined {
+    let parent = node["parent"]
+    while (parent) {
+        if (condition(parent)) {
+            return parent
+        }
+        parent = parent["parent"]
+    }
+    return undefined
+}
+
 export function abstractNodeToString(node: AbstractEelNode | AbstractNode): string | undefined {
     // TODO: This should be node.toString() but for now...
     if (node instanceof StringValue) return `"${node["value"]}"`
