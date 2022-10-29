@@ -18,7 +18,7 @@ export abstract class AbstractCapability extends Logger {
 			if (!context) return null
 			return this.run(context)
 		} catch (error) {
-			if (error instanceof Error) this.logInfo("Caught Error: ", error.name, error.message)
+			if (error instanceof Error) this.logInfo("Caught Error: ", error.name, error.message, error.stack)
 			return null
 		}
 	}
