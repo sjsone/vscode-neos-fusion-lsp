@@ -105,6 +105,7 @@ export class FusionWorkspace extends Logger {
         if (this.filesWithErrors.includes(parsedFile.uri)) return false
 
         try {
+            parsedFile.clear()
             if (!parsedFile.init(text)) {
                 this.filesWithErrors.push(parsedFile.uri)
                 return false
