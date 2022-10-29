@@ -53,7 +53,6 @@ export class ParsedFusionFile {
 			}
 
 			const objectTree = ObjectTreeParser.parse(text, undefined, true)
-			this.clear()
 			this.igoredErrorsByParser = objectTree.errors
 			this.readStatementList(objectTree.statementList, text)
 
