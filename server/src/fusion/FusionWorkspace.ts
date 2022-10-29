@@ -21,6 +21,8 @@ export class FusionWorkspace extends Logger {
     public parsedFiles: ParsedFusionFile[] = []
     public filesWithErrors: string[] = []
 
+    protected filesToDiagnose: ParsedFusionFile[] = []
+
     constructor(name: string, uri: string, languageServer: LanguageServer) {
         super(name)
         this.name = name
@@ -101,6 +103,8 @@ export class FusionWorkspace extends Logger {
         }
 
         this.languageServer.sendProgressNotificationFinish("fusion_workspace_init")
+
+        this.processFilesToDiagnose()
     }
 
     initParsedFile(parsedFile: ParsedFusionFile, text: string = undefined) {
@@ -117,14 +121,8 @@ export class FusionWorkspace extends Logger {
             const inIgnoredFolder = this.configuration.diagnostics.ignore.folders.find(path => filePath.startsWith(NodePath.resolve(uriToPath(this.uri), path)))
 
             if (this.configuration.diagnostics.enabled && inIgnoredFolder === undefined) {
-                const diagnostics = parsedFile.diagnose()
+                this.filesToDiagnose.push(parsedFile)
 
-                if (diagnostics) {
-                    this.languageServer.sendDiagnostics({
-                        uri: parsedFile.uri,
-                        diagnostics
-                    })
-                }
             }
 
             return true
@@ -138,16 +136,8 @@ export class FusionWorkspace extends Logger {
     async updateFileByChange(change: TextDocumentChangeEvent<TextDocument>) {
         const file = this.getParsedFileByUri(change.document.uri)
         if (file === undefined) return
-        const initSuccess = this.initParsedFile(file, change.document.getText())
-        if (this.configuration.diagnostics.enabled && initSuccess) {
-            const diagnostics = await file.diagnose()
-            if (diagnostics) {
-                this.languageServer.sendDiagnostics({
-                    uri: file.uri,
-                    diagnostics
-                })
-            }
-        }
+        this.initParsedFile(file, change.document.getText())
+        await this.processFilesToDiagnose()
     }
 
     isResponsibleForUri(uri: string) {
@@ -170,6 +160,19 @@ export class FusionWorkspace extends Logger {
             }
         }
         return nodes
+    }
+
+    protected async processFilesToDiagnose() {
+        await Promise.all(this.filesToDiagnose.map(async parsedFile => {
+            const diagnostics = await parsedFile.diagnose()
+            if (diagnostics) {
+                this.languageServer.sendDiagnostics({
+                    uri: parsedFile.uri,
+                    diagnostics
+                })
+            }
+        }))
+        this.filesToDiagnose = []
     }
 
     protected clear() {
