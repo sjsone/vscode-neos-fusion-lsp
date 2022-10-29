@@ -2,6 +2,7 @@ import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
 import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/DslExpressionValue'
 import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/EelExpressionValue'
 import { FusionFile } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionFile'
+import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
 import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/MetaPathSegment'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment'
@@ -10,7 +11,7 @@ import { StatementList } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueAssignment'
 import { ValueCopy } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueCopy'
 import { FusionWorkspace } from './fusion/FusionWorkspace'
-import { findParent } from './util'
+import { findParent, getObjectIdentifier } from './util'
 
 export class ExternalObjectStatement {
 	statement: ObjectStatement
@@ -31,10 +32,30 @@ class NodeService {
 		let wasComingFromRenderer = false
 		const dsl = findParent(objectNode, DslExpressionValue)
 		if (dsl !== undefined) {
-			wasComingFromRenderer = findParent(dsl, ObjectStatement).path.segments[0]["identifier"] === "renderer"
+			wasComingFromRenderer = getObjectIdentifier(findParent(dsl, ObjectStatement)) === "renderer"
 		}
 
 		let statementList = findParent(objectNode, StatementList)
+
+		if (getObjectIdentifier(objectStatement).startsWith("renderer.")) {
+			const parentOperation = findParent(statementList, ObjectStatement).operation
+			if (parentOperation instanceof ValueAssignment) {
+				if (parentOperation.pathValue instanceof FusionObjectValue) {
+					const statements = this.getInheritedPropertiesByPrototypeName(parentOperation.pathValue.value, workspace)
+
+					for (const statement of statements) {
+						if (statement instanceof ExternalObjectStatement) {
+							yield statement
+						}
+						if (!(statement instanceof ObjectStatement)) continue
+
+						yield statement.path.segments[0]
+					}
+
+					return
+				}
+			}
+		}
 
 		let traverseUpwards = true
 		let skipNextStatements = false
