@@ -53,12 +53,12 @@ class NodeService {
 				if (parentStatementList) {
 					const willBeInPrototypeSegmentList = parentStatementList["parent"] instanceof FusionFile
 					if (willBeInPrototypeSegmentList) {
-						const operation = findParent(statementList, ObjectStatement).operation
-						if (operation instanceof ValueCopy) {
-							const prototypeSegment = operation.assignedObjectPath.objectPath.segments[0]
-							if (prototypeSegment instanceof PrototypePathSegment) {
-								statements.push(...this.getInheritedPropertiesByPrototypeName(prototypeSegment.identifier, workspace))
-							}
+						const prototypeObjectStatement = findParent(statementList, ObjectStatement)
+						const operation = prototypeObjectStatement.operation
+
+						const prototypeSegment = operation instanceof ValueCopy ? operation.assignedObjectPath.objectPath.segments[0] : prototypeObjectStatement.path.segments[0]
+						if (prototypeSegment instanceof PrototypePathSegment) {
+							statements.push(...this.getInheritedPropertiesByPrototypeName(prototypeSegment.identifier, workspace))
 						}
 					}
 				}
