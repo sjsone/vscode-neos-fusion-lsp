@@ -28,7 +28,7 @@ export class DefinitionCapability extends AbstractCapability {
 				return this.getPrototypeDefinitions(workspace, foundNodeByLine)
 			case node instanceof PathSegment:
 			case node instanceof ObjectPathNode:
-				return this.getPropertyDefinitions(parsedFile, foundNodeByLine)
+				return this.getPropertyDefinitions(parsedFile, workspace, foundNodeByLine)
 			case node instanceof EelHelperMethodNode:
 				return this.getEelHelperMethodDefinitions(workspace, <LinePositionedNode<EelHelperMethodNode>>foundNodeByLine)
 			case node instanceof EelHelperNode:
@@ -50,18 +50,11 @@ export class DefinitionCapability extends AbstractCapability {
 		for (const otherParsedFile of workspace.parsedFiles) {
 			for (const otherNode of [...otherParsedFile.prototypeCreations, ...otherParsedFile.prototypeOverwrites]) {
 				if (otherNode.getNode()["identifier"] !== goToPrototypeName) continue
-				const otherNodeBegin = otherNode.getBegin()
-				const otherNodeEnd = otherNode.getEnd()
-
-				const targetRange = {
-					start: { line: otherNodeBegin.line - 1, character: otherNodeBegin.column - 1 },
-					end: { line: otherNodeEnd.line - 1, character: otherNodeEnd.column - 1 }
-				}
 
 				locations.push({
 					targetUri: otherParsedFile.uri,
-					targetRange,
-					targetSelectionRange: targetRange,
+					targetRange: otherNode.getPositionAsRange(),
+					targetSelectionRange: otherNode.getPositionAsRange(),
 					originSelectionRange: {
 						start: { line: foundNodeByLineBegin.line - 1, character: foundNodeByLineBegin.column - 1 },
 						end: { line: foundNodeByLineEnd.line - 1, character: foundNodeByLineEnd.column - 1 }
@@ -73,7 +66,7 @@ export class DefinitionCapability extends AbstractCapability {
 		return locations
 	}
 
-	getPropertyDefinitions(parsedFile: ParsedFusionFile, foundNodeByLine: LinePositionedNode<any>): null | Location[] {
+	getPropertyDefinitions(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<any>): null | Location[] {
 		// PathSegment|ObjectPathNode
 		const node = <PathSegment | ObjectPathNode>foundNodeByLine.getNode()
 		const objectNode = node["parent"]
@@ -84,12 +77,19 @@ export class DefinitionCapability extends AbstractCapability {
 			return null
 		}
 
-		const segment = NodeService.findPropertyDefinitionSegment(objectNode)
+		const segment = NodeService.findPropertyDefinitionSegment(objectNode, workspace)
 		if (segment) {
-			return [{
-				uri: parsedFile.uri,
-				range: LinePositionedNode.Get(segment).getPositionAsRange()
-			}]
+			if (segment instanceof PathSegment) {
+				return [{
+					uri: parsedFile.uri,
+					range: LinePositionedNode.Get(segment).getPositionAsRange()
+				}]
+			} else {
+				return [{
+					uri: segment.uri,
+					range: LinePositionedNode.Get(segment.statement.path.segments[0]).getPositionAsRange()
+				}]
+			}
 		}
 
 		return null

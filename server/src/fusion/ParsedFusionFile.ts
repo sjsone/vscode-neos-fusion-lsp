@@ -170,7 +170,7 @@ export class ParsedFusionFile {
 			if (pathBegin !== "props") continue
 			if (node["path"].length === 1) continue
 			if (node["path"][1]["value"] === "content") continue
-			const definition = definitionCapability.getPropertyDefinitions(this, LinePositionedNode.Get(<any>node["path"][0]))
+			const definition = definitionCapability.getPropertyDefinitions(this, this.workspace, LinePositionedNode.Get(<any>node["path"][0]))
 			if (definition) continue
 
 			const objectStatementText = node["path"].map(e => e["value"]).join(".")

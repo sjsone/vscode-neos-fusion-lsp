@@ -4,9 +4,8 @@ import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/A
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment'
-import { CompletionItem, CompletionItemKind, InsertReplaceEdit, InsertTextMode } from 'vscode-languageserver/node'
+import { CompletionItem, CompletionItemKind, InsertTextMode } from 'vscode-languageserver/node'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
-import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { LinePositionedNode } from '../LinePositionedNode'
 import { NodeService } from '../NodeService'
 import { AbstractCapability } from './AbstractCapability'
@@ -26,7 +25,7 @@ export class CompletionCapability extends AbstractCapability {
 					break;
 				case foundNode instanceof ObjectPathNode:
 					completions.push(...this.getEelHelperCompletions(workspace, foundNodeByLine))
-					completions.push(...this.getFusionPropertyCompletions(parsedFile, foundNodeByLine))
+					completions.push(...this.getFusionPropertyCompletions(workspace, foundNodeByLine))
 					break;
 			}
 		}
@@ -36,9 +35,8 @@ export class CompletionCapability extends AbstractCapability {
 		return completions
 	}
 
-	protected getFusionPropertyCompletions(parsedFile: ParsedFusionFile, foundNode: LinePositionedNode<any>): CompletionItem[] {
+	protected getFusionPropertyCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<any>): CompletionItem[] {
 		const completions = []
-		console.log("foundNode", foundNode.constructor.name)
 
 		const node = <ObjectPathNode>foundNode.getNode()
 		const objectNode = <ObjectNode>node["parent"]
@@ -49,7 +47,7 @@ export class CompletionCapability extends AbstractCapability {
 			return completions
 		}
 
-		for (const segment of NodeService.findPropertyDefinitionSegments(objectNode)) {
+		for (const segment of NodeService.findPropertyDefinitionSegments(objectNode, workspace)) {
 			if (!(segment instanceof PathSegment)) continue
 			if (segment.identifier === "renderer" || !segment.identifier) continue
 			if (completions.find(completion => completion.label === segment.identifier)) continue
