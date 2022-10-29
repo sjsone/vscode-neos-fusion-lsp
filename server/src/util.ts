@@ -8,6 +8,8 @@ import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment'
 import { StringValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StringValue'
 import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/EelExpressionValue'
+import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement'
+import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment'
 
 export function getLineNumberOfChar(data: string, index: number, debug = false) {
     const perLine = data.split('\n')
@@ -89,4 +91,8 @@ export function abstractNodeToString(node: AbstractEelNode | AbstractNode): stri
     if (node instanceof LiteralNumberNode || node instanceof LiteralStringNode || node instanceof FusionObjectValue) return node["value"]
     if (node instanceof EelExpressionValue) return Array.isArray(node.nodes) ? undefined : abstractNodeToString(<AbstractEelNode>node.nodes)
     return undefined
+}
+
+export function getObjectIdentifier(objectStatement: ObjectStatement): string {
+    return objectStatement.path.segments.map(segment => segment["identifier"]).join(".")
 }
