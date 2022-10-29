@@ -154,7 +154,7 @@ export class ParsedFusionFile {
 		this.nodesByType.set(type, nodesWithType)
 	}
 
-	public diagnose(): Diagnostic[] | null {
+	public async diagnose(): Promise<Diagnostic[] | null> {
 		const diagnostics: Diagnostic[] = []
 
 		const positionedNodes = this.nodesByType.get(ObjectNode)
