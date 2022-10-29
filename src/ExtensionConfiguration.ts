@@ -13,5 +13,11 @@ export interface ExtensionConfiguration {
     },
     logging: {
         level: LoggingLevel
+    },
+    diagnostics: {
+        enabled: boolean,
+        ignore: {
+            folders: string[]
+        }
     }
 }
