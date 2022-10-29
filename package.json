@@ -95,6 +95,23 @@
           ],
           "description": "Folders to ignore"
         },
+        "neosFusionLsp.diagnostics.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable diagnostics feature."
+        },
+        "neosFusionLsp.diagnostics.ignore.folders": {
+          "scope": "window",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "title": "Folder path"
+          },
+          "default": [
+            "Packages/"
+          ],
+          "description": "Folders to ignore automatic diagnostics in"
+        },
         "neosFusionLsp.logging.level": {
           "type": "string",
           "default": "info",

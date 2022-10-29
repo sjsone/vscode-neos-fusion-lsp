@@ -14,6 +14,7 @@ export class FusionWorkspace extends Logger {
     public uri: string
     public name: string
     public languageServer: LanguageServer
+    protected configuration: ExtensionConfiguration
 
     public neosWorkspace: NeosWorkspace
 
@@ -32,6 +33,7 @@ export class FusionWorkspace extends Logger {
     }
 
     init(configuration: ExtensionConfiguration) {
+        this.configuration = configuration
         this.clear()
         this.languageServer.sendProgressNotificationCreate("fusion_workspace_init", "Fusion")
         const workspacePath = uriToPath(this.uri)
@@ -110,13 +112,21 @@ export class FusionWorkspace extends Logger {
                 this.filesWithErrors.push(parsedFile.uri)
                 return false
             }
-            const diagnostics = parsedFile.diagnose()
-            if (diagnostics) {
-                this.languageServer.sendDiagnostics({
-                    uri: parsedFile.uri,
-                    diagnostics
-                })
+
+            const filePath = uriToPath(parsedFile.uri)
+            const inIgnoredFolder = this.configuration.diagnostics.ignore.folders.find(path => filePath.startsWith(NodePath.resolve(uriToPath(this.uri), path)))
+
+            if (this.configuration.diagnostics.enabled && inIgnoredFolder === undefined) {
+                const diagnostics = parsedFile.diagnose()
+
+                if (diagnostics) {
+                    this.languageServer.sendDiagnostics({
+                        uri: parsedFile.uri,
+                        diagnostics
+                    })
+                }
             }
+
             return true
         } catch (e) {
             this.filesWithErrors.push(parsedFile.uri)
@@ -129,7 +139,7 @@ export class FusionWorkspace extends Logger {
         const file = this.getParsedFileByUri(change.document.uri)
         if (file === undefined) return
         const initSuccess = this.initParsedFile(file, change.document.getText())
-        if (initSuccess) {
+        if (this.configuration.diagnostics.enabled && initSuccess) {
             const diagnostics = await file.diagnose()
             if (diagnostics) {
                 this.languageServer.sendDiagnostics({
