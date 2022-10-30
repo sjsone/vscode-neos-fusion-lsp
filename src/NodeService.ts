@@ -24,15 +24,19 @@ export class ExternalObjectStatement {
 	}
 }
 
+export interface FoundApplyPropsResult {
+	appliedProps: boolean
+	appliedStatements?: ObjectStatement[]
+}
+
 class NodeService {
+
+	public doesPrototypeOverrideProps(name: string): boolean {
+		return !["Neos.Fusion:Case", "Neos.Fusion:Loop", "Neos.Neos:ImageUri", "Neos.Neos:NodeUri"].includes(name)
+	}
+
 	public * findPropertyDefinitionSegments(objectNode: ObjectNode, workspace?: FusionWorkspace) {
 		const objectStatement = findParent(objectNode, ObjectStatement) // [props.foo]
-
-		let wasComingFromRenderer = false
-		const dsl = findParent(objectNode, DslExpressionValue)
-		if (dsl !== undefined) {
-			wasComingFromRenderer = getObjectIdentifier(findParent(dsl, ObjectStatement)) === "renderer"
-		}
 
 		let statementList = findParent(objectNode, StatementList)
 		const parentOperation = findParent(statementList, ObjectStatement).operation
@@ -60,6 +64,12 @@ class NodeService {
 		})
 		if (foundParentOperationPrototype) {
 			parentPrototypeName = (<any>foundParentOperationPrototype).operation.pathValue.value
+		}
+
+		let wasComingFromRenderer = false
+		const dsl = findParent(objectNode, DslExpressionValue)
+		if (dsl !== undefined) {
+			wasComingFromRenderer = getObjectIdentifier(findParent(dsl, ObjectStatement)) === "renderer" && this.doesPrototypeOverrideProps(parentPrototypeName)
 		}
 
 		let traverseUpwards = true
@@ -95,18 +105,18 @@ class NodeService {
 				if (!(statement instanceof ObjectStatement)) continue
 				if (statement === objectStatement) continue // Let it not find itself
 				const applyProps = this.foundApplyProps(statement)
-				if (Array.isArray(applyProps)) {
-					for (const applyProp of applyProps) yield applyProp.path.segments[0]
+				if (applyProps !== false) {
+					if (Array.isArray(applyProps.appliedStatements)) {
+						for (const applyProp of applyProps.appliedStatements) yield applyProp.path.segments[0]
+					}
+					if (!foundApplyProps) foundApplyProps = applyProps.appliedProps !== false
 				}
-				if (!foundApplyProps) foundApplyProps = applyProps !== false
+
 				if (!skipNextStatements) yield statement.path.segments[0]
 			}
-
-			skipNextStatements = parentObjectIdentifier !== "renderer"
-			if (!wasComingFromRenderer) {
-				const isRenderer = parentObjectIdentifier === "renderer"
-				wasComingFromRenderer = isRenderer && !["Neos.Fusion:Case", "Neos.Fusion:Loop"].includes(parentPrototypeName)
-			}
+			const parentIdentifierisRenderer = parentObjectIdentifier === "renderer"
+			skipNextStatements = !parentIdentifierisRenderer
+			if (!wasComingFromRenderer) wasComingFromRenderer = parentIdentifierisRenderer
 
 			traverseUpwards = !onlyWhenFoundApplyProps || foundApplyProps
 			statementList = findParent(statementList, StatementList)
@@ -130,7 +140,7 @@ class NodeService {
 		return undefined
 	}
 
-	public foundApplyProps(statement: ObjectStatement): boolean | ObjectStatement[] {
+	public foundApplyProps(statement: ObjectStatement): FoundApplyPropsResult | false {
 		const segment = statement.path.segments[0]
 		if (!(segment instanceof MetaPathSegment && segment.identifier === "apply")) return false
 
@@ -139,6 +149,7 @@ class NodeService {
 				const appliedObjectNode = Array.isArray(pathValue.nodes) ? pathValue.nodes[0] : pathValue.nodes
 				if (!(appliedObjectNode instanceof ObjectNode)) return false
 				if (appliedObjectNode.path[0]["value"] === "props") return true
+
 				return false
 			}
 			if (pathValue instanceof FusionObjectValue) {
@@ -155,6 +166,10 @@ class NodeService {
 			return false
 		}
 
+		const result: FoundApplyPropsResult = {
+			appliedProps: false
+		}
+
 		const applyStatements = statement.operation instanceof ValueAssignment ? [statement] : statement.block.statementList.statements
 		const foundStatements: any[] = []
 		for (const applyStatement of applyStatements) {
@@ -162,12 +177,16 @@ class NodeService {
 			if (!(applyStatement.operation instanceof ValueAssignment)) continue
 
 			const res = getApplies(applyStatement.operation.pathValue)
+			if (res === true) result.appliedProps = true
 			if (res !== false && Array.isArray(res)) {
 				foundStatements.push(...res)
 			}
 		}
+		if (foundStatements.length > 0) {
+			result.appliedStatements = foundStatements
+		}
 
-		return foundStatements.length === 0 ? false : foundStatements
+		return result
 	}
 
 	public getInheritedPropertiesByPrototypeName(name: string, workspace: FusionWorkspace) {
