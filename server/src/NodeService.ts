@@ -11,7 +11,8 @@ import { StatementList } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueAssignment'
 import { ValueCopy } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueCopy'
 import { FusionWorkspace } from './fusion/FusionWorkspace'
-import { findParent, getObjectIdentifier } from './util'
+import { findParent, findUntil, getObjectIdentifier } from './util'
+import { AbstractPathValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractPathValue'
 
 export class ExternalObjectStatement {
 	statement: ObjectStatement
@@ -24,8 +25,6 @@ export class ExternalObjectStatement {
 }
 
 class NodeService {
-
-
 	public * findPropertyDefinitionSegments(objectNode: ObjectNode, workspace?: FusionWorkspace) {
 		const objectStatement = findParent(objectNode, ObjectStatement) // [props.foo]
 
@@ -36,25 +35,31 @@ class NodeService {
 		}
 
 		let statementList = findParent(objectNode, StatementList)
-
+		const parentOperation = findParent(statementList, ObjectStatement).operation
 		if (getObjectIdentifier(objectStatement).startsWith("renderer.")) {
-			const parentOperation = findParent(statementList, ObjectStatement).operation
 			if (parentOperation instanceof ValueAssignment) {
 				if (parentOperation.pathValue instanceof FusionObjectValue) {
 					const statements = this.getInheritedPropertiesByPrototypeName(parentOperation.pathValue.value, workspace)
 
 					for (const statement of statements) {
-						if (statement instanceof ExternalObjectStatement) {
-							yield statement
-						}
+						if (statement instanceof ExternalObjectStatement) yield statement
 						if (!(statement instanceof ObjectStatement)) continue
-
 						yield statement.path.segments[0]
 					}
-
 					return
 				}
 			}
+		}
+
+		let parentPrototypeName = ""
+		const foundParentOperationPrototype = findUntil(statementList, (node) => {
+			if (!(node instanceof ObjectStatement)) return false
+			if (!(node.operation instanceof ValueAssignment)) return false
+			if (!(node.operation.pathValue instanceof FusionObjectValue)) return false
+			return true
+		})
+		if (foundParentOperationPrototype) {
+			parentPrototypeName = (<any>foundParentOperationPrototype).operation.pathValue.value
 		}
 
 		let traverseUpwards = true
@@ -86,18 +91,22 @@ class NodeService {
 			}
 
 			for (const statement of statements) {
-				if (statement instanceof ExternalObjectStatement) {
-					yield statement
-				}
+				if (statement instanceof ExternalObjectStatement) yield statement
 				if (!(statement instanceof ObjectStatement)) continue
 				if (statement === objectStatement) continue // Let it not find itself
-
-				if (!foundApplyProps) foundApplyProps = this.foundApplyProps(statement)
+				const applyProps = this.foundApplyProps(statement)
+				if (Array.isArray(applyProps)) {
+					for (const applyProp of applyProps) yield applyProp.path.segments[0]
+				}
+				if (!foundApplyProps) foundApplyProps = applyProps !== false
 				if (!skipNextStatements) yield statement.path.segments[0]
 			}
 
 			skipNextStatements = parentObjectIdentifier !== "renderer"
-			if (!wasComingFromRenderer) wasComingFromRenderer = parentObjectIdentifier === "renderer"
+			if (!wasComingFromRenderer) {
+				const isRenderer = parentObjectIdentifier === "renderer"
+				wasComingFromRenderer = isRenderer && !["Neos.Fusion:Case", "Neos.Fusion:Loop"].includes(parentPrototypeName)
+			}
 
 			traverseUpwards = !onlyWhenFoundApplyProps || foundApplyProps
 			statementList = findParent(statementList, StatementList)
@@ -121,18 +130,44 @@ class NodeService {
 		return undefined
 	}
 
-	public foundApplyProps(statement: ObjectStatement): boolean {
+	public foundApplyProps(statement: ObjectStatement): boolean | ObjectStatement[] {
 		const segment = statement.path.segments[0]
-
 		if (!(segment instanceof MetaPathSegment && segment.identifier === "apply")) return false
-		if (!(statement.operation instanceof ValueAssignment)) return false
-		if (!(statement.operation.pathValue instanceof EelExpressionValue)) return false
 
-		const pathValueNodes = statement.operation.pathValue.nodes
-		const appliedObjectNode = Array.isArray(pathValueNodes) ? pathValueNodes[0] : pathValueNodes
-		if (!(appliedObjectNode instanceof ObjectNode)) return false
+		const getApplies = (pathValue: AbstractPathValue): boolean | ObjectStatement[] => {
+			if (pathValue instanceof EelExpressionValue) {
+				const appliedObjectNode = Array.isArray(pathValue.nodes) ? pathValue.nodes[0] : pathValue.nodes
+				if (!(appliedObjectNode instanceof ObjectNode)) return false
+				if (appliedObjectNode.path[0]["value"] === "props") return true
+				return false
+			}
+			if (pathValue instanceof FusionObjectValue) {
+				if (pathValue.value !== "Neos.Fusion:DataStructure") return false
+				const objectStatement = findParent(pathValue, ObjectStatement)
+				if (!objectStatement.block) return false
+				const applyStatements = []
+				for (const statement of objectStatement.block.statementList.statements) {
+					applyStatements.push(statement)
+				}
+				return applyStatements.length === 0 ? false : applyStatements
+			}
 
-		return appliedObjectNode.path[0]["value"] === "props"
+			return false
+		}
+
+		const applyStatements = statement.operation instanceof ValueAssignment ? [statement] : statement.block.statementList.statements
+		const foundStatements: any[] = []
+		for (const applyStatement of applyStatements) {
+			if (!(applyStatement instanceof ObjectStatement)) continue
+			if (!(applyStatement.operation instanceof ValueAssignment)) continue
+
+			const res = getApplies(applyStatement.operation.pathValue)
+			if (res !== false && Array.isArray(res)) {
+				foundStatements.push(...res)
+			}
+		}
+
+		return foundStatements.length === 0 ? false : foundStatements
 	}
 
 	public getInheritedPropertiesByPrototypeName(name: string, workspace: FusionWorkspace) {
