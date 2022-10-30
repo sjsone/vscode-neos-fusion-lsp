@@ -39,8 +39,8 @@ class NodeService {
 		const objectStatement = findParent(objectNode, ObjectStatement) // [props.foo]
 
 		let statementList = findParent(objectNode, StatementList)
-		const parentOperation = findParent(statementList, ObjectStatement).operation
 		if (getObjectIdentifier(objectStatement).startsWith("renderer.")) {
+			const parentOperation = findParent(statementList, ObjectStatement).operation
 			if (parentOperation instanceof ValueAssignment) {
 				if (parentOperation.pathValue instanceof FusionObjectValue) {
 					const statements = this.getInheritedPropertiesByPrototypeName(parentOperation.pathValue.value, workspace)
