@@ -2,14 +2,28 @@
 
 This package is **WIP**
 
-<p align="center">
-  <img src="https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/goto_definition.gif?raw=true" alt="animated" />
+<p float="left">
+  <img width="45%" src="https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/goto_definition.gif?raw=true" alt="animated" />
+  <img width="45%" src="https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/goto_eel_helper_method.gif?raw=true" alt="animated" />
 </p>
 
-<p align="center">
-  <img src="https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/goto_eel_helper_method.gif?raw=true" alt="animated" />
-</p>
+## Latest Changes
 
+### Version 0.0.10
+
+#### ✨ Improved Definition and Hover Capabilities
+
+Definitions are now following inheritence and overrides. It still only works on `this.` and `props.` and will fail on more complex fusion.
+
+#### ✨ Implemented basic diagnostics `experimental`
+
+![goto image](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/diagnostics_example.png?raw=true)
+
+It is based on the definition capability. Because the definition capability does not work perfectly in complex fusion the feature is marked as `experimental`. If it bothers you too much it can be disabled in the extension configuration.  
+
+#### ✨ Improved Description parsing
+
+EEL-Helper descriptions should now be parsed without any problems. Things like `@return` and `@params` are also read but currently not processed.
 
 ## Functionality
 
