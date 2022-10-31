@@ -13,7 +13,7 @@ This package is **WIP**
 
 #### ✨ Improved Definition and Hover Capabilities
 
-Definitions are now following inheritence and overrides. It still only works on `this.` and `props.` and will fail on more complex fusion.
+Definitions are now following inheritence and overrides. It still only works on `this.` and `props.` and will fail on more complex fusion as `@context` is currently not resolved.
 
 #### ✨ Implemented basic diagnostics `experimental`
 
