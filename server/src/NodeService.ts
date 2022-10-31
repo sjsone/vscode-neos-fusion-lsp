@@ -114,7 +114,21 @@ class NodeService {
 
 				if (!skipNextStatements) yield statement.path.segments[0]
 			}
-			const parentIdentifierisRenderer = parentObjectIdentifier === "renderer"
+
+			let parentIdentifierisRenderer = false
+			if (parentObjectIdentifier === "renderer") {
+				const rendererPrototype = <ObjectStatement>findUntil(parentObjectNode, (node) => {
+					if (!(node instanceof ObjectStatement)) return false
+					if (!(node.operation instanceof ValueAssignment)) return false
+					if (!(node.operation.pathValue instanceof FusionObjectValue)) return false
+					return true
+				})
+				parentIdentifierisRenderer = true
+				if (rendererPrototype instanceof ObjectStatement && rendererPrototype.operation instanceof ValueAssignment) {
+					parentIdentifierisRenderer = this.doesPrototypeOverrideProps(rendererPrototype.operation.pathValue["value"])
+				}
+			}
+
 			skipNextStatements = !parentIdentifierisRenderer
 			if (!wasComingFromRenderer) wasComingFromRenderer = parentIdentifierisRenderer
 
