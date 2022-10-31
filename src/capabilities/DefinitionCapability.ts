@@ -67,7 +67,6 @@ export class DefinitionCapability extends AbstractCapability {
 	}
 
 	getPropertyDefinitions(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<any>): null | Location[] {
-		// PathSegment|ObjectPathNode
 		const node = <PathSegment | ObjectPathNode>foundNodeByLine.getNode()
 		const objectNode = node["parent"]
 		if (!(objectNode instanceof ObjectNode)) return null
