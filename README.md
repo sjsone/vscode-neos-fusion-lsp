@@ -17,7 +17,7 @@ Definitions are now following inheritence and overrides. It still only works on 
 
 #### ✨ Implemented basic diagnostics `experimental`
 
-![goto image](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/diagnostics_example.png?raw=true)
+![goto image](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/diagnostics_example.gif?raw=true)
 
 It is based on the definition capability. Because the definition capability does not work perfectly in complex fusion the feature is marked as `experimental`. If it bothers you too much it can be disabled in the extension configuration.  
 
