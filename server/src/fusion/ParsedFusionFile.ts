@@ -180,7 +180,7 @@ export class ParsedFusionFile {
 				range: positionedNode.getPositionAsRange(),
 				message: `Could not resolve "${objectStatementText}"`,
 				source: 'Fusion LSP'
-			};
+			}
 			diagnostics.push(diagnostic)
 		}
 
@@ -228,9 +228,6 @@ export class ParsedFusionFile {
 			}
 		} else if (firstPathSegment instanceof PathSegment) {
 			this.addNode(firstPathSegment, text)
-		} else if (operation instanceof ValueAssignment) {
-			if (operation.pathValue instanceof FusionObjectValue) {
-			}
 		}
 
 		if (statement.block !== undefined) {

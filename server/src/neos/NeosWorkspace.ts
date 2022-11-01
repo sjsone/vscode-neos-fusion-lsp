@@ -19,9 +19,9 @@ export class NeosWorkspace extends Logger {
 		} catch (error) {
 			if (error instanceof Error) {
 				if (error["code"] === 'ENOENT') {
-					console.log('File not found!');
+					console.log('File not found!')
 				} else {
-					throw error;
+					throw error
 				}
 			}
 		}

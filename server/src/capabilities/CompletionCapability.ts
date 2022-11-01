@@ -22,11 +22,11 @@ export class CompletionCapability extends AbstractCapability {
 				case foundNode instanceof FusionObjectValue:
 				case foundNode instanceof PrototypePathSegment:
 					completions.push(...this.getPrototypeCompletions(workspace, <any>foundNodeByLine))
-					break;
+					break
 				case foundNode instanceof ObjectPathNode:
 					completions.push(...this.getEelHelperCompletions(workspace, foundNodeByLine))
 					completions.push(...this.getFusionPropertyCompletions(workspace, foundNodeByLine))
-					break;
+					break
 			}
 		}
 
@@ -47,7 +47,7 @@ export class CompletionCapability extends AbstractCapability {
 			return completions
 		}
 
-		for (let segmentOrExternalStatement of NodeService.findPropertyDefinitionSegments(objectNode, workspace)) {
+		for (const segmentOrExternalStatement of NodeService.findPropertyDefinitionSegments(objectNode, workspace)) {
 			const segment = segmentOrExternalStatement instanceof ExternalObjectStatement ? segmentOrExternalStatement.statement.path.segments[0] : segmentOrExternalStatement
 			if (!(segment instanceof PathSegment)) continue
 			if (segment.identifier === "renderer" || !segment.identifier) continue
