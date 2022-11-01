@@ -9,6 +9,7 @@ import { ParsedFusionFile } from './ParsedFusionFile'
 import { getFiles, pathToUri, uriToPath } from '../util'
 import { Logger, LogService } from '../Logging'
 import { LanguageServer } from '../LanguageServer'
+import { ConfigurationManager } from '../ConfigurationManager'
 
 export class FusionWorkspace extends Logger {
     public uri: string
@@ -54,16 +55,15 @@ export class FusionWorkspace extends Logger {
             }
         }
 
-        if (packagesPaths.length === 0 && configuration.folders.workspaceAsPackageFallback) {
-            packagesPaths.push(workspacePath)
-        }
+        const usingWorkspaceAsPackageFallback = packagesPaths.length === 0 && configuration.folders.workspaceAsPackageFallback
+        if (usingWorkspaceAsPackageFallback) packagesPaths.push(workspacePath)
 
         this.neosWorkspace = new NeosWorkspace(workspacePath, this.name)
         for (const packagePath of packagesPaths) {
             this.neosWorkspace.addPackage(packagePath)
         }
-        this.neosWorkspace.initEelHelpers()
 
+        this.neosWorkspace.init()
 
         const incrementPerPackage = 100 / packagesPaths.length
 

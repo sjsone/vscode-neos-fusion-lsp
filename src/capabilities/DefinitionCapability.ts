@@ -39,9 +39,6 @@ export class DefinitionCapability extends AbstractCapability {
 	}
 
 	getPrototypeDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<any>) {
-		const foundNodeByLineBegin = foundNodeByLine.getBegin()
-		const foundNodeByLineEnd = foundNodeByLine.getEnd()
-
 		const goToPrototypeName = getPrototypeNameFromNode(foundNodeByLine.getNode())
 		if (goToPrototypeName === "") return null
 
@@ -55,10 +52,7 @@ export class DefinitionCapability extends AbstractCapability {
 					targetUri: otherParsedFile.uri,
 					targetRange: otherNode.getPositionAsRange(),
 					targetSelectionRange: otherNode.getPositionAsRange(),
-					originSelectionRange: {
-						start: { line: foundNodeByLineBegin.line - 1, character: foundNodeByLineBegin.column - 1 },
-						end: { line: foundNodeByLineEnd.line - 1, character: foundNodeByLineEnd.column - 1 }
-					}
+					originSelectionRange: foundNodeByLine.getPositionAsRange()
 				})
 			}
 		}

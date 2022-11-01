@@ -36,7 +36,6 @@ export class LanguageServer extends Logger {
 		this.capabilities.set("onCompletion", new CompletionCapability(this))
 		this.capabilities.set("onHover", new HoverCapability(this))
 		this.capabilities.set("onReferences", new ReferenceCapability(this))
-
 	}
 
 	public getCapability(name: string) {
@@ -72,6 +71,10 @@ export class LanguageServer extends Logger {
 
 			this.logInfo(`Added FusionWorkspace ${workspaceFolder.name} with path ${uriToPath(workspaceFolder.uri)}`)
 		}
+
+		this.connection.onRequest("custom/neosContexts/get", () => {
+			return this.fusionWorkspaces[0].neosWorkspace.configurationManager.getContexts()
+		})
 
 		return {
 			capabilities: {
