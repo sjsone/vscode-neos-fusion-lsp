@@ -9,6 +9,9 @@ This package is **WIP**
 
 ## Latest Changes
 
+### Version 0.0.11
+
+`@propTypes` are now parsed as a valid property definition. So if there is no property in the prototype but one defined in `@propTypes` it will be the GoTo-Target. This also affects diagnostics so less `props.` will be marked as a problem.  
 ### Version 0.0.10
 
 #### ✨ Improved Definition and Hover Capabilities
