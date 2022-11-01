@@ -1,11 +1,12 @@
 import * as path from 'path'
 import {
-	workspace as Workspace, window as Window, ExtensionContext, TextDocument, OutputChannel, WorkspaceFolder, Uri, workspace
+	workspace as Workspace, window as Window, ExtensionContext, TextDocument, OutputChannel, WorkspaceFolder, Uri, workspace, StatusBarAlignment, window
 } from 'vscode'
 
 import {
 	LanguageClient, LanguageClientOptions, ServerOptions, TransportKind
 } from 'vscode-languageclient/node'
+import { NeosContextStatusBarItem } from './neosContextStatusBarItem'
 import { PreferenceService } from './preferenceService'
 import { ProgressNotificationService } from './progressNotificationService'
 import { StatusItemService } from './statusItemService'
@@ -54,19 +55,13 @@ export function activate(context: ExtensionContext) {
 		})
 	}
 
-
-
 	function didOpenTextDocument(document: TextDocument): void {
-		if (document.languageId !== 'fusion' || (document.uri.scheme !== 'file' && document.uri.scheme !== 'untitled')) {
-			return
-		}
+		if (document.languageId !== 'fusion' || (document.uri.scheme !== 'file' && document.uri.scheme !== 'untitled')) return
 
 		const uri = document.uri
 
 		let folder = Workspace.getWorkspaceFolder(uri)
-		if (!folder) {
-			return
-		}
+		if (!folder) return
 
 		folder = getOuterMostWorkspaceFolder(folder)
 
@@ -97,6 +92,11 @@ export function activate(context: ExtensionContext) {
 
 			client.start()
 			clients.set(folder.uri.toString(), client)
+
+			NeosContextStatusBarItem.init(context, client, outputChannel)
+
+
+			client.sendNotification
 
 			client.onNotification('custom/progressNotification/update', ({ id, payload }) => progressNotificationService.update(id, payload))
 
