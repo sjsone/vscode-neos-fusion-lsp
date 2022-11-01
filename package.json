@@ -79,7 +79,8 @@
           "default": [
             "Resources/Private/Fusion",
             "Resources/Private/FusionModules",
-            "Resources/Private/FusionPlugins"
+            "Resources/Private/FusionPlugins",
+            "NodeTypes"
           ],
           "description": "Fusion Folder inside Package"
         },
