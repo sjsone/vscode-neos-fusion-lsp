@@ -165,6 +165,7 @@ export class ParsedFusionFile {
 		for (const positionedNode of positionedNodes) {
 			const node = <ObjectNode><unknown>positionedNode.getNode()
 			const objectStatement = findParent(node, ObjectStatement)
+			if (objectStatement === undefined) continue
 			if (objectStatement.path.segments[0] instanceof MetaPathSegment) continue
 			const pathBegin = node["path"][0]["value"]
 			if (pathBegin !== "props") continue
