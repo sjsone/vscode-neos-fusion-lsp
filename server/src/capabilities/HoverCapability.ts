@@ -30,7 +30,7 @@ export class HoverCapability extends AbstractCapability {
 
 	protected getMarkdownByNode(foundNodeByLine: LinePositionedNode<any>, parsedFile: ParsedFusionFile, workspace: FusionWorkspace) {
 		const node = foundNodeByLine.getNode()
-		// console.log("node", node)
+		// return `Type: ${node.constructor.name}`
 		this.logVerbose(`FoundNode: ` + node.constructor.name)
 
 		switch (true) {
@@ -48,7 +48,7 @@ export class HoverCapability extends AbstractCapability {
 			case node instanceof EelHelperMethodNode:
 				return this.getMarkdownForEelHelperMethod(node, workspace)
 			default:
-				return null // `Type: ${node.constructor.name}`
+				return null
 		}
 	}
 
