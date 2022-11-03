@@ -96,12 +96,10 @@ export class DefinitionCapability extends AbstractCapability {
 		const node = foundNodeByLine.getNode()
 		for (const eelHelper of workspace.neosWorkspace.getEelHelperTokens()) {
 			if (eelHelper.name === node.identifier) {
-				return [
-					{
-						uri: eelHelper.uri,
-						range: eelHelper.position
-					}
-				]
+				return [{
+					uri: eelHelper.uri,
+					range: eelHelper.position
+				}]
 			}
 		}
 
@@ -115,12 +113,10 @@ export class DefinitionCapability extends AbstractCapability {
 			if (eelHelper.name === node.eelHelper.identifier) {
 				const method = eelHelper.methods.find(method => method.valid(node.identifier))
 				if (!method) continue
-				return [
-					{
-						uri: eelHelper.uri,
-						range: method.position
-					}
-				]
+				return [{
+					uri: eelHelper.uri,
+					range: method.position
+				}]
 			}
 		}
 
@@ -131,13 +127,11 @@ export class DefinitionCapability extends AbstractCapability {
 		const classDefinition: ClassDefinition = foundNodeByLine.getNode()["classDefinition"]
 		if (classDefinition === undefined) return null
 
-		return [
-			{
-				targetUri: classDefinition.uri,
-				targetRange: classDefinition.position,
-				targetSelectionRange: classDefinition.position,
-				originSelectionRange: foundNodeByLine.getPositionAsRange()
-			}
-		]
+		return [{
+			targetUri: classDefinition.uri,
+			targetRange: classDefinition.position,
+			targetSelectionRange: classDefinition.position,
+			originSelectionRange: foundNodeByLine.getPositionAsRange()
+		}]
 	}
 }
