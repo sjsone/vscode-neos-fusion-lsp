@@ -13,18 +13,14 @@ import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/Pa
 
 export function getLineNumberOfChar(data: string, index: number, debug = false) {
     const perLine = data.split('\n')
-    if (debug) console.log(` perLine.length ${perLine.length}`)
-    let total_length = 0
+    let totalLength = 0
     let column = index
     let i = 0
     for (i; i < perLine.length; i++) {
-        if (debug) console.log("  Line: ", perLine[i])
-        total_length += perLine[i].length + 1
-        if (debug) console.log(`  [${i}] total_length`, total_length)
-        if (total_length >= index)
+        totalLength += perLine[i].length + 1
+        if (totalLength >= index)
             return { line: i, column }
         column -= perLine[i].length + 1
-        if (debug) console.log(`  [${i}] column`, column)
     }
     return { line: i, column }
 }
