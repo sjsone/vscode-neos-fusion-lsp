@@ -4,7 +4,7 @@ import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/A
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment'
-import { CompletionItem, CompletionItemKind, InsertTextMode, SemanticTokenModifiers } from 'vscode-languageserver/node'
+import { CompletionItem, CompletionItemKind, InsertTextMode } from 'vscode-languageserver/node'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { LinePositionedNode } from '../LinePositionedNode'
 import { ExternalObjectStatement, NodeService } from '../NodeService'
@@ -109,8 +109,8 @@ export class CompletionCapability extends AbstractCapability {
 			textEdit: {
 				insert: linePositioneNode.getPositionAsRange(),
 				replace: {
-					start: { line: linePositioneNode.getBegin().line - 1, character: linePositioneNode.getBegin().column - 1 },
-					end: { line: linePositioneNode.getEnd().line - 1, character: linePositioneNode.getEnd().column + label.length - 1 },
+					start: { line: linePositioneNode.getBegin().line, character: linePositioneNode.getBegin().column },
+					end: { line: linePositioneNode.getEnd().line, character: linePositioneNode.getEnd().column + label.length },
 				},
 				newText: label
 			}
