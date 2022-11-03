@@ -28,15 +28,22 @@ export class NeosWorkspace extends Logger {
 	}
 
 	getEelHelperFromFullyQualifiedClassNameWithStaticMethod(fullyQualifiedClassName: string, staticMethod?: string) {
-		if(!staticMethod) return this.getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName)
-		
+		if (!staticMethod) return this.getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName)
 		return undefined
 	}
 
-	getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
+	getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
 		for (const neosPackage of this.packages.values()) {
-			const eelHelper = neosPackage.getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName)
-			if (eelHelper) return eelHelper
+			const classDefinition = neosPackage.getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName)
+			if (classDefinition) return classDefinition
+		}
+		return undefined
+	}
+
+	getFileUriFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
+		for (const neosPackage of this.packages.values()) {
+			const fileUri = neosPackage.getFileUriFromFullyQualifiedClassName(fullyQualifiedClassName)
+			if (fileUri) return fileUri
 		}
 		return undefined
 	}
