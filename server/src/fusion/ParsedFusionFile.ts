@@ -137,8 +137,11 @@ export class ParsedFusionFile {
 	}
 
 	handleObjectStatement(objectStatement: ObjectStatement, text: string) {
-		if (!(objectStatement.path.segments[0] instanceof MetaPathSegment)) return
-		if (objectStatement.path.segments[0].identifier !== "class") return
+		const segments = objectStatement.path.segments
+		const metaPathSegment = segments[0] instanceof PrototypePathSegment ? segments[1] : segments[0]
+
+		if (!(metaPathSegment instanceof MetaPathSegment)) return
+		if (metaPathSegment.identifier !== "class") return
 		if (!(objectStatement.operation instanceof ValueAssignment)) return
 		if (!(objectStatement.operation.pathValue instanceof StringValue)) return
 		const fqcn = objectStatement.operation.pathValue.value.split("\\\\").join("\\")
