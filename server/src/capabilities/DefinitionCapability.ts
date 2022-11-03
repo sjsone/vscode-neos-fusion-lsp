@@ -100,8 +100,8 @@ export class DefinitionCapability extends AbstractCapability {
 					{
 						uri: eelHelper.uri,
 						range: {
-							start: { line: eelHelper.position.begin.line - 1, character: eelHelper.position.begin.column - 1 },
-							end: { line: eelHelper.position.end.line - 1, character: eelHelper.position.end.column - 1 }
+							start: { line: eelHelper.position.begin.line, character: eelHelper.position.begin.column },
+							end: { line: eelHelper.position.end.line, character: eelHelper.position.end.column }
 						}
 					}
 				]
@@ -122,8 +122,8 @@ export class DefinitionCapability extends AbstractCapability {
 					{
 						uri: eelHelper.uri,
 						range: {
-							start: { line: method.position.begin.line - 1, character: method.position.begin.column - 1 },
-							end: { line: method.position.end.line - 1, character: method.position.end.column - 1 }
+							start: { line: method.position.begin.line, character: method.position.begin.column },
+							end: { line: method.position.end.line, character: method.position.end.column }
 						}
 					}
 				]
@@ -138,8 +138,8 @@ export class DefinitionCapability extends AbstractCapability {
 		if (classDefinition === undefined) return null
 
 		const targetRange = {
-			start: { line: classDefinition.position.begin.line - 1, character: classDefinition.position.begin.column - 1 },
-			end: { line: classDefinition.position.end.line - 1, character: classDefinition.position.end.column - 1 }
+			start: { line: classDefinition.position.begin.line, character: classDefinition.position.begin.column },
+			end: { line: classDefinition.position.end.line, character: classDefinition.position.end.column }
 		}
 
 		return [

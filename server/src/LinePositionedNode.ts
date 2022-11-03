@@ -48,8 +48,8 @@ export class LinePositionedNode<T extends AbstractNode> {
 
 	getPositionAsRange(): Range {
 		return {
-			start: { line: this.getBegin().line - 1, character: this.getBegin().column - 1 },
-			end: { line: this.getEnd().line - 1, character: this.getEnd().column - 1 },
+			start: { line: this.getBegin().line, character: this.getBegin().column },
+			end: { line: this.getEnd().line, character: this.getEnd().column },
 		}
 	}
 
