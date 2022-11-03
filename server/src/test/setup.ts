@@ -9,6 +9,7 @@ import { DefinitionCapability } from '../capabilities/DefinitionCapability';
 
 // start watcher / build
 // run with: node server/out/test/setup.js
+const baseUri = pathToUri(NodePath.join(__dirname, "../../fixtures/Fusion"));
 
 let workspace: FusionWorkspace;
 
@@ -26,9 +27,28 @@ class FakeLanguageServer {
 		// console.log(...args);
 	}
 
+	sendDiagnostics(diagnostic: any): void {
+		if (diagnostic.diagnostics.length === 0) {
+			return;
+		}
 
-	sendDiagnostics(...args: any[]): void {
-		// console.log(...args);
+		switch (diagnostic.uri) {
+			case baseUri + "/Diagnostics/Diagnostics.fusion":
+				expect(diagnostic.diagnostics).toStrictEqual([
+					{
+						severity: 2,
+						range: { start: { line: 2, character: 14 }, end: { line: 2, character: 31 } },
+						message: 'Could not resolve "props.nonExistent"',
+						source: 'Fusion LSP'
+					}
+				]);
+				break;
+
+			default:
+				expect(true).toBeFalsy();
+				break;
+		}
+
 	}
 
 	getWorspaceFromFileUri(uri: string): FusionWorkspace {
@@ -67,7 +87,6 @@ workspace.init({
 
 
 
-const baseUri = pathToUri(NodePath.join(__dirname, "../../fixtures/Fusion"));
 
 const referenceCapability = new ReferenceCapability(fakeLanguageServer);
 
