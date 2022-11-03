@@ -101,10 +101,10 @@ export class NeosPackage extends Logger {
 		return undefined
 	}
 
-	getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
+	getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
 		for (const namespaceEntry of this.namespaces.entries()) {
 			if (fullyQualifiedClassName.startsWith(namespaceEntry[0])) {
-				return namespaceEntry[1].getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName)
+				return namespaceEntry[1].getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName)
 			}
 		}
 		return undefined

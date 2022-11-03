@@ -3,6 +3,14 @@ import * as NodePath from "path"
 import { EelHelperMethod } from '../eel/EelHelperMethod'
 import { getLineNumberOfChar, pathToUri } from '../util'
 
+export interface ClassDefinition {
+	uri: string
+	methods: EelHelperMethod[]
+	position: {
+		begin: { line: number, column: number }
+		end: { line: number, column: number }
+	},
+}
 
 export class NeosPackageNamespace {
 	protected name: string
@@ -40,7 +48,7 @@ export class NeosPackageNamespace {
 	}
 
 
-	getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
+	getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName: string): ClassDefinition {
 		const path = fullyQualifiedClassName.replace(this.name, "")
 
 		const pathParts = path.split("\\")

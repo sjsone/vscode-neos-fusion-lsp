@@ -1,5 +1,5 @@
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
-import { Location, ReferenceParams } from 'vscode-languageserver/node'
+import { Location } from 'vscode-languageserver/node'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { getPrototypeNameFromNode } from '../util'
 import { AbstractCapability } from './AbstractCapability'
@@ -21,17 +21,10 @@ export class ReferenceCapability extends AbstractCapability {
 		for (const otherParsedFile of workspace.parsedFiles) {
 			for (const otherNode of this.getOtherNodesFromOtherParsedFile(otherParsedFile)) {
 				if (getPrototypeNameFromNode(otherNode.getNode()) !== goToPrototypeName) continue
-				const otherNodeBegin = otherNode.getBegin()
-				const otherNodeEnd = otherNode.getEnd()
-
-				const targetRange = {
-					start: { line: otherNodeBegin.line - 1, character: otherNodeBegin.column - 1 },
-					end: { line: otherNodeEnd.line - 1, character: otherNodeEnd.column - 1 }
-				}
 
 				locations.push({
 					uri: otherParsedFile.uri,
-					range: targetRange
+					range: otherNode.getPositionAsRange()
 				})
 			}
 		}

@@ -10,8 +10,8 @@ import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreePars
 import { StatementList } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StatementList'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueAssignment'
 import { ValueCopy } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueCopy'
-import { EelHelperMethodNode } from './EelHelperMethodNode'
-import { EelHelperNode } from './EelHelperNode'
+import { PhpClassMethodNode } from './PhpClassMethodNode'
+import { PhpClassNode } from './PhpClassNode'
 import { FusionWorkspace } from './FusionWorkspace'
 import { LinePositionedNode } from '../LinePositionedNode'
 import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode'
@@ -19,9 +19,12 @@ import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectFun
 import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
 import { TagNode } from 'ts-fusion-parser/out/afx/nodes/TagNode'
 import { findParent, uriToPath } from '../util'
-import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver'
+import { Diagnostic, DiagnosticSeverity, RenameRequest } from 'vscode-languageserver'
 import { DefinitionCapability } from '../capabilities/DefinitionCapability'
 import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/MetaPathSegment'
+import { StringValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StringValue'
+import { resourceUsage } from 'process'
+import { FqcnNode } from './FqcnNode'
 
 export class ParsedFusionFile {
 	public workspace: FusionWorkspace
@@ -60,6 +63,7 @@ export class ParsedFusionFile {
 				for (const node of objectTree.nodesByType.get(nodeType)) {
 					if (node instanceof ObjectNode) this.handleEelObjectNode(node, text)
 					if (node instanceof TagNode) this.handleTagNameNode(node, text)
+					if (node instanceof ObjectStatement) this.handleObjectStatement(node, text)
 					this.addNode(node, text)
 				}
 			}
@@ -90,7 +94,7 @@ export class ParsedFusionFile {
 
 				const methodNode = currentPath.pop()
 				const eelHelperMethodNodePosition = new NodePosition(methodNode["position"].begin, methodNode["position"].begin + methodNode["value"].length)
-				const eelHelperMethodNode = new EelHelperMethodNode(methodNode["value"], eelHelperMethodNodePosition)
+				const eelHelperMethodNode = new PhpClassMethodNode(methodNode["value"], eelHelperMethodNodePosition)
 
 				const position = new NodePosition(-1, -1)
 				const nameParts = []
@@ -107,7 +111,7 @@ export class ParsedFusionFile {
 						const method = eelHelper.methods.find(method => method.valid(methodNode["value"]))
 						if (!method) continue
 						this.addNode(eelHelperMethodNode, text)
-						const eelHelperNode = new EelHelperNode(eelHelperIdentifier, eelHelperMethodNode, position)
+						const eelHelperNode = new PhpClassNode(eelHelperIdentifier, eelHelperMethodNode, position)
 						this.addNode(eelHelperNode, text)
 					}
 				}
@@ -130,6 +134,20 @@ export class ParsedFusionFile {
 			node["end"]["position"].begin + endOffset + node["name"].length
 		))
 		this.addNode(endPrototypePath, text)
+	}
+
+	handleObjectStatement(objectStatement: ObjectStatement, text: string) {
+		if (!(objectStatement.path.segments[0] instanceof MetaPathSegment)) return
+		if (objectStatement.path.segments[0].identifier !== "class") return
+		if (!(objectStatement.operation instanceof ValueAssignment)) return
+		if (!(objectStatement.operation.pathValue instanceof StringValue)) return
+		const fqcn = objectStatement.operation.pathValue.value.split("\\\\").join("\\")
+		const classDefinition = this.workspace.neosWorkspace.getClassDefinitionFromFullyQualifiedClassName(fqcn)
+		if (classDefinition === undefined) return
+
+		const fqcnNode = new FqcnNode(objectStatement.operation.pathValue.value, classDefinition, objectStatement.operation.pathValue["position"])
+		// if(fqcn.endsWith("FormElementWrappingImplementation")) console.log("fqcn", fqcnNode)
+		this.addNode(fqcnNode, text)
 	}
 
 	getNodesByType<T extends AbstractNode>(type: new (...args: any) => T): LinePositionedNode<T>[] | undefined {
@@ -245,16 +263,19 @@ export class ParsedFusionFile {
 				const node = lineNode.getNode()
 				let weight = 0
 				switch (true) {
+					case node instanceof FqcnNode:
+						weight = 17
+						break;
 					case node instanceof ObjectPathNode:
 						weight = 15
 						break
 					case node instanceof ObjectStatement:
 						weight = 10
 						break
-					case node instanceof EelHelperMethodNode:
+					case node instanceof PhpClassMethodNode:
 						weight = 25
 						break
-					case node instanceof EelHelperNode:
+					case node instanceof PhpClassNode:
 						weight = 20
 						break
 					case node instanceof FusionObjectValue:
