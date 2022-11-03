@@ -109,8 +109,8 @@ export class CompletionCapability extends AbstractCapability {
 			textEdit: {
 				insert: linePositioneNode.getPositionAsRange(),
 				replace: {
-					start: { line: linePositioneNode.getBegin().line, character: linePositioneNode.getBegin().column },
-					end: { line: linePositioneNode.getEnd().line, character: linePositioneNode.getEnd().column + label.length },
+					start: linePositioneNode.getBegin(),
+					end: { line: linePositioneNode.getEnd().line, character: linePositioneNode.getEnd().character + label.length },
 				},
 				newText: label
 			}

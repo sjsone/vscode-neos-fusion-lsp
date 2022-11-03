@@ -99,10 +99,7 @@ export class DefinitionCapability extends AbstractCapability {
 				return [
 					{
 						uri: eelHelper.uri,
-						range: {
-							start: { line: eelHelper.position.begin.line, character: eelHelper.position.begin.column },
-							end: { line: eelHelper.position.end.line, character: eelHelper.position.end.column }
-						}
+						range: eelHelper.position
 					}
 				]
 			}
@@ -121,10 +118,7 @@ export class DefinitionCapability extends AbstractCapability {
 				return [
 					{
 						uri: eelHelper.uri,
-						range: {
-							start: { line: method.position.begin.line, character: method.position.begin.column },
-							end: { line: method.position.end.line, character: method.position.end.column }
-						}
+						range: method.position
 					}
 				]
 			}
@@ -137,16 +131,11 @@ export class DefinitionCapability extends AbstractCapability {
 		const classDefinition: ClassDefinition = foundNodeByLine.getNode()["classDefinition"]
 		if (classDefinition === undefined) return null
 
-		const targetRange = {
-			start: { line: classDefinition.position.begin.line, character: classDefinition.position.begin.column },
-			end: { line: classDefinition.position.end.line, character: classDefinition.position.end.column }
-		}
-
 		return [
 			{
 				targetUri: classDefinition.uri,
-				targetRange: targetRange,
-				targetSelectionRange: targetRange,
+				targetRange: classDefinition.position,
+				targetSelectionRange: classDefinition.position,
 				originSelectionRange: foundNodeByLine.getPositionAsRange()
 			}
 		]
