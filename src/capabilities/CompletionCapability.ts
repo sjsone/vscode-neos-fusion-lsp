@@ -89,7 +89,7 @@ export class CompletionCapability extends AbstractCapability {
 		const eelHelpers = fusionWorkspace.neosWorkspace.getEelHelperTokens()
 		for (const eelHelper of eelHelpers) {
 			for (const method of eelHelper.methods) {
-				const fullName = eelHelper.name + "." + method.name
+				const fullName = eelHelper.name + "." + method.getNormalizedName()
 				if (!fullName.startsWith(fullPath)) continue
 				const completionItem = this.createCompletionItem(fullName, linePositionedObjectNode, CompletionItemKind.Method)
 				completionItem.detail = method.description

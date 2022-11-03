@@ -16,6 +16,10 @@ export class EelHelperMethod {
 		this.normalizedName = nameWithoutGetter ? nameWithoutGetter[0].toLowerCase() + nameWithoutGetter.substring(1) : name
 	}
 
+	getNormalizedName() {
+		return this.normalizedName
+	}
+
 	valid(identifier: string) {
 		if(identifier === this.name) return true
 		if(identifier === this.normalizedName) return true
