@@ -19,10 +19,10 @@ export function getLineNumberOfChar(data: string, index: number, debug = false) 
     for (i; i < perLine.length; i++) {
         totalLength += perLine[i].length + 1
         if (totalLength >= index)
-            return { line: i, column }
+            return { line: i, character: column }
         column -= perLine[i].length + 1
     }
-    return { line: i, column }
+    return { line: i, character: column }
 }
 
 export function* getFiles(dir: string, withExtension = ".fusion") {

@@ -11,8 +11,8 @@ export interface EELHelperToken {
 	uri: string,
 	regex: RegExp,
 	position: {
-		begin: { line: number, column: number },
-		end: { line: number, column: number }
+		start: { line: number, character: number },
+		end: { line: number, character: number }
 	},
 	methods: EelHelperMethod[]
 }

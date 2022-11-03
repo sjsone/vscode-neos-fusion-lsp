@@ -7,8 +7,8 @@ export interface ClassDefinition {
 	uri: string
 	methods: EelHelperMethod[]
 	position: {
-		begin: { line: number, column: number }
-		end: { line: number, column: number }
+		start: { line: number, character: number }
+		end: { line: number, character: number }
 	},
 }
 
@@ -88,7 +88,7 @@ export class NeosPackageNamespace {
 			const { description } = this.parseMethodComment(identifierIndex, phpFileSource)
 
 			methods.push(new EelHelperMethod(name, description, {
-				begin: getLineNumberOfChar(phpFileSource, identifierIndex),
+				start: getLineNumberOfChar(phpFileSource, identifierIndex),
 				end: getLineNumberOfChar(phpFileSource, identifierIndex + fullDefinition.length)
 			}))
 
@@ -100,7 +100,7 @@ export class NeosPackageNamespace {
 			uri: fileUri,
 			methods,
 			position: {
-				begin: getLineNumberOfChar(phpFileSource, begin),
+				start: getLineNumberOfChar(phpFileSource, begin),
 				end: getLineNumberOfChar(phpFileSource, end)
 			},
 		}

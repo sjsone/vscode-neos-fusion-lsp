@@ -259,7 +259,7 @@ export class ParsedFusionFile {
 		if (lineNodes === undefined) return undefined
 		const foundNodesByWeight: { [key: number]: LinePositionedNode<AbstractNode> } = {}
 		for (const lineNode of lineNodes) {
-			if (column >= lineNode.getBegin().column && column <= lineNode.getEnd().column) {
+			if (column >= lineNode.getBegin().character && column <= lineNode.getEnd().character) {
 				const node = lineNode.getNode()
 				let weight = 0
 				switch (true) {
