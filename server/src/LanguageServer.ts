@@ -43,12 +43,12 @@ export class LanguageServer extends Logger {
 		return this.capabilities.get(name)
 	}
 
-	public getWorspaceFromFileUri = (uri: string): FusionWorkspace | undefined => {
+	public getWorkspaceFromFileUri = (uri: string): FusionWorkspace | undefined => {
 		return this.fusionWorkspaces.find(w => w.isResponsibleForUri(uri))
 	}
 
 	public async onDidChangeContent(change: TextDocumentChangeEvent<FusionDocument>) {
-		const workspace = this.getWorspaceFromFileUri(change.document.uri)
+		const workspace = this.getWorkspaceFromFileUri(change.document.uri)
 		if (workspace === undefined) return null
 
 		await workspace.updateFileByChange(change)
@@ -56,7 +56,7 @@ export class LanguageServer extends Logger {
 	}
 
 	public async onDidOpen(event: TextDocumentChangeEvent<FusionDocument>) {
-		const workspace = this.getWorspaceFromFileUri(event.document.uri)
+		const workspace = this.getWorkspaceFromFileUri(event.document.uri)
 		if (workspace === undefined) return null
 
 		await workspace.updateFileByChange(event)
