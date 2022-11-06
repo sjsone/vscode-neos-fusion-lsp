@@ -3,6 +3,14 @@ import * as NodePath from "path"
 import { EelHelperMethod } from '../eel/EelHelperMethod'
 import { getLineNumberOfChar, pathToUri } from '../util'
 
+export interface ClassDefinition {
+	uri: string
+	methods: EelHelperMethod[]
+	position: {
+		start: { line: number, character: number }
+		end: { line: number, character: number }
+	},
+}
 
 export class NeosPackageNamespace {
 	protected name: string
@@ -40,7 +48,7 @@ export class NeosPackageNamespace {
 	}
 
 
-	getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
+	getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName: string): ClassDefinition {
 		const path = fullyQualifiedClassName.replace(this.name, "")
 
 		const pathParts = path.split("\\")
@@ -80,7 +88,7 @@ export class NeosPackageNamespace {
 			const { description } = this.parseMethodComment(identifierIndex, phpFileSource)
 
 			methods.push(new EelHelperMethod(name, description, {
-				begin: getLineNumberOfChar(phpFileSource, identifierIndex),
+				start: getLineNumberOfChar(phpFileSource, identifierIndex),
 				end: getLineNumberOfChar(phpFileSource, identifierIndex + fullDefinition.length)
 			}))
 
@@ -92,7 +100,7 @@ export class NeosPackageNamespace {
 			uri: fileUri,
 			methods,
 			position: {
-				begin: getLineNumberOfChar(phpFileSource, begin),
+				start: getLineNumberOfChar(phpFileSource, begin),
 				end: getLineNumberOfChar(phpFileSource, end)
 			},
 		}
@@ -106,7 +114,7 @@ export class NeosPackageNamespace {
 		const descriptionParts = []
 		if (reversedDescriptionMatch) {
 			const fullDocBlock = reversedDescriptionMatch[1].split('').reverse().join('')
-			const docLineRegex = /^\s*\*\ *(@\w+)?(.+)?$/gm
+			const docLineRegex = /^\s*\* *(@\w+)?(.+)?$/gm
 			let docLineMatch = docLineRegex.exec(fullDocBlock)
 			while (docLineMatch && docLineMatch[2]) {
 				descriptionParts.push(docLineMatch[2])

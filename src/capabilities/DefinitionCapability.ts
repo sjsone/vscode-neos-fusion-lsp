@@ -1,9 +1,11 @@
+import * as NodeFs from 'fs'
+
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment'
 import { DefinitionLink, Location } from 'vscode-languageserver/node'
-import { EelHelperMethodNode } from '../fusion/EelHelperMethodNode'
-import { EelHelperNode } from '../fusion/EelHelperNode'
+import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
+import { PhpClassNode } from '../fusion/PhpClassNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { LinePositionedNode } from '../LinePositionedNode'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
@@ -14,6 +16,9 @@ import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
 import { NodeService } from '../NodeService'
 import { CapabilityContext } from './CapabilityContext'
 import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode'
+import { FqcnNode } from '../fusion/FqcnNode'
+import { ClassDefinition } from '../neos/NeosPackageNamespace'
+import { ResourceUriNode } from '../fusion/ResourceUriNode'
 
 export class DefinitionCapability extends AbstractCapability {
 
@@ -29,10 +34,14 @@ export class DefinitionCapability extends AbstractCapability {
 			case node instanceof PathSegment:
 			case node instanceof ObjectPathNode:
 				return this.getPropertyDefinitions(parsedFile, workspace, foundNodeByLine)
-			case node instanceof EelHelperMethodNode:
-				return this.getEelHelperMethodDefinitions(workspace, <LinePositionedNode<EelHelperMethodNode>>foundNodeByLine)
-			case node instanceof EelHelperNode:
-				return this.getEelHelperDefinitions(workspace, <LinePositionedNode<EelHelperNode>>foundNodeByLine)
+			case node instanceof PhpClassMethodNode:
+				return this.getEelHelperMethodDefinitions(workspace, <LinePositionedNode<PhpClassMethodNode>>foundNodeByLine)
+			case node instanceof PhpClassNode:
+				return this.getEelHelperDefinitions(workspace, <LinePositionedNode<PhpClassNode>>foundNodeByLine)
+			case node instanceof FqcnNode:
+				return this.getFqcnDefinitions(workspace, <LinePositionedNode<FqcnNode>>foundNodeByLine)
+			case node instanceof ResourceUriNode:
+				return this.getResourceUriPathNodeDefinition(workspace, <LinePositionedNode<ResourceUriNode>>foundNodeByLine)
 		}
 
 		return null
@@ -88,44 +97,64 @@ export class DefinitionCapability extends AbstractCapability {
 		return null
 	}
 
-	getEelHelperDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<EelHelperNode>) {
+	getEelHelperDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<PhpClassNode>) {
 		const node = foundNodeByLine.getNode()
 		for (const eelHelper of workspace.neosWorkspace.getEelHelperTokens()) {
 			if (eelHelper.name === node.identifier) {
-				return [
-					{
-						uri: eelHelper.uri,
-						range: {
-							start: { line: eelHelper.position.begin.line - 1, character: eelHelper.position.begin.column - 1 },
-							end: { line: eelHelper.position.end.line - 1, character: eelHelper.position.end.column - 1 }
-						}
-					}
-				]
+				return [{
+					uri: eelHelper.uri,
+					range: eelHelper.position
+				}]
 			}
 		}
 
 		return null
 	}
 
-	getEelHelperMethodDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<EelHelperMethodNode>) {
+	getEelHelperMethodDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<PhpClassMethodNode>) {
 		const node = foundNodeByLine.getNode()
 		this.logVerbose(`Trying to find ${node.eelHelper.identifier}${node.identifier}`)
 		for (const eelHelper of workspace.neosWorkspace.getEelHelperTokens()) {
 			if (eelHelper.name === node.eelHelper.identifier) {
 				const method = eelHelper.methods.find(method => method.valid(node.identifier))
 				if (!method) continue
-				return [
-					{
-						uri: eelHelper.uri,
-						range: {
-							start: { line: method.position.begin.line - 1, character: method.position.begin.column - 1 },
-							end: { line: method.position.end.line - 1, character: method.position.end.column - 1 }
-						}
-					}
-				]
+				return [{
+					uri: eelHelper.uri,
+					range: method.position
+				}]
 			}
 		}
 
 		return null
+	}
+
+	getFqcnDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<FqcnNode>) {
+		const classDefinition: ClassDefinition = foundNodeByLine.getNode()["classDefinition"]
+		if (classDefinition === undefined) return null
+
+		return [{
+			targetUri: classDefinition.uri,
+			targetRange: classDefinition.position,
+			targetSelectionRange: classDefinition.position,
+			originSelectionRange: foundNodeByLine.getPositionAsRange()
+		}]
+	}
+
+	getResourceUriPathNodeDefinition(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<ResourceUriNode>) {
+		const node = foundNodeByLine.getNode()
+		if (!node.canBeFound()) return null
+		const uri = workspace.neosWorkspace.getResourceUriPath(node.getNamespace(), node.getRelativePath())
+		if (!uri || !NodeFs.existsSync(uri)) return null
+		const targetRange = {
+			start: { line: 0, character: 0 },
+			end: { line: 0, character: 0 },
+		}
+
+		return [{
+			targetUri: uri,
+			targetRange: targetRange,
+			targetSelectionRange: targetRange,
+			originSelectionRange: foundNodeByLine.getPositionAsRange()
+		}]
 	}
 }

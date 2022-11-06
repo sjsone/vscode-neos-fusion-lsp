@@ -5,13 +5,13 @@ import { getLineNumberOfChar } from './util'
 
 export interface LinePosition {
 	line: number
-	column: number
+	character: number
 }
 
 export class LinePositionedNode<T extends AbstractNode> {
 	protected node: T
 
-	protected begin: LinePosition
+	protected start: LinePosition
 	protected end: LinePosition
 
 	constructor(node: T, text: string = undefined) {
@@ -21,7 +21,7 @@ export class LinePositionedNode<T extends AbstractNode> {
 
 		if (node["position"] !== undefined && text !== undefined) {
 			const begin = node["position"].start ?? (<any>node["position"]).begin
-			this.begin = getLineNumberOfChar(text, begin)
+			this.start = getLineNumberOfChar(text, begin)
 			this.end = getLineNumberOfChar(text, node["position"].end)
 		}
 	}
@@ -31,7 +31,7 @@ export class LinePositionedNode<T extends AbstractNode> {
 	}
 
 	setBegin(begin: LinePosition) {
-		this.begin = begin
+		this.start = begin
 	}
 
 	setEnd(end: LinePosition) {
@@ -39,7 +39,7 @@ export class LinePositionedNode<T extends AbstractNode> {
 	}
 
 	getBegin() {
-		return this.begin
+		return this.start
 	}
 
 	getEnd() {
@@ -48,8 +48,8 @@ export class LinePositionedNode<T extends AbstractNode> {
 
 	getPositionAsRange(): Range {
 		return {
-			start: { line: this.getBegin().line - 1, character: this.getBegin().column - 1 },
-			end: { line: this.getEnd().line - 1, character: this.getEnd().column - 1 },
+			start: this.getBegin(),
+			end: this.getEnd(),
 		}
 	}
 

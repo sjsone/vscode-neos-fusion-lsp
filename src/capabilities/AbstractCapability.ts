@@ -27,12 +27,12 @@ export abstract class AbstractCapability extends Logger {
 
 	protected buildContextFromParams(params: TextDocumentPositionParams): CapabilityContext<any> {
 		const uri = params.textDocument.uri
-		const line = params.position.line + 1
-		const column = params.position.character + 1
+		const line = params.position.line
+		const column = params.position.character
 
 		this.logDebug(`${line}/${column} ${params.textDocument.uri}`)
 
-		const workspace = this.languageServer.getWorspaceFromFileUri(uri)
+		const workspace = this.languageServer.getWorkspaceFromFileUri(uri)
 		if (workspace === undefined) return null
 
 		const parsedFile = workspace.getParsedFileByUri(uri)

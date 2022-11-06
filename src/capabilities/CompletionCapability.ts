@@ -1,3 +1,5 @@
+import * as NodeFs from 'fs'
+import * as NodePath from 'path'
 import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
 import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode'
 import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode'
@@ -6,8 +8,10 @@ import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/Pa
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment'
 import { CompletionItem, CompletionItemKind, InsertTextMode } from 'vscode-languageserver/node'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { ResourceUriNode } from '../fusion/ResourceUriNode'
 import { LinePositionedNode } from '../LinePositionedNode'
-import { NodeService } from '../NodeService'
+import { NeosPackage } from '../neos/NeosPackage'
+import { ExternalObjectStatement, NodeService } from '../NodeService'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext } from './CapabilityContext'
 
@@ -22,11 +26,13 @@ export class CompletionCapability extends AbstractCapability {
 				case foundNode instanceof FusionObjectValue:
 				case foundNode instanceof PrototypePathSegment:
 					completions.push(...this.getPrototypeCompletions(workspace, <any>foundNodeByLine))
-					break;
+					break
 				case foundNode instanceof ObjectPathNode:
 					completions.push(...this.getEelHelperCompletions(workspace, foundNodeByLine))
 					completions.push(...this.getFusionPropertyCompletions(workspace, foundNodeByLine))
-					break;
+					break
+				case foundNode instanceof ResourceUriNode:
+					completions.push(...this.getResourceUriCompletions(workspace, <any>foundNodeByLine))
 			}
 		}
 
@@ -47,7 +53,8 @@ export class CompletionCapability extends AbstractCapability {
 			return completions
 		}
 
-		for (const segment of NodeService.findPropertyDefinitionSegments(objectNode, workspace)) {
+		for (const segmentOrExternalStatement of NodeService.findPropertyDefinitionSegments(objectNode, workspace)) {
+			const segment = segmentOrExternalStatement instanceof ExternalObjectStatement ? segmentOrExternalStatement.statement.path.segments[0] : segmentOrExternalStatement
 			if (!(segment instanceof PathSegment)) continue
 			if (segment.identifier === "renderer" || !segment.identifier) continue
 			if (completions.find(completion => completion.label === segment.identifier)) continue
@@ -88,7 +95,7 @@ export class CompletionCapability extends AbstractCapability {
 		const eelHelpers = fusionWorkspace.neosWorkspace.getEelHelperTokens()
 		for (const eelHelper of eelHelpers) {
 			for (const method of eelHelper.methods) {
-				const fullName = eelHelper.name + "." + method.name
+				const fullName = eelHelper.name + "." + method.getNormalizedName()
 				if (!fullName.startsWith(fullPath)) continue
 				const completionItem = this.createCompletionItem(fullName, linePositionedObjectNode, CompletionItemKind.Method)
 				completionItem.detail = method.description
@@ -108,11 +115,51 @@ export class CompletionCapability extends AbstractCapability {
 			textEdit: {
 				insert: linePositioneNode.getPositionAsRange(),
 				replace: {
-					start: { line: linePositioneNode.getBegin().line - 1, character: linePositioneNode.getBegin().column - 1 },
-					end: { line: linePositioneNode.getEnd().line - 1, character: linePositioneNode.getEnd().column + label.length - 1 },
+					start: linePositioneNode.getBegin(),
+					end: { line: linePositioneNode.getEnd().line, character: linePositioneNode.getEnd().character + label.length },
 				},
 				newText: label
 			}
 		}
+	}
+
+	protected getResourceUriCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<ResourceUriNode>): CompletionItem[] {
+		const node = foundNode.getNode()
+
+		const identifierMatch = /resource:\/\/(.*?)\//.exec(node["identifier"])
+		if (identifierMatch === null) {
+			return Array.from(workspace.neosWorkspace.getPackages().values()).map((neosPackage: NeosPackage) => {
+				return {
+					label: neosPackage.getPackageName(),
+					kind: CompletionItemKind.Module
+				}
+			})
+		}
+		const packageName = identifierMatch[1]
+
+		const neosPackage = workspace.neosWorkspace.getPackage(packageName)
+		if (!neosPackage) return []
+
+		const nextPath = NodePath.join(neosPackage["path"], "Resources", node.getRelativePath())
+		if (!NodeFs.existsSync(nextPath)) return []
+
+		const completions = []
+		const thingsInFolder = NodeFs.readdirSync(nextPath, { withFileTypes: true })
+		for (const thing of thingsInFolder) {
+			if (thing.isFile()) {
+				completions.push({
+					label: thing.name,
+					kind: CompletionItemKind.File
+				})
+			}
+			if (thing.isDirectory()) {
+				completions.push({
+					label: thing.name,
+					kind: CompletionItemKind.Folder
+				})
+			}
+		}
+
+		return completions
 	}
 }
