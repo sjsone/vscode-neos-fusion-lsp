@@ -24,6 +24,7 @@ import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/as
 import { StringValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StringValue'
 import { FqcnNode } from './FqcnNode'
 import { ResourceUriNode } from './ResourceUriNode'
+import { TagAttributeNode } from 'ts-fusion-parser/out/afx/nodes/TagAttributeNode'
 
 export class ParsedFusionFile {
 	public workspace: FusionWorkspace
@@ -62,6 +63,7 @@ export class ParsedFusionFile {
 				for (const node of objectTree.nodesByType.get(nodeType)) {
 					if (node instanceof ObjectNode) this.handleEelObjectNode(node, text)
 					if (node instanceof TagNode) this.handleTagNameNode(node, text)
+					if (node instanceof TagAttributeNode) this.handleTagAttributeNode(node, text)
 					if (node instanceof ObjectStatement) this.handleObjectStatement(node, text)
 					this.addNode(node, text)
 				}
@@ -133,6 +135,22 @@ export class ParsedFusionFile {
 			node["end"]["position"].begin + endOffset + node["name"].length
 		))
 		this.addNode(endPrototypePath, text)
+	}
+
+	handleTagAttributeNode(node: TagAttributeNode, text: string) {
+		if (typeof node.value === "string") {
+			const value = node.value.substring(1, node.value.length - 1)
+			if (value.startsWith("resource://")) {
+				const position: NodePosition = {
+					start: node["position"].end - value.length - 1,
+					end: node["position"].end
+				}
+				const resourceUriNode = new ResourceUriNode(value, position)
+				if (resourceUriNode) this.addNode(resourceUriNode, text)
+			}
+
+		}
+		// this.addNode(endPrototypePath, text)
 	}
 
 	handleObjectStatement(objectStatement: ObjectStatement, text: string) {
