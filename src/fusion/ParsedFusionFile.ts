@@ -210,13 +210,22 @@ export class ParsedFusionFile {
 	public async diagnose(): Promise<Diagnostic[] | null> {
 		const diagnostics: Diagnostic[] = []
 
-		const positionedNodes = this.nodesByType.get(ObjectNode)
-		if (positionedNodes === undefined) return diagnostics
+		diagnostics.push(...this.diagnoseFusionProperties())
+		diagnostics.push(...this.diagnoseResourceUris())
+
+		return diagnostics
+	}
+
+	protected diagnoseFusionProperties() {
+		const diagnostics: Diagnostic[] = []
+
+		const positionedObjectNodes = this.nodesByType.get(ObjectNode)
+		if (positionedObjectNodes === undefined) return diagnostics
 
 		const definitionCapability = new DefinitionCapability(this.workspace.languageServer)
 
-		for (const positionedNode of positionedNodes) {
-			const node = <ObjectNode><unknown>positionedNode.getNode()
+		for (const positionedObjectNode of positionedObjectNodes) {
+			const node = <ObjectNode><unknown>positionedObjectNode.getNode()
 			const objectStatement = findParent(node, ObjectStatement)
 			if (objectStatement === undefined) continue
 			if (objectStatement.path.segments[0] instanceof MetaPathSegment) continue
@@ -228,14 +237,41 @@ export class ParsedFusionFile {
 			if (definition) continue
 
 			const objectStatementText = node["path"].map(e => e["value"]).join(".")
-
 			const diagnostic: Diagnostic = {
 				severity: DiagnosticSeverity.Warning,
-				range: positionedNode.getPositionAsRange(),
+				range: positionedObjectNode.getPositionAsRange(),
 				message: `Could not resolve "${objectStatementText}"`,
 				source: 'Fusion LSP'
 			}
 			diagnostics.push(diagnostic)
+		}
+
+		return diagnostics
+	}
+
+	protected diagnoseResourceUris() {
+		const diagnostics: Diagnostic[] = []
+
+		const resourceUriNodes = <LinePositionedNode<ResourceUriNode>[]>this.nodesByType.get(ResourceUriNode)
+		if (resourceUriNodes === undefined) return diagnostics
+
+		for (const resourceUriNode of resourceUriNodes) {
+			const node = resourceUriNode.getNode()
+			const identifier = node["identifier"]
+			const uri = this.workspace.neosWorkspace.getResourceUriPath(node.getNamespace(), node.getRelativePath())
+			const diagnostic: Diagnostic = {
+				severity: DiagnosticSeverity.Warning,
+				range: resourceUriNode.getPositionAsRange(),
+				message: ``,
+				source: 'Fusion LSP'
+			}
+			if (!uri) {
+				diagnostic.message = `Could not resolve package "${node.getNamespace()}"`
+				diagnostics.push(diagnostic)
+			} else if (!NodeFs.existsSync(uri)) {
+				diagnostic.message = `Could not find file "${node.getRelativePath()}"`
+				diagnostics.push(diagnostic)
+			}
 		}
 
 		return diagnostics
