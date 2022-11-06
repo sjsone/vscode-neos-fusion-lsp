@@ -36,6 +36,13 @@ export class LanguageServer extends Logger {
 		this.capabilities.set("onCompletion", new CompletionCapability(this))
 		this.capabilities.set("onHover", new HoverCapability(this))
 		this.capabilities.set("onReferences", new ReferenceCapability(this))
+
+		this.connection.onNotification("custom/flowContext/set", ({ selectedContextName }) => {
+			this.logInfo(`Setting FusionContext to ${selectedContextName}`)
+			for (const fusionWorkspace of this.fusionWorkspaces) {
+				fusionWorkspace.setSelectedFlowContextName(selectedContextName)
+			}
+		})
 	}
 
 	public getCapability(name: string) {

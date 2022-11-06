@@ -38,6 +38,10 @@ class NeosContextStatusBarItem {
 		this.eventEmitter.emit(NeosContextStatusBarItem.ChangedContextEvent, this.selectedContextName)
 		this.contextStatusBarItem.text = `Context: ${this.selectedContextName}`
 	}
+
+	addListener(eventName: string | symbol, listener: (...args: any[]) => void) {
+		this.eventEmitter.addListener(eventName, listener)
+	}
 }
 const neosContextStatusBarItem = new NeosContextStatusBarItem
 export { neosContextStatusBarItem as NeosContextStatusBarItem, NeosContextStatusBarItem as NeosContextStatusBarItemClass }

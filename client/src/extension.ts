@@ -6,7 +6,7 @@ import {
 import {
 	LanguageClient, LanguageClientOptions, ServerOptions, TransportKind
 } from 'vscode-languageclient/node'
-import { NeosContextStatusBarItem } from './neosContextStatusBarItem'
+import { NeosContextStatusBarItem, NeosContextStatusBarItemClass } from './neosContextStatusBarItem'
 import { PreferenceService } from './preferenceService'
 import { ProgressNotificationService } from './progressNotificationService'
 import { StatusItemService } from './statusItemService'
@@ -95,8 +95,10 @@ export function activate(context: ExtensionContext) {
 
 			NeosContextStatusBarItem.init(context, client, outputChannel)
 
-
-			client.sendNotification
+			NeosContextStatusBarItem.addListener(NeosContextStatusBarItemClass.ChangedContextEvent, (selectedContextName) => {
+				client.sendNotification('custom/flowContext/set', { selectedContextName })
+			})
+			// 
 
 			client.onNotification('custom/progressNotification/update', ({ id, payload }) => progressNotificationService.update(id, payload))
 
