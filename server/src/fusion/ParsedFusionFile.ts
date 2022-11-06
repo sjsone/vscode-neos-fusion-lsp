@@ -2,7 +2,6 @@ import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { ObjectTreeParser } from 'ts-fusion-parser'
 import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode'
-import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
 import { NodePosition } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/NodePosition'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment'
@@ -18,13 +17,13 @@ import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectFunctionPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
 import { TagNode } from 'ts-fusion-parser/out/afx/nodes/TagNode'
-import { findParent, uriToPath } from '../util'
-import { Diagnostic, DiagnosticSeverity, RenameRequest } from 'vscode-languageserver'
+import { findParent, getNodeWeight, uriToPath } from '../util'
+import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver'
 import { DefinitionCapability } from '../capabilities/DefinitionCapability'
 import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/MetaPathSegment'
 import { StringValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StringValue'
-import { resourceUsage } from 'process'
 import { FqcnNode } from './FqcnNode'
+import { ResourceUriNode } from './ResourceUriNode'
 
 export class ParsedFusionFile {
 	public workspace: FusionWorkspace
@@ -140,17 +139,32 @@ export class ParsedFusionFile {
 		const segments = objectStatement.path.segments
 		const metaPathSegment = segments[0] instanceof PrototypePathSegment ? segments[1] : segments[0]
 
+		if (objectStatement.operation instanceof ValueAssignment) {
+			if (metaPathSegment instanceof MetaPathSegment) return this.handleMetaObjectStatement(objectStatement, metaPathSegment, text)
+			if (objectStatement.operation.pathValue instanceof StringValue) return this.handleStringValue(objectStatement.operation.pathValue, text)
+		}
+	}
+
+	handleMetaObjectStatement(objectStatement: ObjectStatement, metaPathSegment: MetaPathSegment, text: string) {
 		if (!(metaPathSegment instanceof MetaPathSegment)) return
 		if (metaPathSegment.identifier !== "class") return
-		if (!(objectStatement.operation instanceof ValueAssignment)) return
-		if (!(objectStatement.operation.pathValue instanceof StringValue)) return
-		const fqcn = objectStatement.operation.pathValue.value.split("\\\\").join("\\")
+		const operation = <ValueAssignment>objectStatement.operation
+		if (!(operation.pathValue instanceof StringValue)) return
+		const fqcn = operation.pathValue.value.split("\\\\").join("\\")
 		const classDefinition = this.workspace.neosWorkspace.getClassDefinitionFromFullyQualifiedClassName(fqcn)
 		if (classDefinition === undefined) return
 
-		const fqcnNode = new FqcnNode(objectStatement.operation.pathValue.value, classDefinition, objectStatement.operation.pathValue["position"])
+		const fqcnNode = new FqcnNode(operation.pathValue.value, classDefinition, operation.pathValue["position"])
 		// if(fqcn.endsWith("FormElementWrappingImplementation")) console.log("fqcn", fqcnNode)
 		this.addNode(fqcnNode, text)
+	}
+
+	handleStringValue(stringValue: StringValue, text: string) {
+		const value = stringValue.value
+		if (value.startsWith("resource://")) {
+			const resourceUriNode = new ResourceUriNode(value, stringValue["position"])
+			if (resourceUriNode) this.addNode(resourceUriNode, text)
+		}
 	}
 
 	getNodesByType<T extends AbstractNode>(type: new (...args: any) => T): LinePositionedNode<T>[] | undefined {

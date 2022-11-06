@@ -16,6 +16,7 @@ import { CapabilityContext } from './CapabilityContext'
 import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode'
 import { FqcnNode } from '../fusion/FqcnNode'
 import { ClassDefinition } from '../neos/NeosPackageNamespace'
+import { ResourceUriNode } from '../fusion/ResourceUriNode'
 
 export class DefinitionCapability extends AbstractCapability {
 
@@ -37,6 +38,8 @@ export class DefinitionCapability extends AbstractCapability {
 				return this.getEelHelperDefinitions(workspace, <LinePositionedNode<PhpClassNode>>foundNodeByLine)
 			case node instanceof FqcnNode:
 				return this.getFqcnDefinitions(workspace, <LinePositionedNode<FqcnNode>>foundNodeByLine)
+			case node instanceof ResourceUriNode:
+				return this.getResourceUriNodeDefinition(workspace, <LinePositionedNode<ResourceUriNode>>foundNodeByLine)
 		}
 
 		return null
@@ -132,6 +135,19 @@ export class DefinitionCapability extends AbstractCapability {
 			targetRange: classDefinition.position,
 			targetSelectionRange: classDefinition.position,
 			originSelectionRange: foundNodeByLine.getPositionAsRange()
+		}]
+	}
+
+	getResourceUriNodeDefinition(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<ResourceUriNode>) {
+		const node = foundNodeByLine.getNode()
+		const uri = workspace.neosWorkspace.getResourceUri(node.getNamespace(), node.getRelativePath())
+
+		return [{
+			uri,
+			range: {
+				start: { line: 0, character: 0 },
+				end: { line: 0, character: 0 },
+			}
 		}]
 	}
 }
