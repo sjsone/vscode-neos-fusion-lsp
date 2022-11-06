@@ -27,7 +27,7 @@ export class ConfigurationManager extends Logger {
 		this.packagePaths.push(path)
 	}
 
-	buildConfiguration() {
+	buildConfiguration(selectedFlowContextName?: string) {
 		const globalConfigurationPath = NodePath.join(this.workspacePath, "Configuration")
 		// console.log("globalConfigurationPath", globalConfigurationPath, NodeFs.existsSync(globalConfigurationPath))
 		if (!NodeFs.existsSync(globalConfigurationPath)) return

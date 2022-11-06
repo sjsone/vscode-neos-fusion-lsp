@@ -70,8 +70,8 @@ export class NeosWorkspace extends Logger {
 		return undefined
 	}
 
-	init() {
-		this.configurationManager.buildConfiguration()
+	init(selectedFlowContextName?: string) {
+		this.configurationManager.buildConfiguration(selectedFlowContextName)
 		this.initEelHelpers()
 	}
 

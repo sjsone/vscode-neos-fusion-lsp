@@ -9,7 +9,6 @@ import { ParsedFusionFile } from './ParsedFusionFile'
 import { getFiles, pathToUri, uriToPath } from '../util'
 import { Logger, LogService } from '../Logging'
 import { LanguageServer } from '../LanguageServer'
-import { ConfigurationManager } from '../ConfigurationManager'
 
 export class FusionWorkspace extends Logger {
     public uri: string
@@ -24,11 +23,17 @@ export class FusionWorkspace extends Logger {
 
     protected filesToDiagnose: ParsedFusionFile[] = []
 
+    protected selectedFlowContextName?: string = "Development"
+
     constructor(name: string, uri: string, languageServer: LanguageServer) {
         super(name)
         this.name = name
         this.uri = uri
         this.languageServer = languageServer
+    }
+
+    setSelectedFlowContextName(contextName: string) {
+        this.selectedFlowContextName = contextName
     }
 
     getUri() {
@@ -63,7 +68,7 @@ export class FusionWorkspace extends Logger {
             this.neosWorkspace.addPackage(packagePath)
         }
 
-        this.neosWorkspace.init()
+        this.neosWorkspace.init(this.selectedFlowContextName)
 
         const incrementPerPackage = 100 / packagesPaths.length
 
