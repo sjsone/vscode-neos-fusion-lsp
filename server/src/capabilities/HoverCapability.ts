@@ -1,4 +1,5 @@
 import * as NodePath from 'path'
+import * as NodeFs from 'fs'
 
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectFunctionPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
@@ -108,8 +109,9 @@ export class HoverCapability extends AbstractCapability {
 	}
 
 	getMarkdownForResourceUri(node: ResourceUriNode, workspace: FusionWorkspace) {
-		const uri = workspace.neosWorkspace.getResourceUri(node.getNamespace(), node.getRelativePath())
-		if (!uri) return `**Could not find Resource**`
+		if(!node.canBeFound()) return null
+		const uri = workspace.neosWorkspace.getResourceUriPath(node.getNamespace(), node.getRelativePath())
+		if (!uri || !NodeFs.existsSync(uri)) return `**Could not find Resource**`
 
 		const basename = NodePath.basename(uri)
 		const isImage = (/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i).test(basename)

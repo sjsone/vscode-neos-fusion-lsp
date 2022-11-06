@@ -1,3 +1,5 @@
+import * as NodeFs from 'fs'
+
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment'
@@ -39,7 +41,7 @@ export class DefinitionCapability extends AbstractCapability {
 			case node instanceof FqcnNode:
 				return this.getFqcnDefinitions(workspace, <LinePositionedNode<FqcnNode>>foundNodeByLine)
 			case node instanceof ResourceUriNode:
-				return this.getResourceUriNodeDefinition(workspace, <LinePositionedNode<ResourceUriNode>>foundNodeByLine)
+				return this.getResourceUriPathNodeDefinition(workspace, <LinePositionedNode<ResourceUriNode>>foundNodeByLine)
 		}
 
 		return null
@@ -138,10 +140,11 @@ export class DefinitionCapability extends AbstractCapability {
 		}]
 	}
 
-	getResourceUriNodeDefinition(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<ResourceUriNode>) {
+	getResourceUriPathNodeDefinition(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<ResourceUriNode>) {
 		const node = foundNodeByLine.getNode()
-		const uri = workspace.neosWorkspace.getResourceUri(node.getNamespace(), node.getRelativePath())
-
+		if (!node.canBeFound()) return null
+		const uri = workspace.neosWorkspace.getResourceUriPath(node.getNamespace(), node.getRelativePath())
+		if (!uri || !NodeFs.existsSync(uri)) return null
 		const targetRange = {
 			start: { line: 0, character: 0 },
 			end: { line: 0, character: 0 },

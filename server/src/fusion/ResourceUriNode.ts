@@ -12,12 +12,18 @@ export class ResourceUriNode extends AbstractNode {
 		this.identifier = identifier
 
 		const matches = /resource:\/\/(.*?)(\/.*)/.exec(this.identifier)
-		if (!matches) return undefined
 
-		this.namespace = matches[1]
-		this.relativePath = matches[2]
+		if (matches !== null) {
+			this.namespace = matches[1]
+			this.relativePath = matches[2]
+		}
+
 
 		this.position = position
+	}
+
+	canBeFound() {
+		return this.namespace !== null && this.relativePath !== null
 	}
 
 	getNamespace() {

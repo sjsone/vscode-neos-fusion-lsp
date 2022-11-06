@@ -110,7 +110,7 @@ export class NeosPackage extends Logger {
 		return undefined
 	}
 
-	getResourceUri(packageName: string, relativePath: string) {
+	getResourceUriPath(packageName: string, relativePath: string) {
 		if (this.getPackageName() === packageName) {
 			return NodePath.join(this.path, "Resources", relativePath)
 		}

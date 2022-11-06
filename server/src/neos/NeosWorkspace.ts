@@ -27,6 +27,17 @@ export class NeosWorkspace extends Logger {
 		}
 	}
 
+	getPackages() {
+		return this.packages
+	}
+
+	getPackage(packageName: string) {
+		for (const neosPackage of this.packages.values()) {
+			if (neosPackage.getPackageName() === packageName) return neosPackage
+		}
+		return undefined
+	}
+
 	getEelHelperFromFullyQualifiedClassNameWithStaticMethod(fullyQualifiedClassName: string, staticMethod?: string) {
 		if (!staticMethod) return this.getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName)
 		return undefined
@@ -48,9 +59,9 @@ export class NeosWorkspace extends Logger {
 		return undefined
 	}
 
-	getResourceUri(packageName: string, relativePath: string) {
+	getResourceUriPath(packageName: string, relativePath: string) {
 		for (const neosPackage of this.packages.values()) {
-			const resourceUri = neosPackage.getResourceUri(packageName, relativePath)
+			const resourceUri = neosPackage.getResourceUriPath(packageName, relativePath)
 			if (resourceUri) return resourceUri
 		}
 		return undefined

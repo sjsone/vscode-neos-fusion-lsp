@@ -76,7 +76,8 @@ export class LanguageServer extends Logger {
 		return {
 			capabilities: {
 				completionProvider: {
-					resolveProvider: true
+					resolveProvider: true,
+					triggerCharacters: [`"`, `'`, `/`, `.`, `:`]
 				},
 				textDocumentSync: {
 					openClose: true,
