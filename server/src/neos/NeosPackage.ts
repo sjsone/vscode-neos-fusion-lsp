@@ -125,7 +125,9 @@ export class NeosPackage extends Logger {
 	}
 
 	getPackageName() {
-		return this.composerJson.extra?.neos?.["package-key"]
+		const packageKey = this.composerJson.extra?.neos?.["package-key"]
+		const name = this.getName()
+		return packageKey ?? name.split("/").map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('.')
 	}
 
 	log(...text: any) {
