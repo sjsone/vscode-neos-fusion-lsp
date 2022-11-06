@@ -110,12 +110,22 @@ export class NeosPackage extends Logger {
 		return undefined
 	}
 
+	getResourceUri(packageName: string, relativePath: string) {
+		if (this.getPackageName() === packageName) {
+			return NodePath.join(this.path, "Resources", relativePath)
+		}
+	}
+
 	getEelHelpers() {
 		return this.eelHelpers
 	}
 
 	getName() {
 		return this.composerJson.name
+	}
+
+	getPackageName() {
+		return this.composerJson.extra?.neos?.["package-key"]
 	}
 
 	log(...text: any) {

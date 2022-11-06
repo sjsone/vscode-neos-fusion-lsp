@@ -48,6 +48,14 @@ export class NeosWorkspace extends Logger {
 		return undefined
 	}
 
+	getResourceUri(packageName: string, relativePath: string) {
+		for (const neosPackage of this.packages.values()) {
+			const resourceUri = neosPackage.getResourceUri(packageName, relativePath)
+			if (resourceUri) return resourceUri
+		}
+		return undefined
+	}
+
 	initEelHelpers() {
 		for (const neosPackage of this.packages.values()) {
 			neosPackage.initEelHelper()
