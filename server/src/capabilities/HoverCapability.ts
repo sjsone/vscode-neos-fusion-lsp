@@ -109,6 +109,7 @@ export class HoverCapability extends AbstractCapability {
 
 	getMarkdownForResourceUri(node: ResourceUriNode, workspace: FusionWorkspace) {
 		const uri = workspace.neosWorkspace.getResourceUri(node.getNamespace(), node.getRelativePath())
+		if (!uri) return `**Could not find Resource**`
 
 		const basename = NodePath.basename(uri)
 		const isImage = (/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i).test(basename)
