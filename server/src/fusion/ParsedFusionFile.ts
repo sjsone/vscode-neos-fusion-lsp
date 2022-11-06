@@ -260,31 +260,12 @@ export class ParsedFusionFile {
 	getNodeByLineAndColumn(line: number, column: number): LinePositionedNode<any> | undefined {
 		const lineNodes = this.nodesByLine[line]
 		if (lineNodes === undefined) return undefined
+
 		const foundNodesByWeight: { [key: number]: LinePositionedNode<AbstractNode> } = {}
 		for (const lineNode of lineNodes) {
 			if (column >= lineNode.getBegin().character && column <= lineNode.getEnd().character) {
 				const node = lineNode.getNode()
-				let weight = 0
-				switch (true) {
-					case node instanceof FqcnNode:
-						weight = 17
-						break;
-					case node instanceof ObjectPathNode:
-						weight = 15
-						break
-					case node instanceof ObjectStatement:
-						weight = 10
-						break
-					case node instanceof PhpClassMethodNode:
-						weight = 25
-						break
-					case node instanceof PhpClassNode:
-						weight = 20
-						break
-					case node instanceof FusionObjectValue:
-						weight = 30
-						break
-				}
+				const weight = getNodeWeight(node)
 				if (foundNodesByWeight[weight] === undefined) {
 					foundNodesByWeight[weight] = lineNode
 				}
