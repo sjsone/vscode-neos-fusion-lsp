@@ -9,9 +9,17 @@ This package is **WIP**
 
 ## Latest Changes
 
+### Version 0.0.14
+#### ✨ `resource://` Goto Definition, Completion and Hover
+
+It currently only workes when it is a fusion string. When the file is an image it gets preview on hover
+
+![resource:// capability](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/resource_completion_and_hover.gif?raw=true)
+
 ### Version 0.0.11
 
 `@propTypes` are now parsed as a valid property definition. So if there is no property in the prototype but one defined in `@propTypes` it will be the GoTo-Target. This also affects diagnostics so less `props.` will be marked as a problem.  
+
 ### Version 0.0.10
 
 #### ✨ Improved Definition and Hover Capabilities
@@ -34,7 +42,7 @@ EEL-Helper descriptions should now be parsed without any problems. Things like `
 
 Currently works on **Prototypes** and fusion **Properties** (detected by `this` or `props`)
 
-Support for EEL-Helper is present, but currently not for functions (like `q(node)`). 
+Support for EEL-Helper is present, but currently not for functions (like `q(node)`).
 
 #### Find References (*Shift + CMD + Click*)
 
@@ -72,7 +80,7 @@ The language-server relies heavely on the [ts-fusion-parser](https://www.npmjs.c
 
 Essentialy it reads all AST-Nodes from the fusion parser and checks if the curser is on one of these AST-Nodes. If it is, the relevant actions are carried out.
 
-The AFX and EEL parser is part of the [ts-fusion-parser](https://www.npmjs.com/package/ts-fusion-parser). 
+The AFX and EEL parser is part of the [ts-fusion-parser](https://www.npmjs.com/package/ts-fusion-parser).
 
 #### Is there a roadmap?
 
@@ -86,4 +94,4 @@ There is rudimentary support for EEL-Helper. Hover and Goto-Definition is curren
 
 - EEL-Helper hover description will parse the first description it can find which may not be the correct one
 - EEL-Helper with the same name may be handled incorrectly
-- Autocompletion is just a list with no semantic meaning 
+- Autocompletion is just a list with no semantic meaning
