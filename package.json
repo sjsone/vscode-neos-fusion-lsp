@@ -9,7 +9,7 @@
     "theme": "dark"
   },
   "license": "AGPL-3.0-or-later",
-  "version": "0.0.10",
+  "version": "0.0.14",
   "categories": [
     "Programming Languages"
   ],
@@ -79,7 +79,8 @@
           "default": [
             "Resources/Private/Fusion",
             "Resources/Private/FusionModules",
-            "Resources/Private/FusionPlugins"
+            "Resources/Private/FusionPlugins",
+            "NodeTypes"
           ],
           "description": "Fusion Folder inside Package"
         },
@@ -151,7 +152,7 @@
     "typescript": "^4.7.2"
   },
   "dependencies": {
-    "ts-fusion-parser": "^0.0.45"
+    "ts-fusion-parser": "^0.0.47"
   },
   "repository": {
     "type": "git",

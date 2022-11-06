@@ -10,23 +10,24 @@ import { StringValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/St
 import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/EelExpressionValue'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment'
+import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode'
+import { FqcnNode } from './fusion/FqcnNode'
+import { PhpClassMethodNode } from './fusion/PhpClassMethodNode'
+import { PhpClassNode } from './fusion/PhpClassNode'
+import { ResourceUriNode } from './fusion/ResourceUriNode'
 
 export function getLineNumberOfChar(data: string, index: number, debug = false) {
     const perLine = data.split('\n')
-    if (debug) console.log(` perLine.length ${perLine.length}`)
-    let total_length = 0
-    let column = index + 1
+    let totalLength = 0
+    let column = index
     let i = 0
     for (i; i < perLine.length; i++) {
-        if (debug) console.log("  Line: ", perLine[i])
-        total_length += perLine[i].length + 1
-        if (debug) console.log(`  [${i}] total_length`, total_length)
-        if (total_length >= index)
-            return { line: i + 1, column }
+        totalLength += perLine[i].length + 1
+        if (totalLength >= index)
+            return { line: i, character: column }
         column -= perLine[i].length + 1
-        if (debug) console.log(`  [${i}] column`, column)
     }
-    return { line: i + 1, column }
+    return { line: i, character: column }
 }
 
 export function* getFiles(dir: string, withExtension = ".fusion") {
@@ -106,4 +107,17 @@ export function abstractNodeToString(node: AbstractEelNode | AbstractNode): stri
 
 export function getObjectIdentifier(objectStatement: ObjectStatement): string {
     return objectStatement.path.segments.map(segment => segment["identifier"]).join(".")
+}
+
+export function getNodeWeight(node: any) {
+    switch (true) {
+        case node instanceof FusionObjectValue: return 30
+        case node instanceof PhpClassMethodNode: return 25
+        case node instanceof PhpClassNode: return 20
+        case node instanceof FqcnNode: return 17
+        case node instanceof ResourceUriNode: return 16
+        case node instanceof ObjectPathNode: return 15
+        case node instanceof ObjectStatement: return 10
+        default: return 0
+    }
 }

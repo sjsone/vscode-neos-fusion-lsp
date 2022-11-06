@@ -1,3 +1,6 @@
+import * as NodePath from 'path'
+import * as NodeFs from 'fs'
+
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectFunctionPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
 import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode'
@@ -6,8 +9,8 @@ import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/as
 import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueAssignment'
-import { EelHelperMethodNode } from '../fusion/EelHelperMethodNode'
-import { EelHelperNode } from '../fusion/EelHelperNode'
+import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
+import { PhpClassNode } from '../fusion/PhpClassNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { LinePositionedNode } from '../LinePositionedNode'
@@ -15,6 +18,7 @@ import { ExternalObjectStatement, NodeService } from '../NodeService'
 import { abstractNodeToString, findParent, getPrototypeNameFromNode } from '../util'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext } from './CapabilityContext'
+import { ResourceUriNode } from '../fusion/ResourceUriNode'
 
 export class HoverCapability extends AbstractCapability {
 
@@ -30,7 +34,7 @@ export class HoverCapability extends AbstractCapability {
 
 	protected getMarkdownByNode(foundNodeByLine: LinePositionedNode<any>, parsedFile: ParsedFusionFile, workspace: FusionWorkspace) {
 		const node = foundNodeByLine.getNode()
-		// console.log("node", node)
+		// return `Type: ${node.constructor.name}`
 		this.logVerbose(`FoundNode: ` + node.constructor.name)
 
 		switch (true) {
@@ -39,16 +43,18 @@ export class HoverCapability extends AbstractCapability {
 				return this.getMarkdownForPrototypeName(node)
 			case node instanceof PathSegment:
 				return `property **${node["identifier"]}**`
-			case node instanceof EelHelperNode:
-				return `EEL-Helper **${(<EelHelperNode>node).identifier}**`
+			case node instanceof PhpClassNode:
+				return `EEL-Helper **${(<PhpClassNode>node).identifier}**`
 			case node instanceof ObjectFunctionPathNode:
 				return `EEL-Function **${(<ObjectPathNode><unknown>node)["value"]}**`
 			case node instanceof ObjectPathNode:
 				return this.getMarkdownForObjectPath(workspace, foundNodeByLine)
-			case node instanceof EelHelperMethodNode:
+			case node instanceof PhpClassMethodNode:
 				return this.getMarkdownForEelHelperMethod(node, workspace)
+			case node instanceof ResourceUriNode:
+				return this.getMarkdownForResourceUri(node, workspace)
 			default:
-				return null // `Type: ${node.constructor.name}`
+				return null
 		}
 	}
 
@@ -74,11 +80,12 @@ export class HoverCapability extends AbstractCapability {
 				if (!(statement.operation instanceof ValueAssignment)) return null
 
 				const stringified = abstractNodeToString(<any>statement.operation.pathValue)
+				const name = (<ObjectPathNode><unknown>node)["value"]
 				if (stringified !== undefined) {
 					return [
-						`EEL **${(<ObjectPathNode><unknown>node)["value"]}**`,
-						'```javascript',
-						stringified,
+						`EEL **${name}**`,
+						'```fusion',
+						`${name} = ${stringified}`,
 						'```'
 					].join('\n')
 				}
@@ -88,16 +95,28 @@ export class HoverCapability extends AbstractCapability {
 		return `EEL **${(<ObjectPathNode><unknown>node)["value"]}**`
 	}
 
-	getMarkdownForEelHelperMethod(node: EelHelperMethodNode, workspace: FusionWorkspace) {
+	getMarkdownForEelHelperMethod(node: PhpClassMethodNode, workspace: FusionWorkspace) {
 		let description = undefined
 
-		const eelHelper = workspace.neosWorkspace.getEelHelperTokensByName((<EelHelperMethodNode>node).eelHelper.identifier)
+		const eelHelper = workspace.neosWorkspace.getEelHelperTokensByName((<PhpClassMethodNode>node).eelHelper.identifier)
 		if (eelHelper) {
-			const method = eelHelper.methods.find(method => method.valid((<EelHelperMethodNode>node).identifier))
+			const method = eelHelper.methods.find(method => method.valid((<PhpClassMethodNode>node).identifier))
 			if (method) description = method.description
 		}
 
-		const header = `EEL-Helper *${(<EelHelperMethodNode>node).eelHelper.identifier}*.**${(<EelHelperMethodNode>node).identifier}**`
+		const header = `EEL-Helper *${(<PhpClassMethodNode>node).eelHelper.identifier}*.**${(<PhpClassMethodNode>node).identifier}**`
 		return `${header}` + (description ? '\n\n' + description : '')
+	}
+
+	getMarkdownForResourceUri(node: ResourceUriNode, workspace: FusionWorkspace) {
+		if(!node.canBeFound()) return null
+		const uri = workspace.neosWorkspace.getResourceUriPath(node.getNamespace(), node.getRelativePath())
+		if (!uri || !NodeFs.existsSync(uri)) return `**Could not find Resource**`
+
+		const basename = NodePath.basename(uri)
+		const isImage = (/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i).test(basename)
+
+		if (isImage) return `![${basename}](${uri})`
+		return `Resource: ${basename}`
 	}
 }

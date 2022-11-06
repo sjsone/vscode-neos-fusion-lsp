@@ -11,8 +11,8 @@ export interface EELHelperToken {
 	uri: string,
 	regex: RegExp,
 	position: {
-		begin: { line: number, column: number },
-		end: { line: number, column: number }
+		start: { line: number, character: number },
+		end: { line: number, character: number }
 	},
 	methods: EelHelperMethod[]
 }
@@ -101,13 +101,19 @@ export class NeosPackage extends Logger {
 		return undefined
 	}
 
-	getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
+	getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
 		for (const namespaceEntry of this.namespaces.entries()) {
 			if (fullyQualifiedClassName.startsWith(namespaceEntry[0])) {
-				return namespaceEntry[1].getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName)
+				return namespaceEntry[1].getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName)
 			}
 		}
 		return undefined
+	}
+
+	getResourceUriPath(packageName: string, relativePath: string) {
+		if (this.getPackageName() === packageName) {
+			return NodePath.join(this.path, "Resources", relativePath)
+		}
 	}
 
 	getEelHelpers() {
@@ -116,6 +122,12 @@ export class NeosPackage extends Logger {
 
 	getName() {
 		return this.composerJson.name
+	}
+
+	getPackageName() {
+		const packageKey = this.composerJson.extra?.neos?.["package-key"]
+		const name = this.getName()
+		return packageKey ?? name.split("/").map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('.')
 	}
 
 	log(...text: any) {

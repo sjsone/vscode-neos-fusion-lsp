@@ -100,10 +100,18 @@ class NodeService {
 				}
 			}
 
+			let foundPropTypes: ObjectStatement | undefined = undefined
 			for (const statement of statements) {
 				if (statement instanceof ExternalObjectStatement) yield statement
 				if (!(statement instanceof ObjectStatement)) continue
 				if (statement === objectStatement) continue // Let it not find itself
+
+				// TODO: Reduce duplicated code from "findPropertyDefinitionSegments"
+				const firstPathSegment = statement.path.segments[0]
+				if (firstPathSegment instanceof MetaPathSegment && firstPathSegment.identifier.toLowerCase() === "proptypes") {
+					foundPropTypes = statement
+					continue
+				}
 				const applyProps = this.foundApplyProps(statement)
 				if (applyProps !== false) {
 					if (Array.isArray(applyProps.appliedStatements)) {
@@ -112,7 +120,14 @@ class NodeService {
 					if (!foundApplyProps) foundApplyProps = applyProps.appliedProps !== false
 				}
 
-				if (!skipNextStatements) yield statement.path.segments[0]
+				if (!skipNextStatements) yield firstPathSegment
+			}
+
+			if (foundPropTypes !== undefined) {
+				for (const propType of foundPropTypes.block.statementList.statements) {
+					if (!(propType instanceof ObjectStatement)) continue
+					yield propType.path.segments[0]
+				}
 			}
 
 			let parentIdentifierisRenderer = false
@@ -218,9 +233,24 @@ class NodeService {
 					}
 				}
 
+				let foundPropTypes: ObjectStatement | undefined = undefined
 				for (const statement of objectStatement.block.statementList.statements) {
 					if (!(statement instanceof ObjectStatement)) continue
+
+					const firstPathSegment = statement.path.segments[0]
+					if (firstPathSegment instanceof MetaPathSegment && firstPathSegment.identifier.toLowerCase() === "proptypes") {
+						foundPropTypes = statement
+						continue
+					}
+
 					statements.push(new ExternalObjectStatement(statement, otherParsedFile.uri))
+				}
+
+				if (foundPropTypes !== undefined) {
+					for (const propType of foundPropTypes.block.statementList.statements) {
+						if (!(propType instanceof ObjectStatement)) continue
+						statements.push(new ExternalObjectStatement(propType, otherParsedFile.uri))
+					}
 				}
 			}
 		}

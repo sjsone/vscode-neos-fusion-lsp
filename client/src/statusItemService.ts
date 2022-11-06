@@ -1,5 +1,5 @@
-import { languages, LanguageStatusItem } from 'vscode';
-import { DocumentSelector } from 'vscode-languageclient';
+import { languages, LanguageStatusItem } from 'vscode'
+import { DocumentSelector } from 'vscode-languageclient'
 
 export class StatusItemService {
 	protected statusItems: Map<string, LanguageStatusItem> = new Map()
