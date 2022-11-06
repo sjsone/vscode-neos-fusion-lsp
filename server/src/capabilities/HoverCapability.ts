@@ -1,3 +1,5 @@
+import * as NodePath from 'path'
+
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectFunctionPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
 import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode'
@@ -15,6 +17,7 @@ import { ExternalObjectStatement, NodeService } from '../NodeService'
 import { abstractNodeToString, findParent, getPrototypeNameFromNode } from '../util'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext } from './CapabilityContext'
+import { ResourceUriNode } from '../fusion/ResourceUriNode'
 
 export class HoverCapability extends AbstractCapability {
 
@@ -47,6 +50,8 @@ export class HoverCapability extends AbstractCapability {
 				return this.getMarkdownForObjectPath(workspace, foundNodeByLine)
 			case node instanceof PhpClassMethodNode:
 				return this.getMarkdownForEelHelperMethod(node, workspace)
+			case node instanceof ResourceUriNode:
+				return this.getMarkdownForResourceUri(node, workspace)
 			default:
 				return null
 		}
@@ -74,11 +79,12 @@ export class HoverCapability extends AbstractCapability {
 				if (!(statement.operation instanceof ValueAssignment)) return null
 
 				const stringified = abstractNodeToString(<any>statement.operation.pathValue)
+				const name = (<ObjectPathNode><unknown>node)["value"]
 				if (stringified !== undefined) {
 					return [
-						`EEL **${(<ObjectPathNode><unknown>node)["value"]}**`,
-						'```javascript',
-						stringified,
+						`EEL **${name}**`,
+						'```fusion',
+						`${name} = ${stringified}`,
 						'```'
 					].join('\n')
 				}
@@ -99,5 +105,15 @@ export class HoverCapability extends AbstractCapability {
 
 		const header = `EEL-Helper *${(<PhpClassMethodNode>node).eelHelper.identifier}*.**${(<PhpClassMethodNode>node).identifier}**`
 		return `${header}` + (description ? '\n\n' + description : '')
+	}
+
+	getMarkdownForResourceUri(node: ResourceUriNode, workspace: FusionWorkspace) {
+		const uri = workspace.neosWorkspace.getResourceUri(node.getNamespace(), node.getRelativePath())
+
+		const basename = NodePath.basename(uri)
+		const isImage = (/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i).test(basename)
+
+		if (isImage) return `![${basename}](${uri})`
+		return `Resource: ${basename}`
 	}
 }
