@@ -142,12 +142,16 @@ export class DefinitionCapability extends AbstractCapability {
 		const node = foundNodeByLine.getNode()
 		const uri = workspace.neosWorkspace.getResourceUri(node.getNamespace(), node.getRelativePath())
 
+		const targetRange = {
+			start: { line: 0, character: 0 },
+			end: { line: 0, character: 0 },
+		}
+
 		return [{
-			uri,
-			range: {
-				start: { line: 0, character: 0 },
-				end: { line: 0, character: 0 },
-			}
+			targetUri: uri,
+			targetRange: targetRange,
+			targetSelectionRange: targetRange,
+			originSelectionRange: foundNodeByLine.getPositionAsRange()
 		}]
 	}
 }
