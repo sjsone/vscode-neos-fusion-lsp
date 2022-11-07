@@ -40,7 +40,7 @@ export class HoverCapability extends AbstractCapability {
 		switch (true) {
 			case node instanceof FusionObjectValue:
 			case node instanceof PrototypePathSegment:
-				return this.getMarkdownForPrototypeName(node)
+				return this.getMarkdownForPrototypeName(workspace, node)
 			case node instanceof PathSegment:
 				return `property **${node["identifier"]}**`
 			case node instanceof PhpClassNode:
@@ -58,10 +58,32 @@ export class HoverCapability extends AbstractCapability {
 		}
 	}
 
-	getMarkdownForPrototypeName(node: FusionObjectValue | PrototypePathSegment) {
+	getMarkdownForPrototypeName(workspace: FusionWorkspace, node: FusionObjectValue | PrototypePathSegment) {
 		const prototypeName = getPrototypeNameFromNode(node)
 		if (prototypeName === null) return null
-		return `prototype **${prototypeName}**`
+
+		const statementsNames: string[] = []
+		for (const otherParsedFile of workspace.parsedFiles) {
+			for (const otherPositionedNode of [...otherParsedFile.prototypeCreations, ...otherParsedFile.prototypeOverwrites]) {
+				const otherNode = <PrototypePathSegment>otherPositionedNode.getNode()
+				if (otherNode["identifier"] !== prototypeName) continue
+
+				const otherObjectStatement = findParent(otherNode, ObjectStatement)
+				if (!otherObjectStatement.block) continue
+
+				for (const statement of <ObjectStatement[]>otherObjectStatement.block.statementList.statements) {
+					const statementName = statement["path"].segments.map(abstractNodeToString).filter(Boolean).join(".")
+					statementsNames.push(statementName)
+				}
+			}
+		}
+
+		const statementsNamesMarkdown = statementsNames.length > 0 ? "\n" + statementsNames.map(name => `  ${name}`).join("\n") + "\n" : " "
+		return [
+			"```",
+			`prototype(${prototypeName}) {${statementsNamesMarkdown}}`,
+			"```"
+		].join("\n")
 	}
 
 	getMarkdownForObjectPath(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<any>) {
@@ -109,7 +131,7 @@ export class HoverCapability extends AbstractCapability {
 	}
 
 	getMarkdownForResourceUri(node: ResourceUriNode, workspace: FusionWorkspace) {
-		if(!node.canBeFound()) return null
+		if (!node.canBeFound()) return null
 		const uri = workspace.neosWorkspace.getResourceUriPath(node.getNamespace(), node.getRelativePath())
 		if (!uri || !NodeFs.existsSync(uri)) return `**Could not find Resource**`
 
