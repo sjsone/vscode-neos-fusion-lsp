@@ -233,6 +233,8 @@ class NodeService {
 					}
 				}
 
+				if (!objectStatement.block) continue
+
 				let foundPropTypes: ObjectStatement | undefined = undefined
 				for (const statement of objectStatement.block.statementList.statements) {
 					if (!(statement instanceof ObjectStatement)) continue
