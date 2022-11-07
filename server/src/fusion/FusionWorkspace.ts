@@ -30,6 +30,10 @@ export class FusionWorkspace extends Logger {
         this.languageServer = languageServer
     }
 
+    getConfiguration() {
+        return this.configuration
+    }
+
     getUri() {
         return this.uri
     }

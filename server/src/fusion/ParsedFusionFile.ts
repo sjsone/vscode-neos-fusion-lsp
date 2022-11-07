@@ -95,7 +95,7 @@ export class ParsedFusionFile {
 
 				const methodNode = currentPath.pop()
 				const eelHelperMethodNodePosition = new NodePosition(methodNode["position"].begin, methodNode["position"].begin + methodNode["value"].length)
-				const eelHelperMethodNode = new PhpClassMethodNode(methodNode["value"], eelHelperMethodNodePosition)
+				const eelHelperMethodNode = new PhpClassMethodNode(methodNode["value"], part, eelHelperMethodNodePosition)
 
 				const position = new NodePosition(-1, -1)
 				const nameParts = []
@@ -112,7 +112,7 @@ export class ParsedFusionFile {
 						const method = eelHelper.methods.find(method => method.valid(methodNode["value"]))
 						if (!method) continue
 						this.addNode(eelHelperMethodNode, text)
-						const eelHelperNode = new PhpClassNode(eelHelperIdentifier, eelHelperMethodNode, position)
+						const eelHelperNode = new PhpClassNode(eelHelperIdentifier, eelHelperMethodNode, node, position)
 						this.addNode(eelHelperNode, text)
 					}
 				}
