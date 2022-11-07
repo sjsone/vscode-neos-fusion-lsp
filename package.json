@@ -9,7 +9,7 @@
     "theme": "dark"
   },
   "license": "AGPL-3.0-or-later",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "categories": [
     "Programming Languages"
   ],
@@ -131,6 +131,21 @@
           "type": "boolean",
           "default": true,
           "description": "Allow modification of a few settings of other extensions to improve the experience."
+        },
+        "neosFusionLsp.inlayHint.depth": {
+          "type": "string",
+          "default": "literal",
+          "description": "Set if or when inlay hints should be showed",
+          "enum": [
+            "disabled",
+            "literal",
+            "always"
+          ],
+          "enumDescriptions": [
+            "Disable Inlay Hints",
+            "Only show Inlay Hints on literals",
+            "Always show Inlay Hints"
+          ]
         }
       }
     }
