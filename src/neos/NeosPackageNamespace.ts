@@ -1,6 +1,6 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
-import { EelHelperMethod } from '../eel/EelHelperMethod'
+import { EelHelperMethod, EelHelperMethodParameter } from '../eel/EelHelperMethod'
 import { getLineNumberOfChar, pathToUri } from '../util'
 
 export interface ClassDefinition {
@@ -70,8 +70,7 @@ export class NeosPackageNamespace {
 		const end = begin + classMatch[0].length
 		const fileUri = pathToUri(possibleFilePath)
 
-		const methodsRegex = /(public\s+(static\s+)?function\s+([a-zA-Z]+)\s?\()/g
-
+		const methodsRegex = /(public\s+(static\s+)?function\s+([a-zA-Z]+)\s?\( *([^)]+?) *\))/g
 		let lastIndex = 0
 		const rest = phpFileSource
 		let match = methodsRegex.exec(rest)
@@ -82,12 +81,14 @@ export class NeosPackageNamespace {
 			const fullDefinition = match[1]
 			const isStatic = !!match[2]
 			const name = match[3]
+			const rawParameters = match[4] + ')'
+
+			const parameters = this.parseMethodParameters(rawParameters)
 
 			const identifierIndex = rest.substring(lastIndex).indexOf(fullDefinition) + lastIndex
-
 			const { description } = this.parseMethodComment(identifierIndex, phpFileSource)
 
-			methods.push(new EelHelperMethod(name, description, {
+			methods.push(new EelHelperMethod(name, description, parameters, {
 				start: getLineNumberOfChar(phpFileSource, identifierIndex),
 				end: getLineNumberOfChar(phpFileSource, identifierIndex + fullDefinition.length)
 			}))
@@ -104,6 +105,22 @@ export class NeosPackageNamespace {
 				end: getLineNumberOfChar(phpFileSource, end)
 			},
 		}
+	}
+
+	protected parseMethodParameters(rawParameters: string): EelHelperMethodParameter[] {
+		const parametersRegex = /(\w+ )?(\$\w*)( ?= ?.*?)?(?:,|\))/g
+		let match = parametersRegex.exec(rawParameters)
+		const parameters = []
+		let runAwayPrevention = 0
+		while (match != null && runAwayPrevention++ < 1000) {
+			parameters.push({
+				name: match[2],
+				defaultValue: match[3],
+				type: match[1]
+			})
+			match = parametersRegex.exec(rawParameters)
+		}
+		return parameters
 	}
 
 	protected parseMethodComment(offset: number, code: string) {

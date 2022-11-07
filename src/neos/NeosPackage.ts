@@ -1,6 +1,7 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { EelHelperMethod } from '../eel/EelHelperMethod'
+import { LinePosition } from '../LinePositionedNode'
 import { Logger } from '../Logging'
 import { FlowConfiguration } from './FlowConfiguration'
 import { NeosPackageNamespace } from './NeosPackageNamespace'
@@ -11,8 +12,8 @@ export interface EELHelperToken {
 	uri: string,
 	regex: RegExp,
 	position: {
-		start: { line: number, character: number },
-		end: { line: number, character: number }
+		start: LinePosition,
+		end: LinePosition
 	},
 	methods: EelHelperMethod[]
 }

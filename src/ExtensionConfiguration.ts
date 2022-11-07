@@ -4,6 +4,11 @@ export enum LoggingLevel {
     Debug = "debug"
 }
 
+export enum InlayHintDepth {
+    Disabled = "disabled",
+    Literal = "literal",
+    Always = "always"
+}
 export interface ExtensionConfiguration {
     folders: {
         packages: string[],
@@ -19,5 +24,8 @@ export interface ExtensionConfiguration {
         ignore: {
             folders: string[]
         }
+    },
+    inlayHint: {
+        depth: InlayHintDepth
     }
 }

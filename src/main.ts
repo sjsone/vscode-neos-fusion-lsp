@@ -58,5 +58,9 @@ connection.onHover((params: HoverParams): Hover => {
     return languageserver.getCapability("onHover").execute(params)
 })
 
+connection.languages.inlayHint.on(params => {
+    return languageserver.getLanguageFeature("inlayHint").execute(params)
+})
+
 documents.listen(connection)
 connection.listen()
