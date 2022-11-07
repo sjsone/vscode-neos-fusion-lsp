@@ -135,7 +135,7 @@
         "neosFusionLsp.inlayHint.depth": {
           "type": "string",
           "default": "literal",
-          "description": "Set if or when inlay hints should be showed",
+          "description": "Set if or when inlay hints should be showen",
           "enum": [
             "disabled",
             "literal",
