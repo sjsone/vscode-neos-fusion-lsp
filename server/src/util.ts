@@ -15,6 +15,7 @@ import { FqcnNode } from './fusion/FqcnNode'
 import { PhpClassMethodNode } from './fusion/PhpClassMethodNode'
 import { PhpClassNode } from './fusion/PhpClassNode'
 import { ResourceUriNode } from './fusion/ResourceUriNode'
+import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/MetaPathSegment'
 
 export function getLineNumberOfChar(data: string, index: number, debug = false) {
     const perLine = data.split('\n')
@@ -102,6 +103,10 @@ export function abstractNodeToString(node: AbstractEelNode | AbstractNode): stri
     if (node instanceof StringValue) return `"${node["value"]}"`
     if (node instanceof LiteralNumberNode || node instanceof LiteralStringNode || node instanceof FusionObjectValue) return node["value"]
     if (node instanceof EelExpressionValue) return Array.isArray(node.nodes) ? undefined : abstractNodeToString(<AbstractEelNode>node.nodes)
+
+    if (node instanceof MetaPathSegment) return "@" + node["identifier"]
+    if (node instanceof PathSegment) return node["identifier"]
+    if (node instanceof PrototypePathSegment) return `prototype(${node["identifier"]})`
     return undefined
 }
 
