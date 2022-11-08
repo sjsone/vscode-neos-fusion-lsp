@@ -278,7 +278,7 @@ export class ParsedFusionFile {
 		return diagnostics
 	}
 
-	diagnoseTagNames() {
+	protected diagnoseTagNames() {
 		const diagnostics: Diagnostic[] = []
 
 		const positionedTagNodes = <LinePositionedNode<any>[]>this.nodesByType.get(<any>TagNode)
