@@ -46,7 +46,7 @@ export class ParsedFusionFile {
 	constructor(uri: string, workspace: FusionWorkspace) {
 		this.uri = uri
 		this.workspace = workspace
-		this.debug = false
+		this.debug = this.uri.endsWith("Test.fusion")
 	}
 
 	init(text: string = undefined) {
@@ -212,6 +212,7 @@ export class ParsedFusionFile {
 
 		diagnostics.push(...this.diagnoseFusionProperties())
 		diagnostics.push(...this.diagnoseResourceUris())
+		diagnostics.push(...this.diagnoseTagNames())
 
 		return diagnostics
 	}
@@ -274,6 +275,27 @@ export class ParsedFusionFile {
 			}
 		}
 
+		return diagnostics
+	}
+
+	diagnoseTagNames() {
+		const diagnostics: Diagnostic[] = []
+
+		const positionedTagNodes = <LinePositionedNode<any>[]>this.nodesByType.get(<any>TagNode)
+		if (positionedTagNodes === undefined) return diagnostics
+
+		for (const positionedTagNode of positionedTagNodes) {
+			const node = <TagNode>positionedTagNode.getNode()
+			if (!node["selfClosing"]) continue
+			if (node["end"]["name"] === "/>") continue
+			const diagnostic: Diagnostic = {
+				severity: DiagnosticSeverity.Error,
+				range: positionedTagNode.getPositionAsRange(),
+				message: `Tags have to be closed`,
+				source: 'Fusion LSP'
+			}
+			diagnostics.push(diagnostic)
+		}
 		return diagnostics
 	}
 
