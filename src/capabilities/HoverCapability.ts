@@ -72,7 +72,11 @@ export class HoverCapability extends AbstractCapability {
 				if (!otherObjectStatement.block) continue
 
 				for (const statement of <ObjectStatement[]>otherObjectStatement.block.statementList.statements) {
-					const statementName = statement["path"].segments.map(abstractNodeToString).filter(Boolean).join(".")
+					let statementName = statement["path"].segments.map(abstractNodeToString).filter(Boolean).join(".")
+					if (statement.operation instanceof ValueAssignment) {
+						statementName += ` = ${abstractNodeToString(<any>statement.operation.pathValue)}`
+					}
+
 					statementsNames.push(statementName)
 				}
 			}
