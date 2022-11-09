@@ -38,7 +38,7 @@ export class InlayHintLanguageFeature extends AbstractLanguageFeature {
 				const linePositionedArg = LinePositionedNode.Get(<any>arg)
 
 				const hint: InlayHint = {
-					label: parameter.name.replace("$", ""),
+					label: parameter.name.replace("$", "") + ':',
 					kind: InlayHintKind.Parameter,
 					// tooltip: {
 					// 	kind: MarkupKind.Markdown,
