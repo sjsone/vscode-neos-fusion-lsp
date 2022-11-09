@@ -40,12 +40,15 @@ export class InlayHintLanguageFeature extends AbstractLanguageFeature {
 				const hint: InlayHint = {
 					label: parameter.name.replace("$", "") + ':',
 					kind: InlayHintKind.Parameter,
-					// tooltip: {
-					// 	kind: MarkupKind.Markdown,
-					// 	value: [
-					// 		arg.constructor.name
-					// 	].join("\n")
-					// },
+					tooltip: {
+						kind: MarkupKind.Markdown,
+						value: [
+							"```php",
+							`<?php`,
+							`${parameter.type ?? ""}${parameter.name}${parameter.defaultValue ?? ""}`,
+							"```"
+						].join("\n")
+					},
 					paddingRight: true,
 					position: linePositionedArg.getBegin()
 				}
