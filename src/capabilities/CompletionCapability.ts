@@ -4,6 +4,7 @@ import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
 import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode'
 import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
+import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment'
 import { CompletionItem, CompletionItemKind, InsertTextMode } from 'vscode-languageserver/node'
@@ -23,6 +24,9 @@ export class CompletionCapability extends AbstractCapability {
 		if (foundNodeByLine) {
 			const foundNode = foundNodeByLine.getNode()
 			switch (true) {
+				case foundNode instanceof ObjectStatement:
+					completions.push(...this.getObjectStatementCompletions(workspace, <any>foundNodeByLine))
+					break
 				case foundNode instanceof FusionObjectValue:
 				case foundNode instanceof PrototypePathSegment:
 					completions.push(...this.getPrototypeCompletions(workspace, <any>foundNodeByLine))
@@ -41,17 +45,28 @@ export class CompletionCapability extends AbstractCapability {
 		return completions
 	}
 
-	protected getFusionPropertyCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<any>): CompletionItem[] {
-		const completions = []
+	protected getObjectStatementCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectStatement>) {
+		const node = foundNode.getNode()
+		if (node.operation === null || node.operation["position"].start !== node.operation["position"].end) return []
 
+		return this.getPropertyDefinitionSegments(node, workspace)
+	}
+
+	protected getFusionPropertyCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<any>): CompletionItem[] {
 		const node = <ObjectPathNode>foundNode.getNode()
 		const objectNode = <ObjectNode>node["parent"]
 		if (!(objectNode instanceof ObjectNode)) return null
 
 		if ((objectNode.path[0]["value"] !== "this" && objectNode.path[0]["value"] !== "props") || objectNode.path.length === 1) {
 			// TODO: handle context properties
-			return completions
+			return []
 		}
+
+		return this.getPropertyDefinitionSegments(objectNode, workspace)
+	}
+
+	protected getPropertyDefinitionSegments(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace) {
+		const completions = []
 
 		for (const segmentOrExternalStatement of NodeService.findPropertyDefinitionSegments(objectNode, workspace)) {
 			const segment = segmentOrExternalStatement instanceof ExternalObjectStatement ? segmentOrExternalStatement.statement.path.segments[0] : segmentOrExternalStatement
