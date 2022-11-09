@@ -52,33 +52,37 @@ class NodeService {
 
 	public findPrototypeName(node: AbstractNode) {
 		const objectStatement = findParent(node, ObjectStatement)
-		if(!objectStatement) return undefined
-		if(!(objectStatement.path.segments[0] instanceof PrototypePathSegment)) return undefined
+		if (!objectStatement) return undefined
+		if (!(objectStatement.path.segments[0] instanceof PrototypePathSegment)) return undefined
 		return objectStatement.path.segments[0].identifier
 	}
 
-	public * findPropertyDefinitionSegments(objectNode: ObjectNode, workspace?: FusionWorkspace) {
-		const objectStatement = findParent(objectNode, ObjectStatement) // [props.foo]
+	public * findPropertyDefinitionSegments(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace) {
+		const objectStatement = objectNode instanceof ObjectStatement ? objectNode : findParent(objectNode, ObjectStatement) // [props.foo]
 
 		let statementList = findParent(objectNode, StatementList)
 		if (getObjectIdentifier(objectStatement).startsWith("renderer.")) {
-			const parentOperation = findParent(statementList, ObjectStatement).operation
-			if (parentOperation instanceof ValueAssignment) {
-				if (parentOperation.pathValue instanceof FusionObjectValue) {
-					const statements = this.getInheritedPropertiesByPrototypeName(parentOperation.pathValue.value, workspace)
-					for (const statement of statements) {
-						if (statement instanceof ExternalObjectStatement) yield statement
-						if (!(statement instanceof ObjectStatement)) continue
-						yield statement.path.segments[0]
+			const parentObjectStatement = findParent(statementList, ObjectStatement)
+			if (parentObjectStatement) {
+				const parentOperation = parentObjectStatement.operation
+
+				if (parentOperation instanceof ValueAssignment) {
+					if (parentOperation.pathValue instanceof FusionObjectValue) {
+						const statements = this.getInheritedPropertiesByPrototypeName(parentOperation.pathValue.value, workspace)
+						for (const statement of statements) {
+							if (statement instanceof ExternalObjectStatement) yield statement
+							if (!(statement instanceof ObjectStatement)) continue
+							yield statement.path.segments[0]
+						}
+						return
 					}
-					return
 				}
 			}
 
 			const parentPrototypeName = this.findPrototypeName(objectStatement)
-			if(parentPrototypeName) {
+			if (parentPrototypeName) {
 				const potentialSurroundingPrototypeName = this.findPrototypeName(findParent(objectStatement, ObjectStatement))
-				if(potentialSurroundingPrototypeName) {
+				if (potentialSurroundingPrototypeName) {
 					const statements = this.getInheritedPropertiesByPrototypeName(parentPrototypeName, workspace)
 
 					for (const statement of statements) {
