@@ -223,6 +223,7 @@ export class ParsedFusionFile {
 		const positionedObjectNodes = this.nodesByType.get(ObjectNode)
 		if (positionedObjectNodes === undefined) return diagnostics
 
+		// TODO: Put logic of DefinitionCapability in a Provider/Service instead of using a Capability 
 		const definitionCapability = new DefinitionCapability(this.workspace.languageServer)
 
 		for (const positionedObjectNode of positionedObjectNodes) {
