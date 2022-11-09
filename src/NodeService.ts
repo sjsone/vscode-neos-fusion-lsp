@@ -13,6 +13,7 @@ import { ValueCopy } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/Valu
 import { FusionWorkspace } from './fusion/FusionWorkspace'
 import { findParent, findUntil, getObjectIdentifier } from './util'
 import { AbstractPathValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractPathValue'
+import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode'
 
 export class ExternalObjectStatement {
 	statement: ObjectStatement
@@ -35,6 +36,27 @@ class NodeService {
 		return !["Neos.Fusion:Case", "Neos.Fusion:Loop", "Neos.Neos:ImageUri", "Neos.Neos:NodeUri"].includes(name)
 	}
 
+	public findParentPrototypeName(node: AbstractNode) {
+		const foundParentOperationPrototype = findUntil(node, (possiblePrototype) => {
+			if (!(possiblePrototype instanceof ObjectStatement)) return false
+			if (!(possiblePrototype.operation instanceof ValueAssignment)) return false
+			if (!(possiblePrototype.operation.pathValue instanceof FusionObjectValue)) return false
+			return true
+		})
+
+		if (foundParentOperationPrototype) {
+			return (<any>foundParentOperationPrototype).operation.pathValue.value
+		}
+		return ""
+	}
+
+	public findPrototypeName(node: AbstractNode) {
+		const objectStatement = findParent(node, ObjectStatement)
+		if(!objectStatement) return undefined
+		if(!(objectStatement.path.segments[0] instanceof PrototypePathSegment)) return undefined
+		return objectStatement.path.segments[0].identifier
+	}
+
 	public * findPropertyDefinitionSegments(objectNode: ObjectNode, workspace?: FusionWorkspace) {
 		const objectStatement = findParent(objectNode, ObjectStatement) // [props.foo]
 
@@ -44,6 +66,20 @@ class NodeService {
 			if (parentOperation instanceof ValueAssignment) {
 				if (parentOperation.pathValue instanceof FusionObjectValue) {
 					const statements = this.getInheritedPropertiesByPrototypeName(parentOperation.pathValue.value, workspace)
+					for (const statement of statements) {
+						if (statement instanceof ExternalObjectStatement) yield statement
+						if (!(statement instanceof ObjectStatement)) continue
+						yield statement.path.segments[0]
+					}
+					return
+				}
+			}
+
+			const parentPrototypeName = this.findPrototypeName(objectStatement)
+			if(parentPrototypeName) {
+				const potentialSurroundingPrototypeName = this.findPrototypeName(findParent(objectStatement, ObjectStatement))
+				if(potentialSurroundingPrototypeName) {
+					const statements = this.getInheritedPropertiesByPrototypeName(parentPrototypeName, workspace)
 
 					for (const statement of statements) {
 						if (statement instanceof ExternalObjectStatement) yield statement
@@ -55,16 +91,7 @@ class NodeService {
 			}
 		}
 
-		let parentPrototypeName = ""
-		const foundParentOperationPrototype = findUntil(statementList, (node) => {
-			if (!(node instanceof ObjectStatement)) return false
-			if (!(node.operation instanceof ValueAssignment)) return false
-			if (!(node.operation.pathValue instanceof FusionObjectValue)) return false
-			return true
-		})
-		if (foundParentOperationPrototype) {
-			parentPrototypeName = (<any>foundParentOperationPrototype).operation.pathValue.value
-		}
+		const parentPrototypeName = this.findParentPrototypeName(statementList)
 
 		let wasComingFromRenderer = false
 		const dsl = findParent(objectNode, DslExpressionValue)
