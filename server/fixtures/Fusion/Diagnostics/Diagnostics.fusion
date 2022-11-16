@@ -1,0 +1,4 @@
+
+prototype(S.M:Diagnostics) < prototype(Neos.Fusion:Component) {
+	renderer = ${props.nonExistent}
+}

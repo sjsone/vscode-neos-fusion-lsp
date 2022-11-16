@@ -12,7 +12,7 @@ export abstract class AbstractCapability extends Logger {
 		this.languageServer = languageServer
 	}
 
-	public execute(params) {
+	public execute(params: TextDocumentPositionParams) {
 		try {
 			const context = this.buildContextFromParams(params)
 			if (!context) return null

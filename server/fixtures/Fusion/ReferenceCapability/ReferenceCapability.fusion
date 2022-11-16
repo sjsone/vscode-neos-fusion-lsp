@@ -1,0 +1,7 @@
+
+prototype(S.M:InternalPrototype) {
+}
+
+internal = S.M:InternalPrototype
+
+external = S.M:ExternalPrototype
