@@ -1,5 +1,7 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
+import { EelHelperMethod } from '../eel/EelHelperMethod'
+import { LinePosition } from '../LinePositionedNode'
 import { Logger } from '../Logging'
 import { FlowConfiguration } from './FlowConfiguration'
 import { NeosPackageNamespace } from './NeosPackageNamespace'
@@ -7,23 +9,15 @@ import { NeosWorkspace } from './NeosWorkspace'
 
 export interface EELHelperToken {
 	name: string,
-	uri: string, 
+	uri: string,
 	regex: RegExp,
 	position: {
-		begin: { line: number, column: number },
-		end: { line: number, column: number }
+		start: LinePosition,
+		end: LinePosition
 	},
-	methods: EELHelperMethodToken[]
+	methods: EelHelperMethod[]
 }
 
-export interface EELHelperMethodToken {
-	name: string, 
-	description: string|undefined, 
-	position: { 
-		begin: { line: number,  column: number }, 
-		end: { line: number, column: number } 
-	}
-}
 export class NeosPackage extends Logger {
 	protected path: string
 	protected neosWorkspace: NeosWorkspace
@@ -40,7 +34,7 @@ export class NeosPackage extends Logger {
 		const composerJson = JSON.parse(NodeFs.readFileSync(composerJsonFilePath).toString())
 
 		super(composerJson.name)
-		
+
 		this.path = path
 		this.neosWorkspace = neosWorkspace
 
@@ -61,20 +55,18 @@ export class NeosPackage extends Logger {
 
 	public initEelHelper() {
 		const configurationFolderPath = NodePath.join(this.path, "Configuration")
-		if(!NodeFs.existsSync(configurationFolderPath)) return undefined
+		if (!NodeFs.existsSync(configurationFolderPath)) return undefined
 		const neosConfiguration = FlowConfiguration.FromFolder(configurationFolderPath)
 
-		if(neosConfiguration["parsedYamlConfiguration"] === null) return undefined
-		
-		const defaultNeosFusionContext = neosConfiguration.get<any>("Neos.Fusion.defaultContext")
-		// this.log("defaultNeosFusionContext", defaultNeosFusionContext)
+		if (neosConfiguration["parsedYamlConfiguration"] === null) return undefined
 
-		if(!defaultNeosFusionContext) return undefined
+		const defaultNeosFusionContext = neosConfiguration.get<any>("Neos.Fusion.defaultContext")
+		if (!defaultNeosFusionContext) return undefined
+
 		this.logVerbose("Found EEL-Helpers:")
 		for (const eelHelperPrefix in defaultNeosFusionContext) {
-			// TODO: Handle methods like "Neos\Eel\FlowQuery\FlowQuery::q" 
-			const fqcn = defaultNeosFusionContext[eelHelperPrefix]
-			const eelHelper = this.neosWorkspace.getEelHelperFromFullyQualifiedClassName(fqcn)
+			const { fqcn, staticMethod } = this.extractFqcnAndStaticMethodFromDefaultContextEntry(<string>defaultNeosFusionContext[eelHelperPrefix])
+			const eelHelper = this.neosWorkspace.getEelHelperFromFullyQualifiedClassNameWithStaticMethod(fqcn, staticMethod)
 			if (eelHelper !== undefined) {
 				const location = {
 					name: eelHelperPrefix,
@@ -92,6 +84,15 @@ export class NeosPackage extends Logger {
 		this.logVerbose(`Found ${this.eelHelpers.length} EEL-Helpers`)
 	}
 
+	extractFqcnAndStaticMethodFromDefaultContextEntry(path: string) {
+		const staticMethodRegex = /^(.*?)(?:::(.*))?$/
+		const match = staticMethodRegex.exec(this.trimLeadingBackslash(path))
+		return {
+			fqcn: match[1],
+			staticMethod: match[2]
+		}
+	}
+
 	getFileUriFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
 		for (const namespaceEntry of this.namespaces.entries()) {
 			if (fullyQualifiedClassName.startsWith(namespaceEntry[0])) {
@@ -101,13 +102,19 @@ export class NeosPackage extends Logger {
 		return undefined
 	}
 
-	getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
+	getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
 		for (const namespaceEntry of this.namespaces.entries()) {
 			if (fullyQualifiedClassName.startsWith(namespaceEntry[0])) {
-				return namespaceEntry[1].getEelHelperFromFullyQualifiedClassName(fullyQualifiedClassName)
+				return namespaceEntry[1].getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName)
 			}
 		}
 		return undefined
+	}
+
+	getResourceUriPath(packageName: string, relativePath: string) {
+		if (this.getPackageName() === packageName) {
+			return NodePath.join(this.path, "Resources", relativePath)
+		}
 	}
 
 	getEelHelpers() {
@@ -118,7 +125,17 @@ export class NeosPackage extends Logger {
 		return this.composerJson.name
 	}
 
+	getPackageName() {
+		const packageKey = this.composerJson.extra?.neos?.["package-key"]
+		const name = this.getName()
+		return packageKey ?? name.split("/").map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('.')
+	}
+
 	log(...text: any) {
-		if(this.debug) console.log("[NeosPackage]", ...text)
+		if (this.debug) console.log("[NeosPackage]", ...text)
+	}
+
+	trimLeadingBackslash(fqcn: string) {
+		return fqcn[0] === "\\" ? fqcn.substring(1) : fqcn
 	}
 }

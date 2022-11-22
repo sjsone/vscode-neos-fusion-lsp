@@ -1,5 +1,5 @@
 import EventEmitter = require('events');
-import { ProgressLocation, window } from 'vscode';
+import { ProgressLocation, window } from 'vscode'
 
 export interface ProgressPayload {
 	message?: string

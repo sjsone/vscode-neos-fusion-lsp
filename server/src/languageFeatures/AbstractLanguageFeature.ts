@@ -1,10 +1,9 @@
-import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode'
-import { TextDocumentPositionParams } from 'vscode-languageserver/node'
+import { InlayHintParams } from 'vscode-languageserver/node'
 import { LanguageServer } from '../LanguageServer'
 import { Logger } from '../Logging'
-import { CapabilityContext } from './CapabilityContext'
+import { LanguageFeatureContext } from './LanguageFeatureContext'
 
-export abstract class AbstractCapability extends Logger {
+export abstract class AbstractLanguageFeature extends Logger {
 	protected languageServer: LanguageServer
 
 	constructor(languageServer: LanguageServer) {
@@ -23,14 +22,12 @@ export abstract class AbstractCapability extends Logger {
 		}
 	}
 
-	protected abstract run<N extends AbstractNode>(capabilityContext: CapabilityContext<N>): any
+	protected abstract run(languageFeatureContext: LanguageFeatureContext): any
 
-	protected buildContextFromParams(params: TextDocumentPositionParams): CapabilityContext<any> {
+	protected buildContextFromParams(params: InlayHintParams): LanguageFeatureContext {
 		const uri = params.textDocument.uri
-		const line = params.position.line
-		const column = params.position.character
 
-		this.logDebug(`${line}/${column} ${params.textDocument.uri}`)
+		this.logDebug(` ${params.textDocument.uri}`)
 
 		const workspace = this.languageServer.getWorkspaceFromFileUri(uri)
 		if (workspace === undefined) return null
@@ -38,13 +35,9 @@ export abstract class AbstractCapability extends Logger {
 		const parsedFile = workspace.getParsedFileByUri(uri)
 		if (parsedFile === undefined) return null
 
-		const foundNodeByLine = parsedFile.getNodeByLineAndColumn(line, column)
-		if (foundNodeByLine === undefined) return null
-
 		return {
 			workspace,
 			parsedFile,
-			foundNodeByLine,
 			params
 		}
 	}

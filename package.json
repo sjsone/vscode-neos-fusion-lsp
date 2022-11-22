@@ -9,7 +9,7 @@
     "theme": "dark"
   },
   "license": "AGPL-3.0-or-later",
-  "version": "0.0.9",
+  "version": "0.0.21",
   "categories": [
     "Programming Languages"
   ],
@@ -79,7 +79,8 @@
           "default": [
             "Resources/Private/Fusion",
             "Resources/Private/FusionModules",
-            "Resources/Private/FusionPlugins"
+            "Resources/Private/FusionPlugins",
+            "NodeTypes"
           ],
           "description": "Fusion Folder inside Package"
         },
@@ -94,6 +95,23 @@
             "Packages/Libraries"
           ],
           "description": "Folders to ignore"
+        },
+        "neosFusionLsp.diagnostics.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable diagnostics feature."
+        },
+        "neosFusionLsp.diagnostics.ignore.folders": {
+          "scope": "window",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "title": "Folder path"
+          },
+          "default": [
+            "Packages/"
+          ],
+          "description": "Folders to ignore automatic diagnostics in"
         },
         "neosFusionLsp.logging.level": {
           "type": "string",
@@ -113,6 +131,21 @@
           "type": "boolean",
           "default": true,
           "description": "Allow modification of a few settings of other extensions to improve the experience."
+        },
+        "neosFusionLsp.inlayHint.depth": {
+          "type": "string",
+          "default": "literal",
+          "description": "Set if or when inlay hints should be showen",
+          "enum": [
+            "disabled",
+            "literal",
+            "always"
+          ],
+          "enumDescriptions": [
+            "Disable Inlay Hints",
+            "Only show Inlay Hints on literals",
+            "Always show Inlay Hints"
+          ]
         }
       }
     }
@@ -134,7 +167,7 @@
     "typescript": "^4.7.2"
   },
   "dependencies": {
-    "ts-fusion-parser": "^0.0.38"
+    "ts-fusion-parser": "^0.0.52"
   },
   "repository": {
     "type": "git",

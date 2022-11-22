@@ -6,7 +6,8 @@ import {
 	TextDocumentChangeEvent,
 	_Connection,
 	InitializeResult,
-	MessageType
+	MessageType,
+	PublishDiagnosticsParams
 } from "vscode-languageserver/node"
 import { FusionWorkspace } from './fusion/FusionWorkspace'
 import { type ExtensionConfiguration } from './ExtensionConfiguration'
@@ -18,6 +19,8 @@ import { HoverCapability } from './capabilities/HoverCapability'
 import { ReferenceCapability } from './capabilities/ReferenceCapability'
 import { Logger, LogService } from './Logging'
 import { uriToPath } from './util'
+import { AbstractLanguageFeature } from './languageFeatures/AbstractLanguageFeature'
+import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 
 export class LanguageServer extends Logger {
 
@@ -25,6 +28,7 @@ export class LanguageServer extends Logger {
 	protected documents: TextDocuments<FusionDocument>
 	protected fusionWorkspaces: FusionWorkspace[] = []
 	protected capabilities: Map<string, AbstractCapability> = new Map()
+	protected languageFeatures: Map<string, AbstractLanguageFeature> = new Map()
 
 	constructor(connection: _Connection<any>, documents: TextDocuments<FusionDocument>) {
 		super()
@@ -36,29 +40,34 @@ export class LanguageServer extends Logger {
 		this.capabilities.set("onHover", new HoverCapability(this))
 		this.capabilities.set("onReferences", new ReferenceCapability(this))
 
+		this.languageFeatures.set("inlayHint", new InlayHintLanguageFeature(this))
 	}
 
 	public getCapability(name: string) {
 		return this.capabilities.get(name)
 	}
 
-	public getWorspaceFromFileUri = (uri: string): FusionWorkspace | undefined => {
+	public getLanguageFeature(name: string) {
+		return this.languageFeatures.get(name)
+	}
+
+	public getWorkspaceFromFileUri = (uri: string): FusionWorkspace | undefined => {
 		return this.fusionWorkspaces.find(w => w.isResponsibleForUri(uri))
 	}
 
-	public onDidChangeContent(change: TextDocumentChangeEvent<FusionDocument>) {
-		const workspace = this.getWorspaceFromFileUri(change.document.uri)
+	public async onDidChangeContent(change: TextDocumentChangeEvent<FusionDocument>) {
+		const workspace = this.getWorkspaceFromFileUri(change.document.uri)
 		if (workspace === undefined) return null
 
-		workspace.updateFileByChange(change)
+		await workspace.updateFileByChange(change)
 		this.logVerbose(`Document changed: ${change.document.uri.replace(workspace.getUri(), "")}`)
 	}
 
-	public onDidOpen(event: TextDocumentChangeEvent<FusionDocument>) {
-		const workspace = this.getWorspaceFromFileUri(event.document.uri)
+	public async onDidOpen(event: TextDocumentChangeEvent<FusionDocument>) {
+		const workspace = this.getWorkspaceFromFileUri(event.document.uri)
 		if (workspace === undefined) return null
 
-		workspace.updateFileByChange(event)
+		await workspace.updateFileByChange(event)
 		this.logVerbose(`Document opened: ${event.document.uri.replace(workspace.getUri(), "")}`)
 	}
 
@@ -74,8 +83,10 @@ export class LanguageServer extends Logger {
 
 		return {
 			capabilities: {
+				inlayHintProvider: true,
 				completionProvider: {
-					resolveProvider: true
+					resolveProvider: true,
+					triggerCharacters: [`"`, `'`, `/`, `.`, `:`]
 				},
 				textDocumentSync: {
 					openClose: true,
@@ -110,6 +121,10 @@ export class LanguageServer extends Logger {
 
 	public sendProgressNotificationFinish(id: string) {
 		return this.connection.sendNotification("custom/progressNotification/finish", { id })
+	}
+
+	public sendDiagnostics(params: PublishDiagnosticsParams) {
+		return this.connection.sendDiagnostics(params)
 	}
 
 	public onDidChangeConfiguration(params: DidChangeConfigurationParams) {

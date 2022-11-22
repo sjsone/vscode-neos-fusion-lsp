@@ -1,25 +1,20 @@
 import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode'
 import { NodePosition } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/NodePosition'
 import { AstNodeVisitorInterface } from 'ts-fusion-parser/out/fusion/objectTreeParser/astNodeVisitorInterface'
-import { EelHelperMethodNode } from './EelHelperMethodNode'
+import { ClassDefinition } from '../neos/NeosPackageNamespace'
 
-export class EelHelperNode extends AbstractNode {
-	public identifier: string
-	public method: EelHelperMethodNode|null
+export class FqcnNode extends AbstractNode {
+	protected identifier: string
+	protected classDefinition: ClassDefinition
 
-	constructor(identifier: string, method: EelHelperMethodNode|null, position: NodePosition) {
+	constructor(identifier: string, classDefinition: ClassDefinition, position: NodePosition) {
 		super()
 		this.identifier = identifier
-		this.method = method
+		this.classDefinition = classDefinition
 		this.position = position
-
-		if(this.method) this.method.eelHelper = this
 	}
-
 
 	visit(visitor: AstNodeVisitorInterface, ...args: any[]) {
 		// stub
 	}
-
-
 }

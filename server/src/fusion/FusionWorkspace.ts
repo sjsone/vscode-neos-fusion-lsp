@@ -14,11 +14,14 @@ export class FusionWorkspace extends Logger {
     public uri: string
     public name: string
     public languageServer: LanguageServer
+    protected configuration: ExtensionConfiguration
 
     public neosWorkspace: NeosWorkspace
 
     public parsedFiles: ParsedFusionFile[] = []
     public filesWithErrors: string[] = []
+
+    protected filesToDiagnose: ParsedFusionFile[] = []
 
     constructor(name: string, uri: string, languageServer: LanguageServer) {
         super(name)
@@ -27,11 +30,16 @@ export class FusionWorkspace extends Logger {
         this.languageServer = languageServer
     }
 
+    getConfiguration() {
+        return this.configuration
+    }
+
     getUri() {
         return this.uri
     }
 
     init(configuration: ExtensionConfiguration) {
+        this.configuration = configuration
         this.clear()
         this.languageServer.sendProgressNotificationCreate("fusion_workspace_init", "Fusion")
         const workspacePath = uriToPath(this.uri)
@@ -99,25 +107,41 @@ export class FusionWorkspace extends Logger {
         }
 
         this.languageServer.sendProgressNotificationFinish("fusion_workspace_init")
+
+        this.processFilesToDiagnose()
     }
 
     initParsedFile(parsedFile: ParsedFusionFile, text: string = undefined) {
-        if (this.filesWithErrors.includes(parsedFile.uri)) return
+        if (this.filesWithErrors.includes(parsedFile.uri)) return false
 
         try {
+            parsedFile.clear()
             if (!parsedFile.init(text)) {
                 this.filesWithErrors.push(parsedFile.uri)
+                return false
             }
+
+            const filePath = uriToPath(parsedFile.uri)
+            const inIgnoredFolder = this.configuration.diagnostics.ignore.folders.find(path => filePath.startsWith(NodePath.resolve(uriToPath(this.uri), path)))
+
+            if (this.configuration.diagnostics.enabled && inIgnoredFolder === undefined) {
+                this.filesToDiagnose.push(parsedFile)
+
+            }
+
+            return true
         } catch (e) {
             this.filesWithErrors.push(parsedFile.uri)
         }
+
+        return false
     }
 
-    updateFileByChange(change: TextDocumentChangeEvent<TextDocument>) {
+    async updateFileByChange(change: TextDocumentChangeEvent<TextDocument>) {
         const file = this.getParsedFileByUri(change.document.uri)
         if (file === undefined) return
-        file.clear()
         this.initParsedFile(file, change.document.getText())
+        await this.processFilesToDiagnose()
     }
 
     isResponsibleForUri(uri: string) {
@@ -140,6 +164,19 @@ export class FusionWorkspace extends Logger {
             }
         }
         return nodes
+    }
+
+    protected async processFilesToDiagnose() {
+        await Promise.all(this.filesToDiagnose.map(async parsedFile => {
+            const diagnostics = await parsedFile.diagnose()
+            if (diagnostics) {
+                this.languageServer.sendDiagnostics({
+                    uri: parsedFile.uri,
+                    diagnostics
+                })
+            }
+        }))
+        this.filesToDiagnose = []
     }
 
     protected clear() {
