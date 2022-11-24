@@ -1,5 +1,6 @@
 .vscode/**
 **/*.ts
+**/*.js
 **/*.map
 .gitignore
 **/tsconfig.json
@@ -11,3 +12,10 @@ images/
 !images/logo.png
 @types
 **/README.md
+
+**/yarn.lock
+
+**/node_modules/
+
+!client/out/main.js
+!client/out/server.js
