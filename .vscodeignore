@@ -18,4 +18,4 @@ images/
 **/node_modules/
 
 !client/out/main.js
-!client/out/server.js
+!server/out/main.js
