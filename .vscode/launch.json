@@ -5,12 +5,12 @@
 		{
 			"type": "extensionHost",
 			"request": "launch",
-			"name": "Launch Client",
+			"name": "Launch Client with bundle",
 			"runtimeExecutable": "${execPath}",
 			"args": ["--extensionDevelopmentPath=${workspaceRoot}" ],
 			"sourceMaps": true,
 			"outFiles": ["${workspaceRoot}/client/out/**/*.js"],
-			"preLaunchTask": "Watch all"
+			"preLaunchTask": "npm: compile"
 		},
 		{
 			"type": "node",

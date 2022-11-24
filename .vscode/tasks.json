@@ -1,54 +1,55 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"type": "npm",
-			"script": "compile",
-			"group": "build",
-			"presentation": {
-				"panel": "dedicated",
-				"reveal": "never"
-			},
-			"problemMatcher": [
-				"$esbuild"
-			]
-		},
-
-		{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "npm",
+            "script": "compile",
+            "group": "build",
+            "presentation": {
+                "panel": "dedicated",
+                "reveal": "never"
+            },
+            "problemMatcher": [
+                "$esbuild"
+            ]
+        },
+        {
+            "label": "Client Watch",
+            "command": "yarn",
+            "args": [
+                "run",
+                "esbuild-watch"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/client"
+            },
+        },
+        {
+            "label": "Server Watch",
+            "command": "yarn",
+            "args": [
+                "run",
+                "esbuild-watch"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/server"
+            }
+        },
+        {
             "label": "Watch all",
             "dependsOn": [
-                "Watch Client",
-                "Watch Server"
+                "Client Watch",
+                "Server Watch"
             ],
-            "dependsOrder": "parallel",
-            "group": "build",
-            "problemMatcher": [
-                "$esbuild-watch"
-            ],
-            "isBackground": true
-        },
-        {
-            "label": "Watch Client",
-            "type": "npm",
-			"script": "watch-client",
-            "problemMatcher": [
-                "$esbuild-watch"
-            ],
-            "group": "build"
-        },
-        {
-            "label": "Watch Server",
-            "type": "npm",
-			"script": "watch-server",
-            "problemMatcher": [
-                "$esbuild-watch"
-            ],
-            "group": "build"
+            "isBackground": true,
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "panel": "dedicated",
+                "reveal": "never"
+            }
         }
-
-
-
-
-
-	]
+    ]
 }
