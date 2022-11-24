@@ -8,7 +8,11 @@
 	"engines": {
 		"vscode": "^1.52.0"
 	},
-	"scripts": {},
+	"scripts": {
+		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+		"esbuild": "yarn run esbuild-base --sourcemap --minify",
+		"esbuild-watch": "yarn run esbuild-base --sourcemap --watch"
+	},
 	"dependencies": {
 		"vscode-languageclient": "^8.0.0"
 	},

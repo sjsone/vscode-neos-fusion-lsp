@@ -32,7 +32,7 @@
     "workspace",
     "ui"
   ],
-  "main": "./client/out/extension",
+  "main": "./client/out/main.js",
   "extensionDependencies": [
     "networkteam.neos-fusion"
   ],
@@ -152,8 +152,10 @@
   },
   "scripts": {
     "vscode:prepublish": "yarn run compile",
-    "compile": "tsc -b",
-    "watch": "tsc -b -w",
+    "compile": "cd client && yarn run esbuild && cd ../server && yarn run esbuild && cd ..",
+    "watch-client": "cd client && yarn run esbuild-watch",
+    "watch-server": "cd server && yarn run esbuild-watch",
+    
     "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
     "lint-fix": "eslint --fix ./client/src ./server/src --ext .ts,.tsx",
     "postinstall": "cd client && yarn install && cd ../server && yarn install && cd .."

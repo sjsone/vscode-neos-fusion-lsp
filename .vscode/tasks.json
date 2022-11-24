@@ -10,24 +10,45 @@
 				"reveal": "never"
 			},
 			"problemMatcher": [
-				"$tsc"
+				"$esbuild"
 			]
 		},
+
 		{
-			"type": "npm",
-			"script": "watch",
-			"isBackground": true,
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
-			"presentation": {
-				"panel": "dedicated",
-				"reveal": "never"
-			},
-			"problemMatcher": [
-				"$tsc-watch"
-			]
-		}
+            "label": "Watch all",
+            "dependsOn": [
+                "Watch Client",
+                "Watch Server"
+            ],
+            "dependsOrder": "parallel",
+            "group": "build",
+            "problemMatcher": [
+                "$esbuild-watch"
+            ],
+            "isBackground": true
+        },
+        {
+            "label": "Watch Client",
+            "type": "npm",
+			"script": "watch-client",
+            "problemMatcher": [
+                "$esbuild-watch"
+            ],
+            "group": "build"
+        },
+        {
+            "label": "Watch Server",
+            "type": "npm",
+			"script": "watch-server",
+            "problemMatcher": [
+                "$esbuild-watch"
+            ],
+            "group": "build"
+        }
+
+
+
+
+
 	]
 }
