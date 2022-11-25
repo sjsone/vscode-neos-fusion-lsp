@@ -71,7 +71,7 @@ export function activate(context: ExtensionContext) {
 		folder = getOuterMostWorkspaceFolder(folder)
 
 		if (!clients.has(folder.uri.toString())) {
-			const debugOptions = { execArgv: ["--nolazy", `--inspect=${6011 + clients.size}`] }
+			const debugOptions = { execArgv: ["--nolazy", `--inspect-brk=${6011 + clients.size}`] }
 			const serverOptions: ServerOptions = {
 				run: { module, transport: TransportKind.ipc, options: {} },
 				debug: { module, transport: TransportKind.ipc, options: debugOptions }
