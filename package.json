@@ -41,114 +41,141 @@
     "formulahendry.auto-close-tag"
   ],
   "contributes": {
-    "configuration": {
-      "type": "object",
-      "title": "Neos Fusion Language Server",
-      "properties": {
-        "neosFusionLsp.folders.packages": {
-          "scope": "window",
-          "type": "array",
-          "items": {
-            "type": "string",
-            "title": "Folder path"
+    "configuration": [
+      {
+        "type": "object",
+        "order": 1,
+        "title": "Folders",
+        "properties": {
+          "neosFusionLsp.folders.packages": {
+            "scope": "window",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "title": "Folder path"
+            },
+            "default": [
+              "DistributionPackages",
+              "Packages/Application",
+              "Packages/Framework",
+              "Packages/Plugins",
+              "Packages/Sites",
+              "Packages/Neos",
+              "Packages/Carbon"
+            ],
+            "description": "Folders with packages"
           },
-          "default": [
-            "DistributionPackages",
-            "Packages/Application",
-            "Packages/Framework",
-            "Packages/Plugins",
-            "Packages/Sites",
-            "Packages/Neos",
-            "Packages/Carbon"
-          ],
-          "description": "Folders with packages"
-        },
-        "neosFusionLsp.folders.workspaceAsPackageFallback": {
-          "scope": "window",
-          "type": "boolean",
-          "default": true,
-          "description": "If no packages folders can be found, treat the workspace as a package"
-        },
-        "neosFusionLsp.folders.fusion": {
-          "scope": "window",
-          "type": "array",
-          "items": {
-            "type": "string",
-            "title": "Folder path inside Package"
+          "neosFusionLsp.folders.workspaceAsPackageFallback": {
+            "scope": "window",
+            "type": "boolean",
+            "default": true,
+            "description": "If no packages folders can be found, treat the workspace as a package"
           },
-          "default": [
-            "Resources/Private/Fusion",
-            "Resources/Private/FusionModules",
-            "Resources/Private/FusionPlugins",
-            "NodeTypes"
-          ],
-          "description": "Fusion Folder inside Package"
-        },
-        "neosFusionLsp.folders.ignore": {
-          "scope": "window",
-          "type": "array",
-          "items": {
-            "type": "string",
-            "title": "Folder path"
+          "neosFusionLsp.folders.fusion": {
+            "scope": "window",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "title": "Folder path inside Package"
+            },
+            "default": [
+              "Resources/Private/Fusion",
+              "Resources/Private/FusionModules",
+              "Resources/Private/FusionPlugins",
+              "NodeTypes"
+            ],
+            "description": "Fusion Folder inside Package"
           },
-          "default": [
-            "Packages/Libraries"
-          ],
-          "description": "Folders to ignore"
-        },
-        "neosFusionLsp.diagnostics.enabled": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable diagnostics feature."
-        },
-        "neosFusionLsp.diagnostics.ignore.folders": {
-          "scope": "window",
-          "type": "array",
-          "items": {
-            "type": "string",
-            "title": "Folder path"
+          "neosFusionLsp.folders.ignore": {
+            "scope": "window",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "title": "Folder path"
+            },
+            "default": [
+              "Packages/Libraries"
+            ],
+            "description": "Folders to ignore"
+          }
+        }
+      },
+      {
+        "title": "Diagnostics",
+        "order": 2,
+        "properties": {
+          "neosFusionLsp.diagnostics.enabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable diagnostics feature."
           },
-          "default": [
-            "Packages/"
-          ],
-          "description": "Folders to ignore automatic diagnostics in"
-        },
-        "neosFusionLsp.logging.level": {
-          "type": "string",
-          "default": "info",
-          "enum": [
-            "info",
-            "verbose",
-            "debug"
-          ],
-          "enumDescriptions": [
-            "Just some general information",
-            "A bit more explaining and additional information",
-            "Shows everything it can"
-          ]
-        },
-        "neosFusionLsp.extensions.modify": {
-          "type": "boolean",
-          "default": true,
-          "description": "Allow modification of a few settings of other extensions to improve the experience."
-        },
-        "neosFusionLsp.inlayHint.depth": {
-          "type": "string",
-          "default": "literal",
-          "description": "Set if or when inlay hints should be showen",
-          "enum": [
-            "disabled",
-            "literal",
-            "always"
-          ],
-          "enumDescriptions": [
-            "Disable Inlay Hints",
-            "Only show Inlay Hints on literals",
-            "Always show Inlay Hints"
-          ]
+          "neosFusionLsp.diagnostics.ignore.folders": {
+            "scope": "window",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "title": "Folder path"
+            },
+            "default": [
+              "Packages/"
+            ],
+            "description": "Folders to ignore automatic diagnostics in"
+          }
+        }
+      },
+      {
+        "title": "Logging",
+        "order": 3,
+        "properties": {
+          "neosFusionLsp.logging.level": {
+            "type": "string",
+            "default": "info",
+            "enum": [
+              "info",
+              "verbose",
+              "debug"
+            ],
+            "enumDescriptions": [
+              "Just some general information",
+              "A bit more explaining and additional information",
+              "Shows everything it can"
+            ]
+          }
+        }
+      },
+      {
+        "title": "Extensions",
+        "order": 4,
+        "properties": {
+          "neosFusionLsp.extensions.modify": {
+            "type": "boolean",
+            "default": true,
+            "description": "Allow modification of a few settings of other extensions to improve the experience."
+          }
+        }
+      },
+      {
+        "title": "Hints",
+        "order": 5,
+        "properties": {
+          "neosFusionLsp.inlayHint.depth": {
+            "type": "string",
+            "default": "literal",
+            "description": "Set if or when inlay hints should be showen",
+            "enum": [
+              "disabled",
+              "literal",
+              "always"
+            ],
+            "enumDescriptions": [
+              "Disable Inlay Hints",
+              "Only show Inlay Hints on literals",
+              "Always show Inlay Hints"
+            ]
+          }
         }
       }
-    }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "yarn run compile",
