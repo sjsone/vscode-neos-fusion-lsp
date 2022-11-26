@@ -20,6 +20,7 @@ export interface ExtensionConfiguration {
         level: LoggingLevel
     },
     diagnostics: {
+        // TODO: Add EEL-Helper configuration
         enabled: boolean,
         ignore: {
             folders: string[]
