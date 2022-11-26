@@ -1,8 +1,8 @@
 import * as NodeFs from 'fs'
 import * as NodePath from 'path'
-import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
-import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode'
-import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode'
+import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
+import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment'
@@ -25,18 +25,18 @@ export class CompletionCapability extends AbstractCapability {
 			const foundNode = foundNodeByLine.getNode()
 			switch (true) {
 				case foundNode instanceof ObjectStatement:
-					completions.push(...this.getObjectStatementCompletions(workspace, <any>foundNodeByLine))
+					completions.push(...this.getObjectStatementCompletions(workspace, <LinePositionedNode<ObjectStatement>>foundNodeByLine))
 					break
 				case foundNode instanceof FusionObjectValue:
 				case foundNode instanceof PrototypePathSegment:
-					completions.push(...this.getPrototypeCompletions(workspace, <any>foundNodeByLine))
+					completions.push(...this.getPrototypeCompletions(workspace, <LinePositionedNode<FusionObjectValue | PrototypePathSegment>>foundNodeByLine))
 					break
 				case foundNode instanceof ObjectPathNode:
-					completions.push(...this.getEelHelperCompletions(workspace, foundNodeByLine))
-					completions.push(...this.getFusionPropertyCompletions(workspace, foundNodeByLine))
+					completions.push(...this.getEelHelperCompletions(workspace, <LinePositionedNode<ObjectPathNode>>foundNodeByLine))
+					completions.push(...this.getFusionPropertyCompletions(workspace, <LinePositionedNode<ObjectPathNode>>foundNodeByLine))
 					break
 				case foundNode instanceof ResourceUriNode:
-					completions.push(...this.getResourceUriCompletions(workspace, <any>foundNodeByLine))
+					completions.push(...this.getResourceUriCompletions(workspace, <LinePositionedNode<ResourceUriNode>>foundNodeByLine))
 			}
 		}
 
@@ -47,12 +47,12 @@ export class CompletionCapability extends AbstractCapability {
 
 	protected getObjectStatementCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectStatement>) {
 		const node = foundNode.getNode()
-		if (node.operation === null || node.operation["position"].start !== node.operation["position"].end) return []
+		if (node.operation === null || node.operation["position"].begin !== node.operation["position"].end) return []
 
 		return this.getPropertyDefinitionSegments(node, workspace)
 	}
 
-	protected getFusionPropertyCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<any>): CompletionItem[] {
+	protected getFusionPropertyCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {
 		const node = <ObjectPathNode>foundNode.getNode()
 		const objectNode = <ObjectNode>node["parent"]
 		if (!(objectNode instanceof ObjectNode)) return null
@@ -100,10 +100,10 @@ export class CompletionCapability extends AbstractCapability {
 		return completions
 	}
 
-	protected getEelHelperCompletions(fusionWorkspace: FusionWorkspace, foundNode: LinePositionedNode<any>): CompletionItem[] {
-		const node = <ObjectPathNode>foundNode.getNode()
+	protected getEelHelperCompletions(fusionWorkspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {
+		const node = foundNode.getNode()
 		const objectNode = <ObjectNode>node["parent"]
-		const linePositionedObjectNode = LinePositionedNode.Get(<any>objectNode)
+		const linePositionedObjectNode = LinePositionedNode.Get(objectNode)
 		const fullPath = objectNode["path"].map(part => part["value"]).join(".")
 		const completions: CompletionItem[] = []
 
@@ -121,7 +121,7 @@ export class CompletionCapability extends AbstractCapability {
 		return completions
 	}
 
-	protected createCompletionItem(label: string, linePositioneNode: LinePositionedNode<any>, kind: CompletionItemKind): CompletionItem {
+	protected createCompletionItem(label: string, linePositioneNode: LinePositionedNode<AbstractNode>, kind: CompletionItemKind): CompletionItem {
 		return {
 			label,
 			kind,

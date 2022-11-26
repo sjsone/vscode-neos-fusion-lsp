@@ -1,4 +1,4 @@
-import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
+import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/DslExpressionValue'
 import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/EelExpressionValue'
 import { FusionFile } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionFile'
@@ -13,7 +13,7 @@ import { ValueCopy } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/Valu
 import { FusionWorkspace } from './fusion/FusionWorkspace'
 import { findParent, findUntil, getObjectIdentifier } from './util'
 import { AbstractPathValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractPathValue'
-import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode'
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 
 export class ExternalObjectStatement {
 	statement: ObjectStatement
@@ -44,8 +44,9 @@ class NodeService {
 			return true
 		})
 
-		if (foundParentOperationPrototype) {
-			return (<any>foundParentOperationPrototype).operation.pathValue.value
+		if (foundParentOperationPrototype instanceof ObjectStatement) {
+			const operation = <ValueAssignment>(<ObjectStatement>foundParentOperationPrototype).operation
+			return (<FusionObjectValue>operation.pathValue).value
 		}
 		return ""
 	}

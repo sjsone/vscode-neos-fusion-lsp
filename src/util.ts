@@ -1,16 +1,16 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
-import { AbstractNode as AbstractEelNode } from 'ts-fusion-parser/out/eel/nodes/AbstractNode'
-import { LiteralStringNode } from 'ts-fusion-parser/out/eel/nodes/LiteralStringNode'
-import { LiteralNumberNode } from 'ts-fusion-parser/out/eel/nodes/LiteralNumberNode'
-import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode'
+import { AbstractNode as AbstractEelNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode'
+import { LiteralNumberNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNumberNode'
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment'
 import { StringValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StringValue'
 import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/EelExpressionValue'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment'
-import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode'
+import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
 import { FqcnNode } from './fusion/FqcnNode'
 import { PhpClassMethodNode } from './fusion/PhpClassMethodNode'
 import { PhpClassNode } from './fusion/PhpClassNode'
@@ -76,11 +76,11 @@ export function mergeObjects(source: unknown, target: unknown) {
     return target // we're replacing in-situ, so this is more for chaining than anything else
 }
 
-export function findParent<T extends new (...args: any) => AbstractNode>(node: any, parentType: T): InstanceType<T> | undefined {
+export function findParent<T extends new (...args: any) => AbstractNode>(node: AbstractNode, parentType: T): InstanceType<T> | undefined {
     let parent = node["parent"]
     while (parent) {
-        if (parent instanceof <any>parentType) {
-            return parent
+        if (parent instanceof parentType) {
+            return <InstanceType<T>>parent
         }
         parent = parent["parent"]
     }

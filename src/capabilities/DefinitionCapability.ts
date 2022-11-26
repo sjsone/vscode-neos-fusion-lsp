@@ -11,11 +11,11 @@ import { LinePositionedNode } from '../LinePositionedNode'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { getPrototypeNameFromNode } from '../util'
 import { AbstractCapability } from './AbstractCapability'
-import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode'
-import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
+import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
+import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { NodeService } from '../NodeService'
 import { CapabilityContext } from './CapabilityContext'
-import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode'
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { FqcnNode } from '../fusion/FqcnNode'
 import { ClassDefinition } from '../neos/NeosPackageNamespace'
 import { ResourceUriNode } from '../fusion/ResourceUriNode'
@@ -47,7 +47,7 @@ export class DefinitionCapability extends AbstractCapability {
 		return null
 	}
 
-	getPrototypeDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<any>) {
+	getPrototypeDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<AbstractNode>) {
 		const goToPrototypeName = getPrototypeNameFromNode(foundNodeByLine.getNode())
 		if (goToPrototypeName === "") return null
 
@@ -69,7 +69,7 @@ export class DefinitionCapability extends AbstractCapability {
 		return locations
 	}
 
-	getPropertyDefinitions(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<any>): null | Location[] {
+	getPropertyDefinitions(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<AbstractNode>): null | Location[] {
 		const node = <PathSegment | ObjectPathNode>foundNodeByLine.getNode()
 		const objectNode = node["parent"]
 		if (!(objectNode instanceof ObjectNode)) return null

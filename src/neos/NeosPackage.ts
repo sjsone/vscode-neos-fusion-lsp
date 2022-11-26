@@ -60,7 +60,7 @@ export class NeosPackage extends Logger {
 
 		if (neosConfiguration["parsedYamlConfiguration"] === null) return undefined
 
-		const defaultNeosFusionContext = neosConfiguration.get<any>("Neos.Fusion.defaultContext")
+		const defaultNeosFusionContext = neosConfiguration.get<{}>("Neos.Fusion.defaultContext")
 		if (!defaultNeosFusionContext) return undefined
 
 		this.logVerbose("Found EEL-Helpers:")

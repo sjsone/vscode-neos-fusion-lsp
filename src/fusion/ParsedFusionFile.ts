@@ -1,8 +1,8 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { ObjectTreeParser } from 'ts-fusion-parser'
-import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode'
-import { NodePosition } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/NodePosition'
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { NodePosition } from 'ts-fusion-parser/out/common/NodePosition'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment'
@@ -13,10 +13,10 @@ import { PhpClassMethodNode } from './PhpClassMethodNode'
 import { PhpClassNode } from './PhpClassNode'
 import { FusionWorkspace } from './FusionWorkspace'
 import { LinePositionedNode } from '../LinePositionedNode'
-import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode'
-import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectFunctionPathNode'
-import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
-import { TagNode } from 'ts-fusion-parser/out/afx/nodes/TagNode'
+import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
+import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
+import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
+import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 import { findParent, getNodeWeight, uriToPath } from '../util'
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver'
 import { DefinitionCapability } from '../capabilities/DefinitionCapability'
@@ -24,7 +24,7 @@ import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/as
 import { StringValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StringValue'
 import { FqcnNode } from './FqcnNode'
 import { ResourceUriNode } from './ResourceUriNode'
-import { TagAttributeNode } from 'ts-fusion-parser/out/afx/nodes/TagAttributeNode'
+import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
 
 export class ParsedFusionFile {
 	public workspace: FusionWorkspace
@@ -100,7 +100,7 @@ export class ParsedFusionFile {
 				for (const method of currentPath) {
 					const value = method["value"]
 					nameParts.push(value)
-					if (position.start === -1) position.start = method["position"].begin
+					if (position.begin === -1) position.begin = method["position"].begin
 					position.end = method["position"].end
 				}
 
@@ -142,7 +142,7 @@ export class ParsedFusionFile {
 			const value = node.value.substring(1, node.value.length - 1)
 			if (value.startsWith("resource://")) {
 				const position: NodePosition = {
-					start: node["position"].end - value.length - 1,
+					begin: node["position"].end - value.length - 1,
 					end: node["position"].end
 				}
 				const resourceUriNode = new ResourceUriNode(value, position)
@@ -236,7 +236,7 @@ export class ParsedFusionFile {
 			if (pathBegin !== "props") continue
 			if (node["path"].length === 1) continue
 			if (node["path"][1]["value"] === "content") continue
-			const definition = definitionCapability.getPropertyDefinitions(this, this.workspace, LinePositionedNode.Get(<any>node["path"][0]))
+			const definition = definitionCapability.getPropertyDefinitions(this, this.workspace, LinePositionedNode.Get(node["path"][0]))
 			if (definition) continue
 
 			const objectStatementText = node["path"].map(e => e["value"]).join(".")
@@ -283,11 +283,11 @@ export class ParsedFusionFile {
 	protected diagnoseTagNames() {
 		const diagnostics: Diagnostic[] = []
 
-		const positionedTagNodes = <LinePositionedNode<any>[]>this.nodesByType.get(<any>TagNode)
+		const positionedTagNodes = <LinePositionedNode<TagNode>[]>this.nodesByType.get(TagNode)
 		if (positionedTagNodes === undefined) return diagnostics
 
 		for (const positionedTagNode of positionedTagNodes) {
-			const node = <TagNode>positionedTagNode.getNode()
+			const node = positionedTagNode.getNode()
 			if (!node["selfClosing"]) continue
 			if (node["end"]["name"] === "/>") continue
 			const diagnostic: Diagnostic = {
@@ -304,21 +304,21 @@ export class ParsedFusionFile {
 	protected diagnoseEelHelperArguments() {
 		const diagnostics: Diagnostic[] = []
 		const positionedNodes = this.getNodesByType(PhpClassMethodNode)
-		if(!positionedNodes) return diagnostics
+		if (!positionedNodes) return diagnostics
 		for (const positionedNode of positionedNodes) {
 			const node = positionedNode.getNode()
 			const pathNode = node.pathNode
-			if(!(pathNode instanceof ObjectFunctionPathNode)) continue
+			if (!(pathNode instanceof ObjectFunctionPathNode)) continue
 
 			for (const eelHelper of this.workspace.neosWorkspace.getEelHelperTokens()) {
 				if (eelHelper.name !== node.eelHelper.identifier) continue
 				const method = eelHelper.methods.find(method => method.valid(node.identifier))
 				if (!method) continue
 
-				for(const parameterIndex in method.parameters) {
+				for (const parameterIndex in method.parameters) {
 					const parameter = method.parameters[parameterIndex]
-					if(parameter.defaultValue !== undefined) break
-					if(pathNode.args[parameterIndex] === undefined) {
+					if (parameter.defaultValue !== undefined) break
+					if (pathNode.args[parameterIndex] === undefined) {
 						const diagnostic: Diagnostic = {
 							severity: DiagnosticSeverity.Error,
 							range: positionedNode.getPositionAsRange(),
@@ -328,12 +328,12 @@ export class ParsedFusionFile {
 						diagnostics.push(diagnostic)
 					}
 				}
-				
-				if(pathNode.args.length > method.parameters.length) {
-					for(const exceedingArgument of pathNode.args.slice(method.parameters.length)){
+
+				if (pathNode.args.length > method.parameters.length) {
+					for (const exceedingArgument of pathNode.args.slice(method.parameters.length)) {
 						const diagnostic: Diagnostic = {
 							severity: DiagnosticSeverity.Warning,
-							range: LinePositionedNode.Get(<any>exceedingArgument).getPositionAsRange(),
+							range: LinePositionedNode.Get(exceedingArgument).getPositionAsRange(),
 							message: `Too many arguments provided`,
 							source: 'Fusion LSP'
 						}
@@ -394,7 +394,7 @@ export class ParsedFusionFile {
 		}
 	}
 
-	getNodeByLineAndColumn(line: number, column: number): LinePositionedNode<any> | undefined {
+	getNodeByLineAndColumn(line: number, column: number): LinePositionedNode<AbstractNode> | undefined {
 		const lineNodes = this.nodesByLine[line]
 		if (lineNodes === undefined) return undefined
 
