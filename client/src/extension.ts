@@ -1,6 +1,6 @@
 import * as path from 'path'
 import {
-	workspace as Workspace, window as Window, ExtensionContext, TextDocument, OutputChannel, WorkspaceFolder, Uri, workspace
+	workspace as Workspace, window as Window, ExtensionContext, TextDocument, OutputChannel, WorkspaceFolder, Uri, workspace, ExtensionMode
 } from 'vscode'
 
 import {
@@ -72,8 +72,12 @@ export function activate(context: ExtensionContext) {
 
 		if (!clients.has(folder.uri.toString())) {
 			const debugOptions = { execArgv: ["--nolazy", `--inspect-brk=${6011 + clients.size}`] }
+			const runOptions = { execArgv: [] }
+			if (context.extensionMode === ExtensionMode.Development && process.env.SERVER_INSPECT_BREAK === "true") {
+				runOptions.execArgv.push(`--inspect-brk=${6011 + clients.size}`)
+			}
 			const serverOptions: ServerOptions = {
-				run: { module, transport: TransportKind.ipc, options: {} },
+				run: { module, transport: TransportKind.ipc, options: runOptions },
 				debug: { module, transport: TransportKind.ipc, options: debugOptions }
 			}
 			const documentSelector = [{ scheme: 'file', language: 'fusion', pattern: `${folder.uri.fsPath}/**/*` }]

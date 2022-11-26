@@ -3,32 +3,56 @@
 	// List of configurations. Add new configurations or edit existing ones.
 	"configurations": [
 		{
+			"name": "Launch Client",
 			"type": "extensionHost",
 			"request": "launch",
-			"name": "Launch Client with bundle",
 			"runtimeExecutable": "${execPath}",
-			"args": ["--extensionDevelopmentPath=${workspaceRoot}" ],
+			"args": [
+				"--extensionDevelopmentPath=${workspaceRoot}"
+			],
 			"sourceMaps": true,
-			"outFiles": ["${workspaceRoot}/client/out/**/*.js"],
+			"outFiles": [
+				"${workspaceRoot}/client/out/**/*.js"
+			],
 			"preLaunchTask": "npm: compile"
 		},
 		{
+			"name": "Launch Client for server debugging",
+			"type": "extensionHost",
+			"request": "launch",
+			"runtimeExecutable": "${execPath}",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceRoot}"
+			],
+			"env": {
+				"SERVER_INSPECT_BREAK": "true"
+			},
+			"sourceMaps": true,
+			"outFiles": [
+				"${workspaceRoot}/client/out/**/*.js"
+			],
+			"preLaunchTask": "npm: compile-without-minify"
+		},
+		{
+			"name": "Attach to Server 6011",
 			"type": "node",
 			"request": "attach",
-			"name": "Attach to Server 6011",
 			"address": "localhost",
 			"port": 6011,
 			"sourceMaps": true,
-			"outFiles": ["${workspaceRoot}/server/out/**/*.js"]
-		},
+			"outFiles": [
+				"${workspaceRoot}/server/out/**/*.js"
+			]
+		}
+	],
+	"compounds": [
 		{
-			"type": "node",
-			"request": "attach",
-			"name": "Attach to Server 6012",
-			"address": "localhost",
-			"port": 6012,
-			"sourceMaps": true,
-			"outFiles": ["${workspaceRoot}/server/out/**/*.js"]
+			"name": "Launch client and debug server",
+			"configurations": [
+				"Launch Client for server debugging",
+				"Attach to Server 6011"
+			],
+			
 		}
 	]
 }
