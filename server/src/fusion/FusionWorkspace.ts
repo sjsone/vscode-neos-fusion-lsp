@@ -9,6 +9,7 @@ import { ParsedFusionFile } from './ParsedFusionFile'
 import { getFiles, pathToUri, uriToPath } from '../util'
 import { Logger, LogService } from '../Logging'
 import { LanguageServer } from '../LanguageServer'
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 
 export class FusionWorkspace extends Logger {
     public uri: string
@@ -152,7 +153,7 @@ export class FusionWorkspace extends Logger {
         return this.parsedFiles.find(file => file.uri === uri)
     }
 
-    getNodesByType<T extends abstract new (...args: any) => any>(type: T): Array<{ uri: string, nodes: LinePositionedNode<InstanceType<T>>[] }> {
+    getNodesByType<T extends new (...args: unknown[]) => AbstractNode>(type: T): Array<{ uri: string, nodes: LinePositionedNode<InstanceType<T>>[] }> {
         const nodes = []
         for (const file of this.parsedFiles) {
             const fileNodes = file.nodesByType.get(type)
