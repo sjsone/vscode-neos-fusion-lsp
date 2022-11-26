@@ -124,21 +124,22 @@
         }
       },
       {
-        "title": "Logging",
+        "title": "Hints",
         "order": 3,
         "properties": {
-          "neosFusionLsp.logging.level": {
+          "neosFusionLsp.inlayHint.depth": {
             "type": "string",
-            "default": "info",
+            "default": "literal",
+            "description": "Set if or when inlay hints should be showen",
             "enum": [
-              "info",
-              "verbose",
-              "debug"
+              "disabled",
+              "literal",
+              "always"
             ],
             "enumDescriptions": [
-              "Just some general information",
-              "A bit more explaining and additional information",
-              "Shows everything it can"
+              "Disable Inlay Hints",
+              "Only show Inlay Hints on literals",
+              "Always show Inlay Hints"
             ]
           }
         }
@@ -155,22 +156,21 @@
         }
       },
       {
-        "title": "Hints",
+        "title": "Logging",
         "order": 5,
         "properties": {
-          "neosFusionLsp.inlayHint.depth": {
+          "neosFusionLsp.logging.level": {
             "type": "string",
-            "default": "literal",
-            "description": "Set if or when inlay hints should be showen",
+            "default": "info",
             "enum": [
-              "disabled",
-              "literal",
-              "always"
+              "info",
+              "verbose",
+              "debug"
             ],
             "enumDescriptions": [
-              "Disable Inlay Hints",
-              "Only show Inlay Hints on literals",
-              "Always show Inlay Hints"
+              "Just some general information",
+              "A bit more explaining and additional information",
+              "Shows everything it can"
             ]
           }
         }
