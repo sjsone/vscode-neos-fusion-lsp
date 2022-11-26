@@ -1,4 +1,4 @@
-import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode'
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { NodePosition } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/NodePosition'
 import { AstNodeVisitorInterface } from 'ts-fusion-parser/out/fusion/objectTreeParser/astNodeVisitorInterface'
 import { ClassDefinition } from '../neos/NeosPackageNamespace'

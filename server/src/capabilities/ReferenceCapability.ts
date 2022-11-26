@@ -1,3 +1,4 @@
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
 import { Location } from 'vscode-languageserver/node'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
@@ -7,7 +8,7 @@ import { CapabilityContext } from './CapabilityContext'
 
 export class ReferenceCapability extends AbstractCapability {
 
-	protected run(context: CapabilityContext<any>): any {
+	protected run(context: CapabilityContext<AbstractNode>): any {
 		const { workspace, foundNodeByLine } = context
 
 		this.logVerbose(`Found node type "${foundNodeByLine.getNode().constructor.name}"`)

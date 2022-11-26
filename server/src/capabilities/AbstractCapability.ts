@@ -1,4 +1,4 @@
-import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode'
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { TextDocumentPositionParams } from 'vscode-languageserver/node'
 import { LanguageServer } from '../LanguageServer'
 import { Logger } from '../Logging'
@@ -25,7 +25,7 @@ export abstract class AbstractCapability extends Logger {
 
 	protected abstract run<N extends AbstractNode>(capabilityContext: CapabilityContext<N>): any
 
-	protected buildContextFromParams(params: TextDocumentPositionParams): CapabilityContext<any> {
+	protected buildContextFromParams(params: TextDocumentPositionParams): CapabilityContext<AbstractNode> {
 		const uri = params.textDocument.uri
 		const line = params.position.line
 		const column = params.position.character

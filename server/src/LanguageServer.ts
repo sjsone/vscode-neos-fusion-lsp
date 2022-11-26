@@ -24,13 +24,13 @@ import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFe
 
 export class LanguageServer extends Logger {
 
-	protected connection: _Connection<any>
+	protected connection: _Connection
 	protected documents: TextDocuments<FusionDocument>
 	protected fusionWorkspaces: FusionWorkspace[] = []
 	protected capabilities: Map<string, AbstractCapability> = new Map()
 	protected languageFeatures: Map<string, AbstractLanguageFeature> = new Map()
 
-	constructor(connection: _Connection<any>, documents: TextDocuments<FusionDocument>) {
+	constructor(connection: _Connection, documents: TextDocuments<FusionDocument>) {
 		super()
 		this.connection = connection
 		this.documents = documents
@@ -71,7 +71,7 @@ export class LanguageServer extends Logger {
 		this.logVerbose(`Document opened: ${event.document.uri.replace(workspace.getUri(), "")}`)
 	}
 
-	public onInitialize(params: InitializeParams): InitializeResult<any> {
+	public onInitialize(params: InitializeParams): InitializeResult {
 		this.logVerbose("onInitialize")
 
 		for (const workspaceFolder of params.workspaceFolders) {

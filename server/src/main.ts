@@ -27,7 +27,7 @@ documents.onDidOpen((event) => {
 })
 
 connection.onInitialize((params) => {
-    return <any>languageserver.onInitialize(params)
+    return languageserver.onInitialize(params)
 })
 
 connection.onDidChangeWatchedFiles((params) => {

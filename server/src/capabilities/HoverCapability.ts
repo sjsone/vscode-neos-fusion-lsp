@@ -1,9 +1,9 @@
 import * as NodePath from 'path'
 import * as NodeFs from 'fs'
 
-import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectFunctionPathNode'
-import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
-import { ObjectPathNode } from 'ts-fusion-parser/out/eel/nodes/ObjectPathNode'
+import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
+import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
+import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment'
@@ -19,10 +19,11 @@ import { abstractNodeToString, findParent, getPrototypeNameFromNode } from '../u
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext } from './CapabilityContext'
 import { ResourceUriNode } from '../fusion/ResourceUriNode'
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 
 export class HoverCapability extends AbstractCapability {
 
-	public run(context: CapabilityContext<any>) {
+	public run(context: CapabilityContext<AbstractNode>) {
 		const markdown = this.getMarkdownByNode(context.foundNodeByLine, context.parsedFile, context.workspace)
 		if (markdown === null) return null
 
@@ -32,7 +33,7 @@ export class HoverCapability extends AbstractCapability {
 		}
 	}
 
-	protected getMarkdownByNode(foundNodeByLine: LinePositionedNode<any>, parsedFile: ParsedFusionFile, workspace: FusionWorkspace) {
+	protected getMarkdownByNode(foundNodeByLine: LinePositionedNode<AbstractNode>, parsedFile: ParsedFusionFile, workspace: FusionWorkspace) {
 		const node = foundNodeByLine.getNode()
 		// return `Type: ${node.constructor.name}`
 		this.logVerbose(`FoundNode: ` + node.constructor.name)
@@ -40,7 +41,7 @@ export class HoverCapability extends AbstractCapability {
 		switch (true) {
 			case node instanceof FusionObjectValue:
 			case node instanceof PrototypePathSegment:
-				return this.getMarkdownForPrototypeName(workspace, node)
+				return this.getMarkdownForPrototypeName(workspace, <FusionObjectValue | PrototypePathSegment>node)
 			case node instanceof PathSegment:
 				return `property **${node["identifier"]}**`
 			case node instanceof PhpClassNode:
@@ -50,9 +51,9 @@ export class HoverCapability extends AbstractCapability {
 			case node instanceof ObjectPathNode:
 				return this.getMarkdownForObjectPath(workspace, foundNodeByLine)
 			case node instanceof PhpClassMethodNode:
-				return this.getMarkdownForEelHelperMethod(node, workspace)
+				return this.getMarkdownForEelHelperMethod(<PhpClassMethodNode>node, workspace)
 			case node instanceof ResourceUriNode:
-				return this.getMarkdownForResourceUri(node, workspace)
+				return this.getMarkdownForResourceUri(<ResourceUriNode>node, workspace)
 			default:
 				return null
 		}
@@ -74,7 +75,7 @@ export class HoverCapability extends AbstractCapability {
 				for (const statement of <ObjectStatement[]>otherObjectStatement.block.statementList.statements) {
 					let statementName = statement["path"].segments.map(abstractNodeToString).filter(Boolean).join(".")
 					if (statement.operation instanceof ValueAssignment) {
-						statementName += ` = ${abstractNodeToString(<any>statement.operation.pathValue)}`
+						statementName += ` = ${abstractNodeToString(statement.operation.pathValue)}`
 					}
 
 					statementsNames.push(statementName)
@@ -90,9 +91,9 @@ export class HoverCapability extends AbstractCapability {
 		].join("\n")
 	}
 
-	getMarkdownForObjectPath(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<any>) {
+	getMarkdownForObjectPath(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<AbstractNode>) {
 		const node = foundNodeByLine.getNode()
-		const objectNode = node.parent
+		const objectNode = node["parent"]
 		if (!(objectNode instanceof ObjectNode)) return null
 
 		if (objectNode.path[0]["value"] === "this" || objectNode.path[0]["value"] === "props") {
@@ -105,7 +106,7 @@ export class HoverCapability extends AbstractCapability {
 				if (!statement) return null
 				if (!(statement.operation instanceof ValueAssignment)) return null
 
-				const stringified = abstractNodeToString(<any>statement.operation.pathValue)
+				const stringified = abstractNodeToString(statement.operation.pathValue)
 				const name = (<ObjectPathNode><unknown>node)["value"]
 				if (stringified !== undefined) {
 					return [

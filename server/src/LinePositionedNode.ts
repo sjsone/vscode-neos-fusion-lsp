@@ -1,5 +1,4 @@
-import { ObjectNode } from 'ts-fusion-parser/out/eel/nodes/ObjectNode'
-import { AbstractNode } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractNode'
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { Range } from 'vscode-languageserver'
 import { getLineNumberOfChar } from './util'
 
@@ -20,7 +19,7 @@ export class LinePositionedNode<T extends AbstractNode> {
 		this.node["linePositionedNode"] = this
 
 		if (node["position"] !== undefined && text !== undefined) {
-			const begin = node["position"].start ?? (<any>node["position"]).begin
+			const begin = node["position"].begin ?? (node["position"]).begin
 			this.start = getLineNumberOfChar(text, begin)
 			this.end = getLineNumberOfChar(text, node["position"].end)
 		}
