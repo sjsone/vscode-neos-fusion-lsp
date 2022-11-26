@@ -36,7 +36,7 @@ export class ParsedFusionFile {
 	public prototypeExtends: LinePositionedNode<AbstractNode>[] = []
 
 	public nodesByLine: { [key: string]: LinePositionedNode<AbstractNode>[] } = {}
-	public nodesByType: Map<any, LinePositionedNode<AbstractNode>[]> = new Map()
+	public nodesByType: Map<new (...args: unknown[]) => AbstractNode, LinePositionedNode<AbstractNode>[]> = new Map()
 
 	public ignoredDueToError = false
 	public igoredErrorsByParser: Error[] = []
@@ -221,14 +221,14 @@ export class ParsedFusionFile {
 	protected diagnoseFusionProperties() {
 		const diagnostics: Diagnostic[] = []
 
-		const positionedObjectNodes = this.nodesByType.get(ObjectNode)
+		const positionedObjectNodes = this.getNodesByType(ObjectNode)
 		if (positionedObjectNodes === undefined) return diagnostics
 
 		// TODO: Put logic of DefinitionCapability in a Provider/Service instead of using a Capability 
 		const definitionCapability = new DefinitionCapability(this.workspace.languageServer)
 
 		for (const positionedObjectNode of positionedObjectNodes) {
-			const node = <ObjectNode><unknown>positionedObjectNode.getNode()
+			const node = positionedObjectNode.getNode()
 			const objectStatement = findParent(node, ObjectStatement)
 			if (objectStatement === undefined) continue
 			if (objectStatement.path.segments[0] instanceof MetaPathSegment) continue
