@@ -45,11 +45,11 @@ export class HoverCapability extends AbstractCapability {
 			case node instanceof PathSegment:
 				return `property **${node["identifier"]}**`
 			case node instanceof PhpClassNode:
-				return `EEL-Helper **${(<PhpClassNode>node).identifier}**`
+				return `EEL-Helper **${node["identifier"]}**`
 			case node instanceof ObjectFunctionPathNode:
-				return `EEL-Function **${(<ObjectPathNode><unknown>node)["value"]}**`
+				return `EEL-Function **${node["value"]}**`
 			case node instanceof ObjectPathNode:
-				return this.getMarkdownForObjectPath(workspace, foundNodeByLine)
+				return this.getMarkdownForObjectPath(workspace, <LinePositionedNode<ObjectPathNode>>foundNodeByLine)
 			case node instanceof PhpClassMethodNode:
 				return this.getMarkdownForEelHelperMethod(<PhpClassMethodNode>node, workspace)
 			case node instanceof ResourceUriNode:
@@ -91,7 +91,7 @@ export class HoverCapability extends AbstractCapability {
 		].join("\n")
 	}
 
-	getMarkdownForObjectPath(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<AbstractNode>) {
+	getMarkdownForObjectPath(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<ObjectPathNode>) {
 		const node = foundNodeByLine.getNode()
 		const objectNode = node["parent"]
 		if (!(objectNode instanceof ObjectNode)) return null
@@ -107,7 +107,7 @@ export class HoverCapability extends AbstractCapability {
 				if (!(statement.operation instanceof ValueAssignment)) return null
 
 				const stringified = abstractNodeToString(statement.operation.pathValue)
-				const name = (<ObjectPathNode><unknown>node)["value"]
+				const name = node["value"]
 				if (stringified !== undefined) {
 					return [
 						`EEL **${name}**`,
@@ -119,7 +119,7 @@ export class HoverCapability extends AbstractCapability {
 			}
 		}
 
-		return `EEL **${(<ObjectPathNode><unknown>node)["value"]}**`
+		return `EEL **${node["value"]}**`
 	}
 
 	getMarkdownForEelHelperMethod(node: PhpClassMethodNode, workspace: FusionWorkspace) {
