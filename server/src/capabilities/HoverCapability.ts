@@ -123,16 +123,27 @@ export class HoverCapability extends AbstractCapability {
 	}
 
 	getMarkdownForEelHelperMethod(node: PhpClassMethodNode, workspace: FusionWorkspace) {
-		let description = undefined
+		const header = `EEL-Helper *${(<PhpClassMethodNode>node).eelHelper.identifier}*.**${(<PhpClassMethodNode>node).identifier}** \n`
 
 		const eelHelper = workspace.neosWorkspace.getEelHelperTokensByName((<PhpClassMethodNode>node).eelHelper.identifier)
 		if (eelHelper) {
 			const method = eelHelper.methods.find(method => method.valid((<PhpClassMethodNode>node).identifier))
-			if (method) description = method.description
+			if (method) {
+
+				const phpParameters = method.parameters.map(p => `${p.type ?? ''}${p.name}${p.defaultValue ?? ''}`).join(", ")
+
+				return [
+					header,
+					method.description,
+					'```php',
+					`<?php`,
+					`${method.name}(${phpParameters})`,
+					'```'
+				].join('\n')
+			}
 		}
 
-		const header = `EEL-Helper *${(<PhpClassMethodNode>node).eelHelper.identifier}*.**${(<PhpClassMethodNode>node).identifier}**`
-		return `${header}` + (description ? '\n\n' + description : '')
+		return header
 	}
 
 	getMarkdownForResourceUri(node: ResourceUriNode, workspace: FusionWorkspace) {
