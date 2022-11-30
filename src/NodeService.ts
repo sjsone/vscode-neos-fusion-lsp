@@ -62,7 +62,9 @@ class NodeService {
 		const objectStatement = objectNode instanceof ObjectStatement ? objectNode : findParent(objectNode, ObjectStatement) // [props.foo]
 
 		let statementList = findParent(objectNode, StatementList)
-		if (getObjectIdentifier(objectStatement).startsWith("renderer.")) {
+		// TODO: get object identifier and match it runtime-like againts the property definition to check if it resolves 
+		if (getObjectIdentifier(objectStatement).startsWith("renderer.") && !getObjectIdentifier(objectStatement).startsWith("renderer.@process")) {
+			console.log("tescht ", getObjectIdentifier(objectStatement))
 			const parentObjectStatement = findParent(statementList, ObjectStatement)
 			if (parentObjectStatement) {
 				const parentOperation = parentObjectStatement.operation
@@ -214,6 +216,7 @@ class NodeService {
 				return false
 			}
 			if (pathValue instanceof FusionObjectValue) {
+				// TODO: Allow more than just `Neos.Fusion:DataStructure` as @apply value
 				if (pathValue.value !== "Neos.Fusion:DataStructure") return false
 				const objectStatement = findParent(pathValue, ObjectStatement)
 				if (!objectStatement.block) return false
