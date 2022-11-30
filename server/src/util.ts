@@ -111,7 +111,7 @@ export function abstractNodeToString(node: AbstractEelNode | AbstractNode): stri
 }
 
 export function getObjectIdentifier(objectStatement: ObjectStatement): string {
-    return objectStatement.path.segments.map(segment => segment["identifier"]).join(".")
+    return objectStatement.path.segments.map(segment => `${segment instanceof MetaPathSegment ? '@' : ''}${segment["identifier"]}`).join(".")
 }
 
 export function getNodeWeight(node: any) {
