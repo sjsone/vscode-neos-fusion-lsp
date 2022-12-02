@@ -16,6 +16,9 @@ import { PhpClassMethodNode } from './fusion/PhpClassMethodNode'
 import { PhpClassNode } from './fusion/PhpClassNode'
 import { ResourceUriNode } from './fusion/ResourceUriNode'
 import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/MetaPathSegment'
+import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
+import { OperationNode } from 'ts-fusion-parser/out/dsl/eel/nodes/OperationNode'
+import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
 
 export function getLineNumberOfChar(data: string, index: number, debug = false) {
     const perLine = data.split('\n')
@@ -102,11 +105,25 @@ export function abstractNodeToString(node: AbstractEelNode | AbstractNode): stri
     // TODO: This should be node.toString() but for now...
     if (node instanceof StringValue) return `"${node["value"]}"`
     if (node instanceof LiteralNumberNode || node instanceof LiteralStringNode || node instanceof FusionObjectValue) return node["value"]
-    if (node instanceof EelExpressionValue) return Array.isArray(node.nodes) ? undefined : abstractNodeToString(<AbstractEelNode>node.nodes)
+    if (node instanceof EelExpressionValue) {
+        if (Array.isArray(node.nodes)) return undefined
+        return `\${${abstractNodeToString(<AbstractEelNode>node.nodes)}}`
+    }
 
     if (node instanceof MetaPathSegment) return "@" + node["identifier"]
     if (node instanceof PathSegment) return node["identifier"]
     if (node instanceof PrototypePathSegment) return `prototype(${node["identifier"]})`
+    if (node instanceof ObjectFunctionPathNode) {
+        return `${node["value"]}(${node["args"].map(abstractNodeToString).join(", ")})`
+    }
+    if (node instanceof ObjectPathNode) return node["value"]
+    if (node instanceof ObjectNode) {
+        return node["path"].map(abstractNodeToString).join(".")
+    }
+    if (node instanceof OperationNode) {
+        return `${abstractNodeToString(node["leftHand"])} ${node["operation"]} ${abstractNodeToString(node["rightHand"])}`
+    }
+
     return undefined
 }
 
