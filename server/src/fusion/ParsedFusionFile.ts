@@ -31,8 +31,8 @@ export class ParsedFusionFile {
 	public uri: string
 	public tokens: any[] = []
 
-	public prototypeCreations: LinePositionedNode<AbstractNode>[] = []
-	public prototypeOverwrites: LinePositionedNode<AbstractNode>[] = []
+	public prototypeCreations: LinePositionedNode<PrototypePathSegment>[] = []
+	public prototypeOverwrites: LinePositionedNode<PrototypePathSegment>[] = []
 	public prototypeExtends: LinePositionedNode<AbstractNode>[] = []
 
 	public nodesByLine: { [key: string]: LinePositionedNode<AbstractNode>[] } = {}
@@ -355,8 +355,8 @@ export class ParsedFusionFile {
 		this.nodesByType = new Map()
 	}
 
-	createNodeByLine(node: AbstractNode, text: string) {
-		return new LinePositionedNode(node, text)
+	createNodeByLine<T extends AbstractNode>(node: T, text: string) {
+		return new LinePositionedNode<T>(node, text)
 	}
 
 	readStatementList(statementList: StatementList, text: string) {
