@@ -6,6 +6,7 @@ import { CapabilityContext } from './CapabilityContext'
 
 export abstract class AbstractCapability extends Logger {
 	protected languageServer: LanguageServer
+	protected noPositionedNode: boolean = false
 
 	constructor(languageServer: LanguageServer) {
 		super()
@@ -27,10 +28,7 @@ export abstract class AbstractCapability extends Logger {
 
 	protected buildContextFromParams(params: TextDocumentPositionParams): CapabilityContext<AbstractNode> {
 		const uri = params.textDocument.uri
-		const line = params.position.line
-		const column = params.position.character
 
-		this.logDebug(`${line}/${column} ${params.textDocument.uri}`)
 
 		const workspace = this.languageServer.getWorkspaceFromFileUri(uri)
 		if (workspace === undefined) return null
@@ -38,14 +36,23 @@ export abstract class AbstractCapability extends Logger {
 		const parsedFile = workspace.getParsedFileByUri(uri)
 		if (parsedFile === undefined) return null
 
-		const foundNodeByLine = parsedFile.getNodeByLineAndColumn(line, column)
-		if (foundNodeByLine === undefined) return null
-
-		return {
+		const context: CapabilityContext<AbstractNode> = {
 			workspace,
 			parsedFile,
-			foundNodeByLine,
 			params
 		}
+
+		if (!this.noPositionedNode) {
+			const line = params.position.line
+			const column = params.position.character
+
+			this.logDebug(`${line}/${column} ${params.textDocument.uri}`)
+			
+			const foundNodeByLine = parsedFile.getNodeByLineAndColumn(line, column)
+			if (foundNodeByLine === undefined) return null
+			context.foundNodeByLine = foundNodeByLine
+		}
+
+		return context
 	}
 }
