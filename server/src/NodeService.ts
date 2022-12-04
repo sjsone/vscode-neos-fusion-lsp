@@ -64,7 +64,6 @@ class NodeService {
 		let statementList = findParent(objectNode, StatementList)
 		// TODO: get object identifier and match it runtime-like againts the property definition to check if it resolves 
 		if (getObjectIdentifier(objectStatement).startsWith("renderer.") && !getObjectIdentifier(objectStatement).startsWith("renderer.@process")) {
-			console.log("tescht ", getObjectIdentifier(objectStatement))
 			const parentObjectStatement = findParent(statementList, ObjectStatement)
 			if (parentObjectStatement) {
 				const parentOperation = parentObjectStatement.operation
