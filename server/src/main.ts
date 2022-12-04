@@ -6,6 +6,7 @@ import {
     TextDocumentPositionParams,
     HoverParams,
     Hover,
+    DocumentSymbolParams,
 } from "vscode-languageserver/node"
 import { TextDocument } from "vscode-languageserver-textdocument"
 import { LanguageServer } from './LanguageServer'
