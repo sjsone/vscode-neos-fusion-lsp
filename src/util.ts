@@ -64,6 +64,19 @@ export function getPrototypeNameFromNode(node: AbstractNode) {
     return null
 }
 
+export function isPrototypeDeprecated(prototypeName: string): string | boolean {
+    // TODO: Make deprecations configurable via settings json 
+    const deprecations = {
+        "Neos.Fusion:Array": "Neos.Fusion:Join",
+        "Neos.Fusion:Collection": "Neos.Fusion:Loop",
+        "Neos.Fusion:RawCollection": "Neos.Fusion:Map",
+        "Neos.Fusion:RawArray": "Neos.Fusion:DataStructure",
+        "Neos.Fusion:UriBuilder": "Neos.Fusion:ActionUri"
+    }
+    const value = deprecations[prototypeName]
+    return value !== undefined ? value : false
+}
+
 export function mergeObjects(source: unknown, target: unknown) {
     // https://gist.github.com/ahtcx/0cd94e62691f539160b32ecda18af3d6?permalink_comment_id=3889214#gistcomment-3889214
     for (const [key, val] of Object.entries(source)) {

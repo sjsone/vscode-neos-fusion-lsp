@@ -17,7 +17,7 @@ import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNod
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
-import { findParent, getNodeWeight, uriToPath } from '../util'
+import { findParent, getNodeWeight, isPrototypeDeprecated, uriToPath } from '../util'
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver'
 import { DefinitionCapability } from '../capabilities/DefinitionCapability'
 import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/MetaPathSegment'
@@ -25,6 +25,7 @@ import { StringValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/St
 import { FqcnNode } from './FqcnNode'
 import { ResourceUriNode } from './ResourceUriNode'
 import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
+import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
 
 export class ParsedFusionFile {
 	public workspace: FusionWorkspace
@@ -214,6 +215,7 @@ export class ParsedFusionFile {
 		diagnostics.push(...this.diagnoseResourceUris())
 		diagnostics.push(...this.diagnoseTagNames())
 		diagnostics.push(...this.diagnoseEelHelperArguments())
+		diagnostics.push(...this.diagnosePrototypeNames())
 
 		return diagnostics
 	}
@@ -283,7 +285,7 @@ export class ParsedFusionFile {
 	protected diagnoseTagNames() {
 		const diagnostics: Diagnostic[] = []
 
-		const positionedTagNodes = <LinePositionedNode<TagNode>[]>this.nodesByType.get(TagNode)
+		const positionedTagNodes = this.getNodesByType(TagNode)
 		if (positionedTagNodes === undefined) return diagnostics
 
 		for (const positionedTagNode of positionedTagNodes) {
@@ -339,6 +341,61 @@ export class ParsedFusionFile {
 						}
 						diagnostics.push(diagnostic)
 					}
+				}
+			}
+		}
+
+		return diagnostics
+	}
+
+	diagnosePrototypeNames() {
+		const diagnostics: Diagnostic[] = []
+
+		const pathSegments = this.getNodesByType(PrototypePathSegment)
+		if (pathSegments !== undefined) {
+			for (const positionedPathSegment of pathSegments) {
+				const node = positionedPathSegment.getNode()
+				const range = positionedPathSegment.getPositionAsRange()
+				if (!node.identifier.includes(":")) {
+					diagnostics.push({
+						severity: DiagnosticSeverity.Warning,
+						range,
+						message: `A prototype without a namespace is deprecated`,
+						source: 'Fusion LSP'
+					})
+				}
+				if (isPrototypeDeprecated(node.identifier)) {
+					diagnostics.push({
+						severity: DiagnosticSeverity.Warning,
+						range,
+						message: `Prototype ${node.identifier} is deprecated`,
+						source: 'Fusion LSP'
+					})
+				}
+			}
+		}
+
+		const fusionObjectValues = this.getNodesByType(FusionObjectValue)
+		if (fusionObjectValues !== undefined) {
+			for (const fusionObjectValue of fusionObjectValues) {
+				const node = fusionObjectValue.getNode()
+				const range = fusionObjectValue.getPositionAsRange()
+				if (!node.value.includes(":")) {
+					diagnostics.push({
+						severity: DiagnosticSeverity.Warning,
+						range,
+						message: `Using a prototype without a namespace should be avoided`,
+						source: 'Fusion LSP'
+					})
+				}
+				const deprecated = isPrototypeDeprecated(node.value)
+				if (deprecated !== false) {
+					diagnostics.push({
+						severity: DiagnosticSeverity.Warning,
+						range,
+						message: `Prototype ${node.value} is deprecated.${deprecated !== true ? ` Use ${deprecated} instead.` : ''}`,
+						source: 'Fusion LSP'
+					})
 				}
 			}
 		}

@@ -87,8 +87,8 @@ export class DocumentSymbolCapability extends AbstractCapability {
 			const value = node.operation.pathValue
 
 			if (value instanceof EelExpressionValue) {
-				if (value.nodes instanceof LiteralArrayNode) return { detail: 'Array', kind: SymbolKind.Array }
-				return { detail: 'EEL', kind: SymbolKind.Variable }
+				if (value.nodes instanceof LiteralArrayNode) return { detail: '${Array}', kind: SymbolKind.Array }
+				return { detail: '${...}', kind: SymbolKind.Variable }
 			}
 			if (value instanceof FusionObjectValue) return { detail: '', kind: SymbolKind.Object }
 			if (value instanceof DslExpressionValue) return { detail: 'afx`...`', kind: SymbolKind.Constructor }
