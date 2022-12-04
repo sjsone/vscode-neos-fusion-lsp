@@ -58,6 +58,11 @@ connection.onHover((params: HoverParams): Hover => {
     return languageserver.getCapability("onHover").execute(params)
 })
 
+
+connection.onDocumentSymbol((params: DocumentSymbolParams) => {
+    return languageserver.getCapability("onDocumentSymbol").execute(params)
+})
+
 connection.languages.inlayHint.on(params => {
     return languageserver.getLanguageFeature("inlayHint").execute(params)
 })

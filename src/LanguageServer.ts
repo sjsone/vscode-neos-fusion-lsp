@@ -39,6 +39,7 @@ export class LanguageServer extends Logger {
 		this.capabilities.set("onCompletion", new CompletionCapability(this))
 		this.capabilities.set("onHover", new HoverCapability(this))
 		this.capabilities.set("onReferences", new ReferenceCapability(this))
+		this.capabilities.set("onDocumentSymbol", new DocumentSymbolCapability(this))
 
 		this.languageFeatures.set("inlayHint", new InlayHintLanguageFeature(this))
 	}
@@ -94,7 +95,8 @@ export class LanguageServer extends Logger {
 				},
 				definitionProvider: true,
 				hoverProvider: true,
-				referencesProvider: true
+				referencesProvider: true,
+				documentSymbolProvider: true
 			},
 		}
 	}
