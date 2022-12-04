@@ -7,6 +7,6 @@ import { LinePositionedNode } from '../LinePositionedNode'
 export interface CapabilityContext<N extends AbstractNode> {
 	workspace: FusionWorkspace
 	parsedFile: ParsedFusionFile
-	foundNodeByLine: LinePositionedNode<N>,
+	foundNodeByLine?: LinePositionedNode<N>,
 	params: TextDocumentPositionParams
 }
