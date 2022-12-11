@@ -148,28 +148,5 @@ export class LanguageServer extends Logger {
 
 		this.sendBusyDispose('configuration')
 	}
-
-	public onRenameRequest(params: RenameParams) {
-		const workspace = this.getWorkspaceFromFileUri(params.textDocument.uri)
-		if (workspace === undefined) return null
-
-		const parsedFile = workspace.getParsedFileByUri(params.textDocument.uri)
-		if (parsedFile === undefined) return null
-
-		const node = parsedFile.getNodeByLineAndColumn(params.position.line, params.position.character)
-		if (node === undefined) return null
-
-		console.log(node)
-
-		return null
-
-
-		const changes: { [uri: string]: TextEdit[]; } = {}
-
-		const edit: WorkspaceEdit = {
-			changes
-		}
-		return edit
-	}
 }
 
