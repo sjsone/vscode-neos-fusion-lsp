@@ -32,10 +32,7 @@ connection.onInitialize((params) => {
 })
 
 connection.onDidChangeWatchedFiles((params) => {
-    // TODO: Updated EEL-Helpers depending on changes
-    // for(const change of params.changes) {
-    //     connection.console.log(`  ${change.type} ${change.uri}`)
-    // }
+    return languageserver.onDidChangeWatchedFiles(params)
 })
 
 connection.onDidChangeConfiguration((params) => {

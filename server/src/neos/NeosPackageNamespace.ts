@@ -5,7 +5,10 @@ import { getLineNumberOfChar, pathToUri } from '../util'
 
 export interface ClassDefinition {
 	uri: string
-	methods: EelHelperMethod[]
+	methods: EelHelperMethod[],
+	namespace: NeosPackageNamespace
+	className: string
+	pathParts: string[]
 	position: {
 		start: { line: number, character: number }
 		end: { line: number, character: number }
@@ -47,18 +50,11 @@ export class NeosPackageNamespace {
 		return fileUri
 	}
 
+	getClassDefinionFromFilePathAndClassName(filePath: string, className: string, pathParts: string[]): ClassDefinition {
+		const phpFileSource = NodeFs.readFileSync(filePath).toString()
 
-	getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName: string): ClassDefinition {
-		const path = fullyQualifiedClassName.replace(this.name, "")
-
-		const pathParts = path.split("\\")
-		const className = pathParts.pop()
-		const possibleFilePath = NodePath.join(this.path, ...pathParts, className + ".php")
-
-		if (!NodeFs.existsSync(possibleFilePath)) return undefined
-		const phpFileSource = NodeFs.readFileSync(possibleFilePath).toString()
-
-		const namespaceRegex = new RegExp(`namespace\\s+${(this.name + pathParts.join("\\")).split("\\").join("\\\\")};`)
+		const namespace = this.name + pathParts.join("\\")
+		const namespaceRegex = new RegExp(`namespace\\s+${(namespace).split("\\").join("\\\\")};`)
 		if (!namespaceRegex.test(phpFileSource)) return undefined
 
 		const classRegex = new RegExp(`class\\s+${className}`)
@@ -68,7 +64,7 @@ export class NeosPackageNamespace {
 
 		const begin = phpFileSource.indexOf(classMatch[0])
 		const end = begin + classMatch[0].length
-		const fileUri = pathToUri(possibleFilePath)
+		const fileUri = pathToUri(filePath)
 
 		const methodsRegex = /(public\s+(static\s+)?function\s+([a-zA-Z]+)\s?\((?: *([^)]+?) *\))?)/g
 		let lastIndex = 0
@@ -99,12 +95,26 @@ export class NeosPackageNamespace {
 
 		return {
 			uri: fileUri,
+			namespace: this,
+			pathParts,
+			className,
 			methods,
 			position: {
 				start: getLineNumberOfChar(phpFileSource, begin),
 				end: getLineNumberOfChar(phpFileSource, end)
 			},
 		}
+	}
+
+	getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName: string): ClassDefinition {
+		const path = fullyQualifiedClassName.replace(this.name, "")
+
+		const pathParts = path.split("\\")
+		const className = pathParts.pop()
+		const possibleFilePath = NodePath.join(this.path, ...pathParts, className + ".php")
+
+		if (!NodeFs.existsSync(possibleFilePath)) return undefined
+		return this.getClassDefinionFromFilePathAndClassName(possibleFilePath, className, pathParts)
 	}
 
 	protected parseMethodParameters(rawParameters: string): EelHelperMethodParameter[] {
