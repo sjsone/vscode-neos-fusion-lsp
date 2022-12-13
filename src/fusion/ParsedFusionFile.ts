@@ -18,7 +18,7 @@ import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/Objec
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 import { findParent, getNodeWeight, isPrototypeDeprecated, uriToPath } from '../util'
-import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver'
+import { Diagnostic, DiagnosticSeverity, DiagnosticTag } from 'vscode-languageserver'
 import { DefinitionCapability } from '../capabilities/DefinitionCapability'
 import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/MetaPathSegment'
 import { StringValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StringValue'
@@ -360,6 +360,7 @@ export class ParsedFusionFile {
 					diagnostics.push({
 						severity: DiagnosticSeverity.Warning,
 						range,
+						tags: [DiagnosticTag.Deprecated],
 						message: `A prototype without a namespace is deprecated`,
 						source: 'Fusion LSP'
 					})
@@ -368,6 +369,7 @@ export class ParsedFusionFile {
 					diagnostics.push({
 						severity: DiagnosticSeverity.Warning,
 						range,
+						tags: [DiagnosticTag.Deprecated],
 						message: `Prototype ${node.identifier} is deprecated`,
 						source: 'Fusion LSP'
 					})
@@ -393,6 +395,7 @@ export class ParsedFusionFile {
 					diagnostics.push({
 						severity: DiagnosticSeverity.Warning,
 						range,
+						tags: [DiagnosticTag.Deprecated],
 						message: `Prototype ${node.value} is deprecated.${deprecated !== true ? ` Use ${deprecated} instead.` : ''}`,
 						source: 'Fusion LSP'
 					})
