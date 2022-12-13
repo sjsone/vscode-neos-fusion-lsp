@@ -1,12 +1,7 @@
 import {
     createConnection,
     TextDocuments,
-    ProposedFeatures,
-    CompletionItem,
-    TextDocumentPositionParams,
-    HoverParams,
-    Hover,
-    DocumentSymbolParams,
+    ProposedFeatures
 } from "vscode-languageserver/node"
 import { TextDocument } from "vscode-languageserver-textdocument"
 import { LanguageServer } from './LanguageServer'
