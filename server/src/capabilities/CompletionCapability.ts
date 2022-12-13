@@ -15,6 +15,7 @@ import { NeosPackage } from '../neos/NeosPackage'
 import { ExternalObjectStatement, NodeService } from '../NodeService'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext } from './CapabilityContext'
+import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 
 export class CompletionCapability extends AbstractCapability {
 
@@ -24,6 +25,9 @@ export class CompletionCapability extends AbstractCapability {
 		if (foundNodeByLine) {
 			const foundNode = foundNodeByLine.getNode()
 			switch (true) {
+				case foundNode instanceof TagNode:
+					completions.push(...this.getTagNodeCompletions(workspace, <LinePositionedNode<TagNode>>foundNodeByLine))
+					break
 				case foundNode instanceof ObjectStatement:
 					completions.push(...this.getObjectStatementCompletions(workspace, <LinePositionedNode<ObjectStatement>>foundNodeByLine))
 					break
@@ -41,6 +45,41 @@ export class CompletionCapability extends AbstractCapability {
 		}
 
 		this.logVerbose(`Found ${completions.length} completions `)
+
+		return completions
+	}
+
+	protected getTagNodeCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<TagNode>) {
+		const completions: CompletionItem[] = []
+
+		const foundNodes = workspace.getNodesByType(PrototypePathSegment)
+		if (!foundNodes) return null
+
+		for (const fileNodes of foundNodes) {
+			for (const fileNode of fileNodes.nodes) {
+				const label = fileNode.getNode().identifier
+				if (!completions.find(completion => completion.label === label)) {
+					const foundNodeTagStart = { line: foundNode.getBegin().line, character: foundNode.getBegin().character + 1 }
+					completions.push({
+						label,
+						kind: CompletionItemKind.Class,
+						insertTextMode: InsertTextMode.adjustIndentation,
+						insertText: label,
+						textEdit: {
+							insert: {
+								start: foundNodeTagStart,
+								end: foundNode.getEnd(),
+							},
+							replace: {
+								start: foundNodeTagStart,
+								end: { line: foundNode.getEnd().line, character: foundNode.getEnd().character + label.length },
+							},
+							newText: label
+						}
+					})
+				}
+			}
+		}
 
 		return completions
 	}
