@@ -5,6 +5,7 @@ import { CharValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/Char
 import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/DslExpressionValue';
 import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/EelExpressionValue';
 import { FloatValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FloatValue';
+import { FusionFile } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionFile';
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue';
 import { IntValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/IntValue';
 import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/MetaPathSegment';
@@ -31,6 +32,17 @@ export class DocumentSymbolCapability extends AbstractCapability {
 		const symbols: DocumentSymbol[] = []
 		for (const prototypeDefinition of [...parsedFile.prototypeCreations]) {
 			symbols.push(this.createDocumentSymbolFromPositionedNode(prototypeDefinition))
+		}
+
+		const objectStatements = parsedFile.getNodesByType(ObjectStatement)
+		if (objectStatements !== undefined) {
+			for (const objectStatement of objectStatements) {
+				const node = objectStatement.getNode()
+				if (!(node["parent"] && node["parent"]["parent"] && node["parent"]["parent"] instanceof FusionFile)) continue
+				if (node["block"] !== undefined) continue
+				if (!(node.path.segments[0] instanceof PrototypePathSegment)) continue
+				symbols.push(this.createDocumentSymbolFromPositionedNode(objectStatement))
+			}
 		}
 
 		return symbols
