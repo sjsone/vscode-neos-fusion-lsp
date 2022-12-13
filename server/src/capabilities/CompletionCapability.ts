@@ -26,8 +26,6 @@ export class CompletionCapability extends AbstractCapability {
 		const completions = []
 		if (foundNodeByLine) {
 			const foundNode = foundNodeByLine.getNode()
-			console.log(`  >> found ${foundNode.constructor.name}`)
-
 			switch (true) {
 				case foundNode instanceof TagNode:
 					completions.push(...this.getTagNodeCompletions(workspace, <LinePositionedNode<TagNode>>foundNodeByLine))
