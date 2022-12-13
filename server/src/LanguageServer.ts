@@ -47,6 +47,11 @@ export class LanguageServer extends Logger {
 		this.languageFeatures.set("inlayHint", new InlayHintLanguageFeature(this))
 	}
 
+	public runCapability(name: string, params: any) {
+		const capability = this.getCapability(name)
+		return capability ? capability.execute(params) : undefined
+	}
+
 	public getCapability(name: string) {
 		return this.capabilities.get(name)
 	}

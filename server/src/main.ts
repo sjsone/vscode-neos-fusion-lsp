@@ -19,51 +19,23 @@ const documents: TextDocuments<FusionDocument> = new TextDocuments(TextDocument)
 const languageserver = new LanguageServer(connection, documents)
 
 
-documents.onDidChangeContent(change => {
-    return languageserver.onDidChangeContent(change)
-})
+connection.onInitialize(params => languageserver.onInitialize(params))
+connection.onDidChangeConfiguration(params => languageserver.onDidChangeConfiguration(params))
 
-documents.onDidOpen((event) => {
-    return languageserver.onDidOpen(event)
-})
+documents.onDidOpen(event => languageserver.onDidOpen(event))
+documents.onDidChangeContent(change => languageserver.onDidChangeContent(change))
 
-connection.onInitialize((params) => {
-    return languageserver.onInitialize(params)
-})
+connection.onDefinition(params => languageserver.runCapability("onDefinition", params))
+connection.onReferences(params => languageserver.runCapability("onReferences", params))
+connection.onCompletion(params => languageserver.runCapability("onCompletion", params))
+connection.onCompletionResolve(item => item)
+connection.onHover(params => languageserver.runCapability("onHover", params))
+connection.onDocumentSymbol(params => languageserver.runCapability("onDocumentSymbol", params))
 
-connection.onDidChangeWatchedFiles((params) => {
-    return languageserver.onDidChangeWatchedFiles(params)
-})
+connection.languages.inlayHint.on(params => languageserver.getLanguageFeature("inlayHint").execute(params))
 
-connection.onDidChangeConfiguration((params) => {
-    languageserver.onDidChangeConfiguration(params)
-})
+connection.onDidChangeWatchedFiles(params => languageserver.onDidChangeWatchedFiles(params))
 
-connection.onDefinition((params) => {
-    return languageserver.getCapability("onDefinition").execute(params)
-})
-
-connection.onReferences(params => {
-    return languageserver.getCapability("onReferences").execute(params)
-})
-
-connection.onCompletion((textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-    return languageserver.getCapability("onCompletion").execute(textDocumentPosition)
-})
-connection.onCompletionResolve((item: CompletionItem): CompletionItem => item)
-
-connection.onHover((params: HoverParams): Hover => {
-    return languageserver.getCapability("onHover").execute(params)
-})
-
-
-connection.onDocumentSymbol((params: DocumentSymbolParams) => {
-    return languageserver.getCapability("onDocumentSymbol").execute(params)
-})
-
-connection.languages.inlayHint.on(params => {
-    return languageserver.getLanguageFeature("inlayHint").execute(params)
-})
 
 documents.listen(connection)
 connection.listen()
