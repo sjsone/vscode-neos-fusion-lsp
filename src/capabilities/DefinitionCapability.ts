@@ -56,7 +56,6 @@ export class DefinitionCapability extends AbstractCapability {
 		for (const otherParsedFile of workspace.parsedFiles) {
 			for (const otherNode of [...otherParsedFile.prototypeCreations, ...otherParsedFile.prototypeOverwrites]) {
 				if (otherNode.getNode()["identifier"] !== goToPrototypeName) continue
-				console.log("locations")
 				locations.push({
 					targetUri: otherParsedFile.uri,
 					targetRange: otherNode.getPositionAsRange(),
