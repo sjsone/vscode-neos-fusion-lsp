@@ -156,8 +156,28 @@
         }
       },
       {
-        "title": "Logging",
+        "title": "Code",
         "order": 5,
+        "properties": {
+          "neosFusionLsp.code.deprecations.fusion": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "An object of deprecated fusion-prototypes. [OldPrototype](Item): NewPrototype(Value)",
+            "default": {
+              "Neos.Fusion:Array": "Neos.Fusion:Join",
+              "Neos.Fusion:Collection": "Neos.Fusion:Loop",
+              "Neos.Fusion:RawCollection": "Neos.Fusion:Map",
+              "Neos.Fusion:RawArray": "Neos.Fusion:DataStructure",
+              "Neos.Fusion:UriBuilder": "Neos.Fusion:ActionUri"
+            }
+          }
+        }
+      },
+      {
+        "title": "Logging",
+        "order": 10,
         "properties": {
           "neosFusionLsp.logging.level": {
             "type": "string",
