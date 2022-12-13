@@ -7,7 +7,9 @@ import {
 	_Connection,
 	InitializeResult,
 	MessageType,
-	PublishDiagnosticsParams
+	PublishDiagnosticsParams,
+	DidChangeWatchedFilesParams,
+	FileChangeType
 } from "vscode-languageserver/node"
 import { FusionWorkspace } from './fusion/FusionWorkspace'
 import { type ExtensionConfiguration } from './ExtensionConfiguration'
@@ -148,5 +150,31 @@ export class LanguageServer extends Logger {
 
 		this.sendBusyDispose('configuration')
 	}
+
+	public onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams) {
+		// TODO: Update relevant ParsedFusionFiles  
+		for (const change of params.changes) {
+			this.logVerbose(`Watched: (${Object.keys(FileChangeType)[Object.values(FileChangeType).indexOf(change.type)]}) ${change.uri}`)
+			if (change.type === FileChangeType.Changed) {
+				for (const worksapce of this.fusionWorkspaces) {
+					for (const [name, neosPackage] of worksapce.neosWorkspace.getPackages().entries()) {
+						const helper = neosPackage.getEelHelpers().find(helper => helper.uri === change.uri)
+						if (!helper) continue
+
+						this.logVerbose(`  File was EEL-Helper ${helper.name}`)
+
+						const namespace = helper.namespace
+						const classDefinion = namespace.getClassDefinionFromFilePathAndClassName(uriToPath(helper.uri), helper.className, helper.pathParts)
+
+						this.logVerbose(`  Methods: then ${helper.methods.length} now ${classDefinion.methods.length}`)
+
+						helper.methods = classDefinion.methods
+						helper.position = classDefinion.position
+					}
+				}
+			}
+		}
+	}
+
 }
 

@@ -10,6 +10,10 @@ import { NeosWorkspace } from './NeosWorkspace'
 export interface EELHelperToken {
 	name: string,
 	uri: string,
+	namespace: NeosPackageNamespace
+	pathParts: string[]
+	className: string
+	package: NeosPackage
 	regex: RegExp,
 	position: {
 		start: LinePosition,
@@ -70,6 +74,10 @@ export class NeosPackage extends Logger {
 			if (eelHelper !== undefined) {
 				const location = {
 					name: eelHelperPrefix,
+					namespace: eelHelper.namespace,
+					pathParts: eelHelper.pathParts,
+					className: eelHelper.className,
+					package: this,
 					uri: eelHelper.uri,
 					regex: RegExp(`(${eelHelperPrefix.split('.').join('\\.')})(\\.\\w+)?`),
 					position: eelHelper.position,
