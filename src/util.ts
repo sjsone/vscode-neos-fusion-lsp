@@ -19,6 +19,7 @@ import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/as
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { OperationNode } from 'ts-fusion-parser/out/dsl/eel/nodes/OperationNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
+import { FusionWorkspace } from './fusion/FusionWorkspace'
 
 export function getLineNumberOfChar(data: string, index: number, debug = false) {
     const perLine = data.split('\n')
@@ -64,17 +65,10 @@ export function getPrototypeNameFromNode(node: AbstractNode) {
     return null
 }
 
-export function isPrototypeDeprecated(prototypeName: string): string | boolean {
-    // TODO: Make deprecations configurable via settings json 
-    const deprecations = {
-        "Neos.Fusion:Array": "Neos.Fusion:Join",
-        "Neos.Fusion:Collection": "Neos.Fusion:Loop",
-        "Neos.Fusion:RawCollection": "Neos.Fusion:Map",
-        "Neos.Fusion:RawArray": "Neos.Fusion:DataStructure",
-        "Neos.Fusion:UriBuilder": "Neos.Fusion:ActionUri"
-    }
-    const value = deprecations[prototypeName]
-    return value !== undefined ? value : false
+export function isPrototypeDeprecated(workspace: FusionWorkspace, prototypeName: string): string | boolean {
+    const configuration = workspace.getConfiguration()
+    const deprecations = configuration.code.deprecations.fusion ?? {}
+    return deprecations[prototypeName] ?? false
 }
 
 export function mergeObjects(source: unknown, target: unknown) {

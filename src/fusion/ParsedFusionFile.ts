@@ -365,7 +365,7 @@ export class ParsedFusionFile {
 						source: 'Fusion LSP'
 					})
 				}
-				if (isPrototypeDeprecated(node.identifier)) {
+				if (isPrototypeDeprecated(this.workspace, node.identifier)) {
 					diagnostics.push({
 						severity: DiagnosticSeverity.Warning,
 						range,
@@ -390,7 +390,7 @@ export class ParsedFusionFile {
 						source: 'Fusion LSP'
 					})
 				}
-				const deprecated = isPrototypeDeprecated(node.value)
+				const deprecated = isPrototypeDeprecated(this.workspace, node.value)
 				if (deprecated !== false) {
 					diagnostics.push({
 						severity: DiagnosticSeverity.Warning,

@@ -26,6 +26,11 @@ export interface ExtensionConfiguration {
             folders: string[]
         }
     },
+    code: {
+        deprecations: {
+            fusion: { [key: string]: string }
+        }
+    },
     inlayHint: {
         depth: InlayHintDepth
     }
