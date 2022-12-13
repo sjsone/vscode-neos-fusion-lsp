@@ -16,6 +16,8 @@ import { ExternalObjectStatement, NodeService } from '../NodeService'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext } from './CapabilityContext'
 import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
+import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
+import { findParent, getObjectIdentifier } from '../util'
 
 export class CompletionCapability extends AbstractCapability {
 
@@ -24,9 +26,14 @@ export class CompletionCapability extends AbstractCapability {
 		const completions = []
 		if (foundNodeByLine) {
 			const foundNode = foundNodeByLine.getNode()
+			console.log(`  >> found ${foundNode.constructor.name}`)
+
 			switch (true) {
 				case foundNode instanceof TagNode:
 					completions.push(...this.getTagNodeCompletions(workspace, <LinePositionedNode<TagNode>>foundNodeByLine))
+					break
+				case foundNode instanceof TagAttributeNode:
+					completions.push(...this.getTagAttributeNodeCompletions(workspace, <LinePositionedNode<TagAttributeNode>>foundNodeByLine))
 					break
 				case foundNode instanceof ObjectStatement:
 					completions.push(...this.getObjectStatementCompletions(workspace, <LinePositionedNode<ObjectStatement>>foundNodeByLine))
@@ -78,6 +85,26 @@ export class CompletionCapability extends AbstractCapability {
 						}
 					})
 				}
+			}
+		}
+
+		return completions
+	}
+
+	protected getTagAttributeNodeCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<TagAttributeNode>) {
+		const completions: CompletionItem[] = []
+		const attributeNode = foundNode.getNode()
+
+		if (attributeNode.value) return completions
+
+		const tagNode = findParent(attributeNode, TagNode)
+		if (tagNode !== undefined) {
+			const statements = NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace)
+			for (const statement of statements) {
+				completions.push({
+					label: getObjectIdentifier(statement.statement),
+					kind: CompletionItemKind.Property
+				})
 			}
 		}
 
