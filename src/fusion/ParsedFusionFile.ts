@@ -26,6 +26,7 @@ import { FqcnNode } from './FqcnNode'
 import { ResourceUriNode } from './ResourceUriNode'
 import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
+import { DeprecationsDiagnosticLevels } from '../ExtensionConfiguration'
 
 export class ParsedFusionFile {
 	public workspace: FusionWorkspace
@@ -351,6 +352,17 @@ export class ParsedFusionFile {
 	diagnosePrototypeNames() {
 		const diagnostics: Diagnostic[] = []
 
+		const severityConfiguration = this.workspace.getConfiguration().diagnostics.levels.deprecations
+
+		let severity: DiagnosticSeverity = DiagnosticSeverity.Hint
+		if (severityConfiguration === DeprecationsDiagnosticLevels.Info) {
+			severity = DiagnosticSeverity.Information
+		} else if (severityConfiguration === DeprecationsDiagnosticLevels.Warning) {
+			severity = DiagnosticSeverity.Warning
+		} else if (severityConfiguration === DeprecationsDiagnosticLevels.Error) {
+			severity = DiagnosticSeverity.Error
+		}
+
 		const pathSegments = this.getNodesByType(PrototypePathSegment)
 		if (pathSegments !== undefined) {
 			for (const positionedPathSegment of pathSegments) {
@@ -358,7 +370,7 @@ export class ParsedFusionFile {
 				const range = positionedPathSegment.getPositionAsRange()
 				if (!node.identifier.includes(":")) {
 					diagnostics.push({
-						severity: DiagnosticSeverity.Warning,
+						severity,
 						range,
 						tags: [DiagnosticTag.Deprecated],
 						message: `A prototype without a namespace is deprecated`,
@@ -367,7 +379,7 @@ export class ParsedFusionFile {
 				}
 				if (isPrototypeDeprecated(this.workspace, node.identifier)) {
 					diagnostics.push({
-						severity: DiagnosticSeverity.Warning,
+						severity,
 						range,
 						tags: [DiagnosticTag.Deprecated],
 						message: `Prototype ${node.identifier} is deprecated`,
@@ -384,7 +396,7 @@ export class ParsedFusionFile {
 				const range = fusionObjectValue.getPositionAsRange()
 				if (!node.value.includes(":")) {
 					diagnostics.push({
-						severity: DiagnosticSeverity.Warning,
+						severity,
 						range,
 						message: `Using a prototype without a namespace should be avoided`,
 						source: 'Fusion LSP'
@@ -393,7 +405,7 @@ export class ParsedFusionFile {
 				const deprecated = isPrototypeDeprecated(this.workspace, node.value)
 				if (deprecated !== false) {
 					diagnostics.push({
-						severity: DiagnosticSeverity.Warning,
+						severity,
 						range,
 						tags: [DiagnosticTag.Deprecated],
 						message: `Prototype ${node.value} is deprecated.${deprecated !== true ? ` Use ${deprecated} instead.` : ''}`,
