@@ -9,6 +9,13 @@ export enum InlayHintDepth {
     Literal = "literal",
     Always = "always"
 }
+
+export enum DeprecationsDiagnosticLevels {
+    Hint = "hint",
+    Info = "info",
+    Warning = "warning",
+    Error = "error",
+}
 export interface ExtensionConfiguration {
     folders: {
         packages: string[],
@@ -24,6 +31,9 @@ export interface ExtensionConfiguration {
         enabled: boolean,
         ignore: {
             folders: string[]
+        },
+        levels: {
+            deprecations: DeprecationsDiagnosticLevels
         }
     },
     code: {

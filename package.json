@@ -109,6 +109,23 @@
             "default": true,
             "description": "Enable diagnostics feature."
           },
+          "neosFusionLsp.diagnostics.levels.deprecations": {
+            "type": "string",
+            "default": "hint",
+            "enum": [
+              "hint",
+              "info",
+              "warning",
+              "error"
+            ],
+            "enumDescriptions": [
+              "Just show the strike through",
+              "Provide some infos about the deprecation",
+              "Show a ignorable warning",
+              "Mark the deprecation as error"
+            ],
+            "description": "Set the diagnostics level of deprecations."
+          },
           "neosFusionLsp.diagnostics.ignore.folders": {
             "scope": "window",
             "type": "array",
