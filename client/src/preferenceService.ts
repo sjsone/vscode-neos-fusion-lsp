@@ -20,7 +20,7 @@ export interface ExternalExtensionPreferenceModificationBase {
 	allowNull?: boolean
 }
 
-
+// TODO: is the service really needed? : https://code.visualstudio.com/api/references/contribution-points#contributes.configurationDefaults 
 export class PreferenceService {
 	protected outputChannel: OutputChannel
 

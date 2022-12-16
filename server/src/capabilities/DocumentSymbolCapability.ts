@@ -102,17 +102,17 @@ export class DocumentSymbolCapability extends AbstractCapability {
 				if (value.nodes instanceof LiteralArrayNode) return { detail: '${Array}', kind: SymbolKind.Array }
 				return { detail: '${...}', kind: SymbolKind.Variable }
 			}
-			if (value instanceof FusionObjectValue) return { detail: '', kind: SymbolKind.Object }
+			if (value instanceof FusionObjectValue) return { detail: value.value, kind: SymbolKind.Object }
 			if (value instanceof DslExpressionValue) return { detail: 'afx`...`', kind: SymbolKind.Constructor }
 
-			if (value instanceof StringValue) return { detail: `"${value.value}"`, kind: SymbolKind.String }
-			if (value instanceof CharValue) return { detail: `"${value.value}"`, kind: SymbolKind.String }
+			if (value instanceof StringValue) return { detail: value.value, kind: SymbolKind.String }
+			if (value instanceof CharValue) return { detail: value.value, kind: SymbolKind.String }
 
 			if (value instanceof FloatValue) return { detail: value.value.toString(), kind: SymbolKind.Number }
 			if (value instanceof IntValue) return { detail: value.value.toString(), kind: SymbolKind.Number }
 
 			if (value instanceof NullValue) return { detail: 'NULL', kind: SymbolKind.Null }
-			if (value instanceof BoolValue) return { detail: value.value ? 'TRUE' : 'FALSE', kind: SymbolKind.Boolean }
+			if (value instanceof BoolValue) return { detail: value.value ? 'true' : 'false', kind: SymbolKind.Boolean }
 
 		}
 
