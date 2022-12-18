@@ -81,13 +81,7 @@ export class FusionWorkspace extends Logger {
                 if (!NodeFs.existsSync(fusionFolderPath)) continue
 
                 for (const fusionFilePath of getFiles(fusionFolderPath)) {
-                    try {
-                        const parsedFile = new ParsedFusionFile(pathToUri(fusionFilePath), this)
-                        this.initParsedFile(parsedFile)
-                        this.parsedFiles.push(parsedFile)
-                    } catch (e) {
-                        this.filesWithErrors.push(pathToUri(fusionFilePath))
-                    }
+                    this.addParsedFileFromPath(fusionFilePath)
                 }
             }
             this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
@@ -110,6 +104,24 @@ export class FusionWorkspace extends Logger {
         this.languageServer.sendProgressNotificationFinish("fusion_workspace_init")
 
         this.processFilesToDiagnose()
+    }
+
+    addParsedFileFromPath(fusionFilePath: string) {
+        try {
+            const parsedFile = new ParsedFusionFile(pathToUri(fusionFilePath), this)
+            this.initParsedFile(parsedFile)
+            this.parsedFiles.push(parsedFile)
+        } catch (e) {
+            this.filesWithErrors.push(pathToUri(fusionFilePath))
+        }
+    }
+
+    removeParsedFile(uri: string) {
+        const parsedFileIndex = this.parsedFiles.findIndex(parsedFile => parsedFile.uri === uri)
+        if (parsedFileIndex > -1) {
+            this.parsedFiles.splice(parsedFileIndex, 1)
+            this.logDebug(`Removed ParsedFusionFile ${uri}`)
+        }
     }
 
     initParsedFile(parsedFile: ParsedFusionFile, text: string = undefined) {

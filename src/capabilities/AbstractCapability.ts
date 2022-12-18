@@ -30,7 +30,7 @@ export abstract class AbstractCapability extends Logger {
 		const uri = params.textDocument.uri
 
 
-		const workspace = this.languageServer.getWorkspaceFromFileUri(uri)
+		const workspace = this.languageServer.getWorkspaceForFileUri(uri)
 		if (workspace === undefined) return null
 
 		const parsedFile = workspace.getParsedFileByUri(uri)
