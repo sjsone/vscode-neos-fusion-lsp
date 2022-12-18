@@ -350,6 +350,8 @@ export class ParsedFusionFile {
 	}
 
 	diagnosePrototypeNames() {
+		// TODO: Create seperate Diagnostics (like capabilities)
+
 		const diagnostics: Diagnostic[] = []
 
 		const severityConfiguration = this.workspace.getConfiguration().diagnostics.levels.deprecations
