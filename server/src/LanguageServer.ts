@@ -60,12 +60,12 @@ export class LanguageServer extends Logger {
 		return this.languageFeatures.get(name)
 	}
 
-	public getWorkspaceFromFileUri = (uri: string): FusionWorkspace | undefined => {
+	public getWorkspaceForFileUri = (uri: string): FusionWorkspace | undefined => {
 		return this.fusionWorkspaces.find(w => w.isResponsibleForUri(uri))
 	}
 
 	public async onDidChangeContent(change: TextDocumentChangeEvent<FusionDocument>) {
-		const workspace = this.getWorkspaceFromFileUri(change.document.uri)
+		const workspace = this.getWorkspaceForFileUri(change.document.uri)
 		if (workspace === undefined) return null
 
 		await workspace.updateFileByChange(change)
@@ -73,7 +73,7 @@ export class LanguageServer extends Logger {
 	}
 
 	public async onDidOpen(event: TextDocumentChangeEvent<FusionDocument>) {
-		const workspace = this.getWorkspaceFromFileUri(event.document.uri)
+		const workspace = this.getWorkspaceForFileUri(event.document.uri)
 		if (workspace === undefined) return null
 
 		await workspace.updateFileByChange(event)
@@ -159,8 +159,10 @@ export class LanguageServer extends Logger {
 	public onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams) {
 		// TODO: Update relevant ParsedFusionFiles  
 		for (const change of params.changes) {
+			// console.log(`CHANGE: ${change.type} ${change.uri}`)
 			this.logVerbose(`Watched: (${Object.keys(FileChangeType)[Object.values(FileChangeType).indexOf(change.type)]}) ${change.uri}`)
 			if (change.type === FileChangeType.Changed) {
+				if (!change.uri.endsWith(".php")) continue
 				for (const worksapce of this.fusionWorkspaces) {
 					for (const [name, neosPackage] of worksapce.neosWorkspace.getPackages().entries()) {
 						const helper = neosPackage.getEelHelpers().find(helper => helper.uri === change.uri)
@@ -177,6 +179,26 @@ export class LanguageServer extends Logger {
 						helper.position = classDefinion.position
 					}
 				}
+			}
+			if (change.type === FileChangeType.Created) {
+				if (!change.uri.endsWith(".fusion")) continue
+				const worksapce = this.getWorkspaceForFileUri(change.uri)
+				if (!worksapce) {
+					this.logInfo(`Created Fusion file corresponds to no workspace. ${change.uri}`)
+					continue
+				}
+				worksapce.addParsedFileFromPath(uriToPath(change.uri))
+				this.logDebug(`Added new ParsedFusionFile ${change.uri}`)
+			}
+
+			if (change.type === FileChangeType.Deleted) {
+				if (!change.uri.endsWith(".fusion")) continue
+				const worksapce = this.getWorkspaceForFileUri(change.uri)
+				if (!worksapce) {
+					this.logInfo(`Deleted Fusion file corresponds to no workspace. ${change.uri}`)
+					continue
+				}
+				worksapce.removeParsedFile(change.uri)
 			}
 		}
 	}
