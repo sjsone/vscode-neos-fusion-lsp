@@ -157,6 +157,7 @@ export class LanguageServer extends Logger {
 	}
 
 	public onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams) {
+		// TODO: Create seperate Watchers (like capabilities)
 		// TODO: Update relevant ParsedFusionFiles  
 		for (const change of params.changes) {
 			// console.log(`CHANGE: ${change.type} ${change.uri}`)
