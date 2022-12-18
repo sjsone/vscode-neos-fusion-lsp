@@ -29,7 +29,7 @@ export abstract class AbstractLanguageFeature extends Logger {
 
 		this.logDebug(` ${params.textDocument.uri}`)
 
-		const workspace = this.languageServer.getWorkspaceFromFileUri(uri)
+		const workspace = this.languageServer.getWorkspaceForFileUri(uri)
 		if (workspace === undefined) return null
 
 		const parsedFile = workspace.getParsedFileByUri(uri)

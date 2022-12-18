@@ -88,7 +88,10 @@ export function activate(context: ExtensionContext) {
 				outputChannel: outputChannel,
 				synchronize: {
 					configurationSection: 'neosFusionLsp',
-					fileEvents: workspace.createFileSystemWatcher('**/*.php')
+					fileEvents: [
+						workspace.createFileSystemWatcher('**/*.php'),
+						workspace.createFileSystemWatcher('**/*.fusion')
+					]
 				}
 			}
 
