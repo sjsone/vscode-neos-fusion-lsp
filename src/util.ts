@@ -137,10 +137,11 @@ export function getObjectIdentifier(objectStatement: ObjectStatement): string {
 
 export function getNodeWeight(node: any) {
     switch (true) {
-        case node instanceof FusionObjectValue: return 30
-        case node instanceof PhpClassMethodNode: return 25
-        case node instanceof PhpClassNode: return 20
-        case node instanceof FqcnNode: return 17
+        case node instanceof FusionObjectValue: return 50
+        case node instanceof PhpClassMethodNode: return 40
+        case node instanceof PhpClassNode: return 30
+        case node instanceof FqcnNode: return 20
+        case node instanceof PrototypePathSegment: return 18
         case node instanceof ResourceUriNode: return 16
         case node instanceof ObjectPathNode: return 15
         case node instanceof ObjectStatement: return 10
