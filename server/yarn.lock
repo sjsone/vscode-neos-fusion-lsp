@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-ts-fusion-parser@^0.1.2:
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/ts-fusion-parser/-/ts-fusion-parser-0.1.2.tgz#662d81495cf18a56be8f58c53a458d5230c25dc0"
-  integrity sha512-ydERxPT6I9D0jPq5p9iEGxsSDKFD9kiW3Tk4DJXHJLcn3phmG8YV5+8be9cRR9IlivL6k/l4HZ230OuRkAP3CA==
+ts-fusion-parser@^0.1.3:
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/ts-fusion-parser/-/ts-fusion-parser-0.1.3.tgz#8980634e60a7c428c2bf2cb6965154d9f572035b"
+  integrity sha512-O356O/t+cFGb8jrq08KXd06mD60iXoBKNEH74wSgdPkl/hFc2pH+nEHV6QB6qp1cnIrMMq3u1ml98SNUEV4lGw==
 
 vscode-jsonrpc@8.0.2:
   version "8.0.2"
