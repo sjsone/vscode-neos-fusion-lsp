@@ -12,6 +12,7 @@ import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/as
 import { NullValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/NullValue';
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement';
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment';
+import { StatementList } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StatementList';
 import { StringValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StringValue';
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueAssignment';
 import { ValueUnset } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueUnset';
@@ -28,18 +29,27 @@ export class DocumentSymbolCapability extends AbstractCapability {
 	protected run(context: CapabilityContext<AbstractNode>) {
 		const { workspace, parsedFile } = context
 
-
 		const symbols: DocumentSymbol[] = []
-		for (const prototypeDefinition of [...parsedFile.prototypeCreations]) {
+		for (const prototypeDefinition of parsedFile.prototypeCreations) {
 			symbols.push(this.createDocumentSymbolFromPositionedNode(prototypeDefinition))
+		}
+
+		for (const prototypeOverwrite of parsedFile.prototypeOverwrites) {
+			const parentStatementList = findParent(prototypeOverwrite.getNode(), StatementList)
+			if (!parentStatementList) continue
+			if (!(parentStatementList["parent"] instanceof FusionFile)) continue
+			symbols.push(this.createDocumentSymbolFromPositionedNode(prototypeOverwrite, undefined, SymbolKind.Interface))
 		}
 
 		const objectStatements = parsedFile.getNodesByType(ObjectStatement)
 		if (objectStatements !== undefined) {
 			for (const objectStatement of objectStatements) {
 				const node = objectStatement.getNode()
-				if (!(node["parent"] && node["parent"]["parent"] && node["parent"]["parent"] instanceof FusionFile)) continue
+				const parentStatementList = findParent(node, StatementList)
+				if (!parentStatementList) continue
+				if (!(parentStatementList["parent"] instanceof FusionFile)) continue
 				if (node["block"] !== undefined) continue
+				console.log("objectStatement", objectStatement.getNode().path)
 				if (!(node.path.segments[0] instanceof PrototypePathSegment)) continue
 				symbols.push(this.createDocumentSymbolFromPositionedNode(objectStatement))
 			}
@@ -48,7 +58,7 @@ export class DocumentSymbolCapability extends AbstractCapability {
 		return symbols
 	}
 
-	protected createDocumentSymbolFromPositionedNode(positionedNode: LinePositionedNode<AbstractNode>, detail: string = '') {
+	protected createDocumentSymbolFromPositionedNode(positionedNode: LinePositionedNode<AbstractNode>, detail: string = '', kind: SymbolKind = SymbolKind.Class) {
 		const node = positionedNode.getNode()
 
 		if (node instanceof PrototypePathSegment) {
@@ -57,12 +67,12 @@ export class DocumentSymbolCapability extends AbstractCapability {
 			const objectStatement = findParent(node, ObjectStatement)
 			if (objectStatement && objectStatement.block) {
 				for (const statement of objectStatement.block.statementList.statements) {
-					const symbol = this.createDocumentSymbolFromPositionedNode(LinePositionedNode.Get(statement))
+					const symbol = this.createDocumentSymbolFromPositionedNode(LinePositionedNode.Get(statement), undefined, SymbolKind.Interface)
 					if (symbol) symbols.push(symbol)
 				}
 			}
 
-			return DocumentSymbol.create(node.identifier, detail, SymbolKind.Class, range, range, symbols)
+			return DocumentSymbol.create(node.identifier, detail, kind, range, range, symbols)
 		}
 
 		if (node instanceof ObjectStatement) {
@@ -70,7 +80,7 @@ export class DocumentSymbolCapability extends AbstractCapability {
 			const range = LinePositionedNode.Get(firstSegment).getPositionAsRange()
 
 			if (firstSegment instanceof PrototypePathSegment) {
-				return this.createDocumentSymbolFromPositionedNode(LinePositionedNode.Get(firstSegment))
+				return this.createDocumentSymbolFromPositionedNode(LinePositionedNode.Get(firstSegment), undefined, SymbolKind.Interface)
 			}
 
 			if (node.operation && node.operation instanceof ValueUnset) return null
@@ -78,7 +88,7 @@ export class DocumentSymbolCapability extends AbstractCapability {
 			const symbols: DocumentSymbol[] = []
 			if (node.block) {
 				for (const statement of node.block.statementList.statements) {
-					const symbol = this.createDocumentSymbolFromPositionedNode(LinePositionedNode.Get(statement))
+					const symbol = this.createDocumentSymbolFromPositionedNode(LinePositionedNode.Get(statement), undefined, SymbolKind.Interface)
 					if (symbol) symbols.push(symbol)
 				}
 			}
