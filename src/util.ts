@@ -21,8 +21,21 @@ import { OperationNode } from 'ts-fusion-parser/out/dsl/eel/nodes/OperationNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
 import { FusionWorkspace } from './fusion/FusionWorkspace'
 
+const lineNumberCache: Map<string, string[]> = new Map
+
+export function clearLineNumberCache() {
+    lineNumberCache.clear()
+}
+
 export function getLineNumberOfChar(data: string, index: number, debug = false) {
-    const perLine = data.split('\n')
+    let perLine: string[]
+    if(lineNumberCache.has(data)) {
+        perLine = lineNumberCache.get(data)
+    } else {
+        perLine = data.split('\n')
+        lineNumberCache.set(data, perLine)
+    }
+
     let totalLength = 0
     let column = index
     let i = 0

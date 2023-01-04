@@ -20,7 +20,7 @@ import { CompletionCapability } from './capabilities/CompletionCapability'
 import { HoverCapability } from './capabilities/HoverCapability'
 import { ReferenceCapability } from './capabilities/ReferenceCapability'
 import { Logger, LogService } from './Logging'
-import { uriToPath } from './util'
+import { clearLineNumberCache, uriToPath } from './util'
 import { AbstractLanguageFeature } from './languageFeatures/AbstractLanguageFeature'
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
@@ -152,6 +152,8 @@ export class LanguageServer extends Logger {
 		for (const fusionWorkspace of this.fusionWorkspaces) {
 			fusionWorkspace.init(configuration)
 		}
+
+		clearLineNumberCache()
 
 		this.sendBusyDispose('configuration')
 	}
