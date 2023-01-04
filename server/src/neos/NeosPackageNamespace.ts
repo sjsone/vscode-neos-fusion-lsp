@@ -20,6 +20,7 @@ export class NeosPackageNamespace {
 	protected path: string
 
 	protected fileUriCache: Map<string, string> = new Map()
+	protected fqcnCache: Map<string, { possibleFilePath: string, className: string, pathParts: string[] }> = new Map()
 
 	constructor(name: string, path: string) {
 		this.name = name
@@ -107,11 +108,21 @@ export class NeosPackageNamespace {
 	}
 
 	getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName: string): ClassDefinition {
+		// TODO: cache filepath and classname from FQCN
+
+		if (this.fqcnCache.has(fullyQualifiedClassName)) {
+			const { possibleFilePath, className, pathParts } = this.fqcnCache.get(fullyQualifiedClassName)
+			if (!NodeFs.existsSync(possibleFilePath)) return undefined
+			return this.getClassDefinionFromFilePathAndClassName(possibleFilePath, className, pathParts)
+		}
+
 		const path = fullyQualifiedClassName.replace(this.name, "")
 
 		const pathParts = path.split("\\")
 		const className = pathParts.pop()
 		const possibleFilePath = NodePath.join(this.path, ...pathParts, className + ".php")
+
+		this.fqcnCache.set(fullyQualifiedClassName, { possibleFilePath, className, pathParts })
 
 		if (!NodeFs.existsSync(possibleFilePath)) return undefined
 		return this.getClassDefinionFromFilePathAndClassName(possibleFilePath, className, pathParts)
