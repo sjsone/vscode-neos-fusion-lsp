@@ -22,7 +22,7 @@ export class Logger {
 	private loggerLogName: string
 
 	static LogNameAndLevel = (level: string, name: string, ...things: any) => {
-		console.log(`[${level.padStart(7, " ")}] [${name}]`, ...things)
+		console.log(`[${level.padStart(7, " ")}] <${(new Date()).toISOString()}> [${name}]`, ...things)
 	}
 
 	constructor(suffix: string | undefined = undefined) {
