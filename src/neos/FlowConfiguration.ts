@@ -3,7 +3,7 @@ import * as NodePath from "path"
 import { parse as parseYaml } from 'yaml'
 import { LoggingLevel } from '../ExtensionConfiguration'
 import { Logger, LogService } from '../Logging'
-import { getFiles, mergeObjects } from '../util'
+import { getFiles } from '../util'
 
 export type ParsedYaml = string | null | number | { [key: string]: ParsedYaml }
 
@@ -28,11 +28,12 @@ export class FlowConfiguration extends Logger {
 	static FromFolder(folderPath: string) {
 		let configuration = {}
 		for (const configurationFilePath of getFiles(folderPath, ".yaml")) {
+			if (!NodePath.basename(configurationFilePath).startsWith("Settings")) continue
 			const configurationFile = NodeFs.readFileSync(configurationFilePath).toString()
 			const parsedYaml = parseYaml(configurationFile)
 
 			try {
-				const mergedConfiguration = mergeObjects(configuration, parsedYaml)
+				const mergedConfiguration = Object.assign({}, configuration, parsedYaml)
 				configuration = mergedConfiguration ? mergedConfiguration : configuration
 				if (LogService.isLogLevel(LoggingLevel.Debug)) {
 					Logger.LogNameAndLevel(LoggingLevel.Debug.toUpperCase(), 'FlowConfiguration:FromFolder', 'Read configuration from: ' + configurationFilePath)
