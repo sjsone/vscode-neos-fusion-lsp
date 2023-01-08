@@ -219,7 +219,11 @@ function diagnosePrototypeNames(parsedFusionFile: ParsedFusionFile) {
 					range,
 					tags: [DiagnosticTag.Deprecated],
 					message: `Prototype ${node.value} is deprecated.${deprecated !== true ? ` Use ${deprecated} instead.` : ''}`,
-					source: 'Fusion LSP'
+					source: 'Fusion LSP',
+					data: {
+						deprecatedName: node.value,
+						newName: deprecated
+					}
 				})
 			}
 		}

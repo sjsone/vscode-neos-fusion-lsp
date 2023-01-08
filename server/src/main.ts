@@ -27,6 +27,8 @@ connection.onCompletionResolve(item => item)
 connection.onHover(params => languageserver.runCapability("onHover", params))
 connection.onDocumentSymbol(params => languageserver.runCapability("onDocumentSymbol", params))
 
+connection.onCodeAction(params => languageserver.onCodeAction(params))
+
 connection.languages.inlayHint.on(params => languageserver.getLanguageFeature("inlayHint").execute(params))
 
 connection.onDidChangeWatchedFiles(params => languageserver.onDidChangeWatchedFiles(params))
