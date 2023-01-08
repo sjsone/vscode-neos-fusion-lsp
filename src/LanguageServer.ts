@@ -24,6 +24,9 @@ import { clearLineNumberCache, uriToPath } from './util'
 import { AbstractLanguageFeature } from './languageFeatures/AbstractLanguageFeature'
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
+import { CodeActionParams } from 'vscode-languageserver';
+import { replaceDeprecatedQuickFixAction } from './actions/ReplaceDeprecatedQuickFixAction'
+
 
 export class LanguageServer extends Logger {
 
@@ -101,6 +104,7 @@ export class LanguageServer extends Logger {
 					openClose: true,
 					change: TextDocumentSyncKind.Full
 				},
+				codeActionProvider: true,
 				definitionProvider: true,
 				hoverProvider: true,
 				referencesProvider: true,
@@ -204,6 +208,10 @@ export class LanguageServer extends Logger {
 				worksapce.removeParsedFile(change.uri)
 			}
 		}
+	}
+
+	public onCodeAction(params: CodeActionParams) {
+		return replaceDeprecatedQuickFixAction(params)
 	}
 
 }
