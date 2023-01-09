@@ -6,6 +6,9 @@ export function replaceDeprecatedQuickFixAction(params: CodeActionParams) {
 	for (const diagnostic of params.context.diagnostics) {
 		if (!diagnostic.tags?.includes(DiagnosticTag.Deprecated)) continue
 
+		const newText = diagnostic.data?.newName
+		if (!newText) continue
+
 		codeActions.push({
 			title: "Replace deprecated",
 			kind: CodeActionKind.QuickFix,
@@ -13,7 +16,7 @@ export function replaceDeprecatedQuickFixAction(params: CodeActionParams) {
 			edit: {
 				changes: {
 					[params.textDocument.uri]: [{
-						range: diagnostic.range, newText: diagnostic.data.newName
+						range: diagnostic.range, newText
 					}]
 				}
 			}
