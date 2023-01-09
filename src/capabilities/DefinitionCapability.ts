@@ -83,12 +83,12 @@ export class DefinitionCapability extends AbstractCapability {
 			if (segment instanceof PathSegment) {
 				return [{
 					uri: parsedFile.uri,
-					range: LinePositionedNode.Get(segment).getPositionAsRange()
+					range: segment.linePositionedNode.getPositionAsRange()
 				}]
 			} else {
 				return [{
 					uri: segment.uri,
-					range: LinePositionedNode.Get(segment.statement.path.segments[0]).getPositionAsRange()
+					range: segment.statement.path.segments[0].linePositionedNode.getPositionAsRange()
 				}]
 			}
 		}

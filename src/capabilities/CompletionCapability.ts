@@ -167,7 +167,7 @@ export class CompletionCapability extends AbstractCapability {
 	protected getEelHelperCompletions(fusionWorkspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {
 		const node = foundNode.getNode()
 		const objectNode = <ObjectNode>node["parent"]
-		const linePositionedObjectNode = LinePositionedNode.Get(objectNode)
+		const linePositionedObjectNode = objectNode.linePositionedNode
 		const fullPath = objectNode["path"].map(part => part["value"]).join(".")
 		const completions: CompletionItem[] = []
 
