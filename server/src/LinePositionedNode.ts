@@ -7,6 +7,10 @@ export interface LinePosition {
 	character: number
 }
 
+declare module 'ts-fusion-parser/out/common/AbstractNode' {
+    interface AbstractNode { linePositionedNode: LinePositionedNode<typeof this>; }
+}
+
 export class LinePositionedNode<T extends AbstractNode> {
 	protected node: T
 
@@ -15,8 +19,7 @@ export class LinePositionedNode<T extends AbstractNode> {
 
 	constructor(node: T, text: string = undefined) {
 		this.node = node
-		// TODO: Make linePositionedNode typesafe 
-		this.node["linePositionedNode"] = this
+		this.node.linePositionedNode = this
 
 		if (node["position"] !== undefined && text !== undefined) {
 			const begin = node["position"].begin ?? (node["position"]).begin
@@ -50,9 +53,5 @@ export class LinePositionedNode<T extends AbstractNode> {
 			start: this.getBegin(),
 			end: this.getEnd(),
 		}
-	}
-
-	static Get<T extends AbstractNode>(node: T): undefined | LinePositionedNode<T> {
-		return node["linePositionedNode"]
 	}
 }

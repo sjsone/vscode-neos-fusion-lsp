@@ -35,7 +35,7 @@ export class InlayHintLanguageFeature extends AbstractLanguageFeature {
 				const parameter = method.parameters[index]
 				if (!parameter) continue
 
-				const linePositionedArg = LinePositionedNode.Get(arg)
+				const linePositionedArg = arg.linePositionedNode
 
 				const hint: InlayHint = {
 					label: parameter.name.replace("$", "") + ':',

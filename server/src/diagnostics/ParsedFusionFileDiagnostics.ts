@@ -47,7 +47,7 @@ function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 		if (pathBegin !== "props") continue
 		if (node.path.length === 1) continue
 		if (node.path[1]["value"] === "content") continue
-		const definition = definitionCapability.getPropertyDefinitions(this, parsedFusionFile.workspace, LinePositionedNode.Get(node.path[0]))
+		const definition = definitionCapability.getPropertyDefinitions(this, parsedFusionFile.workspace, node.path[0].linePositionedNode)
 		if (definition) continue
 
 		const objectStatementText = node.path.map(e => e["value"]).join(".")
@@ -144,7 +144,7 @@ function diagnoseEelHelperArguments(parsedFusionFile: ParsedFusionFile) {
 				for (const exceedingArgument of pathNode.args.slice(method.parameters.length)) {
 					const diagnostic: Diagnostic = {
 						severity: DiagnosticSeverity.Warning,
-						range: LinePositionedNode.Get(exceedingArgument).getPositionAsRange(),
+						range: exceedingArgument.linePositionedNode.getPositionAsRange(),
 						message: `Too many arguments provided`,
 						source: 'Fusion LSP'
 					}

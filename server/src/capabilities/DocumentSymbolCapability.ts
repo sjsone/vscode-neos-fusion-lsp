@@ -67,7 +67,7 @@ export class DocumentSymbolCapability extends AbstractCapability {
 			const objectStatement = findParent(node, ObjectStatement)
 			if (objectStatement && objectStatement.block) {
 				for (const statement of objectStatement.block.statementList.statements) {
-					const symbol = this.createDocumentSymbolFromPositionedNode(LinePositionedNode.Get(statement), undefined, SymbolKind.Interface)
+					const symbol = this.createDocumentSymbolFromPositionedNode(statement.linePositionedNode, undefined, SymbolKind.Interface)
 					if (symbol) symbols.push(symbol)
 				}
 			}
@@ -77,10 +77,10 @@ export class DocumentSymbolCapability extends AbstractCapability {
 
 		if (node instanceof ObjectStatement) {
 			const firstSegment = node.path.segments[0]
-			const range = LinePositionedNode.Get(firstSegment).getPositionAsRange()
+			const range = firstSegment.linePositionedNode.getPositionAsRange()
 
 			if (firstSegment instanceof PrototypePathSegment) {
-				return this.createDocumentSymbolFromPositionedNode(LinePositionedNode.Get(firstSegment), undefined, SymbolKind.Interface)
+				return this.createDocumentSymbolFromPositionedNode(firstSegment.linePositionedNode, undefined, SymbolKind.Interface)
 			}
 
 			if (node.operation && node.operation instanceof ValueUnset) return null
@@ -88,7 +88,7 @@ export class DocumentSymbolCapability extends AbstractCapability {
 			const symbols: DocumentSymbol[] = []
 			if (node.block) {
 				for (const statement of node.block.statementList.statements) {
-					const symbol = this.createDocumentSymbolFromPositionedNode(LinePositionedNode.Get(statement), undefined, SymbolKind.Interface)
+					const symbol = this.createDocumentSymbolFromPositionedNode(statement.linePositionedNode, undefined, SymbolKind.Interface)
 					if (symbol) symbols.push(symbol)
 				}
 			}
