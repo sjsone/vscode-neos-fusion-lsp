@@ -3,7 +3,7 @@ import * as NodePath from "path"
 import { parse as parseYaml } from 'yaml'
 import { LoggingLevel } from '../ExtensionConfiguration'
 import { Logger, LogService } from '../Logging'
-import { getFiles } from '../util'
+import { getFiles, mergeObjects } from '../util'
 
 export type ParsedYaml = string | null | number | { [key: string]: ParsedYaml }
 
@@ -33,7 +33,7 @@ export class FlowConfiguration extends Logger {
 			const parsedYaml = parseYaml(configurationFile)
 
 			try {
-				const mergedConfiguration = Object.assign({}, configuration, parsedYaml)
+				const mergedConfiguration = mergeObjects(parsedYaml, configuration)
 				configuration = mergedConfiguration ? mergedConfiguration : configuration
 				if (LogService.isLogLevel(LoggingLevel.Debug)) {
 					Logger.LogNameAndLevel(LoggingLevel.Debug.toUpperCase(), 'FlowConfiguration:FromFolder', 'Read configuration from: ' + configurationFilePath)
