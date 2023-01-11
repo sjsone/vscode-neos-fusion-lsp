@@ -62,7 +62,7 @@ class NodeService {
 		const objectStatement = objectNode instanceof ObjectStatement ? objectNode : findParent(objectNode, ObjectStatement) // [props.foo]
 
 		let statementList = findParent(objectNode, StatementList)
-		// TODO: get object identifier and match it runtime-like againts the property definition to check if it resolves 
+		// TODO: get object identifier and match it runtime-like against the property definition to check if it resolves 
 		if (getObjectIdentifier(objectStatement).startsWith("renderer.") && !getObjectIdentifier(objectStatement).startsWith("renderer.@process")) {
 			const parentObjectStatement = findParent(statementList, ObjectStatement)
 			if (parentObjectStatement) {
@@ -165,7 +165,7 @@ class NodeService {
 				}
 			}
 
-			let parentIdentifierisRenderer = false
+			let parentIdentifiersRenderer = false
 			if (parentObjectIdentifier === "renderer") {
 				const rendererPrototype = <ObjectStatement>findUntil(parentObjectNode, (node) => {
 					if (!(node instanceof ObjectStatement)) return false
@@ -173,14 +173,14 @@ class NodeService {
 					if (!(node.operation.pathValue instanceof FusionObjectValue)) return false
 					return true
 				})
-				parentIdentifierisRenderer = true
+				parentIdentifiersRenderer = true
 				if (rendererPrototype instanceof ObjectStatement && rendererPrototype.operation instanceof ValueAssignment) {
-					parentIdentifierisRenderer = this.doesPrototypeOverrideProps(rendererPrototype.operation.pathValue["value"])
+					parentIdentifiersRenderer = this.doesPrototypeOverrideProps(rendererPrototype.operation.pathValue["value"])
 				}
 			}
 
-			skipNextStatements = !parentIdentifierisRenderer
-			if (!wasComingFromRenderer) wasComingFromRenderer = parentIdentifierisRenderer
+			skipNextStatements = !parentIdentifiersRenderer
+			if (!wasComingFromRenderer) wasComingFromRenderer = parentIdentifiersRenderer
 
 			traverseUpwards = !onlyWhenFoundApplyProps || foundApplyProps
 			statementList = findParent(statementList, StatementList)
@@ -258,9 +258,8 @@ class NodeService {
 		const statements: Array<ExternalObjectStatement> = []
 		for (const otherParsedFile of workspace.parsedFiles) {
 			for (const positionedNode of [...otherParsedFile.prototypeCreations]) {
-				if (positionedNode.getNode()["identifier"] !== name) continue
-				const node = positionedNode.getNode()
-				const objectStatement = findParent(node, ObjectStatement)
+				if (positionedNode.getNode().identifier !== name) continue
+				const objectStatement = findParent(positionedNode.getNode(), ObjectStatement)
 				const operation = objectStatement.operation
 				if (operation instanceof ValueCopy) {
 					const prototypeSegment = operation.assignedObjectPath.objectPath.segments[0]

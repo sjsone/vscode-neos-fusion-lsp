@@ -39,7 +39,7 @@ export class ParsedFusionFile {
 	public nodesByType: Map<new (...args: unknown[]) => AbstractNode, LinePositionedNode<AbstractNode>[]> = new Map()
 
 	public ignoredDueToError = false
-	public igoredErrorsByParser: Error[] = []
+	public ignoredErrorsByParser: Error[] = []
 
 	protected debug: boolean
 
@@ -56,7 +56,7 @@ export class ParsedFusionFile {
 			}
 
 			const objectTree = ObjectTreeParser.parse(text, undefined, true)
-			this.igoredErrorsByParser = objectTree.errors
+			this.ignoredErrorsByParser = objectTree.errors
 			this.readStatementList(objectTree.statementList, text)
 
 			for (const nodeType of objectTree.nodesByType.keys()) {
@@ -87,7 +87,7 @@ export class ParsedFusionFile {
 			const isLastPathPart = currentPath.length === node.path.length
 			if (part instanceof ObjectFunctionPathNode || (isLastPathPart && (part instanceof ObjectPathNode))) {
 				if (currentPath.length === 1) {
-					// TODO: Allow immidiate EEL-Helper (like "q(...)")
+					// TODO: Allow immediate EEL-Helper (like "q(...)")
 					continue
 				}
 
