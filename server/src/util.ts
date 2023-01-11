@@ -49,8 +49,8 @@ export function getLineNumberOfChar(data: string, index: number, debug = false) 
 }
 
 export function* getFiles(dir: string, withExtension = ".fusion") {
-    const dirents = NodeFs.readdirSync(dir, { withFileTypes: true })
-    for (const dirent of dirents) {
+    const directoryEntries = NodeFs.readdirSync(dir, { withFileTypes: true })
+    for (const dirent of directoryEntries) {
         if (dirent.isSymbolicLink()) continue
         const res = NodePath.resolve(dir, dirent.name)
         if (dirent.isDirectory()) {

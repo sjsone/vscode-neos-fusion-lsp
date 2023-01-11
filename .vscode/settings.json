@@ -2,5 +2,10 @@
 	"editor.insertSpaces": false,
 	"typescript.tsc.autoDetect": "off",
 	"typescript.preferences.quoteStyle": "single",
-	"todo-tree.highlights.enabled": false
+	"todo-tree.highlights.enabled": false,
+	"cSpell.words": [
+		"fqcn",
+		"Neos",
+		"proptypes"
+	]
 }
