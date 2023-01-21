@@ -1,7 +1,8 @@
 import {
     createConnection,
     TextDocuments,
-    ProposedFeatures
+    ProposedFeatures,
+    WorkspaceSymbolParams
 } from "vscode-languageserver/node"
 import { TextDocument } from "vscode-languageserver-textdocument"
 import { LanguageServer } from './LanguageServer'
@@ -26,6 +27,7 @@ connection.onCompletion(params => languageserver.runCapability("onCompletion", p
 connection.onCompletionResolve(item => item)
 connection.onHover(params => languageserver.runCapability("onHover", params))
 connection.onDocumentSymbol(params => languageserver.runCapability("onDocumentSymbol", params))
+connection.onWorkspaceSymbol(params => languageserver.runCapability("onWorkspaceSymbol", params))
 
 connection.onCodeAction(params => languageserver.onCodeAction(params))
 

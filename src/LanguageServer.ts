@@ -26,6 +26,7 @@ import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFe
 import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
 import { CodeActionParams } from 'vscode-languageserver';
 import { replaceDeprecatedQuickFixAction } from './actions/ReplaceDeprecatedQuickFixAction'
+import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
 
 
 export class LanguageServer extends Logger {
@@ -46,6 +47,7 @@ export class LanguageServer extends Logger {
 		this.capabilities.set("onHover", new HoverCapability(this))
 		this.capabilities.set("onReferences", new ReferenceCapability(this))
 		this.capabilities.set("onDocumentSymbol", new DocumentSymbolCapability(this))
+		this.capabilities.set("onWorkspaceSymbol", new WorkspaceSymbolCapability(this))
 
 		this.languageFeatures.set("inlayHint", new InlayHintLanguageFeature(this))
 	}
@@ -108,7 +110,8 @@ export class LanguageServer extends Logger {
 				definitionProvider: true,
 				hoverProvider: true,
 				referencesProvider: true,
-				documentSymbolProvider: true
+				documentSymbolProvider: true,
+				workspaceSymbolProvider: true
 			},
 		}
 	}
