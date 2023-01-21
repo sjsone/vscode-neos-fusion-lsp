@@ -80,7 +80,7 @@ As EEL-Helper are parsed so are the arguments. If an arguments is missing it is 
 
 ### Prototypes
 
-Prototypes can be marked as depricated via the Extension Configuration. The deprecation can be fixed via a Quick-Action in the context menu.
+Prototypes can be marked as deprecated via the Extension Configuration. The deprecation can be fixed via a Quick-Action in the context menu.
 
 ### Empty EEL-Expression
 
