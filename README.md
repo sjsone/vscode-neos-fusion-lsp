@@ -44,7 +44,7 @@ Every Symbol in the document can be easily accessed.
 
 ### Workspace Symbols (*CMD + T*)
 
-Every Prototype can be easily listed via the WorkspaceSymbols.
+Every Prototype can be easily listed via the WorkspaceSymbols. Overwritten Prototypes are also shown. 
 
 ![resource:// capability](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/symbols_workspace.png?raw=true)
 
