@@ -163,49 +163,49 @@ export class LanguageServer extends Logger {
 	}
 
 	public onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams) {
-		// TODO: Create seperate Watchers (like capabilities)
+		// TODO: Create separate Watchers (like capabilities)
 		// TODO: Update relevant ParsedFusionFiles  
 		for (const change of params.changes) {
 			// console.log(`CHANGE: ${change.type} ${change.uri}`)
 			this.logVerbose(`Watched: (${Object.keys(FileChangeType)[Object.values(FileChangeType).indexOf(change.type)]}) ${change.uri}`)
 			if (change.type === FileChangeType.Changed) {
 				if (!change.uri.endsWith(".php")) continue
-				for (const worksapce of this.fusionWorkspaces) {
-					for (const [name, neosPackage] of worksapce.neosWorkspace.getPackages().entries()) {
+				for (const workspace of this.fusionWorkspaces) {
+					for (const [name, neosPackage] of workspace.neosWorkspace.getPackages().entries()) {
 						const helper = neosPackage.getEelHelpers().find(helper => helper.uri === change.uri)
 						if (!helper) continue
 
 						this.logVerbose(`  File was EEL-Helper ${helper.name}`)
 
 						const namespace = helper.namespace
-						const classDefinion = namespace.getClassDefinionFromFilePathAndClassName(uriToPath(helper.uri), helper.className, helper.pathParts)
+						const classDefinition = namespace.getClassDefinitionFromFilePathAndClassName(uriToPath(helper.uri), helper.className, helper.pathParts)
 
-						this.logVerbose(`  Methods: then ${helper.methods.length} now ${classDefinion.methods.length}`)
+						this.logVerbose(`  Methods: then ${helper.methods.length} now ${classDefinition.methods.length}`)
 
-						helper.methods = classDefinion.methods
-						helper.position = classDefinion.position
+						helper.methods = classDefinition.methods
+						helper.position = classDefinition.position
 					}
 				}
 			}
 			if (change.type === FileChangeType.Created) {
 				if (!change.uri.endsWith(".fusion")) continue
-				const worksapce = this.getWorkspaceForFileUri(change.uri)
-				if (!worksapce) {
+				const workspace = this.getWorkspaceForFileUri(change.uri)
+				if (!workspace) {
 					this.logInfo(`Created Fusion file corresponds to no workspace. ${change.uri}`)
 					continue
 				}
-				worksapce.addParsedFileFromPath(uriToPath(change.uri))
+				workspace.addParsedFileFromPath(uriToPath(change.uri))
 				this.logDebug(`Added new ParsedFusionFile ${change.uri}`)
 			}
 
 			if (change.type === FileChangeType.Deleted) {
 				if (!change.uri.endsWith(".fusion")) continue
-				const worksapce = this.getWorkspaceForFileUri(change.uri)
-				if (!worksapce) {
+				const workspace = this.getWorkspaceForFileUri(change.uri)
+				if (!workspace) {
 					this.logInfo(`Deleted Fusion file corresponds to no workspace. ${change.uri}`)
 					continue
 				}
-				worksapce.removeParsedFile(change.uri)
+				workspace.removeParsedFile(change.uri)
 			}
 		}
 	}

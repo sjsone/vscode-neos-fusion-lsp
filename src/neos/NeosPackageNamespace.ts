@@ -51,7 +51,7 @@ export class NeosPackageNamespace {
 		return fileUri
 	}
 
-	getClassDefinionFromFilePathAndClassName(filePath: string, className: string, pathParts: string[]): ClassDefinition {
+	getClassDefinitionFromFilePathAndClassName(filePath: string, className: string, pathParts: string[]): ClassDefinition {
 		const phpFileSource = NodeFs.readFileSync(filePath).toString()
 
 		const namespace = this.name + pathParts.join("\\")
@@ -113,7 +113,7 @@ export class NeosPackageNamespace {
 		if (this.fqcnCache.has(fullyQualifiedClassName)) {
 			const { possibleFilePath, className, pathParts } = this.fqcnCache.get(fullyQualifiedClassName)
 			if (!NodeFs.existsSync(possibleFilePath)) return undefined
-			return this.getClassDefinionFromFilePathAndClassName(possibleFilePath, className, pathParts)
+			return this.getClassDefinitionFromFilePathAndClassName(possibleFilePath, className, pathParts)
 		}
 
 		const path = fullyQualifiedClassName.replace(this.name, "")
@@ -125,7 +125,7 @@ export class NeosPackageNamespace {
 		this.fqcnCache.set(fullyQualifiedClassName, { possibleFilePath, className, pathParts })
 
 		if (!NodeFs.existsSync(possibleFilePath)) return undefined
-		return this.getClassDefinionFromFilePathAndClassName(possibleFilePath, className, pathParts)
+		return this.getClassDefinitionFromFilePathAndClassName(possibleFilePath, className, pathParts)
 	}
 
 	protected parseMethodParameters(rawParameters: string): EelHelperMethodParameter[] {
