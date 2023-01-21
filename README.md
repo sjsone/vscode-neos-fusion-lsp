@@ -5,7 +5,11 @@ This package is **WIP**
 <p float="left">
   <img width="45%" src="https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/goto_definition.gif?raw=true" alt="animated" />
   <img width="45%" src="https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/goto_eel_helper_method.gif?raw=true" alt="animated" />
+  <img width=""
 </p>
+
+
+
 ## Functionality
 
 ### [Goto Definition](https://code.visualstudio.com/docs/editor/editingevolved#_go-to-definition) (*CMD + Click*)
@@ -85,6 +89,14 @@ Prototypes can be marked as deprecated via the Extension Configuration. The depr
 ### Empty EEL-Expression
 
 If an empty EEL-Expression `obj = ${}` is used instead of an literal null `obj = null`  it will be marked as deprecated with an Quick-Action-Fix.
+
+
+
+## Outline
+
+In the Explorer-View the outline is filled with symbols found in the current document.
+
+![outline](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/outline.png?raw=true)
 
 ## FAQ
 
