@@ -152,7 +152,7 @@ export class HoverCapability extends AbstractCapability {
 		if (!uri || !NodeFs.existsSync(uri)) return `**Could not find Resource**`
 
 		const basename = NodePath.basename(uri)
-		const isImage = (/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i).test(basename)
+		const isImage = (/\.(gif|jpe?g|tiff?|png|webp|bmp|svg|ico|icns)$/i).test(basename)
 
 		if (isImage) return `![${basename}](${uri})`
 		return `Resource: ${basename}`
