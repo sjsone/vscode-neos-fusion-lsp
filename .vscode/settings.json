@@ -4,6 +4,7 @@
 	"typescript.preferences.quoteStyle": "single",
 	"todo-tree.highlights.enabled": false,
 	"cSpell.words": [
+		"autoload",
 		"fqcn",
 		"Neos",
 		"proptypes"
