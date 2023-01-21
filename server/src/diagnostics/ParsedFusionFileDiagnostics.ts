@@ -15,6 +15,9 @@ import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode';
 import { ResourceUriNode } from '../fusion/ResourceUriNode';
 import { LinePositionedNode } from '../LinePositionedNode';
 import { findParent, isPrototypeDeprecated } from '../util';
+import { EmptyEelNode } from 'ts-fusion-parser/out/dsl/eel/nodes/EmptyEelNode';
+import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/EelExpressionValue';
+import { ValueAssignment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueAssignment';
 
 export async function diagnose(parsedFusionFile: ParsedFusionFile) {
 	const diagnostics: Diagnostic[] = []
@@ -24,6 +27,8 @@ export async function diagnose(parsedFusionFile: ParsedFusionFile) {
 	diagnostics.push(...diagnoseTagNames(parsedFusionFile))
 	diagnostics.push(...diagnoseEelHelperArguments(parsedFusionFile))
 	diagnostics.push(...diagnosePrototypeNames(parsedFusionFile))
+	diagnostics.push(...diagnoseEmptyEel(parsedFusionFile))
+
 
 	return diagnostics
 }
@@ -157,21 +162,22 @@ function diagnoseEelHelperArguments(parsedFusionFile: ParsedFusionFile) {
 	return diagnostics
 }
 
+function getDeprecationsDiagnosticsLevel(parsedFusionFile: ParsedFusionFile): DiagnosticSeverity {
+	const severityConfiguration = parsedFusionFile.workspace.getConfiguration().diagnostics.levels.deprecations
+
+	if (severityConfiguration === DeprecationsDiagnosticLevels.Info) return DiagnosticSeverity.Information
+	if (severityConfiguration === DeprecationsDiagnosticLevels.Warning) return DiagnosticSeverity.Warning
+	if (severityConfiguration === DeprecationsDiagnosticLevels.Error) return DiagnosticSeverity.Error
+
+	return DiagnosticSeverity.Hint
+}
+
 function diagnosePrototypeNames(parsedFusionFile: ParsedFusionFile) {
 	// TODO: Create seperate Diagnostics (like capabilities)
 
 	const diagnostics: Diagnostic[] = []
 
-	const severityConfiguration = parsedFusionFile.workspace.getConfiguration().diagnostics.levels.deprecations
-
-	let severity: DiagnosticSeverity = DiagnosticSeverity.Hint
-	if (severityConfiguration === DeprecationsDiagnosticLevels.Info) {
-		severity = DiagnosticSeverity.Information
-	} else if (severityConfiguration === DeprecationsDiagnosticLevels.Warning) {
-		severity = DiagnosticSeverity.Warning
-	} else if (severityConfiguration === DeprecationsDiagnosticLevels.Error) {
-		severity = DiagnosticSeverity.Error
-	}
+	const severity = getDeprecationsDiagnosticsLevel(parsedFusionFile)
 
 	const pathSegments = parsedFusionFile.getNodesByType(PrototypePathSegment)
 	if (pathSegments !== undefined) {
@@ -227,6 +233,38 @@ function diagnosePrototypeNames(parsedFusionFile: ParsedFusionFile) {
 				})
 			}
 		}
+	}
+
+	return diagnostics
+}
+
+function diagnoseEmptyEel(parsedFusionFile: ParsedFusionFile) {
+	const diagnostics: Diagnostic[] = []
+	if (!parsedFusionFile.uri.endsWith("Image.Figure.fusion")) return diagnostics
+
+	const eelExpressions = parsedFusionFile.getNodesByType(EelExpressionValue)
+	if (!eelExpressions) return diagnostics
+
+	const severity = getDeprecationsDiagnosticsLevel(parsedFusionFile)
+
+	for (const eelExpression of eelExpressions) {
+		const emptyEelNode = eelExpression.getNode().nodes
+		if (!(emptyEelNode instanceof EmptyEelNode)) continue
+
+		const valueAssignment = findParent(emptyEelNode, ValueAssignment)
+		if (!valueAssignment) continue
+
+		diagnostics.push({
+			severity,
+			range: valueAssignment.linePositionedNode.getPositionAsRange(),
+			tags: [DiagnosticTag.Deprecated],
+			message: `Use \`null\` instead of \`\${}\``,
+			source: 'Fusion LSP',
+			data: {
+				deprecatedName: "${}",
+				newName: " null"
+			}
+		})
 	}
 
 	return diagnostics
