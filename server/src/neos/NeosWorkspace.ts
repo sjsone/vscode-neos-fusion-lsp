@@ -1,6 +1,7 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { Logger } from '../Logging'
+import { uriToPath } from '../util'
 import { EELHelperToken, NeosPackage } from './NeosPackage'
 export class NeosWorkspace extends Logger {
 	protected workspacePath: string
@@ -35,6 +36,15 @@ export class NeosWorkspace extends Logger {
 		for (const neosPackage of this.packages.values()) {
 			if (neosPackage.getPackageName() === packageName) return neosPackage
 		}
+		return undefined
+	}
+
+	getPackageByUri(uri: string): NeosPackage | undefined {
+		const uriPath = uriToPath(uri)
+		for (const neosPackage of this.packages.values()) {
+			if (uriPath.startsWith(neosPackage["path"])) return neosPackage
+		}
+
 		return undefined
 	}
 

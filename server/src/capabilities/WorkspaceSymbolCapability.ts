@@ -32,6 +32,19 @@ export class WorkspaceSymbolCapability extends AbstractCapability {
 			})
 		}
 
+
+		const neosPackage = parsedFile.workspace.neosWorkspace.getPackageByUri(parsedFile.uri)
+
+		for (const prototypePathSegment of parsedFile.prototypeOverwrites) {
+			const node = prototypePathSegment.getNode()
+
+			symbols.push({
+				name: `${node.identifier} [${neosPackage?.getPackageName()}]`,
+				location: { uri: parsedFile.uri, range: prototypePathSegment.getPositionAsRange() },
+				kind: SymbolKind.Constructor,
+			})
+		}
+
 		return symbols
 	}
 }
