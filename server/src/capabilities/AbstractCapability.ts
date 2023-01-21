@@ -1,8 +1,8 @@
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
-import { TextDocumentPositionParams } from 'vscode-languageserver/node'
+import { TextDocumentPositionParams, WorkspaceSymbolParams } from 'vscode-languageserver/node'
 import { LanguageServer } from '../LanguageServer'
 import { Logger } from '../Logging'
-import { CapabilityContext } from './CapabilityContext'
+import { CapabilityContext, WorkspacesCapabilityContext } from './CapabilityContext'
 
 export abstract class AbstractCapability extends Logger {
 	protected languageServer: LanguageServer
@@ -26,9 +26,15 @@ export abstract class AbstractCapability extends Logger {
 
 	protected abstract run<N extends AbstractNode>(capabilityContext: CapabilityContext<N>): any
 
-	protected buildContextFromParams(params: TextDocumentPositionParams): CapabilityContext<AbstractNode> {
-		const uri = params.textDocument.uri
+	protected buildContextFromParams(params: TextDocumentPositionParams | WorkspaceSymbolParams): CapabilityContext<AbstractNode> {
+		if (!('textDocument' in params)) {
+			return {
+				workspaces: this.languageServer["fusionWorkspaces"],
+				params
+			} as WorkspacesCapabilityContext
+		}
 
+		const uri = params.textDocument.uri
 
 		const workspace = this.languageServer.getWorkspaceForFileUri(uri)
 		if (workspace === undefined) return null
@@ -47,7 +53,7 @@ export abstract class AbstractCapability extends Logger {
 			const column = params.position.character
 
 			this.logDebug(`${line}/${column} ${params.textDocument.uri}`)
-			
+
 			const foundNodeByLine = parsedFile.getNodeByLineAndColumn(line, column)
 			if (foundNodeByLine === undefined) return null
 			context.foundNodeByLine = foundNodeByLine
