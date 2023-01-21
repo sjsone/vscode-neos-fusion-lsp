@@ -17,18 +17,23 @@ import { StringValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/St
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueAssignment';
 import { ValueUnset } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueUnset';
 import { DocumentSymbol, SymbolKind } from 'vscode-languageserver';
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
 import { LinePositionedNode } from '../LinePositionedNode';
 import { findParent, getObjectIdentifier } from '../util';
 import { AbstractCapability } from './AbstractCapability';
-import { CapabilityContext } from './CapabilityContext';
+import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext';
 
 
 export class DocumentSymbolCapability extends AbstractCapability {
 	protected noPositionedNode: boolean = true
 
 	protected run(context: CapabilityContext<AbstractNode>) {
-		const { workspace, parsedFile } = context
+		const { parsedFile } = <ParsedFileCapabilityContext<AbstractNode>>context
 
+		return this.getSymbolsFromParsedFile(parsedFile)
+	}
+
+	protected getSymbolsFromParsedFile(parsedFile: ParsedFusionFile) {
 		const symbols: DocumentSymbol[] = []
 		for (const prototypeDefinition of parsedFile.prototypeCreations) {
 			symbols.push(this.createDocumentSymbolFromPositionedNode(prototypeDefinition))
@@ -46,11 +51,12 @@ export class DocumentSymbolCapability extends AbstractCapability {
 			for (const objectStatement of objectStatements) {
 				const node = objectStatement.getNode()
 				const parentStatementList = findParent(node, StatementList)
+
 				if (!parentStatementList) continue
 				if (!(parentStatementList["parent"] instanceof FusionFile)) continue
 				if (node["block"] !== undefined) continue
-				console.log("objectStatement", objectStatement.getNode().path)
 				if (!(node.path.segments[0] instanceof PrototypePathSegment)) continue
+
 				symbols.push(this.createDocumentSymbolFromPositionedNode(objectStatement))
 			}
 		}

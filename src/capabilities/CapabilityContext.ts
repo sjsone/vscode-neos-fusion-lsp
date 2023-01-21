@@ -1,10 +1,17 @@
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
-import { TextDocumentPositionParams } from 'vscode-languageserver/node'
+import { TextDocumentPositionParams, WorkspaceSymbolParams } from 'vscode-languageserver/node'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { LinePositionedNode } from '../LinePositionedNode'
 
-export interface CapabilityContext<N extends AbstractNode> {
+export type CapabilityContext<N extends AbstractNode> = ParsedFileCapabilityContext<N> | WorkspacesCapabilityContext
+
+export interface WorkspacesCapabilityContext {
+	workspaces: FusionWorkspace[],
+	params: WorkspaceSymbolParams
+}
+
+export interface ParsedFileCapabilityContext<N extends AbstractNode> {
 	workspace: FusionWorkspace
 	parsedFile: ParsedFusionFile
 	foundNodeByLine?: LinePositionedNode<N>,
