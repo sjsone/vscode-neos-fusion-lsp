@@ -240,7 +240,6 @@ function diagnosePrototypeNames(parsedFusionFile: ParsedFusionFile) {
 
 function diagnoseEmptyEel(parsedFusionFile: ParsedFusionFile) {
 	const diagnostics: Diagnostic[] = []
-	if (!parsedFusionFile.uri.endsWith("Image.Figure.fusion")) return diagnostics
 
 	const eelExpressions = parsedFusionFile.getNodesByType(EelExpressionValue)
 	if (!eelExpressions) return diagnostics
