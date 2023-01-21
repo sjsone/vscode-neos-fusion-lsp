@@ -12,7 +12,7 @@ This package is **WIP**
 ### Version 0.0.14
 #### ✨ `resource://` Goto Definition, Completion and Hover
 
-It currently only workes when it is a fusion string. When the file is an image it gets preview on hover
+It currently only works when it is a fusion string. When the file is an image it gets preview on hover
 
 ![resource:// capability](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/resource_completion_and_hover.gif?raw=true)
 
@@ -24,7 +24,7 @@ It currently only workes when it is a fusion string. When the file is an image i
 
 #### ✨ Improved Definition and Hover Capabilities
 
-Definitions are now following inheritence and overrides. It still only works on `this.` and `props.` and will fail on more complex fusion as `@context` is currently not resolved.
+Definitions are now following inheritance and overrides. It still only works on `this.` and `props.` and will fail on more complex fusion as `@context` is currently not resolved.
 
 #### ✨ Implemented basic diagnostics `experimental`
 
@@ -76,15 +76,15 @@ Real support (not just string comparison) will be added in the *not so far but s
 
 #### How does it work?
 
-The language-server relies heavely on the [ts-fusion-parser](https://www.npmjs.com/package/ts-fusion-parser) which is a typescript  port of the "official" [Fusion Parser](https://github.com/neos/neos-development-collection/tree/8.2/Neos.Fusion/Classes/Core).
+The language-server relies heavily on the [ts-fusion-parser](https://www.npmjs.com/package/ts-fusion-parser) which is a typescript  port of the "official" [Fusion Parser](https://github.com/neos/neos-development-collection/tree/8.2/Neos.Fusion/Classes/Core).
 
-Essentialy it reads all AST-Nodes from the fusion parser and checks if the curser is on one of these AST-Nodes. If it is, the relevant actions are carried out.
+Essentially it reads all AST-Nodes from the fusion parser and checks if the curser is on one of these AST-Nodes. If it is, the relevant actions are carried out.
 
 The AFX and EEL parser is part of the [ts-fusion-parser](https://www.npmjs.com/package/ts-fusion-parser).
 
-#### Is there a roadmap?
+#### Is there a road map?
 
-Currently there is no roadmap.  
+Currently there is no road map.  
 
 #### What about EEL-Helper and NodeType-Configuration
 
