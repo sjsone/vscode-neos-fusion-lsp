@@ -1,6 +1,6 @@
-# 🚧 NEOS Fusion & AFX 🚧
+# 🚀 NEOS Fusion & AFX
 
-This package is **WIP**
+🚧 This package is **WIP**. 🚧
 
 <p float="left">
   <img width="45%" src="https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/goto_definition.gif?raw=true" alt="animated" />
@@ -13,9 +13,11 @@ Most of the common Language Server Features are supported.
 
 ### [Goto Definition](https://code.visualstudio.com/docs/editor/editingevolved#_go-to-definition) (*CMD + Click*)
 
-Currently works on **Prototypes** and fusion **Properties** (detected by `this` or `props`)
+Currently works on **Prototypes** and fusion **Properties** (detected by `this` or `props`).
 
 Support for EEL-Helper is present, but currently not for functions (`q(node)`) only for classes (`String.empty()`).
+
+🚧 It also works on `controller` and `action` properties in `Neos.Fusion:ActionUri` and  `Neos.Fusion:UriBuilder` as long as the Action can be found.
 
 ### Find References (*Shift + CMD + Click*)
 
@@ -88,6 +90,14 @@ If an empty EEL-Expression `obj = ${}` is used instead of an literal null `obj =
 In the Explorer-View the outline is filled with symbols found in the current document.
 
 ![outline](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/outline.png?raw=true)
+
+## 🚧 Semantic Token Highlighting 
+
+The language server currently highlights  `controller` and `action` properties in `Neos.Fusion:ActionUri` and  `Neos.Fusion:UriBuilder` . Even if the action cannot be found.  
+
+This feature will be extended in the future.
+
+![semantic_token_uri_actions](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/semantic_token_uri_actions.png?raw=true)
 
 ## FAQ
 
