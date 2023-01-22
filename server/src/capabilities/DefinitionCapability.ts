@@ -30,7 +30,7 @@ export class DefinitionCapability extends AbstractCapability {
 		const { workspace, parsedFile, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
 		const node = foundNodeByLine.getNode()
 
-		this.log(`node type "${foundNodeByLine.getNode().constructor.name}"`)
+		this.logVerbose(`node type "${foundNodeByLine.getNode().constructor.name}"`)
 		switch (true) {
 			case node instanceof FusionObjectValue:
 			case node instanceof PrototypePathSegment:
