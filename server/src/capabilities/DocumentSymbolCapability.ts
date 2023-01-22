@@ -19,7 +19,7 @@ import { ValueUnset } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/Val
 import { DocumentSymbol, SymbolKind } from 'vscode-languageserver';
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
 import { LinePositionedNode } from '../common/LinePositionedNode';
-import { findParent, getObjectIdentifier } from '../util';
+import { findParent, getObjectIdentifier } from '../common/util';
 import { AbstractCapability } from './AbstractCapability';
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext';
 

@@ -1,7 +1,7 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { EelHelperMethod, EelHelperMethodParameter } from '../eel/EelHelperMethod'
-import { getLineNumberOfChar, pathToUri } from '../util'
+import { getLineNumberOfChar, pathToUri } from '../common/util'
 
 export interface ClassDefinition {
 	uri: string
