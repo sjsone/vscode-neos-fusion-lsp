@@ -14,7 +14,7 @@ import { AbstractCapability } from './AbstractCapability'
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { NodeService } from '../NodeService'
-import { CapabilityContext } from './CapabilityContext'
+import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { FqcnNode } from '../fusion/FqcnNode'
 import { ClassDefinition } from '../neos/NeosPackageNamespace'
@@ -23,7 +23,7 @@ import { ResourceUriNode } from '../fusion/ResourceUriNode'
 export class DefinitionCapability extends AbstractCapability {
 
 	protected run(context: CapabilityContext<AbstractNode>) {
-		const { workspace, parsedFile, foundNodeByLine } = context
+		const { workspace, parsedFile, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
 		const node = foundNodeByLine.getNode()
 
 		this.logVerbose(`node type "${foundNodeByLine.getNode().constructor.name}"`)

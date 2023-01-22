@@ -14,7 +14,7 @@ import { LinePositionedNode } from '../LinePositionedNode'
 import { NeosPackage } from '../neos/NeosPackage'
 import { ExternalObjectStatement, NodeService } from '../NodeService'
 import { AbstractCapability } from './AbstractCapability'
-import { CapabilityContext } from './CapabilityContext'
+import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
 import { findParent, getObjectIdentifier } from '../util'
@@ -22,7 +22,7 @@ import { findParent, getObjectIdentifier } from '../util'
 export class CompletionCapability extends AbstractCapability {
 
 	protected run(context: CapabilityContext<AbstractNode>) {
-		const { workspace, parsedFile, foundNodeByLine } = context
+		const { workspace, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
 		const completions = []
 		if (foundNodeByLine) {
 			const foundNode = foundNodeByLine.getNode()
