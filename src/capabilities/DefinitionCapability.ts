@@ -214,7 +214,7 @@ export class DefinitionCapability extends AbstractCapability {
 		}
 
 		for (const namespace of neosPackage["namespaces"].values()) {
-			const className = actionUriDefinition.controller + 'Controller'
+			const className = actionUriDefinition.controller.replace("/", "\\") + 'Controller'
 			const fqcnParts = namespace["name"].split("\\").filter(Boolean)
 			fqcnParts.push('Controller')
 			fqcnParts.push(className)
