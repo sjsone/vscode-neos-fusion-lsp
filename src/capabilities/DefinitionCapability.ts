@@ -1,4 +1,5 @@
 import * as NodeFs from 'fs'
+import * as NodePath from 'path'
 
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment'
@@ -9,7 +10,7 @@ import { PhpClassNode } from '../fusion/PhpClassNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { LinePositionedNode } from '../LinePositionedNode'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
-import { getPrototypeNameFromNode } from '../util'
+import { findParent, getObjectIdentifier, getPrototypeNameFromNode } from '../util'
 import { AbstractCapability } from './AbstractCapability'
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
@@ -19,6 +20,9 @@ import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { FqcnNode } from '../fusion/FqcnNode'
 import { ClassDefinition } from '../neos/NeosPackageNamespace'
 import { ResourceUriNode } from '../fusion/ResourceUriNode'
+import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement'
+import { ValueAssignment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueAssignment'
+import { StringValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StringValue'
 
 export class DefinitionCapability extends AbstractCapability {
 
@@ -26,7 +30,7 @@ export class DefinitionCapability extends AbstractCapability {
 		const { workspace, parsedFile, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
 		const node = foundNodeByLine.getNode()
 
-		this.logVerbose(`node type "${foundNodeByLine.getNode().constructor.name}"`)
+		this.log(`node type "${foundNodeByLine.getNode().constructor.name}"`)
 		switch (true) {
 			case node instanceof FusionObjectValue:
 			case node instanceof PrototypePathSegment:
@@ -42,6 +46,8 @@ export class DefinitionCapability extends AbstractCapability {
 				return this.getFqcnDefinitions(workspace, <LinePositionedNode<FqcnNode>>foundNodeByLine)
 			case node instanceof ResourceUriNode:
 				return this.getResourceUriPathNodeDefinition(workspace, <LinePositionedNode<ResourceUriNode>>foundNodeByLine)
+			case node instanceof ObjectStatement:
+				return this.getControllerActionDefinition(parsedFile, workspace, <LinePositionedNode<ObjectStatement>>foundNodeByLine)
 		}
 
 		return null
@@ -155,5 +161,94 @@ export class DefinitionCapability extends AbstractCapability {
 			targetSelectionRange: targetRange,
 			originSelectionRange: foundNodeByLine.getPositionAsRange()
 		}]
+	}
+
+	getControllerActionDefinition(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<ObjectStatement>) {
+		const node = foundNodeByLine.getNode()
+		if (!(node.operation instanceof ValueAssignment)) return null
+
+		const parentStatement = findParent(node, ObjectStatement)
+		if (!(parentStatement.operation instanceof ValueAssignment)) return null
+		if (!(parentStatement.operation.pathValue instanceof FusionObjectValue)) return null
+
+		if (!["Neos.Fusion:ActionUri", "Neos.Fusion:UriBuilder"].includes(parentStatement.operation.pathValue.value)) return null
+
+		const definitionTargetName = getObjectIdentifier(node)
+		if (definitionTargetName !== "controller" && definitionTargetName !== "action") return null
+
+		const actionUriDefinition = {
+			package: null as string,
+			controller: null as string,
+			action: null as string
+		}
+
+		for (const statement of parentStatement.block.statementList.statements) {
+			if (!(statement instanceof ObjectStatement)) continue
+			if (!(statement.operation instanceof ValueAssignment)) continue
+			if (!(statement.operation.pathValue instanceof StringValue)) continue
+
+			const identifier = getObjectIdentifier(statement)
+			if (identifier in actionUriDefinition) {
+				actionUriDefinition[identifier] = statement.operation.pathValue.value
+			}
+		}
+
+		if (!actionUriDefinition.package) {
+			this.logDebug("No package in Action URI definition")
+			const neosPackage = workspace.neosWorkspace.getPackageByUri(parsedFile.uri)
+			if (!neosPackage) {
+				this.logDebug("  Could not resolve Package for current file")
+				return null
+			}
+			actionUriDefinition.package = neosPackage.getPackageName()
+		}
+
+		this.logVerbose("Found Action URI Definition: ", actionUriDefinition)
+
+		if (!actionUriDefinition.package || !actionUriDefinition.controller || !actionUriDefinition.action) return null
+
+		const neosPackage = workspace.neosWorkspace.getPackage(actionUriDefinition.package)
+		if (!neosPackage) {
+			this.logDebug(`  Could not resolve defined Package "${actionUriDefinition.package}"`)
+			return null
+		}
+
+		for (const namespace of neosPackage["namespaces"].values()) {
+			const className = actionUriDefinition.controller + 'Controller'
+			const fqcnParts = namespace["name"].split("\\").filter(Boolean)
+			fqcnParts.push('Controller')
+			fqcnParts.push(className)
+			const fqcn = fqcnParts.join('\\')
+
+			const classDefinition = namespace.getClassDefinitionFromFullyQualifiedClassName(fqcn)
+			if (classDefinition === undefined) {
+				this.logDebug(`Could not get class for built FQCN: "${fqcn}"`)
+				continue
+			}
+
+			if (definitionTargetName === "controller") {
+				return [{
+					targetUri: classDefinition.uri,
+					targetRange: classDefinition.position,
+					targetSelectionRange: classDefinition.position,
+					originSelectionRange: node.operation.pathValue.linePositionedNode.getPositionAsRange()
+				}]
+			}
+
+			if (definitionTargetName === "action") {
+				const actionName = actionUriDefinition.action + "Action"
+				for (const method of classDefinition.methods) {
+					if (method.name !== actionName) continue
+					return [{
+						targetUri: classDefinition.uri,
+						targetRange: method.position,
+						targetSelectionRange: method.position,
+						originSelectionRange: node.operation.pathValue.linePositionedNode.getPositionAsRange()
+					}]
+				}
+
+				this.logDebug(`Could not find action: "${actionName}"`)
+			}
+		}
 	}
 }
