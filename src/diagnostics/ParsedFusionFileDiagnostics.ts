@@ -13,7 +13,7 @@ import { DeprecationsDiagnosticLevels } from '../ExtensionConfiguration';
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
 import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode';
 import { ResourceUriNode } from '../fusion/ResourceUriNode';
-import { LinePositionedNode } from '../LinePositionedNode';
+import { LinePositionedNode } from '../common/LinePositionedNode';
 import { findParent, isPrototypeDeprecated } from '../util';
 import { EmptyEelNode } from 'ts-fusion-parser/out/dsl/eel/nodes/EmptyEelNode';
 import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/EelExpressionValue';

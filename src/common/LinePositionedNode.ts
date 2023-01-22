@@ -1,6 +1,6 @@
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { Range } from 'vscode-languageserver'
-import { getLineNumberOfChar } from './util'
+import { getLineNumberOfChar } from '../util'
 
 export interface LinePosition {
 	line: number
