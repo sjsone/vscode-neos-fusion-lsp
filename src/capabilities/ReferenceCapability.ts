@@ -4,12 +4,13 @@ import { Location } from 'vscode-languageserver/node'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { getPrototypeNameFromNode } from '../util'
 import { AbstractCapability } from './AbstractCapability'
-import { CapabilityContext } from './CapabilityContext'
+import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 
 export class ReferenceCapability extends AbstractCapability {
 
 	protected run(context: CapabilityContext<AbstractNode>): any {
-		const { workspace, foundNodeByLine } = context
+		const { workspace, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
+
 
 		this.logVerbose(`Found node type "${foundNodeByLine.getNode().constructor.name}"`)
 

@@ -17,19 +17,21 @@ import { LinePositionedNode } from '../LinePositionedNode'
 import { ExternalObjectStatement, NodeService } from '../NodeService'
 import { abstractNodeToString, findParent, getPrototypeNameFromNode } from '../util'
 import { AbstractCapability } from './AbstractCapability'
-import { CapabilityContext } from './CapabilityContext'
+import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 import { ResourceUriNode } from '../fusion/ResourceUriNode'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 
 export class HoverCapability extends AbstractCapability {
 
 	public run(context: CapabilityContext<AbstractNode>) {
-		const markdown = this.getMarkdownByNode(context.foundNodeByLine, context.parsedFile, context.workspace)
+		const { workspace, parsedFile, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
+
+		const markdown = this.getMarkdownByNode(foundNodeByLine, parsedFile, workspace)
 		if (markdown === null) return null
 
 		return {
 			contents: { kind: "markdown", value: markdown },
-			range: context.foundNodeByLine.getPositionAsRange()
+			range: foundNodeByLine.getPositionAsRange()
 		}
 	}
 
