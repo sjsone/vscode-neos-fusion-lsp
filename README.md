@@ -7,9 +7,9 @@ This package is **WIP**
   <img width="45%" src="https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/goto_eel_helper_method.gif?raw=true" alt="animated" />
 </p>
 
-
-
 ## Functionality
+
+Most of the common Language Server Features are supported.
 
 ### [Goto Definition](https://code.visualstudio.com/docs/editor/editingevolved#_go-to-definition) (*CMD + Click*)
 
@@ -43,11 +43,9 @@ Every Symbol in the document can be easily accessed.
 
  ![resource:// capability](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/symbols_document.png?raw=true)
 
-
-
 ### Workspace Symbols (*CMD + T*)
 
-Every Prototype can be easily listed via the WorkspaceSymbols. Overwritten Prototypes are also shown. 
+Every Prototype can be easily listed via the WorkspaceSymbols. Overwritten Prototypes are also shown.
 
 ![resource:// capability](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/symbols_workspace.png?raw=true)
 
@@ -55,11 +53,7 @@ Every Prototype can be easily listed via the WorkspaceSymbols. Overwritten Proto
 
 It currently only works when it is a fusion string. When the file is an image it gets preview on hover.
 
-
-
 ![resource:// capability](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/resource_completion_and_hover.gif?raw=true)
-
-
 
 ## Diagnostics
 
@@ -79,7 +73,7 @@ In AFX a tag has to be closed either by a corresponding closing tag or via self-
 
 ### EEL-Helper-Arguments
 
-As EEL-Helper are parsed so are the arguments. If an arguments is missing it is marked as an Error. If it has too many it is a warning. 
+As EEL-Helper are parsed so are the arguments. If an arguments is missing it is marked as an Error. If it has too many it is a warning.
 
 ### Prototypes
 
@@ -88,8 +82,6 @@ Prototypes can be marked as deprecated via the Extension Configuration. The depr
 ### Empty EEL-Expression
 
 If an empty EEL-Expression `obj = ${}` is used instead of an literal null `obj = null`  it will be marked as deprecated with an Quick-Action-Fix.
-
-
 
 ## Outline
 
