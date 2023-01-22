@@ -1,6 +1,6 @@
 import { InlayHintParams } from 'vscode-languageserver/node'
 import { LanguageServer } from '../LanguageServer'
-import { Logger } from '../Logging'
+import { Logger } from '../common/Logging'
 import { LanguageFeatureContext } from './LanguageFeatureContext'
 
 export abstract class AbstractLanguageFeature extends Logger {

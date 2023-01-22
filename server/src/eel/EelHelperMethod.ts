@@ -1,4 +1,4 @@
-import { LinePosition } from '../LinePositionedNode'
+import { LinePosition } from '../common/LinePositionedNode'
 
 export interface EelHelperMethodParameter {
 	name: string,

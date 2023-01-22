@@ -1,8 +1,8 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { EelHelperMethod } from '../eel/EelHelperMethod'
-import { LinePosition } from '../LinePositionedNode'
-import { Logger } from '../Logging'
+import { LinePosition } from '../common/LinePositionedNode'
+import { Logger } from '../common/Logging'
 import { FlowConfiguration } from './FlowConfiguration'
 import { NeosPackageNamespace } from './NeosPackageNamespace'
 import { NeosWorkspace } from './NeosWorkspace'

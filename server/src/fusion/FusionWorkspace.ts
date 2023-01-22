@@ -3,11 +3,11 @@ import * as NodePath from "path"
 import { TextDocumentChangeEvent } from 'vscode-languageserver'
 import { TextDocument } from "vscode-languageserver-textdocument"
 import { LoggingLevel, type ExtensionConfiguration } from '../ExtensionConfiguration'
-import { LinePositionedNode } from '../LinePositionedNode'
+import { LinePositionedNode } from '../common/LinePositionedNode'
 import { NeosWorkspace } from '../neos/NeosWorkspace'
 import { ParsedFusionFile } from './ParsedFusionFile'
 import { getFiles, pathToUri, uriToPath } from '../util'
-import { Logger, LogService } from '../Logging'
+import { Logger, LogService } from '../common/Logging'
 import { LanguageServer } from '../LanguageServer'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 

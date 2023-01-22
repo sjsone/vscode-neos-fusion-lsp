@@ -1,4 +1,4 @@
-import { LoggingLevel } from './ExtensionConfiguration'
+import { LoggingLevel } from '../ExtensionConfiguration'
 
 class LogService {
 	protected logLevel: LoggingLevel = LoggingLevel.Info

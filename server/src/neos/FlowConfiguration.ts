@@ -2,7 +2,7 @@ import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { parse as parseYaml } from 'yaml'
 import { LoggingLevel } from '../ExtensionConfiguration'
-import { Logger, LogService } from '../Logging'
+import { Logger, LogService } from '../common/Logging'
 import { getFiles, mergeObjects } from '../util'
 
 export type ParsedYaml = string | null | number | { [key: string]: ParsedYaml }

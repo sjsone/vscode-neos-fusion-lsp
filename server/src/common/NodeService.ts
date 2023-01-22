@@ -10,8 +10,8 @@ import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreePars
 import { StatementList } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StatementList'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueAssignment'
 import { ValueCopy } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueCopy'
-import { FusionWorkspace } from './fusion/FusionWorkspace'
-import { findParent, findUntil, getObjectIdentifier } from './util'
+import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { findParent, findUntil, getObjectIdentifier } from '../util'
 import { AbstractPathValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractPathValue'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 

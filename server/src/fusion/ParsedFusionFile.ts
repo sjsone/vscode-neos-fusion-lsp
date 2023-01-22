@@ -12,7 +12,7 @@ import { ValueCopy } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/Valu
 import { PhpClassMethodNode } from './PhpClassMethodNode'
 import { PhpClassNode } from './PhpClassNode'
 import { FusionWorkspace } from './FusionWorkspace'
-import { LinePositionedNode } from '../LinePositionedNode'
+import { LinePositionedNode } from '../common/LinePositionedNode'
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'

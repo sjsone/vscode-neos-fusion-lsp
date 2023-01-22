@@ -3,7 +3,7 @@ import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode';
 import { AbstractLanguageFeature } from './AbstractLanguageFeature';
 import { LanguageFeatureContext } from './LanguageFeatureContext';
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode';
-import { LinePositionedNode } from '../LinePositionedNode';
+import { LinePositionedNode } from '../common/LinePositionedNode';
 import { LiteralObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralObjectNode';
 import { LiteralArrayNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralArrayNode';
 import { AbstractLiteralNode } from 'ts-fusion-parser/out/dsl/eel/nodes/AbstractLiteralNode';
