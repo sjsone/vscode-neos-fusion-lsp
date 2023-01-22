@@ -20,6 +20,7 @@ connection.onDidChangeConfiguration(params => languageserver.onDidChangeConfigur
 
 documents.onDidOpen(event => languageserver.onDidOpen(event))
 documents.onDidChangeContent(change => languageserver.onDidChangeContent(change))
+connection.onDidChangeWatchedFiles(params => languageserver.onDidChangeWatchedFiles(params))
 
 connection.onDefinition(params => languageserver.runCapability("onDefinition", params))
 connection.onReferences(params => languageserver.runCapability("onReferences", params))
@@ -31,9 +32,9 @@ connection.onWorkspaceSymbol(params => languageserver.runCapability("onWorkspace
 
 connection.onCodeAction(params => languageserver.onCodeAction(params))
 
+connection.languages.semanticTokens.on(params => languageserver.getLanguageFeature("semanticTokens").execute(params))
 connection.languages.inlayHint.on(params => languageserver.getLanguageFeature("inlayHint").execute(params))
 
-connection.onDidChangeWatchedFiles(params => languageserver.onDidChangeWatchedFiles(params))
 
 
 documents.listen(connection)

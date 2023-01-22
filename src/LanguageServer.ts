@@ -27,6 +27,7 @@ import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapabilit
 import { CodeActionParams } from 'vscode-languageserver';
 import { replaceDeprecatedQuickFixAction } from './actions/ReplaceDeprecatedQuickFixAction'
 import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
+import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 
 
 export class LanguageServer extends Logger {
@@ -50,6 +51,7 @@ export class LanguageServer extends Logger {
 		this.capabilities.set("onWorkspaceSymbol", new WorkspaceSymbolCapability(this))
 
 		this.languageFeatures.set("inlayHint", new InlayHintLanguageFeature(this))
+		this.languageFeatures.set("semanticTokens", new SemanticTokensLanguageFeature(this))
 	}
 
 	public runCapability(name: string, params: any) {
@@ -111,8 +113,18 @@ export class LanguageServer extends Logger {
 				hoverProvider: true,
 				referencesProvider: true,
 				documentSymbolProvider: true,
-				workspaceSymbolProvider: true
-			},
+				workspaceSymbolProvider: true,
+				semanticTokensProvider: {
+					legend: {
+						tokenTypes: SemanticTokensLanguageFeature.TokenTypes,
+						tokenModifiers: SemanticTokensLanguageFeature.TokenModifiers
+					},
+					range: false,
+					full: {
+						delta: false
+					}
+				}
+			}
 		}
 	}
 
