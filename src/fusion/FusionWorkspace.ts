@@ -6,7 +6,7 @@ import { LoggingLevel, type ExtensionConfiguration } from '../ExtensionConfigura
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { NeosWorkspace } from '../neos/NeosWorkspace'
 import { ParsedFusionFile } from './ParsedFusionFile'
-import { getFiles, pathToUri, uriToPath } from '../util'
+import { getFiles, pathToUri, uriToPath } from '../common/util'
 import { Logger, LogService } from '../common/Logging'
 import { LanguageServer } from '../LanguageServer'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'

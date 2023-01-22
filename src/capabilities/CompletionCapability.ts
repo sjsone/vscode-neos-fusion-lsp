@@ -17,7 +17,7 @@ import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
-import { findParent, getObjectIdentifier } from '../util'
+import { findParent, getObjectIdentifier } from '../common/util'
 
 export class CompletionCapability extends AbstractCapability {
 

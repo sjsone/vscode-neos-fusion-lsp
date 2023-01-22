@@ -1,7 +1,7 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { Logger } from '../common/Logging'
-import { uriToPath } from '../util'
+import { uriToPath } from '../common/util'
 import { EELHelperToken, NeosPackage } from './NeosPackage'
 export class NeosWorkspace extends Logger {
 	protected workspacePath: string

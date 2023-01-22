@@ -2,7 +2,7 @@ import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment'
 import { Location } from 'vscode-languageserver/node'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
-import { getPrototypeNameFromNode } from '../util'
+import { getPrototypeNameFromNode } from '../common/util'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 

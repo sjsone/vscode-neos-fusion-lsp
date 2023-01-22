@@ -17,7 +17,7 @@ import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNod
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
-import { getNodeWeight, uriToPath } from '../util'
+import { getNodeWeight, uriToPath } from '../common/util'
 import { Diagnostic } from 'vscode-languageserver'
 import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/MetaPathSegment'
 import { StringValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StringValue'

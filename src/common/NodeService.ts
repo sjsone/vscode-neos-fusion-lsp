@@ -11,7 +11,7 @@ import { StatementList } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueAssignment'
 import { ValueCopy } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueCopy'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
-import { findParent, findUntil, getObjectIdentifier } from '../util'
+import { findParent, findUntil, getObjectIdentifier } from './util'
 import { AbstractPathValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/AbstractPathValue'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 

@@ -11,15 +11,15 @@ import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/objectTreeParser
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PathSegment'
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
-import { FqcnNode } from './fusion/FqcnNode'
-import { PhpClassMethodNode } from './fusion/PhpClassMethodNode'
-import { PhpClassNode } from './fusion/PhpClassNode'
-import { ResourceUriNode } from './fusion/ResourceUriNode'
+import { FqcnNode } from '../fusion/FqcnNode'
+import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
+import { PhpClassNode } from '../fusion/PhpClassNode'
+import { ResourceUriNode } from '../fusion/ResourceUriNode'
 import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/MetaPathSegment'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { OperationNode } from 'ts-fusion-parser/out/dsl/eel/nodes/OperationNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
-import { FusionWorkspace } from './fusion/FusionWorkspace'
+import { FusionWorkspace } from '../fusion/FusionWorkspace'
 
 const lineNumberCache: Map<string, string[]> = new Map
 
