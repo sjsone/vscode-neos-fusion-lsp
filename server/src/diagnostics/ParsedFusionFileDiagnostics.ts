@@ -18,6 +18,8 @@ import { findParent, isPrototypeDeprecated } from '../common/util';
 import { EmptyEelNode } from 'ts-fusion-parser/out/dsl/eel/nodes/EmptyEelNode';
 import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/EelExpressionValue';
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueAssignment';
+import { ActionUriActionNode } from '../fusion/ActionUriActionNode';
+import { ActionUriControllerNode } from '../fusion/ActionUriControllerNode';
 
 const source = 'Neos Fusion'
 
@@ -30,7 +32,7 @@ export async function diagnose(parsedFusionFile: ParsedFusionFile) {
 	diagnostics.push(...diagnoseEelHelperArguments(parsedFusionFile))
 	diagnostics.push(...diagnosePrototypeNames(parsedFusionFile))
 	diagnostics.push(...diagnoseEmptyEel(parsedFusionFile))
-
+	diagnostics.push(...diagnoseActionUri(parsedFusionFile))
 
 	return diagnostics
 }
@@ -272,6 +274,44 @@ function diagnoseEmptyEel(parsedFusionFile: ParsedFusionFile) {
 				newName: " null"
 			}
 		})
+	}
+
+	return diagnostics
+}
+
+function diagnoseActionUri(parsedFusionFile: ParsedFusionFile) {
+	const diagnostics: Diagnostic[] = []
+
+	const severity = DiagnosticSeverity.Warning
+
+	const actionUriActionNodes = parsedFusionFile.getNodesByType(ActionUriActionNode) ?? []
+	for (const actionUriActionNode of actionUriActionNodes) {
+		const actionNameNode = actionUriActionNode.getNode().name
+		const actionName = actionNameNode.value
+
+		if (actionName.endsWith("Action")) {
+			diagnostics.push({
+				severity,
+				range: actionNameNode.linePositionedNode.getPositionAsRange(),
+				message: `Neos would interpret this as "${actionName}Action". Remove "Action" from the name.`,
+				source
+			})
+		}
+	}
+
+	const actionUriControllerNodes = parsedFusionFile.getNodesByType(ActionUriControllerNode) ?? []
+	for (const actionUriControllerNode of actionUriControllerNodes) {
+		const actionNameNode = actionUriControllerNode.getNode().name
+		const actionName = actionNameNode.value
+
+		if (actionName.endsWith("Controller")) {
+			diagnostics.push({
+				severity,
+				range: actionNameNode.linePositionedNode.getPositionAsRange(),
+				message: `Neos would interpret this as "${actionName}Controller". Remove "Controller" from the name.`,
+				source
+			})
+		}
 	}
 
 	return diagnostics
