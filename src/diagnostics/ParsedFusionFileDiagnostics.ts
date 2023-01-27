@@ -19,6 +19,8 @@ import { EmptyEelNode } from 'ts-fusion-parser/out/dsl/eel/nodes/EmptyEelNode';
 import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/EelExpressionValue';
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueAssignment';
 
+const source = 'Neos Fusion'
+
 export async function diagnose(parsedFusionFile: ParsedFusionFile) {
 	const diagnostics: Diagnostic[] = []
 
@@ -45,13 +47,16 @@ function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 
 	for (const positionedObjectNode of positionedObjectNodes) {
 		const node = positionedObjectNode.getNode()
+
 		const objectStatement = findParent(node, ObjectStatement)
 		if (objectStatement === undefined) continue
 		if (objectStatement.path.segments[0] instanceof MetaPathSegment) continue
+
 		const pathBegin = node.path[0]["value"]
 		if (pathBegin !== "props") continue
 		if (node.path.length === 1) continue
 		if (node.path[1]["value"] === "content") continue
+
 		const definition = definitionCapability.getPropertyDefinitions(this, parsedFusionFile.workspace, node.path[0].linePositionedNode)
 		if (definition) continue
 
@@ -60,7 +65,7 @@ function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 			severity: DiagnosticSeverity.Warning,
 			range: positionedObjectNode.getPositionAsRange(),
 			message: `Could not resolve "${objectStatementText}"`,
-			source: 'Fusion LSP'
+			source
 		}
 		diagnostics.push(diagnostic)
 	}
@@ -76,13 +81,12 @@ function diagnoseResourceUris(parsedFusionFile: ParsedFusionFile) {
 
 	for (const resourceUriNode of resourceUriNodes) {
 		const node = resourceUriNode.getNode()
-		const identifier = node["identifier"]
 		const uri = parsedFusionFile.workspace.neosWorkspace.getResourceUriPath(node.getNamespace(), node.getRelativePath())
 		const diagnostic: Diagnostic = {
 			severity: DiagnosticSeverity.Warning,
 			range: resourceUriNode.getPositionAsRange(),
 			message: ``,
-			source: 'Fusion LSP'
+			source
 		}
 		if (!uri) {
 			diagnostic.message = `Could not resolve package "${node.getNamespace()}"`
@@ -110,7 +114,7 @@ function diagnoseTagNames(parsedFusionFile: ParsedFusionFile) {
 			severity: DiagnosticSeverity.Error,
 			range: positionedTagNode.getPositionAsRange(),
 			message: `Tags have to be closed`,
-			source: 'Fusion LSP'
+			source
 		}
 		diagnostics.push(diagnostic)
 	}
@@ -139,7 +143,7 @@ function diagnoseEelHelperArguments(parsedFusionFile: ParsedFusionFile) {
 						severity: DiagnosticSeverity.Error,
 						range: positionedNode.getPositionAsRange(),
 						message: `Missing argument`,
-						source: 'Fusion LSP'
+						source
 					}
 					diagnostics.push(diagnostic)
 				}
@@ -151,7 +155,7 @@ function diagnoseEelHelperArguments(parsedFusionFile: ParsedFusionFile) {
 						severity: DiagnosticSeverity.Warning,
 						range: exceedingArgument.linePositionedNode.getPositionAsRange(),
 						message: `Too many arguments provided`,
-						source: 'Fusion LSP'
+						source
 					}
 					diagnostics.push(diagnostic)
 				}
@@ -173,7 +177,7 @@ function getDeprecationsDiagnosticsLevel(parsedFusionFile: ParsedFusionFile): Di
 }
 
 function diagnosePrototypeNames(parsedFusionFile: ParsedFusionFile) {
-	// TODO: Create seperate Diagnostics (like capabilities)
+	// TODO: Create separate Diagnostics (like capabilities)
 
 	const diagnostics: Diagnostic[] = []
 
@@ -184,22 +188,24 @@ function diagnosePrototypeNames(parsedFusionFile: ParsedFusionFile) {
 		for (const positionedPathSegment of pathSegments) {
 			const node = positionedPathSegment.getNode()
 			const range = positionedPathSegment.getPositionAsRange()
+
 			if (!node.identifier.includes(":")) {
 				diagnostics.push({
 					severity,
 					range,
 					tags: [DiagnosticTag.Deprecated],
 					message: `A prototype without a namespace is deprecated`,
-					source: 'Fusion LSP'
+					source
 				})
 			}
+
 			if (isPrototypeDeprecated(parsedFusionFile.workspace, node.identifier)) {
 				diagnostics.push({
 					severity,
 					range,
 					tags: [DiagnosticTag.Deprecated],
 					message: `Prototype ${node.identifier} is deprecated`,
-					source: 'Fusion LSP'
+					source
 				})
 			}
 		}
@@ -210,14 +216,16 @@ function diagnosePrototypeNames(parsedFusionFile: ParsedFusionFile) {
 		for (const fusionObjectValue of fusionObjectValues) {
 			const node = fusionObjectValue.getNode()
 			const range = fusionObjectValue.getPositionAsRange()
+
 			if (!node.value.includes(":")) {
 				diagnostics.push({
 					severity,
 					range,
 					message: `Using a prototype without a namespace should be avoided`,
-					source: 'Fusion LSP'
+					source
 				})
 			}
+
 			const deprecated = isPrototypeDeprecated(parsedFusionFile.workspace, node.value)
 			if (deprecated !== false) {
 				diagnostics.push({
@@ -225,7 +233,7 @@ function diagnosePrototypeNames(parsedFusionFile: ParsedFusionFile) {
 					range,
 					tags: [DiagnosticTag.Deprecated],
 					message: `Prototype ${node.value} is deprecated.${deprecated !== true ? ` Use ${deprecated} instead.` : ''}`,
-					source: 'Fusion LSP',
+					source,
 					data: {
 						deprecatedName: node.value,
 						newName: deprecated
@@ -258,7 +266,7 @@ function diagnoseEmptyEel(parsedFusionFile: ParsedFusionFile) {
 			range: valueAssignment.linePositionedNode.getPositionAsRange(),
 			tags: [DiagnosticTag.Deprecated],
 			message: `Use \`null\` instead of \`\${}\``,
-			source: 'Fusion LSP',
+			source,
 			data: {
 				deprecatedName: "${}",
 				newName: " null"
