@@ -41,6 +41,7 @@ export class ParsedFusionFile {
 
 	public nodesByLine: { [key: string]: LinePositionedNode<AbstractNode>[] } = {}
 	public nodesByType: Map<new (...args: unknown[]) => AbstractNode, LinePositionedNode<AbstractNode>[]> = new Map()
+	public prototypesInRoutes: { [key: string]: { action: string, controller: string, package?: string }[] } = {}
 
 	public ignoredDueToError = false
 	public ignoredErrorsByParser: Error[] = []
@@ -73,6 +74,8 @@ export class ParsedFusionFile {
 					this.addNode(node, text)
 				}
 			}
+			if (this.uri.endsWith("FusionModules/Routing.fusion")) this.handleFusionRouting(text)
+
 			return true
 		} catch (e) {
 			if (e instanceof Error) {
@@ -250,6 +253,42 @@ export class ParsedFusionFile {
 		return diagnose(this)
 	}
 
+	protected handleFusionRouting(text: string) {
+		const fusionObjectValues = this.getNodesByType(FusionObjectValue) ?? []
+		for (const fusionObjectValue of fusionObjectValues) {
+			const node = fusionObjectValue.getNode()
+			this.addPrototypeInRoutes(node)
+		}
+
+		const prototypePathSegments = this.getNodesByType(PrototypePathSegment) ?? []
+		for (const prototypePathSegment of prototypePathSegments) {
+			const node = prototypePathSegment.getNode()
+			this.addPrototypeInRoutes(node)
+		}
+	}
+
+	protected addPrototypeInRoutes(node: PrototypePathSegment | FusionObjectValue) {
+		const prototypeName = getPrototypeNameFromNode(node)
+		const actionObjectStatement = findParent(node, ObjectStatement)
+
+		const actionName = getObjectIdentifier(actionObjectStatement)
+		const controllerObjectStatement = findParent(actionObjectStatement, ObjectStatement)
+
+		const controllerPathSegments = controllerObjectStatement.path.segments
+
+		const packageName = controllerPathSegments.slice(0, 2).map(s => s["identifier"]).join('.')
+
+		const fullControllerName = controllerPathSegments.slice(2).map(s => s["identifier"]).join('/')
+		const controllerName = fullControllerName.replace(/(Controller)$/, "")
+
+		if (this.prototypesInRoutes[prototypeName] === undefined) this.prototypesInRoutes[prototypeName] = []
+
+		this.prototypesInRoutes[prototypeName].push({
+			action: actionName,
+			controller: controllerName,
+			package: packageName
+		})
+	}
 
 	clear() {
 		this.tokens = []
