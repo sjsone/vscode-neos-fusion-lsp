@@ -29,7 +29,7 @@ export function clearLineNumberCache() {
 
 export function getLineNumberOfChar(data: string, index: number, debug = false) {
     let perLine: string[]
-    if(lineNumberCache.has(data)) {
+    if (lineNumberCache.has(data)) {
         perLine = lineNumberCache.get(data)
     } else {
         perLine = data.split('\n')
@@ -107,7 +107,7 @@ export function findParent<T extends new (...args: any) => AbstractNode>(node: A
     return undefined
 }
 
-export function findUntil<T extends new (...args: any) => AbstractNode>(node: any, condition: (AbstractNode) => boolean): InstanceType<T> | undefined {
+export function findUntil<T extends AbstractNode>(node: any, condition: (AbstractNode) => boolean): T | undefined {
     let parent = node["parent"]
     while (parent) {
         if (condition(parent)) {
