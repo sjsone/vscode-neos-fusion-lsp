@@ -10,7 +10,7 @@ import { PhpClassNode } from '../fusion/PhpClassNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
-import { findParent, getObjectIdentifier, getPrototypeNameFromNode } from '../common/util'
+import { findParent, findUntil, getObjectIdentifier, getPrototypeNameFromNode } from '../common/util'
 import { AbstractCapability } from './AbstractCapability'
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
@@ -23,6 +23,13 @@ import { ResourceUriNode } from '../fusion/ResourceUriNode'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueAssignment'
 import { StringValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StringValue'
+import { ValueCopy } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueCopy'
+
+export interface ActionUriDefinition {
+	package: string
+	controller: string
+	action: string
+}
 
 export class DefinitionCapability extends AbstractCapability {
 
@@ -164,6 +171,7 @@ export class DefinitionCapability extends AbstractCapability {
 	}
 
 	getControllerActionDefinition(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<ObjectStatement>) {
+		// TODO: use ActionUriActionNode and ActionUriControllerNode
 		const node = foundNodeByLine.getNode()
 		if (!(node.operation instanceof ValueAssignment)) return null
 
@@ -176,7 +184,7 @@ export class DefinitionCapability extends AbstractCapability {
 		const definitionTargetName = getObjectIdentifier(node)
 		if (definitionTargetName !== "controller" && definitionTargetName !== "action") return null
 
-		const actionUriDefinition = {
+		let actionUriDefinition = {
 			package: null as string,
 			controller: null as string,
 			action: null as string
@@ -194,6 +202,10 @@ export class DefinitionCapability extends AbstractCapability {
 		}
 
 		if (!actionUriDefinition.package) {
+			actionUriDefinition = this.tryToCompleteActionUriDefinitionFromPrototypesInRoutes(node, workspace, actionUriDefinition)
+		}
+
+		if (!actionUriDefinition.package) {
 			this.logDebug("No package in Action URI definition")
 			const neosPackage = workspace.neosWorkspace.getPackageByUri(parsedFile.uri)
 			if (!neosPackage) {
@@ -203,7 +215,7 @@ export class DefinitionCapability extends AbstractCapability {
 			actionUriDefinition.package = neosPackage.getPackageName()
 		}
 
-		this.logVerbose("Found Action URI Definition: ", actionUriDefinition)
+		this.logDebug("Found Action URI Definition: ", actionUriDefinition)
 
 		if (!actionUriDefinition.package || !actionUriDefinition.controller || !actionUriDefinition.action) return null
 
@@ -250,5 +262,41 @@ export class DefinitionCapability extends AbstractCapability {
 				this.logDebug(`Could not find action: "${actionName}"`)
 			}
 		}
+	}
+
+	tryToCompleteActionUriDefinitionFromPrototypesInRoutes(node: AbstractNode, workspace: FusionWorkspace, actionUriDefinition: ActionUriDefinition): ActionUriDefinition {
+		const foundPrototypeObjectStatement = findUntil<ObjectStatement>(node, (foundNode) => {
+			if (!(foundNode instanceof ObjectStatement)) return false
+			if (!(foundNode.path.segments[0] instanceof PrototypePathSegment)) return false
+			if (!(foundNode.operation instanceof ValueCopy)) return false
+
+			return true
+		})
+
+		if (!foundPrototypeObjectStatement) return actionUriDefinition
+
+		const currentPrototypeName = (<PrototypePathSegment>foundPrototypeObjectStatement.path.segments[0]).identifier
+		if (!currentPrototypeName) return actionUriDefinition
+
+		for (const otherParsedFile of workspace.parsedFiles) {
+			if (!(currentPrototypeName in otherParsedFile.prototypesInRoutes)) continue
+
+			for (const route of otherParsedFile.prototypesInRoutes[currentPrototypeName]) {
+				if (route.action !== actionUriDefinition.action) continue
+
+				if (actionUriDefinition.controller) {
+					if (route.controller !== actionUriDefinition.controller) continue
+					actionUriDefinition.package = route.package
+					return actionUriDefinition
+				}
+
+				actionUriDefinition.controller = route.controller
+				actionUriDefinition.package = route.package
+				return actionUriDefinition
+			}
+		}
+
+		this.logVerbose("could not find in routes")
+		return actionUriDefinition
 	}
 }
