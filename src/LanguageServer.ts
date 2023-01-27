@@ -116,8 +116,8 @@ export class LanguageServer extends Logger {
 				workspaceSymbolProvider: true,
 				semanticTokensProvider: {
 					legend: {
-						tokenTypes: SemanticTokensLanguageFeature.TokenTypes,
-						tokenModifiers: SemanticTokensLanguageFeature.TokenModifiers
+						tokenTypes: Array.from(SemanticTokensLanguageFeature.TokenTypes),
+						tokenModifiers: Array.from(SemanticTokensLanguageFeature.TokenModifiers)
 					},
 					range: false,
 					full: {

@@ -1,11 +1,21 @@
-import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue';
-import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement';
-import { StringValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StringValue';
-import { ValueAssignment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueAssignment';
-import { SemanticTokens } from 'vscode-languageserver';
-import { findParent, getObjectIdentifier } from '../common/util';
-import { AbstractLanguageFeature } from './AbstractLanguageFeature';
-import { LanguageFeatureContext } from './LanguageFeatureContext';
+import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
+import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement'
+import { StringValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StringValue'
+import { ValueAssignment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueAssignment'
+import { LinePosition } from '../common/LinePositionedNode'
+import { findParent, getObjectIdentifier } from '../common/util'
+import { AbstractLanguageFeature } from './AbstractLanguageFeature'
+import { LanguageFeatureContext } from './LanguageFeatureContext'
+
+export interface SemanticTokenConstruct {
+	position: LinePosition
+	length: number,
+	type: string,
+	modifier: string
+}
+
+export type TokenTypes = typeof SemanticTokensLanguageFeature.TokenTypes[number]
+export type TokenModifiers = typeof SemanticTokensLanguageFeature.TokenModifiers[number]
 
 //TODO: Consolidate with DefinitionCapability::getControllerActionDefinition
 export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
@@ -23,7 +33,8 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 		'string', 'number',
 		'regexp', 'operator',
 		'decorator'
-	]
+	] as const
+
 	static TokenModifiers = [
 		'declaration',
 		'definition',
@@ -35,16 +46,14 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 		'modification',
 		'documentation',
 		'defaultLibrary'
-	]
+	] as const
 
 	protected run(languageFeatureContext: LanguageFeatureContext) {
-		const semanticTokens: SemanticTokens = {
-			data: []
-		}
+		const semanticTokenConstructs: SemanticTokenConstruct[] = []
+		const fusionObjectValues = languageFeatureContext.parsedFile.getNodesByType(FusionObjectValue)
+		if (!fusionObjectValues) return null
 
-		const statementsPairs: { identifier: string, statement: ObjectStatement, pathValue: StringValue }[] = []
-
-		for (const fusionObjectValue of languageFeatureContext.parsedFile.getNodesByType(FusionObjectValue)) {
+		for (const fusionObjectValue of fusionObjectValues) {
 			const node = fusionObjectValue.getNode()
 			if (!["Neos.Fusion:ActionUri", "Neos.Fusion:UriBuilder"].includes(node.value)) continue
 
@@ -58,47 +67,61 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 
 				const identifier = getObjectIdentifier(statement)
 				if (identifier === "controller" || identifier === "action") {
-					statementsPairs.push({
-						identifier,
-						statement,
-						pathValue: statement.operation.pathValue
+					const begin = statement.operation.pathValue.linePositionedNode.getBegin()
+					const { type, modifier } = this.getTypesAndModifier(identifier)
+
+					semanticTokenConstructs.push({
+						position: {
+							character: begin.character + 1, // offset for quote
+							line: begin.line
+						},
+						length: statement.operation.pathValue.value.length,
+						type,
+						modifier
 					})
 				}
 			}
 		}
 
+		return {
+			data: this.generateTokenArray(semanticTokenConstructs)
+		}
+	}
+
+	protected getTypesAndModifier(identifier: string): { type: TokenTypes, modifier: TokenModifiers } {
+		if (identifier === "action") return { type: 'method', modifier: 'declaration' }
+		if (identifier === "controller") return { type: 'class', modifier: 'declaration' }
+		return { type: 'variable', modifier: 'declaration' }
+	}
+
+	protected generateTokenArray(constructs: SemanticTokenConstruct[]) {
+		const sortedConstructs = constructs.sort((a, b) => {
+			if (a.position.line === b.position.line) return a.position.character - b.position.character
+			return a.position.line - b.position.line
+		})
+
+		const tokens: number[] = []
 
 		let lastLine = 0
 		let lastStartChar = 0
 
-		for (const statementsPair of statementsPairs) {
-			// { deltaLine: 2, deltaStartChar: 5, length: 3, tokenType: 0, tokenModifiers: 3 }
-			const character = statementsPair.pathValue.linePositionedNode.getBegin().character + 1 // offset for quote
-			const line = statementsPair.pathValue.linePositionedNode.getBegin().line
+		for (const construct of sortedConstructs) {
+			const character = construct.position.character
+			const line = construct.position.line
 
 			const deltaLine = line - lastLine
 			const deltaStartChar = deltaLine === 0 ? character - lastStartChar : character
-			const length = statementsPair.pathValue.value.length
 
-			const { type, modifier } = this.getTypesAndModifier(statementsPair.identifier)
+			const type = SemanticTokensLanguageFeature.TokenTypes.findIndex(type => type === construct.type)
+			const modifier = SemanticTokensLanguageFeature.TokenModifiers.findIndex(modifier => modifier === construct.modifier)
 
-			semanticTokens.data.push(deltaLine, deltaStartChar, length, type, modifier)
+			tokens.push(deltaLine, deltaStartChar, construct.length, type, modifier)
 
 			lastLine = line
 			lastStartChar = character
 		}
 
-		console.log(semanticTokens)
-		return semanticTokens
-	}
-
-	protected getTypesAndModifier(identifier: string): { type: number, modifier: number } {
-		if (identifier === "action") {
-			return { type: 13, modifier: 0 }
-		}
-		if (identifier === "controller") {
-			return { type: 2, modifier: 0 }
-		}
+		return tokens
 	}
 
 }
