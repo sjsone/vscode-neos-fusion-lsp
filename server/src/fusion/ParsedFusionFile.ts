@@ -126,10 +126,13 @@ export class ParsedFusionFile {
 	handleTagNameNode(node: TagNode, text: string) {
 		const identifier = node["name"]
 		if (!identifier.includes(".") || !identifier.includes(":")) return
+
 		const prototypePath = new PrototypePathSegment(identifier, new NodePosition(
 			node["position"].begin + 1,
 			node["position"].begin + 1 + identifier.length
 		))
+
+		prototypePath["parent"] = node["parent"]
 		this.addNode(prototypePath, text)
 
 		if (node["selfClosing"] || node["end"] === undefined) return
@@ -139,6 +142,8 @@ export class ParsedFusionFile {
 			node["end"]["position"].begin + endOffset,
 			node["end"]["position"].begin + endOffset + identifier.length
 		))
+
+		endPrototypePath["parent"] = node["parent"]
 		this.addNode(endPrototypePath, text)
 	}
 
