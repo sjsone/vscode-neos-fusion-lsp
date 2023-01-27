@@ -17,7 +17,7 @@ import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNod
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
-import { getNodeWeight, uriToPath } from '../common/util'
+import { findParent, getNodeWeight, getObjectIdentifier, getPrototypeNameFromNode, uriToPath } from '../common/util'
 import { Diagnostic } from 'vscode-languageserver'
 import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/MetaPathSegment'
 import { StringValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StringValue'
@@ -25,6 +25,10 @@ import { FqcnNode } from './FqcnNode'
 import { ResourceUriNode } from './ResourceUriNode'
 import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
 import { diagnose } from '../diagnostics/ParsedFusionFileDiagnostics'
+import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
+import { ActionUriActionNode } from './ActionUriActionNode'
+import { ActionUriControllerNode } from './ActionUriControllerNode'
+import { ActionUriDefinitionNode } from './ActionUriDefinitionNode'
 
 export class ParsedFusionFile {
 	public workspace: FusionWorkspace
@@ -65,6 +69,7 @@ export class ParsedFusionFile {
 					if (node instanceof TagNode) this.handleTagNameNode(node, text)
 					if (node instanceof TagAttributeNode) this.handleTagAttributeNode(node, text)
 					if (node instanceof ObjectStatement) this.handleObjectStatement(node, text)
+					if (node instanceof FusionObjectValue) this.handleFusionObjectValue(node, text)
 					this.addNode(node, text)
 				}
 			}
@@ -183,6 +188,35 @@ export class ParsedFusionFile {
 			const resourceUriNode = new ResourceUriNode(value, stringValue["position"])
 			if (resourceUriNode) this.addNode(resourceUriNode, text)
 		}
+	}
+
+	handleFusionObjectValue(fusionObjectValue: FusionObjectValue, text: string) {
+		if (!["Neos.Fusion:ActionUri", "Neos.Fusion:UriBuilder"].includes(fusionObjectValue.value)) return
+		const objectStatement = findParent(fusionObjectValue, ObjectStatement)
+		if (!objectStatement || !objectStatement.block) return
+
+		for (const statement of objectStatement.block.statementList.statements) {
+			if (!(statement instanceof ObjectStatement)) continue
+			if (!(statement.operation instanceof ValueAssignment)) continue
+			if (!(statement.operation.pathValue instanceof StringValue)) continue
+
+			const actionUriDefinitionNode = new ActionUriDefinitionNode(statement)
+
+			if (getObjectIdentifier(statement) === "action") {
+				const actionUriActionNode = new ActionUriActionNode(statement, statement.operation.pathValue)
+				actionUriDefinitionNode.setAction(actionUriActionNode)
+				this.addNode(actionUriActionNode, text)
+			}
+
+			if (getObjectIdentifier(statement) === "controller") {
+				const actionUriControllerNode = new ActionUriControllerNode(statement, statement.operation.pathValue)
+				actionUriDefinitionNode.setController(actionUriControllerNode)
+				this.addNode(actionUriControllerNode, text)
+			}
+
+			this.addNode(actionUriDefinitionNode, text)
+		}
+
 	}
 
 	getNodesByType<T extends AbstractNode>(type: new (...args: any) => T): LinePositionedNode<T>[] | undefined {
