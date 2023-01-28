@@ -24,6 +24,9 @@ import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/as
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueAssignment'
 import { StringValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/StringValue'
 import { ValueCopy } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueCopy'
+import { ActionUriActionNode } from '../fusion/ActionUriActionNode'
+import { ActionUriDefinitionNode } from '../fusion/ActionUriDefinitionNode'
+import { ActionUriControllerNode } from '../fusion/ActionUriControllerNode'
 
 export interface ActionUriDefinition {
 	package: string
@@ -54,7 +57,7 @@ export class DefinitionCapability extends AbstractCapability {
 			case node instanceof ResourceUriNode:
 				return this.getResourceUriPathNodeDefinition(workspace, <LinePositionedNode<ResourceUriNode>>foundNodeByLine)
 			case node instanceof ObjectStatement:
-				return this.getControllerActionDefinition(parsedFile, workspace, <LinePositionedNode<ObjectStatement>>foundNodeByLine)
+				return this.getControllerActionDefinition(parsedFile, workspace, <LinePositionedNode<ObjectStatement>>foundNodeByLine, <ParsedFileCapabilityContext<AbstractNode>>context)
 		}
 
 		return null
@@ -170,35 +173,34 @@ export class DefinitionCapability extends AbstractCapability {
 		}]
 	}
 
-	getControllerActionDefinition(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<ObjectStatement>) {
-		// TODO: use ActionUriActionNode and ActionUriControllerNode
+	getControllerActionDefinition(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<ObjectStatement>, context: ParsedFileCapabilityContext<AbstractNode>) {
 		const node = foundNodeByLine.getNode()
+
 		if (!(node.operation instanceof ValueAssignment)) return null
 
-		const parentStatement = findParent(node, ObjectStatement)
-		if (!(parentStatement.operation instanceof ValueAssignment)) return null
-		if (!(parentStatement.operation.pathValue instanceof FusionObjectValue)) return null
+		const line = context.params.position.line
+		const column = context.params.position.character
 
-		if (!["Neos.Fusion:ActionUri", "Neos.Fusion:UriBuilder"].includes(parentStatement.operation.pathValue.value)) return null
+		const foundNodes = parsedFile.getNodesByLineAndColumn(line, column)
 
-		const definitionTargetName = getObjectIdentifier(node)
-		if (definitionTargetName !== "controller" && definitionTargetName !== "action") return null
+		const actionUriPartNode = foundNodes.find(positionedNode => (positionedNode.getNode() instanceof ActionUriActionNode || positionedNode.getNode() instanceof ActionUriControllerNode))
+		if (actionUriPartNode === undefined) return null
+
+		const actionUriDefinitionNode = <ActionUriDefinitionNode>actionUriPartNode.getNode()["parent"]
 
 		let actionUriDefinition = {
 			package: null as string,
-			controller: null as string,
-			action: null as string
+			controller: actionUriDefinitionNode.controller?.name.value ?? null as string,
+			action: actionUriDefinitionNode.action?.name.value ?? null as string
 		}
 
-		for (const statement of parentStatement.block.statementList.statements) {
+		for (const statement of actionUriDefinitionNode.statement.block.statementList.statements) {
 			if (!(statement instanceof ObjectStatement)) continue
 			if (!(statement.operation instanceof ValueAssignment)) continue
 			if (!(statement.operation.pathValue instanceof StringValue)) continue
+			if (getObjectIdentifier(statement) !== "package") continue
 
-			const identifier = getObjectIdentifier(statement)
-			if (identifier in actionUriDefinition) {
-				actionUriDefinition[identifier] = statement.operation.pathValue.value
-			}
+			actionUriDefinition.package = statement.operation.pathValue.value
 		}
 
 		if (!actionUriDefinition.package) {
@@ -206,16 +208,16 @@ export class DefinitionCapability extends AbstractCapability {
 		}
 
 		if (!actionUriDefinition.package) {
-			this.logDebug("No package in Action URI definition")
+			this.log("No package in Action URI definition")
 			const neosPackage = workspace.neosWorkspace.getPackageByUri(parsedFile.uri)
 			if (!neosPackage) {
-				this.logDebug("  Could not resolve Package for current file")
+				this.log("  Could not resolve Package for current file")
 				return null
 			}
 			actionUriDefinition.package = neosPackage.getPackageName()
 		}
 
-		this.logDebug("Found Action URI Definition: ", actionUriDefinition)
+		this.log("Found Action URI Definition: ", actionUriDefinition)
 
 		if (!actionUriDefinition.package || !actionUriDefinition.controller || !actionUriDefinition.action) return null
 
@@ -224,6 +226,8 @@ export class DefinitionCapability extends AbstractCapability {
 			this.logDebug(`  Could not resolve defined Package "${actionUriDefinition.package}"`)
 			return null
 		}
+
+		const definitionTargetName = actionUriPartNode.getNode() instanceof ActionUriControllerNode ? 'controller' : 'action'
 
 		for (const namespace of neosPackage["namespaces"].values()) {
 			const className = actionUriDefinition.controller.replace("/", "\\") + 'Controller'
