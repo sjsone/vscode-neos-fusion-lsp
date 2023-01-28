@@ -202,13 +202,13 @@ export class ParsedFusionFile {
 		if (!["Neos.Fusion:ActionUri", "Neos.Fusion:UriBuilder"].includes(fusionObjectValue.value)) return
 		const objectStatement = findParent(fusionObjectValue, ObjectStatement)
 		if (!objectStatement || !objectStatement.block) return
+		const actionUriDefinitionNode = new ActionUriDefinitionNode(objectStatement)
 
 		for (const statement of objectStatement.block.statementList.statements) {
 			if (!(statement instanceof ObjectStatement)) continue
 			if (!(statement.operation instanceof ValueAssignment)) continue
 			if (!(statement.operation.pathValue instanceof StringValue)) continue
 
-			const actionUriDefinitionNode = new ActionUriDefinitionNode(statement)
 
 			if (getObjectIdentifier(statement) === "action") {
 				const actionUriActionNode = new ActionUriActionNode(statement, statement.operation.pathValue)
@@ -222,9 +222,9 @@ export class ParsedFusionFile {
 				this.addNode(actionUriControllerNode, text)
 			}
 
-			this.addNode(actionUriDefinitionNode, text)
 		}
-
+		this.addNode(actionUriDefinitionNode, text)
+		
 	}
 
 	getNodesByType<T extends AbstractNode>(type: new (...args: any) => T): LinePositionedNode<T>[] | undefined {
@@ -336,6 +336,12 @@ export class ParsedFusionFile {
 		if (statement.block !== undefined) {
 			this.readStatementList(statement.block.statementList, text)
 		}
+	}
+
+	getNodesByLineAndColumn(line: number, column: number) {
+		const lineNodes = this.nodesByLine[line]
+		if (lineNodes === undefined) return undefined
+		return lineNodes.filter(lineNode => column >= lineNode.getBegin().character && column <= lineNode.getEnd().character)
 	}
 
 	getNodeByLineAndColumn(line: number, column: number): LinePositionedNode<AbstractNode> | undefined {
