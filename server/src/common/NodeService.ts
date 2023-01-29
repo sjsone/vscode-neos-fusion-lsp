@@ -62,23 +62,34 @@ class NodeService {
 		const objectStatement = objectNode instanceof ObjectStatement ? objectNode : findParent(objectNode, ObjectStatement) // [props.foo]
 
 		let statementList = findParent(objectNode, StatementList)
+
 		// TODO: get object identifier and match it runtime-like against the property definition to check if it resolves 
 		if (getObjectIdentifier(objectStatement).startsWith("renderer.") && !getObjectIdentifier(objectStatement).startsWith("renderer.@process")) {
 			const parentObjectStatement = findParent(statementList, ObjectStatement)
-			if (parentObjectStatement) {
-				const parentOperation = parentObjectStatement.operation
 
+			if (parentObjectStatement) {
+				let prototypeName = undefined as string
+				
+				const parentOperation = parentObjectStatement.operation
 				if (parentOperation instanceof ValueAssignment) {
 					if (parentOperation.pathValue instanceof FusionObjectValue) {
-						const statements = this.getInheritedPropertiesByPrototypeName(parentOperation.pathValue.value, workspace)
-						for (const statement of statements) {
-							// TODO: Cleanup - statement should always be an ExternalObjectStatement
-							if (statement instanceof ExternalObjectStatement) yield statement
-							if (!(statement instanceof ObjectStatement)) continue
-							yield statement.path.segments[0]
-						}
-						return
+						prototypeName = parentOperation.pathValue.value
 					}
+				}
+
+				if (parentObjectStatement.path.segments[0] instanceof PrototypePathSegment) {
+					prototypeName = parentObjectStatement.path.segments[0].identifier
+				}
+
+				if (prototypeName) {
+					const statements = this.getInheritedPropertiesByPrototypeName(prototypeName, workspace)
+					for (const statement of statements) {
+						// TODO: Cleanup - statement should always be an ExternalObjectStatement
+						if (statement instanceof ExternalObjectStatement) yield statement
+						if (!(statement instanceof ObjectStatement)) continue
+						yield statement.path.segments[0]
+					}
+					return
 				}
 			}
 
