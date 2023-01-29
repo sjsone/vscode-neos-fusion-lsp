@@ -89,7 +89,7 @@ class NodeService {
 						if (!(statement instanceof ObjectStatement)) continue
 						yield statement.path.segments[0]
 					}
-					return
+					// return
 				}
 			}
 
@@ -105,7 +105,7 @@ class NodeService {
 						if (!(statement instanceof ObjectStatement)) continue
 						yield statement.path.segments[0]
 					}
-					return
+					// return
 				}
 			}
 		}
