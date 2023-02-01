@@ -1,11 +1,18 @@
 import {
     createConnection,
     TextDocuments,
-    ProposedFeatures,
-    WorkspaceSymbolParams
+    ProposedFeatures
 } from "vscode-languageserver/node"
 import { TextDocument } from "vscode-languageserver-textdocument"
 import { LanguageServer } from './LanguageServer'
+import { CompletionCapability } from './capabilities/CompletionCapability'
+import { DefinitionCapability } from './capabilities/DefinitionCapability'
+import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
+import { HoverCapability } from './capabilities/HoverCapability'
+import { ReferenceCapability } from './capabilities/ReferenceCapability'
+import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
+import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
+import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 
 export type FusionDocument = TextDocument
 
@@ -22,19 +29,19 @@ documents.onDidOpen(event => languageserver.onDidOpen(event))
 documents.onDidChangeContent(change => languageserver.onDidChangeContent(change))
 connection.onDidChangeWatchedFiles(params => languageserver.onDidChangeWatchedFiles(params))
 
-connection.onDefinition(params => languageserver.runCapability("onDefinition", params))
-connection.onReferences(params => languageserver.runCapability("onReferences", params))
-connection.onCompletion(params => languageserver.runCapability("onCompletion", params))
+
+connection.onDefinition(params => languageserver.runCapability(DefinitionCapability, params))
+connection.onReferences(params => languageserver.runCapability(ReferenceCapability, params))
+connection.onCompletion(params => languageserver.runCapability(CompletionCapability, params))
 connection.onCompletionResolve(item => item)
-connection.onHover(params => languageserver.runCapability("onHover", params))
-connection.onDocumentSymbol(params => languageserver.runCapability("onDocumentSymbol", params))
-connection.onWorkspaceSymbol(params => languageserver.runCapability("onWorkspaceSymbol", params))
+connection.onHover(params => languageserver.runCapability(HoverCapability, params))
+connection.onDocumentSymbol(params => languageserver.runCapability(DocumentSymbolCapability, params))
+connection.onWorkspaceSymbol(params => languageserver.runCapability(WorkspaceSymbolCapability, params))
+
+connection.languages.semanticTokens.on(params => languageserver.runLanguageFeature(SemanticTokensLanguageFeature, params))
+connection.languages.inlayHint.on(params => languageserver.runLanguageFeature(InlayHintLanguageFeature, params))
 
 connection.onCodeAction(params => languageserver.onCodeAction(params))
-
-connection.languages.semanticTokens.on(params => languageserver.getLanguageFeature("semanticTokens").execute(params))
-connection.languages.inlayHint.on(params => languageserver.getLanguageFeature("inlayHint").execute(params))
-
 
 
 documents.listen(connection)

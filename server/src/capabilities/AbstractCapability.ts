@@ -3,15 +3,10 @@ import { TextDocumentPositionParams, WorkspaceSymbolParams } from 'vscode-langua
 import { LanguageServer } from '../LanguageServer'
 import { Logger } from '../common/Logging'
 import { CapabilityContext, WorkspacesCapabilityContext } from './CapabilityContext'
+import { AbstractFunctionality } from '../common/AbstractFunctionality'
 
-export abstract class AbstractCapability extends Logger {
-	protected languageServer: LanguageServer
+export abstract class AbstractCapability extends AbstractFunctionality {
 	protected noPositionedNode: boolean = false
-
-	constructor(languageServer: LanguageServer) {
-		super()
-		this.languageServer = languageServer
-	}
 
 	public execute(params) {
 		try {

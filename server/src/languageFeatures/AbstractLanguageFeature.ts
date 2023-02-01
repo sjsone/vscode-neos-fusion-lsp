@@ -1,15 +1,8 @@
 import { InlayHintParams } from 'vscode-languageserver/node'
-import { LanguageServer } from '../LanguageServer'
-import { Logger } from '../common/Logging'
 import { LanguageFeatureContext } from './LanguageFeatureContext'
+import { AbstractFunctionality } from '../common/AbstractFunctionality'
 
-export abstract class AbstractLanguageFeature extends Logger {
-	protected languageServer: LanguageServer
-
-	constructor(languageServer: LanguageServer) {
-		super()
-		this.languageServer = languageServer
-	}
+export abstract class AbstractLanguageFeature extends AbstractFunctionality {
 
 	public execute(params) {
 		try {

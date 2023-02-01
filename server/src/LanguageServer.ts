@@ -28,6 +28,7 @@ import { CodeActionParams } from 'vscode-languageserver';
 import { replaceDeprecatedQuickFixAction } from './actions/ReplaceDeprecatedQuickFixAction'
 import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
+import { AbstractFunctionality } from './common/AbstractFunctionality'
 
 
 export class LanguageServer extends Logger {
@@ -35,36 +36,41 @@ export class LanguageServer extends Logger {
 	protected connection: _Connection
 	protected documents: TextDocuments<FusionDocument>
 	protected fusionWorkspaces: FusionWorkspace[] = []
-	protected capabilities: Map<string, AbstractCapability> = new Map()
-	protected languageFeatures: Map<string, AbstractLanguageFeature> = new Map()
+
+	protected functionalityInstances: Map<new (...args: unknown[]) => AbstractFunctionality, AbstractFunctionality> = new Map()
 
 	constructor(connection: _Connection, documents: TextDocuments<FusionDocument>) {
 		super()
 		this.connection = connection
 		this.documents = documents
 
-		this.capabilities.set("onDefinition", new DefinitionCapability(this))
-		this.capabilities.set("onCompletion", new CompletionCapability(this))
-		this.capabilities.set("onHover", new HoverCapability(this))
-		this.capabilities.set("onReferences", new ReferenceCapability(this))
-		this.capabilities.set("onDocumentSymbol", new DocumentSymbolCapability(this))
-		this.capabilities.set("onWorkspaceSymbol", new WorkspaceSymbolCapability(this))
+		this.addFunctionalityInstance(DefinitionCapability)
+		this.addFunctionalityInstance(CompletionCapability)
+		this.addFunctionalityInstance(HoverCapability)
+		this.addFunctionalityInstance(ReferenceCapability)
+		this.addFunctionalityInstance(DocumentSymbolCapability)
+		this.addFunctionalityInstance(WorkspaceSymbolCapability)
 
-		this.languageFeatures.set("inlayHint", new InlayHintLanguageFeature(this))
-		this.languageFeatures.set("semanticTokens", new SemanticTokensLanguageFeature(this))
+		this.addFunctionalityInstance(InlayHintLanguageFeature)
+		this.addFunctionalityInstance(SemanticTokensLanguageFeature)
 	}
 
-	public runCapability(name: string, params: any) {
-		const capability = this.getCapability(name)
+	protected addFunctionalityInstance(type: new (...args: unknown[]) => AbstractFunctionality) {
+		this.functionalityInstances.set(type, new type(this))
+	}
+
+	public getFunctionalityInstance<T extends AbstractFunctionality>(type: new (...args: unknown[]) => AbstractFunctionality): T | undefined {
+		return <T | undefined>this.functionalityInstances.get(type)
+	}
+
+	public runCapability<T extends AbstractCapability>(type: new (...args: unknown[]) => AbstractCapability, params: any) {
+		const capability = this.getFunctionalityInstance<T>(type)
 		return capability ? capability.execute(params) : undefined
 	}
 
-	public getCapability(name: string) {
-		return this.capabilities.get(name)
-	}
-
-	public getLanguageFeature(name: string) {
-		return this.languageFeatures.get(name)
+	public runLanguageFeature<T extends AbstractLanguageFeature>(type: new (...args: unknown[]) => AbstractLanguageFeature, params: any) {
+		const languageFeature = this.getFunctionalityInstance<T>(type)
+		return languageFeature ? languageFeature.execute(params) : undefined
 	}
 
 	public getWorkspaceForFileUri = (uri: string): FusionWorkspace | undefined => {
