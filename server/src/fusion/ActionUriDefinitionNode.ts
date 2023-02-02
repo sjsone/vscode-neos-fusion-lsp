@@ -1,5 +1,5 @@
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement';
+import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement';
 import { ActionUriActionNode } from './ActionUriActionNode';
 import { ActionUriControllerNode } from './ActionUriControllerNode';
 

@@ -3,10 +3,10 @@ import * as NodePath from "path"
 import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode';
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode';
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode';
-import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue';
-import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/MetaPathSegment';
-import { ObjectStatement } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ObjectStatement';
-import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment';
+import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue';
+import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/nodes/MetaPathSegment';
+import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement';
+import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment';
 import { Diagnostic, DiagnosticSeverity, DiagnosticTag } from 'vscode-languageserver';
 import { DefinitionCapability } from '../capabilities/DefinitionCapability';
 import { DeprecationsDiagnosticLevels } from '../ExtensionConfiguration';
@@ -16,8 +16,8 @@ import { ResourceUriNode } from '../fusion/ResourceUriNode';
 import { LinePositionedNode } from '../common/LinePositionedNode';
 import { findParent, isPrototypeDeprecated } from '../common/util';
 import { EmptyEelNode } from 'ts-fusion-parser/out/dsl/eel/nodes/EmptyEelNode';
-import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/EelExpressionValue';
-import { ValueAssignment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/ValueAssignment';
+import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue';
+import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment';
 import { ActionUriActionNode } from '../fusion/ActionUriActionNode';
 import { ActionUriControllerNode } from '../fusion/ActionUriControllerNode';
 
