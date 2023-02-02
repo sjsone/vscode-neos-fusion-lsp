@@ -29,6 +29,7 @@ import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjec
 import { ActionUriActionNode } from './ActionUriActionNode'
 import { ActionUriControllerNode } from './ActionUriControllerNode'
 import { ActionUriDefinitionNode } from './ActionUriDefinitionNode'
+import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode'
 
 export class ParsedFusionFile {
 	public workspace: FusionWorkspace
@@ -71,6 +72,7 @@ export class ParsedFusionFile {
 					if (node instanceof TagAttributeNode) this.handleTagAttributeNode(node, text)
 					if (node instanceof ObjectStatement) this.handleObjectStatement(node, text)
 					if (node instanceof FusionObjectValue) this.handleFusionObjectValue(node, text)
+					if (node instanceof LiteralStringNode) this.handleLiteralStringNode(node, text)
 					this.addNode(node, text)
 				}
 			}
@@ -224,7 +226,15 @@ export class ParsedFusionFile {
 
 		}
 		this.addNode(actionUriDefinitionNode, text)
-		
+
+	}
+
+	protected handleLiteralStringNode(literalStringNode: LiteralStringNode, text: string) {
+		const value = literalStringNode["value"]
+		if (value.startsWith("resource://")) {
+			const resourceUriNode = new ResourceUriNode(value, literalStringNode["position"])
+			if (resourceUriNode) this.addNode(resourceUriNode, text)
+		}
 	}
 
 	getNodesByType<T extends AbstractNode>(type: new (...args: any) => T): LinePositionedNode<T>[] | undefined {
