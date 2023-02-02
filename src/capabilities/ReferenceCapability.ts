@@ -1,5 +1,5 @@
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
-import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/PrototypePathSegment'
+import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { Location } from 'vscode-languageserver/node'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { getPrototypeNameFromNode } from '../common/util'
