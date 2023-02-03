@@ -30,8 +30,9 @@ import { ActionUriActionNode } from './ActionUriActionNode'
 import { ActionUriControllerNode } from './ActionUriControllerNode'
 import { ActionUriDefinitionNode } from './ActionUriDefinitionNode'
 import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode'
+import { Logger } from '../common/Logging'
 
-export class ParsedFusionFile {
+export class ParsedFusionFile extends Logger {
 	public workspace: FusionWorkspace
 	public uri: string
 	public tokens: any[] = []
@@ -50,6 +51,7 @@ export class ParsedFusionFile {
 	protected debug: boolean
 
 	constructor(uri: string, workspace: FusionWorkspace) {
+		super(NodePath.basename(uriToPath(uri)))
 		this.uri = uri
 		this.workspace = workspace
 		this.debug = this.uri.endsWith("Test.fusion")
@@ -57,8 +59,10 @@ export class ParsedFusionFile {
 
 	init(text: string = undefined) {
 		try {
+			this.logVerbose("init")
 			if (text === undefined) {
 				text = NodeFs.readFileSync(uriToPath(this.uri)).toString()
+				this.logVerbose("    read text from file")
 			}
 
 			const objectTree = ObjectTreeParser.parse(text, undefined, true)
@@ -77,10 +81,11 @@ export class ParsedFusionFile {
 				}
 			}
 			if (this.uri.endsWith("FusionModules/Routing.fusion")) this.handleFusionRouting(text)
-
+			this.logVerbose("finished")
 			return true
 		} catch (e) {
 			if (e instanceof Error) {
+				this.logVerbose("    Error: ", e.message)
 				console.log("Caught: ", e.message, e.stack)
 			}
 
