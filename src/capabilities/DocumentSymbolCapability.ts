@@ -23,7 +23,8 @@ import { findParent, getObjectIdentifier } from '../common/util';
 import { AbstractCapability } from './AbstractCapability';
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext';
 
-
+// TODO: Implement cache
+// FIXME: Prototypes are shown twice
 export class DocumentSymbolCapability extends AbstractCapability {
 	protected noPositionedNode: boolean = true
 
