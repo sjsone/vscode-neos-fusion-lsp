@@ -40,6 +40,7 @@ export class DefinitionCapability extends AbstractCapability {
 		const { workspace, parsedFile, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
 		const node = foundNodeByLine.getNode()
 
+		// TODO: handle afx TagNodeAttribute like `<Vendor.Site:Thing text={props.test} />`. `text` should be clickable
 		this.logVerbose(`node type "${foundNodeByLine.getNode().constructor.name}"`)
 		switch (true) {
 			case node instanceof FusionObjectValue:
@@ -217,7 +218,7 @@ export class DefinitionCapability extends AbstractCapability {
 			actionUriDefinition.package = neosPackage.getPackageName()
 		}
 
-		this.log("Found Action URI Definition: ", actionUriDefinition)
+		this.logDebug("Found Action URI Definition: ", actionUriDefinition)
 
 		if (!actionUriDefinition.package || !actionUriDefinition.controller || !actionUriDefinition.action) return null
 
