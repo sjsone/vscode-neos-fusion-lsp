@@ -1,9 +1,18 @@
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
+import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
+import { LiteralNullNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNullNode'
+import { LiteralNumberNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNumberNode'
+import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode'
+import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
-import { LinePosition } from '../common/LinePositionedNode'
+import { LinePosition, LinePositionedNode } from '../common/LinePositionedNode'
+import { NodeService } from '../common/NodeService'
 import { findParent, getObjectIdentifier } from '../common/util'
+import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
 import { AbstractLanguageFeature } from './AbstractLanguageFeature'
 import { LanguageFeatureContext } from './LanguageFeatureContext'
 
@@ -17,6 +26,7 @@ export interface SemanticTokenConstruct {
 export type TokenTypes = typeof SemanticTokensLanguageFeature.TokenTypes[number]
 export type TokenModifiers = typeof SemanticTokensLanguageFeature.TokenModifiers[number]
 
+//TODO: Implement cache 
 //TODO: Consolidate with DefinitionCapability::getControllerActionDefinition
 export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 
@@ -50,8 +60,25 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 
 	protected run(languageFeatureContext: LanguageFeatureContext) {
 		const semanticTokenConstructs: SemanticTokenConstruct[] = []
+
+		semanticTokenConstructs.push(...this.generateActionUriTokens(languageFeatureContext))
+		semanticTokenConstructs.push(...this.generateLiteralStringTokens(languageFeatureContext))
+		semanticTokenConstructs.push(...this.generateLiteralNumberTokens(languageFeatureContext))
+		semanticTokenConstructs.push(...this.generateLiteralNullTokens(languageFeatureContext))
+		semanticTokenConstructs.push(...this.generateObjectPathTokens(languageFeatureContext))
+		semanticTokenConstructs.push(...this.generatePhpClassMethodTokens(languageFeatureContext))
+		semanticTokenConstructs.push(...this.generateTagAttributeTokens(languageFeatureContext))
+
+		return {
+			data: this.generateTokenArray(semanticTokenConstructs)
+		}
+	}
+
+	protected generateActionUriTokens(languageFeatureContext: LanguageFeatureContext) {
 		const fusionObjectValues = languageFeatureContext.parsedFile.getNodesByType(FusionObjectValue)
-		if (!fusionObjectValues) return null
+		if (!fusionObjectValues) return []
+
+		const semanticTokenConstructs: SemanticTokenConstruct[] = []
 
 		for (const fusionObjectValue of fusionObjectValues) {
 			const node = fusionObjectValue.getNode()
@@ -59,6 +86,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 
 			const objectStatement = findParent(node, ObjectStatement)
 			if (!(objectStatement.operation instanceof ValueAssignment)) continue
+			if (objectStatement.block === undefined) continue
 
 			for (const statement of objectStatement.block.statementList.statements) {
 				if (!(statement instanceof ObjectStatement)) continue
@@ -66,31 +94,106 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 				if (!(statement.operation.pathValue instanceof StringValue)) continue
 
 				const identifier = getObjectIdentifier(statement)
-				if (identifier === "controller" || identifier === "action") {
+				if (identifier === "controller" || identifier === "action" || identifier === "package") {
 					const begin = statement.operation.pathValue.linePositionedNode.getBegin()
-					const { type, modifier } = this.getTypesAndModifier(identifier)
-
 					semanticTokenConstructs.push({
 						position: {
 							character: begin.character + 1, // offset for quote
 							line: begin.line
 						},
-						length: statement.operation.pathValue.value.length,
-						type,
-						modifier
+						length: statement.operation.pathValue.value.replace(/\\/g, "\\\\").length,
+						...this.getTypesAndModifier(identifier)
 					})
 				}
 			}
 		}
 
-		return {
-			data: this.generateTokenArray(semanticTokenConstructs)
+		return semanticTokenConstructs
+	}
+
+	protected generateLiteralStringTokens(languageFeatureContext: LanguageFeatureContext) {
+		return this.generateForType(LiteralStringNode, languageFeatureContext, node => ({
+			position: node.getBegin(),
+			length: node.getNode()["value"].length + 2, // offset for quotes
+			type: 'string',
+			modifier: 'declaration'
+		}))
+	}
+
+	protected generateLiteralNumberTokens(languageFeatureContext: LanguageFeatureContext) {
+		return this.generateForType(LiteralNumberNode, languageFeatureContext, node => ({
+			position: node.getBegin(),
+			length: node.getNode()["value"].length,
+			type: 'number',
+			modifier: 'declaration'
+		}))
+	}
+
+	protected generateLiteralNullTokens(languageFeatureContext: LanguageFeatureContext) {
+		return this.generateForType(LiteralNullNode, languageFeatureContext, node => ({
+			position: node.getBegin(),
+			length: node.getNode()["value"].length,
+			type: 'variable',
+			modifier: 'declaration'
+		}))
+	}
+
+	protected generateObjectPathTokens(languageFeatureContext: LanguageFeatureContext) {
+		return this.generateForType(ObjectPathNode, languageFeatureContext, node => ({
+			position: node.getBegin(),
+			length: node.getNode()["value"].length,
+			type: 'property',
+			modifier: 'declaration'
+		}))
+	}
+
+	protected generatePhpClassMethodTokens(languageFeatureContext: LanguageFeatureContext) {
+		return this.generateForType(PhpClassMethodNode, languageFeatureContext, node => ({
+			position: node.getBegin(),
+			length: node.getNode().identifier.length,
+			type: 'method',
+			modifier: 'declaration'
+		}))
+	}
+
+	protected generateTagAttributeTokens(languageFeatureContext: LanguageFeatureContext) {
+		const tagAttributeNodes = languageFeatureContext.parsedFile.getNodesByType(TagAttributeNode)
+		if (!tagAttributeNodes) return []
+
+		const semanticTokenConstructs: SemanticTokenConstruct[] = []
+
+		for (const tagAttributeNode of tagAttributeNodes) {
+			const tagNode = findParent(tagAttributeNode.getNode(), TagNode)
+			if (tagNode === undefined) continue
+
+			const statements = NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], languageFeatureContext.workspace)
+			for (const statement of statements) {
+				const identifier = getObjectIdentifier(statement.statement)
+
+				if (tagAttributeNode.getNode().name === identifier) {
+					semanticTokenConstructs.push({
+						position: tagAttributeNode.getBegin(),
+						length: identifier.length,
+						type: 'property',
+						modifier: 'declaration'
+					})
+					break
+				}
+			}
 		}
+
+		return semanticTokenConstructs
+	}
+
+	protected generateForType<T extends AbstractNode>(type: new (...args: any) => T, languageFeatureContext: LanguageFeatureContext, createConstructCallback: (node: LinePositionedNode<T>) => SemanticTokenConstruct) {
+		const nodes = languageFeatureContext.parsedFile.getNodesByType(type)
+		return nodes ? nodes.map(createConstructCallback) : []
 	}
 
 	protected getTypesAndModifier(identifier: string): { type: TokenTypes, modifier: TokenModifiers } {
 		if (identifier === "action") return { type: 'method', modifier: 'declaration' }
 		if (identifier === "controller") return { type: 'class', modifier: 'declaration' }
+		if (identifier === "package") return { type: 'namespace', modifier: 'declaration' }
 		return { type: 'variable', modifier: 'declaration' }
 	}
 
