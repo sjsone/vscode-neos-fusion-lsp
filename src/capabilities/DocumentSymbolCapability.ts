@@ -122,8 +122,8 @@ export class DocumentSymbolCapability extends AbstractCapability {
 			if (value instanceof FusionObjectValue) return { detail: value.value, kind: SymbolKind.Object }
 			if (value instanceof DslExpressionValue) return { detail: 'afx`...`', kind: SymbolKind.Constructor }
 
-			if (value instanceof StringValue) return { detail: value.value, kind: SymbolKind.String }
-			if (value instanceof CharValue) return { detail: value.value, kind: SymbolKind.String }
+			if (value instanceof StringValue) return { detail: `"${value.value}"`, kind: SymbolKind.String }
+			if (value instanceof CharValue) return { detail: `"${value.value}"`, kind: SymbolKind.String }
 
 			if (value instanceof FloatValue) return { detail: value.value.toString(), kind: SymbolKind.Number }
 			if (value instanceof IntValue) return { detail: value.value.toString(), kind: SymbolKind.Number }
