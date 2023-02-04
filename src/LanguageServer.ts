@@ -111,7 +111,7 @@ export class LanguageServer extends Logger {
 					triggerCharacters: [`"`, `'`, `/`, `.`, `:`]
 				},
 				textDocumentSync: {
-					openClose: true,
+					openClose: params.initializationOptions.textDocumentSync.openClose,
 					change: TextDocumentSyncKind.Full
 				},
 				codeActionProvider: true,
