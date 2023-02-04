@@ -16,6 +16,8 @@ import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFe
 
 export type FusionDocument = TextDocument
 
+// INFO: https://github.com/microsoft/vscode/issues/135453
+
 const connection = createConnection(ProposedFeatures.all)
 const documents: TextDocuments<FusionDocument> = new TextDocuments(TextDocument)
 
