@@ -209,8 +209,19 @@
               "A bit more explaining and additional information",
               "Shows everything it can"
             ]
+          },
+          "neosFusionLsp.logging.inspect": {
+            "type": "boolean",
+            "default": false,
+            "description": "When starting the LSP wait for an inspector to connect."
           }
         }
+      }
+    ],
+    "commands": [
+      {
+        "command": "neos-fusion-lsp.inspect",
+        "title": "inspect Neos Fusion LSP "
       }
     ]
   },
