@@ -68,6 +68,11 @@ function startClient(context: ExtensionContext, folder: WorkspaceFolder, outputC
 				workspace.createFileSystemWatcher('**/*.fusion')
 			]
 		},
+		initializationOptions: {
+			textDocumentSync: {
+				openClose: true
+			}
+		}
 	}
 
 	const statusItemService = new StatusItemService(documentSelector)
