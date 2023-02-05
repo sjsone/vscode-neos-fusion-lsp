@@ -65,6 +65,12 @@ It is based on the definition capability. Because the definition capability does
 
 ![goto image](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/diagnostics_example.gif?raw=true)
 
+
+
+If you want to ignore an Error or Warning you can use a `@fusion-ignore`  -comment in the line before:
+
+ ![goto image](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/fusion_ignore_property.png?raw=true)
+
 ### Resource
 
 Described [here](#Resource Goto Definition, Completion and Hover) resource strings are diagnosed when the file cannot be found.
