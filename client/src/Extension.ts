@@ -8,9 +8,9 @@ import {
 } from 'vscode-languageclient/node'
 import { AbstractCommandConstructor } from './commands/AbstractCommand'
 import { InspectCommand } from './commands/InspectCommand'
-import { PreferenceService } from './preferenceService'
-import { ProgressNotificationService } from './progressNotificationService'
-import { StatusItemService } from './statusItemService'
+import { PreferenceService } from './PreferenceService'
+import { ProgressNotificationService } from './ProgressNotificationService'
+import { StatusItemService } from './StatusItemService'
 
 
 
