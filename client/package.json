@@ -9,7 +9,7 @@
 		"vscode": "^1.52.0"
 	},
 	"scripts": {
-		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+		"esbuild-base": "esbuild ./src/main.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
 		"esbuild": "yarn run esbuild-base --minify",
 		"esbuild-watch": "yarn run esbuild-base --sourcemap --watch"
 	},
