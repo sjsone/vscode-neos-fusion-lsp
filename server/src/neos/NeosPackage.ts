@@ -50,8 +50,10 @@ export class NeosPackage extends Logger {
 	}
 
 	protected initNamespaceLoading() {
-		const autoloadNamespaces = this.composerJson?.autoload?.["psr-4"] ?? []
-		for (const namespace in autoloadNamespaces) {
+		const autoloadNamespaces = this.composerJson?.autoload?.["psr-4"] ?? {}
+		const sortedAutoloadNamespaceNames = Object.keys(autoloadNamespaces).sort((a, b) => b.length - a.length)
+
+		for (const namespace of sortedAutoloadNamespaceNames) {
 			const namespacePath = autoloadNamespaces[namespace]
 			this.namespaces.set(namespace, new NeosPackageNamespace(namespace, NodePath.join(this.path, namespacePath)))
 		}
