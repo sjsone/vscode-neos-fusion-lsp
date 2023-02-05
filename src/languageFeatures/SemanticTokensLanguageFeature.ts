@@ -1,4 +1,5 @@
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { Comment } from 'ts-fusion-parser/out/common/Comment'
 import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
 import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 import { LiteralNullNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNullNode'
@@ -68,6 +69,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 		semanticTokenConstructs.push(...this.generateObjectPathTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generatePhpClassMethodTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generateTagAttributeTokens(languageFeatureContext))
+		semanticTokenConstructs.push(...this.generateSemanticCommentTokens(languageFeatureContext))
 
 		return {
 			data: this.generateTokenArray(semanticTokenConstructs)
@@ -180,6 +182,32 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 					break
 				}
 			}
+		}
+
+		return semanticTokenConstructs
+	}
+
+	protected generateSemanticCommentTokens(languageFeatureContext: LanguageFeatureContext) {
+		const commentNodes = languageFeatureContext.parsedFile.getNodesByType(Comment)
+		if (!commentNodes) return []
+
+		const semanticTokenConstructs: SemanticTokenConstruct[] = []
+
+		for (const commentNode of commentNodes) {
+			const node = commentNode.getNode()
+			const commentValue = node.value
+			if (commentValue.trim() !== '@fusion-ignore') continue
+
+			const begin = commentNode.getBegin()
+			semanticTokenConstructs.push({
+				position: {
+					line: begin.line,
+					character: begin.character + node.prefix.length + (node.prefix === '<!--' ? 1 : 0)
+				},
+				length: commentValue.length,
+				type: 'operator',
+				modifier: 'modification'
+			})
 		}
 
 		return semanticTokenConstructs
