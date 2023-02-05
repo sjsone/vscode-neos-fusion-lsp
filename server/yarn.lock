@@ -3,9 +3,9 @@
 
 
 ts-fusion-parser@^0.1.5:
-  version "0.1.5"
-  resolved "https://registry.yarnpkg.com/ts-fusion-parser/-/ts-fusion-parser-0.1.5.tgz#780babea1cc8c33ca1b5bbe0bf286da7dc235c53"
-  integrity sha512-dQGFMEpVUW/km3hu++IbTdS9KkpACNwh6G/JKNDkP1Ritsv53l0m4/kfG/L0lRv/e90BYGXCWXiizL2e66e7vA==
+  version "0.1.6"
+  resolved "https://registry.yarnpkg.com/ts-fusion-parser/-/ts-fusion-parser-0.1.6.tgz#919226ebddfadd925cc9adaaa8d6f601aac4f248"
+  integrity sha512-d420njyJnWn24FPYV6rn1dmyV3nL6+ZXlI1Lsx9houYrHEagPUAJH1Tvfg8GZLfZGnbF3yG9H5WporNzPtpz2g==
 
 vscode-jsonrpc@8.0.2:
   version "8.0.2"
