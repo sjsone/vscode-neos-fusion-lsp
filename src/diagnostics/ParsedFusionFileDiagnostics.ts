@@ -20,6 +20,7 @@ import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpress
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment';
 import { ActionUriActionNode } from '../fusion/ActionUriActionNode';
 import { ActionUriControllerNode } from '../fusion/ActionUriControllerNode';
+import { Comment } from 'ts-fusion-parser/out/common/Comment';
 
 const source = 'Neos Fusion'
 
@@ -61,6 +62,14 @@ function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 
 		const definition = definitionCapability.getPropertyDefinitions(this, parsedFusionFile.workspace, node.path[0].linePositionedNode)
 		if (definition) continue
+
+		const nodesByLine = parsedFusionFile.nodesByLine[node.linePositionedNode.getBegin().line - 1] ?? []
+		const foundIgnoreComment = nodesByLine.find(nodeByLine => {
+			const node = nodeByLine.getNode()
+			if (!(node instanceof Comment)) return false
+			return node.value.trim() === "@fusion-ignore"
+		})
+		if (foundIgnoreComment) continue
 
 		const objectStatementText = node.path.map(e => e["value"]).join(".")
 		const diagnostic: Diagnostic = {
