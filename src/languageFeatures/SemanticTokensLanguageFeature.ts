@@ -202,7 +202,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 			semanticTokenConstructs.push({
 				position: {
 					line: begin.line,
-					character: begin.character + node.prefix.length + (node.prefix === '<!--' ? 1 : 0)
+					character: begin.character + node.prefix.length
 				},
 				length: commentValue.length,
 				type: 'operator',
