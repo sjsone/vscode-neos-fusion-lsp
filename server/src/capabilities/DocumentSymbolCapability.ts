@@ -22,6 +22,7 @@ import { LinePositionedNode } from '../common/LinePositionedNode';
 import { findParent, getObjectIdentifier } from '../common/util';
 import { AbstractCapability } from './AbstractCapability';
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext';
+import { GlobalCache } from '../common/Cache';
 
 // TODO: Implement cache
 // FIXME: Prototypes are shown twice
@@ -30,8 +31,8 @@ export class DocumentSymbolCapability extends AbstractCapability {
 
 	protected run(context: CapabilityContext<AbstractNode>) {
 		const { parsedFile } = <ParsedFileCapabilityContext<AbstractNode>>context
-
-		return this.getSymbolsFromParsedFile(parsedFile)
+		const cacheId = 'DocumentSymbolCapability_' + parsedFile.uri
+		return GlobalCache.retrieve(cacheId, () => this.getSymbolsFromParsedFile(parsedFile), [parsedFile.uri])
 	}
 
 	protected getSymbolsFromParsedFile(parsedFile: ParsedFusionFile) {

@@ -31,6 +31,7 @@ import { ActionUriControllerNode } from './ActionUriControllerNode'
 import { ActionUriDefinitionNode } from './ActionUriDefinitionNode'
 import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode'
 import { Logger } from '../common/Logging'
+import { GlobalCache } from '../common/Cache'
 
 export class ParsedFusionFile extends Logger {
 	public workspace: FusionWorkspace
@@ -58,6 +59,7 @@ export class ParsedFusionFile extends Logger {
 	}
 
 	init(text: string = undefined) {
+		GlobalCache.clearByTag(this.uri)
 		try {
 			this.logVerbose("init")
 			if (text === undefined) {
