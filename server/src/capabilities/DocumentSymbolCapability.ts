@@ -24,9 +24,10 @@ import { AbstractCapability } from './AbstractCapability';
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext';
 
 // TODO: Implement cache
-// FIXME: Prototypes are shown twice
 export class DocumentSymbolCapability extends AbstractCapability {
 	protected noPositionedNode: boolean = true
+
+	protected alreadyParsedPrototypes: AbstractNode[] = []
 
 	protected run(context: CapabilityContext<AbstractNode>) {
 		const { parsedFile } = <ParsedFileCapabilityContext<AbstractNode>>context
@@ -37,14 +38,19 @@ export class DocumentSymbolCapability extends AbstractCapability {
 	protected getSymbolsFromParsedFile(parsedFile: ParsedFusionFile) {
 		const symbols: DocumentSymbol[] = []
 		for (const prototypeDefinition of parsedFile.prototypeCreations) {
-			symbols.push(this.createDocumentSymbolFromPositionedNode(prototypeDefinition))
+			const symbol = this.createDocumentSymbolFromPositionedNode(prototypeDefinition)
+			if (symbol) symbols.push(symbol)
 		}
 
 		for (const prototypeOverwrite of parsedFile.prototypeOverwrites) {
-			const parentStatementList = findParent(prototypeOverwrite.getNode(), StatementList)
+			const node = prototypeOverwrite.getNode()
+
+			const parentStatementList = findParent(node, StatementList)
 			if (!parentStatementList) continue
 			if (!(parentStatementList["parent"] instanceof FusionFile)) continue
-			symbols.push(this.createDocumentSymbolFromPositionedNode(prototypeOverwrite, undefined, SymbolKind.Interface))
+
+			const symbol = this.createDocumentSymbolFromPositionedNode(prototypeOverwrite, undefined, SymbolKind.Interface)
+			if (symbol) symbols.push(symbol)
 		}
 
 		const objectStatements = parsedFile.getNodesByType(ObjectStatement)
@@ -58,7 +64,8 @@ export class DocumentSymbolCapability extends AbstractCapability {
 				if (node["block"] !== undefined) continue
 				if (!(node.path.segments[0] instanceof PrototypePathSegment)) continue
 
-				symbols.push(this.createDocumentSymbolFromPositionedNode(objectStatement))
+				const symbol = this.createDocumentSymbolFromPositionedNode(objectStatement)
+				if (symbol) symbols.push(symbol)
 			}
 		}
 
@@ -69,6 +76,9 @@ export class DocumentSymbolCapability extends AbstractCapability {
 		const node = positionedNode.getNode()
 
 		if (node instanceof PrototypePathSegment) {
+			if (this.alreadyParsedPrototypes.includes(node)) return null
+			this.alreadyParsedPrototypes.push(node)
+
 			const range = positionedNode.getPositionAsRange()
 			const symbols: DocumentSymbol[] = []
 			const objectStatement = findParent(node, ObjectStatement)
