@@ -52,6 +52,7 @@ export class Extension {
 			if (this.clients.has(outerMostWorkspaceFolder.uri.toString())) return
 
 			const inspect = workspace.getConfiguration().get("neosFusionLsp.logging.inspect", false)
+			
 			this.startClient(outerMostWorkspaceFolder, inspect)
 		}
 
@@ -110,14 +111,15 @@ export class Extension {
 	public startClient(folder: WorkspaceFolder, inspect: boolean = false) {
 		const module = this.context.asAbsolutePath(path.join('server', 'out', 'main.js'))
 
-		const debugOptions = { execArgv: ["--nolazy", `--inspect-brk=${6011 + this.clients.size}`] }
 		const runOptions = { execArgv: [] }
+
+		console.log("start in inspect", inspect)
 		if (inspect) {
 			runOptions.execArgv.push(`--inspect-brk=${6011 + this.clients.size}`)
 		}
 		const serverOptions: ServerOptions = {
 			run: { module, transport: TransportKind.ipc, options: runOptions },
-			debug: { module, transport: TransportKind.ipc, options: debugOptions }
+			debug: { module, transport: TransportKind.ipc, options: runOptions }
 		}
 		const documentSelector = [{ scheme: 'file', language: 'fusion', pattern: `${folder.uri.fsPath}/**/*` }]
 		const clientOptions: LanguageClientOptions = {
