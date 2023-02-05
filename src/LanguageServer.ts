@@ -89,7 +89,7 @@ export class LanguageServer extends Logger {
 		const workspace = this.getWorkspaceForFileUri(event.document.uri)
 		if (workspace === undefined) return null
 
-		await workspace.updateFileByChange(event)
+		// TODO: Check if new file and if it is add and initialize it
 		this.logVerbose(`Document opened: ${event.document.uri.replace(workspace.getUri(), "")}`)
 	}
 
