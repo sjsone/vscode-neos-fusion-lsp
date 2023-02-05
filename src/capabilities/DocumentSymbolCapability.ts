@@ -31,8 +31,11 @@ export class DocumentSymbolCapability extends AbstractCapability {
 
 	protected run(context: CapabilityContext<AbstractNode>) {
 		const { parsedFile } = <ParsedFileCapabilityContext<AbstractNode>>context
+		const symbols = this.getSymbolsFromParsedFile(parsedFile)
 
-		return this.getSymbolsFromParsedFile(parsedFile)
+		this.alreadyParsedPrototypes = []
+		
+		return symbols
 	}
 
 	protected getSymbolsFromParsedFile(parsedFile: ParsedFusionFile) {
