@@ -21,29 +21,62 @@ import { OperationNode } from 'ts-fusion-parser/out/dsl/eel/nodes/OperationNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 
-const lineNumberCache: Map<string, string[]> = new Map
-
-export function clearLineNumberCache() {
-    lineNumberCache.clear()
+export interface LineDataCacheEntry {
+    lineLengths: number[]
+    lineIndents: string[]
 }
 
-export function getLineNumberOfChar(data: string, index: number, debug = false) {
-    let perLine: string[]
-    if (lineNumberCache.has(data)) {
-        perLine = lineNumberCache.get(data)
-    } else {
-        perLine = data.split('\n')
-        lineNumberCache.set(data, perLine)
+// TODO: use a real cache [cache-branch]
+const lineDataCache: Map<string, LineDataCacheEntry> = new Map
+
+const whitespaceRegex = /^[ \t]+/;
+
+export function clearLineDataCacheForFile(textUri: string) {
+    if (lineDataCache.has(textUri)) lineDataCache.delete(textUri)
+}
+
+export function getLinesFromLineDataCacheForFile(textUri: string) {
+    return lineDataCache.get(textUri)
+}
+
+export function hasLineDataCacheFile(textUri: string) {
+    return lineDataCache.has(textUri)
+}
+
+export function setLinesFromLineDataCacheForFile(textUri: string, lines: string[]) {
+    return lineDataCache.set(textUri, buildEntryForLineDataCache(lines))
+}
+
+export function buildEntryForLineDataCache(lines: string[]): LineDataCacheEntry {
+    const lineLengths = []
+    const lineIndents = []
+
+    for (const line of lines) {
+        const match = line.match(whitespaceRegex);
+        lineIndents.push(match ? match[0] : '')
+        lineLengths.push(line.length)
     }
 
+    return {
+        lineLengths,
+        lineIndents
+    }
+}
+
+export function clearLineDataCache() {
+    lineDataCache.clear()
+}
+
+export function getLineNumberOfChar(data: string, index: number, textUri: string) {
+    if (!lineDataCache.has(textUri)) setLinesFromLineDataCacheForFile(textUri, data.split('\n'))
+    const entry = lineDataCache.get(textUri)
     let totalLength = 0
     let column = index
     let i = 0
-    for (i; i < perLine.length; i++) {
-        totalLength += perLine[i].length + 1
-        if (totalLength >= index)
-            return { line: i, character: column }
-        column -= perLine[i].length + 1
+    for (i; i < entry.lineLengths.length; i++) {
+        totalLength += entry.lineLengths[i] + 1
+        if (totalLength >= index) return { line: i, character: column }
+        column -= entry.lineLengths[i] + 1
     }
     return { line: i, character: column }
 }

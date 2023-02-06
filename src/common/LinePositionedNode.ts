@@ -8,7 +8,7 @@ export interface LinePosition {
 }
 
 declare module 'ts-fusion-parser/out/common/AbstractNode' {
-    interface AbstractNode { linePositionedNode: LinePositionedNode<typeof this>; }
+	interface AbstractNode { linePositionedNode: LinePositionedNode<typeof this>; }
 }
 
 export class LinePositionedNode<T extends AbstractNode> {
@@ -17,14 +17,14 @@ export class LinePositionedNode<T extends AbstractNode> {
 	protected start: LinePosition
 	protected end: LinePosition
 
-	constructor(node: T, text: string = undefined) {
+	constructor(node: T, text: string = undefined, textUri: string = undefined) {
 		this.node = node
 		this.node.linePositionedNode = this
 
-		if (node["position"] !== undefined && text !== undefined) {
+		if (node["position"] !== undefined && text !== undefined && textUri !== undefined) {
 			const begin = node["position"].begin ?? (node["position"]).begin
-			this.start = getLineNumberOfChar(text, begin)
-			this.end = getLineNumberOfChar(text, node["position"].end)
+			this.start = getLineNumberOfChar(text, begin, textUri)
+			this.end = getLineNumberOfChar(text, node["position"].end, textUri)
 		}
 	}
 

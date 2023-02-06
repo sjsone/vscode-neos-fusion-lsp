@@ -20,7 +20,7 @@ import { CompletionCapability } from './capabilities/CompletionCapability'
 import { HoverCapability } from './capabilities/HoverCapability'
 import { ReferenceCapability } from './capabilities/ReferenceCapability'
 import { Logger, LogService } from './common/Logging'
-import { clearLineNumberCache, uriToPath } from './common/util'
+import { clearLineDataCache, clearLineDataCacheForFile, uriToPath } from './common/util'
 import { AbstractLanguageFeature } from './languageFeatures/AbstractLanguageFeature'
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
@@ -178,7 +178,7 @@ export class LanguageServer extends Logger {
 			fusionWorkspace.init(configuration)
 		}
 
-		clearLineNumberCache()
+		clearLineDataCache()
 
 		this.sendBusyDispose('configuration')
 	}
@@ -191,6 +191,9 @@ export class LanguageServer extends Logger {
 			this.logVerbose(`Watched: (${Object.keys(FileChangeType)[Object.values(FileChangeType).indexOf(change.type)]}) ${change.uri}`)
 			if (change.type === FileChangeType.Changed) {
 				if (!change.uri.endsWith(".php")) continue
+
+				clearLineDataCacheForFile(change.uri)
+
 				for (const workspace of this.fusionWorkspaces) {
 					for (const [name, neosPackage] of workspace.neosWorkspace.getPackages().entries()) {
 						const helper = neosPackage.getEelHelpers().find(helper => helper.uri === change.uri)
@@ -220,6 +223,8 @@ export class LanguageServer extends Logger {
 			}
 
 			if (change.type === FileChangeType.Deleted) {
+				clearLineDataCacheForFile(change.uri)
+
 				if (!change.uri.endsWith(".fusion")) continue
 				const workspace = this.getWorkspaceForFileUri(change.uri)
 				if (!workspace) {
