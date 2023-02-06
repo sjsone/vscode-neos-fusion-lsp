@@ -45,13 +45,13 @@ export function setLinesFromLineDataCacheForFile(textUri: string, lines: string[
     return lineDataCache.set(textUri, buildEntryForLineDataCache(lines))
 }
 
-const whitespaceRegex = /^[ \t]+/;
+const whitespaceRegex = /^[ \t]+/
 export function buildEntryForLineDataCache(lines: string[]): LineDataCacheEntry {
     const lineLengths = []
     const lineIndents = []
 
     for (const line of lines) {
-        const match = line.match(whitespaceRegex);
+        const match = line.match(whitespaceRegex)
         lineIndents.push(match ? match[0] : '')
         lineLengths.push(line.length)
     }
@@ -72,7 +72,7 @@ export function getLineNumberOfChar(data: string, index: number, textUri: string
     let totalLength = 0
     let column = index
     let i = 0
-    for (i; i < entry.lineLengths.length; i++) {
+    for (i i < entry.lineLengths.length i++) {
         totalLength += entry.lineLengths[i] + 1
         if (totalLength >= index) return { line: i, character: column }
         column -= entry.lineLengths[i] + 1
