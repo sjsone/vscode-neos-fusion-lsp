@@ -109,7 +109,7 @@ export class LanguageServer extends Logger {
 				inlayHintProvider: true,
 				completionProvider: {
 					resolveProvider: true,
-					triggerCharacters: [`"`, `'`, `/`, `.`, `:`]
+					triggerCharacters: [`"`, `'`, `/`, `.`, `:`, `@`]
 				},
 				textDocumentSync: {
 					openClose: params.initializationOptions.textDocumentSync.openClose,
