@@ -69,7 +69,7 @@ class NodeService {
 
 			if (parentObjectStatement) {
 				let prototypeName = undefined as string
-				
+
 				const parentOperation = parentObjectStatement.operation
 				if (parentOperation instanceof ValueAssignment) {
 					if (parentOperation.pathValue instanceof FusionObjectValue) {
@@ -259,10 +259,12 @@ class NodeService {
 		return result
 	}
 
-	public getInheritedPropertiesByPrototypeName(name: string, workspace: FusionWorkspace) {
+	public getInheritedPropertiesByPrototypeName(name: string, workspace: FusionWorkspace, includeOverwrites: boolean = false) {
 		const statements: Array<ExternalObjectStatement> = []
 		for (const otherParsedFile of workspace.parsedFiles) {
-			for (const positionedNode of [...otherParsedFile.prototypeCreations]) {
+			const prototypeNodes = [...otherParsedFile.prototypeCreations]
+			if (includeOverwrites) prototypeNodes.push(...otherParsedFile.prototypeOverwrites)
+			for (const positionedNode of prototypeNodes) {
 				if (positionedNode.getNode().identifier !== name) continue
 				const objectStatement = findParent(positionedNode.getNode(), ObjectStatement)
 				const operation = objectStatement.operation
