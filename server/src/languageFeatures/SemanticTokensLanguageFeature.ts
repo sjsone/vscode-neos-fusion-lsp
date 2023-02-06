@@ -168,7 +168,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 			const tagNode = findParent(tagAttributeNode.getNode(), TagNode)
 			if (tagNode === undefined) continue
 
-			const statements = NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], languageFeatureContext.workspace)
+			const statements = NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], languageFeatureContext.workspace, true)
 			for (const statement of statements) {
 				const identifier = getObjectIdentifier(statement.statement)
 
@@ -177,7 +177,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 						position: tagAttributeNode.getBegin(),
 						length: identifier.length,
 						type: 'property',
-						modifier: 'declaration'
+						modifier: 'definition'
 					})
 					break
 				}
