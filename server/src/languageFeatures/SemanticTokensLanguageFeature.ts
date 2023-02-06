@@ -196,7 +196,8 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 		for (const commentNode of commentNodes) {
 			const node = commentNode.getNode()
 			const commentValue = node.value
-			if (commentValue.trim() !== '@fusion-ignore') continue
+
+			if (!['@fusion-ignore-block', '@fusion-ignore'].includes(commentValue.trim())) continue
 
 			const begin = commentNode.getBegin()
 			semanticTokenConstructs.push({

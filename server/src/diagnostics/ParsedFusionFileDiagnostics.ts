@@ -14,7 +14,7 @@ import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
 import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode';
 import { ResourceUriNode } from '../fusion/ResourceUriNode';
 import { LinePositionedNode } from '../common/LinePositionedNode';
-import { findParent, isPrototypeDeprecated } from '../common/util';
+import { findParent, findUntil, isPrototypeDeprecated } from '../common/util';
 import { EmptyEelNode } from 'ts-fusion-parser/out/dsl/eel/nodes/EmptyEelNode';
 import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue';
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment';
@@ -71,6 +71,14 @@ function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 			return node.value.trim() === "@fusion-ignore"
 		})
 		if (foundIgnoreComment) continue
+
+		const foundIgnoreBlockComment = parsedFusionFile.getNodesByType(Comment).find(positionedComment => {
+			const commentNode = positionedComment.getNode()
+			if (commentNode.value.trim() !== "@fusion-ignore-block") return false
+			const commentParent = commentNode["parent"]
+			return !!findUntil(node, parentNode => parentNode === commentParent)
+		})
+		if (foundIgnoreBlockComment) continue
 
 		const objectStatementText = node.path.map(e => e["value"]).join(".")
 		const diagnostic: Diagnostic = {
