@@ -9,7 +9,7 @@
     "theme": "dark"
   },
   "license": "AGPL-3.0-or-later",
-  "version": "0.1.26",
+  "version": "0.1.39",
   "categories": [
     "Programming Languages"
   ],
@@ -222,6 +222,18 @@
       {
         "command": "neos-fusion-lsp.inspect",
         "title": "inspect Neos Fusion LSP "
+      }
+    ],
+    "languages": [
+      {
+        "id": "fusion",
+        "extensions": [
+          ".fusion"
+        ],
+        "aliases": [
+          "Fusion"
+        ],
+        "configuration": "./language-configuration.json"
       }
     ]
   },

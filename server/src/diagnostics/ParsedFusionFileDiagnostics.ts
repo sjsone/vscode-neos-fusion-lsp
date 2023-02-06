@@ -14,12 +14,15 @@ import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
 import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode';
 import { ResourceUriNode } from '../fusion/ResourceUriNode';
 import { LinePositionedNode } from '../common/LinePositionedNode';
-import { findParent, isPrototypeDeprecated } from '../common/util';
+import { findParent, findUntil, isPrototypeDeprecated } from '../common/util';
 import { EmptyEelNode } from 'ts-fusion-parser/out/dsl/eel/nodes/EmptyEelNode';
 import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue';
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment';
 import { ActionUriActionNode } from '../fusion/ActionUriActionNode';
 import { ActionUriControllerNode } from '../fusion/ActionUriControllerNode';
+import { Comment } from 'ts-fusion-parser/out/common/Comment';
+import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue';
+import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode';
 
 const source = 'Neos Fusion'
 
@@ -62,12 +65,33 @@ function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 		const definition = definitionCapability.getPropertyDefinitions(this, parsedFusionFile.workspace, node.path[0].linePositionedNode)
 		if (definition) continue
 
+		const affectedNodeBySemanticComment = node["parent"] instanceof TagAttributeNode ? findParent(node, TagNode) : node
+		const nodesByLine = parsedFusionFile.nodesByLine[affectedNodeBySemanticComment.linePositionedNode.getBegin().line - 1] ?? []
+		const foundIgnoreComment = nodesByLine.find(nodeByLine => {
+			const node = nodeByLine.getNode()
+			if (!(node instanceof Comment)) return false
+			return node.value.trim() === "@fusion-ignore"
+		})
+		if (foundIgnoreComment) continue
+
+		const foundIgnoreBlockComment = parsedFusionFile.getNodesByType(Comment)?.find(positionedComment => {
+			const commentNode = positionedComment.getNode()
+			if (commentNode.value.trim() !== "@fusion-ignore-block") return false
+			const commentParent = commentNode["parent"]
+			return !!findUntil(node, parentNode => parentNode === commentParent)
+		})
+		if (foundIgnoreBlockComment) continue
+
 		const objectStatementText = node.path.map(e => e["value"]).join(".")
 		const diagnostic: Diagnostic = {
 			severity: DiagnosticSeverity.Warning,
 			range: positionedObjectNode.getPositionAsRange(),
 			message: `Could not resolve "${objectStatementText}"`,
-			source
+			source,
+			data: {
+				quickAction: 'ignorable',
+				commentType: findParent(node, DslExpressionValue) ? 'afx' : 'fusion'
+			}
 		}
 		diagnostics.push(diagnostic)
 	}

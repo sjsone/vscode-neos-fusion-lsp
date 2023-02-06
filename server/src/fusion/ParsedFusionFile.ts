@@ -17,7 +17,7 @@ import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNod
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
-import { findParent, getNodeWeight, getObjectIdentifier, getPrototypeNameFromNode, uriToPath } from '../common/util'
+import { clearLineDataCacheForFile, findParent, getNodeWeight, getObjectIdentifier, getPrototypeNameFromNode, uriToPath } from '../common/util'
 import { Diagnostic } from 'vscode-languageserver'
 import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/nodes/MetaPathSegment'
 import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
@@ -61,6 +61,7 @@ export class ParsedFusionFile extends Logger {
 	init(text: string = undefined) {
 		GlobalCache.clearByTag(this.uri)
 		try {
+			this.clearCaches()
 			this.logVerbose("init")
 			if (text === undefined) {
 				text = NodeFs.readFileSync(uriToPath(this.uri)).toString()
@@ -93,6 +94,11 @@ export class ParsedFusionFile extends Logger {
 
 			return false
 		}
+	}
+
+	clearCaches() {
+		clearLineDataCacheForFile(this.uri)
+		this.logVerbose("Cleared caches")
 	}
 
 	handleEelObjectNode(node: ObjectNode, text: string) {
@@ -317,7 +323,7 @@ export class ParsedFusionFile extends Logger {
 	}
 
 	createNodeByLine<T extends AbstractNode>(node: T, text: string) {
-		return new LinePositionedNode<T>(node, text)
+		return new LinePositionedNode<T>(node, text, this.uri)
 	}
 
 	readStatementList(statementList: StatementList, text: string) {
