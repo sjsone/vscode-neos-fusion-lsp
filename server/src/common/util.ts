@@ -20,16 +20,14 @@ import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { OperationNode } from 'ts-fusion-parser/out/dsl/eel/nodes/OperationNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { Cache } from './Cache'
 
 export interface LineDataCacheEntry {
     lineLengths: number[]
     lineIndents: string[]
 }
 
-// TODO: use a real cache [cache-branch]
-const lineDataCache: Map<string, LineDataCacheEntry> = new Map
-
-const whitespaceRegex = /^[ \t]+/;
+const lineDataCache = new Cache<LineDataCacheEntry>()
 
 export function clearLineDataCacheForFile(textUri: string) {
     if (lineDataCache.has(textUri)) lineDataCache.delete(textUri)
@@ -47,6 +45,7 @@ export function setLinesFromLineDataCacheForFile(textUri: string, lines: string[
     return lineDataCache.set(textUri, buildEntryForLineDataCache(lines))
 }
 
+const whitespaceRegex = /^[ \t]+/;
 export function buildEntryForLineDataCache(lines: string[]): LineDataCacheEntry {
     const lineLengths = []
     const lineIndents = []

@@ -15,7 +15,7 @@ class Cache<T> extends Logger {
 	public set(key: string, value: T, tags: string[] = []): void {
 		this.cacheStore.set(key, value);
 
-		this.logInfo(`Setting "${key}" with tags: `, tags)
+		this.logDebug(`Setting "${key}" with tags: `, tags)
 
 		if (tags.length) {
 			this.keyTags.set(key, tags);
@@ -40,13 +40,13 @@ class Cache<T> extends Logger {
 
 	public retrieve(key: string, retrieveCallback: () => T, tags: string[] = []): T {
 		let value = this.get(key);
-		
+
 		if (!value) {
 			value = retrieveCallback();
 			this.set(key, value, tags);
 		}
-		this.logInfo(`Retrieved for ${key} with tags`, tags)
-		
+		this.logDebug(`Retrieved for ${key} with tags`, tags)
+
 		return value;
 	}
 
@@ -69,7 +69,7 @@ class Cache<T> extends Logger {
 
 	public clearByTag(tag: string): void {
 		if (this.tagKeys.has(tag)) {
-			this.logInfo(`clearing by tag "${tag}"`)
+			this.logDebug(`clearing by tag "${tag}"`)
 			const tagKeys = this.tagKeys.get(tag)!;
 			for (const key of tagKeys) {
 				this.delete(key);
@@ -88,4 +88,4 @@ class Cache<T> extends Logger {
 
 const GlobalCache = new Cache<any>("GlobalCache")
 
-export { Cache as CacheClass, GlobalCache }
+export { Cache, GlobalCache }
