@@ -8,7 +8,6 @@ async function getLinesFromUri(uri: string) {
 	return document.split("\n")
 }
 
-// TODO: add @fusion-ignore-block to ignore all warnings in a block-scope and below
 // TODO: implement central SemanticComment handling (Service etc.)
 
 export async function addFusionIgnoreSemanticCommentAction(params: CodeActionParams) {
