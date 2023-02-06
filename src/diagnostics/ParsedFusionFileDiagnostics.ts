@@ -22,6 +22,7 @@ import { ActionUriActionNode } from '../fusion/ActionUriActionNode';
 import { ActionUriControllerNode } from '../fusion/ActionUriControllerNode';
 import { Comment } from 'ts-fusion-parser/out/common/Comment';
 import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue';
+import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode';
 
 const source = 'Neos Fusion'
 
@@ -64,7 +65,8 @@ function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 		const definition = definitionCapability.getPropertyDefinitions(this, parsedFusionFile.workspace, node.path[0].linePositionedNode)
 		if (definition) continue
 
-		const nodesByLine = parsedFusionFile.nodesByLine[node.linePositionedNode.getBegin().line - 1] ?? []
+		const affectedNodeBySemanticComment = node["parent"] instanceof TagAttributeNode ? findParent(node, TagNode) : node
+		const nodesByLine = parsedFusionFile.nodesByLine[affectedNodeBySemanticComment.linePositionedNode.getBegin().line - 1] ?? []
 		const foundIgnoreComment = nodesByLine.find(nodeByLine => {
 			const node = nodeByLine.getNode()
 			if (!(node instanceof Comment)) return false
