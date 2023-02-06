@@ -108,8 +108,6 @@ export class NeosPackageNamespace {
 	}
 
 	getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName: string): ClassDefinition {
-		// TODO: cache filepath and classname from FQCN
-
 		if (this.fqcnCache.has(fullyQualifiedClassName)) {
 			const { possibleFilePath, className, pathParts } = this.fqcnCache.get(fullyQualifiedClassName)
 			if (!NodeFs.existsSync(possibleFilePath)) return undefined
