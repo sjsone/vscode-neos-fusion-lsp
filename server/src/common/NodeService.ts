@@ -84,10 +84,7 @@ class NodeService {
 				if (prototypeName) {
 					const statements = this.getInheritedPropertiesByPrototypeName(prototypeName, workspace)
 					for (const statement of statements) {
-						// TODO: Cleanup - statement should always be an ExternalObjectStatement
-						if (statement instanceof ExternalObjectStatement) yield statement
-						if (!(statement instanceof ObjectStatement)) continue
-						yield statement.path.segments[0]
+						yield statement
 					}
 					// return
 				}
