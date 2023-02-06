@@ -72,7 +72,7 @@ function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 		})
 		if (foundIgnoreComment) continue
 
-		const foundIgnoreBlockComment = parsedFusionFile.getNodesByType(Comment).find(positionedComment => {
+		const foundIgnoreBlockComment = parsedFusionFile.getNodesByType(Comment)?.find(positionedComment => {
 			const commentNode = positionedComment.getNode()
 			if (commentNode.value.trim() !== "@fusion-ignore-block") return false
 			const commentParent = commentNode["parent"]
