@@ -21,6 +21,7 @@ import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignme
 import { ActionUriActionNode } from '../fusion/ActionUriActionNode';
 import { ActionUriControllerNode } from '../fusion/ActionUriControllerNode';
 import { Comment } from 'ts-fusion-parser/out/common/Comment';
+import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue';
 
 const source = 'Neos Fusion'
 
@@ -76,7 +77,11 @@ function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 			severity: DiagnosticSeverity.Warning,
 			range: positionedObjectNode.getPositionAsRange(),
 			message: `Could not resolve "${objectStatementText}"`,
-			source
+			source,
+			data: {
+				quickAction: 'ignorable',
+				commentType: findParent(node, DslExpressionValue) ? 'afx' : 'fusion'
+			}
 		}
 		diagnostics.push(diagnostic)
 	}

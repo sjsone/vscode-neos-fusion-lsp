@@ -29,6 +29,7 @@ import { replaceDeprecatedQuickFixAction } from './actions/ReplaceDeprecatedQuic
 import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { AbstractFunctionality } from './common/AbstractFunctionality'
+import { addFusionIgnoreSemanticCommentAction } from './actions/AddFusionIgnoreSemanticCommentAction'
 
 
 export class LanguageServer extends Logger {
@@ -185,7 +186,7 @@ export class LanguageServer extends Logger {
 
 	public onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams) {
 		// TODO: Create separate Watchers (like capabilities)
-		// TODO: Update relevant ParsedFusionFiles  
+		// TODO: Update relevant ParsedFusionFiles but check if it was not a change the LSP does know of
 		for (const change of params.changes) {
 			// console.log(`CHANGE: ${change.type} ${change.uri}`)
 			this.logVerbose(`Watched: (${Object.keys(FileChangeType)[Object.values(FileChangeType).indexOf(change.type)]}) ${change.uri}`)
@@ -236,8 +237,11 @@ export class LanguageServer extends Logger {
 		}
 	}
 
-	public onCodeAction(params: CodeActionParams) {
-		return replaceDeprecatedQuickFixAction(params)
+	public async onCodeAction(params: CodeActionParams) {
+		return [
+			...await addFusionIgnoreSemanticCommentAction(params),
+			...replaceDeprecatedQuickFixAction(params)
+		]
 	}
 
 }
