@@ -86,8 +86,8 @@ export class NeosPackageNamespace {
 			const { description } = this.parseMethodComment(identifierIndex, phpFileSource)
 
 			methods.push(new EelHelperMethod(name, description, parameters, {
-				start: getLineNumberOfChar(phpFileSource, identifierIndex),
-				end: getLineNumberOfChar(phpFileSource, identifierIndex + fullDefinition.length)
+				start: getLineNumberOfChar(phpFileSource, identifierIndex, fileUri),
+				end: getLineNumberOfChar(phpFileSource, identifierIndex + fullDefinition.length, fileUri)
 			}))
 
 			lastIndex = identifierIndex + fullDefinition.length
@@ -101,8 +101,8 @@ export class NeosPackageNamespace {
 			className,
 			methods,
 			position: {
-				start: getLineNumberOfChar(phpFileSource, begin),
-				end: getLineNumberOfChar(phpFileSource, end)
+				start: getLineNumberOfChar(phpFileSource, begin, fileUri),
+				end: getLineNumberOfChar(phpFileSource, end, fileUri)
 			},
 		}
 	}
