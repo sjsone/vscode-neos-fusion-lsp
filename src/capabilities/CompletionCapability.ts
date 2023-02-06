@@ -18,6 +18,7 @@ import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityCont
 import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
 import { findParent, getObjectIdentifier } from '../common/util'
+import { Comment } from 'ts-fusion-parser/out/common/Comment'
 
 export class CompletionCapability extends AbstractCapability {
 
@@ -46,6 +47,12 @@ export class CompletionCapability extends AbstractCapability {
 					break
 				case foundNode instanceof ResourceUriNode:
 					completions.push(...this.getResourceUriCompletions(workspace, <LinePositionedNode<ResourceUriNode>>foundNodeByLine))
+
+
+				case foundNode instanceof Comment:
+					completions.push(...this.getSemanticCommentCompletions(<LinePositionedNode<Comment>>foundNodeByLine))
+				default:
+				// stub
 			}
 		}
 
@@ -239,6 +246,39 @@ export class CompletionCapability extends AbstractCapability {
 				})
 			}
 		}
+
+		return completions
+	}
+
+	protected getSemanticCommentCompletions(foundNode: LinePositionedNode<Comment>): CompletionItem[] {
+		const completions: CompletionItem[] = []
+
+		const node = foundNode.getNode()
+		if (!node.value.trim().startsWith("@")) return []
+
+		for (const semanticComment of ['@fusion-ignore', '@fusion-ignore-block']) {
+			const label = node.prefix === "//" ? `// ${semanticComment}` : `<!-- ${semanticComment} -->`
+
+			completions.push({
+				label,
+				kind: CompletionItemKind.Class,
+				insertTextMode: InsertTextMode.adjustIndentation,
+				insertText: label,
+				textEdit: {
+					insert: {
+						start: foundNode.getBegin(),
+						end: foundNode.getEnd(),
+					},
+					replace: {
+						start: foundNode.getBegin(),
+						end: { line: foundNode.getEnd().line, character: foundNode.getEnd().character + label.length },
+					},
+					newText: label
+				}
+			})
+		}
+
+
 
 		return completions
 	}
