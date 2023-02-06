@@ -1,26 +1,12 @@
 import { LinePosition } from '../common/LinePositionedNode'
+import { PhpMethod, PhpMethodParameter } from './PhpMethod'
 
-export interface EelHelperMethodParameter {
-	name: string,
-	defaultValue?: string
-	type?: string
-}
 
-export class EelHelperMethod {
-	public name: string
+export class EelHelperMethod extends PhpMethod {
 	protected normalizedName: string
-	public description: string | undefined
-	public position: {
-		start: LinePosition,
-		end: LinePosition
-	}
-	public parameters: EelHelperMethodParameter[]
 
-	constructor(name: string, description: string | undefined, parameters: EelHelperMethodParameter[], position: { start: LinePosition, end: LinePosition }) {
-		this.name = name
-		this.description = description
-		this.parameters = parameters
-		this.position = position
+	constructor(name: string, description: string | undefined, parameters: PhpMethodParameter[], position: { start: LinePosition, end: LinePosition }) {
+		super(name, description, parameters, position)
 
 		const nameWithoutGetter = this.name.replace(/get|is/, '').trim()
 		this.normalizedName = nameWithoutGetter ? nameWithoutGetter[0].toLowerCase() + nameWithoutGetter.substring(1) : name
