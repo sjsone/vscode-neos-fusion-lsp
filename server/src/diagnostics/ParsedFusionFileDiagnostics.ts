@@ -14,7 +14,7 @@ import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
 import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode';
 import { ResourceUriNode } from '../fusion/ResourceUriNode';
 import { LinePositionedNode } from '../common/LinePositionedNode';
-import { findParent, findUntil, isPrototypeDeprecated } from '../common/util';
+import { checkSemanticCommentIgnoreArguments, findParent, findUntil, isPrototypeDeprecated, parseSemanticComment, SemanticCommentType } from '../common/util';
 import { EmptyEelNode } from 'ts-fusion-parser/out/dsl/eel/nodes/EmptyEelNode';
 import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue';
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment';
@@ -65,24 +65,38 @@ function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 		const definition = definitionCapability.getPropertyDefinitions(this, parsedFusionFile.workspace, node.path[0].linePositionedNode)
 		if (definition) continue
 
+		const objectStatementText = node.path.map(e => e["value"]).join(".")
+
 		const affectedNodeBySemanticComment = node["parent"] instanceof TagAttributeNode ? findParent(node, TagNode) : node
 		const nodesByLine = parsedFusionFile.nodesByLine[affectedNodeBySemanticComment.linePositionedNode.getBegin().line - 1] ?? []
+
 		const foundIgnoreComment = nodesByLine.find(nodeByLine => {
-			const node = nodeByLine.getNode()
-			if (!(node instanceof Comment)) return false
-			return node.value.trim() === "@fusion-ignore"
+			const commentNode = nodeByLine.getNode()
+			if (!(commentNode instanceof Comment)) return false
+
+			const parsedSemanticComment = parseSemanticComment(commentNode.value.trim())
+			if (!parsedSemanticComment) return false
+			if (parsedSemanticComment.type !== SemanticCommentType.Ignore) return false
+
+			return checkSemanticCommentIgnoreArguments(objectStatementText, parsedSemanticComment.arguments)
 		})
 		if (foundIgnoreComment) continue
 
-		const foundIgnoreBlockComment = parsedFusionFile.getNodesByType(Comment)?.find(positionedComment => {
+		const fileComments = parsedFusionFile.getNodesByType(Comment) ?? []
+		const foundIgnoreBlockComment = (fileComments ? fileComments : []).find(positionedComment => {
 			const commentNode = positionedComment.getNode()
-			if (commentNode.value.trim() !== "@fusion-ignore-block") return false
+
+			const parsedSemanticComment = parseSemanticComment(commentNode.value.trim())
+			if (!parsedSemanticComment) return false
+			if (parsedSemanticComment.type !== SemanticCommentType.IgnoreBlock) return false
+
+			if (!checkSemanticCommentIgnoreArguments(objectStatementText, parsedSemanticComment.arguments)) return false
+
 			const commentParent = commentNode["parent"]
 			return !!findUntil(node, parentNode => parentNode === commentParent)
 		})
 		if (foundIgnoreBlockComment) continue
 
-		const objectStatementText = node.path.map(e => e["value"]).join(".")
 		const diagnostic: Diagnostic = {
 			severity: DiagnosticSeverity.Warning,
 			range: positionedObjectNode.getPositionAsRange(),

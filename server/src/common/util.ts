@@ -194,3 +194,45 @@ export function getNodeWeight(node: any) {
         default: return 0
     }
 }
+
+// TODO: Put the SemanticComment stuff into Service
+
+export enum SemanticCommentType {
+    Ignore = "ignore",
+    IgnoreBlock = "ignore-block"
+}
+
+export interface ParsedSemanticComment {
+    type: SemanticCommentType
+    arguments: string[]
+}
+
+export function parseSemanticComment(comment: string): ParsedSemanticComment {
+    const semanticCommentRegex = /^ *@fusion-([\w-_]+) *(?:\[(.*)\])?$/
+
+    const matches = semanticCommentRegex.exec(comment)
+    if (!matches) return undefined
+
+    const rawArguments = matches[2]
+    return {
+        type: <SemanticCommentType>matches[1],
+        arguments: rawArguments ? rawArguments.split(',').filter(Boolean).map(arg => arg.trim()) : []
+    }
+}
+
+export function checkSemanticCommentIgnoreArguments(propertyName: string, ignoredNames: string[]): boolean {
+    if (ignoredNames.length === 0) return true
+
+    const propertyNameParts = propertyName.split('.')
+    for (const ignoredName of ignoredNames) {
+        const ignoredNameParts = ignoredName.split('.')
+
+        let i = 0
+        for (const element of ignoredNameParts) {
+            if (propertyNameParts[i] === element) i++
+            if (i === propertyNameParts.length) return true
+        }
+    }
+
+    return false
+}
