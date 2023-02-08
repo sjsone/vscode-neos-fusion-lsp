@@ -61,28 +61,39 @@ export class HoverCapability extends AbstractCapability {
 		}
 	}
 
+	protected * createStatementNamesFromPrototypeNode(prototypeName: string, positionedPrototypeNode: LinePositionedNode<PrototypePathSegment>) {
+		const prototypeNode = positionedPrototypeNode.getNode()
+		if (prototypeNode["identifier"] !== prototypeName) return
+
+		const otherObjectStatement = findParent(prototypeNode, ObjectStatement)
+		if (!otherObjectStatement.block) return
+
+		for (const statement of <ObjectStatement[]>otherObjectStatement.block.statementList.statements) {
+			let statementName = statement["path"].segments.map(abstractNodeToString).filter(Boolean).join(".")
+			if (statement.operation instanceof ValueAssignment) {
+				statementName += ` = ${abstractNodeToString(statement.operation.pathValue)}`
+			}
+			yield statementName
+		}
+	}
+
 	getMarkdownForPrototypeName(workspace: FusionWorkspace, node: FusionObjectValue | PrototypePathSegment) {
 		const prototypeName = getPrototypeNameFromNode(node)
 		if (prototypeName === null) return null
 
 		const statementsNames: string[] = []
 		for (const otherParsedFile of workspace.parsedFiles) {
+			const statementsNamesFromFile: string[] = []
 			for (const otherPositionedNode of [...otherParsedFile.prototypeCreations, ...otherParsedFile.prototypeOverwrites]) {
-				const otherNode = <PrototypePathSegment>otherPositionedNode.getNode()
-				if (otherNode["identifier"] !== prototypeName) continue
-
-				const otherObjectStatement = findParent(otherNode, ObjectStatement)
-				if (!otherObjectStatement.block) continue
-
-				for (const statement of <ObjectStatement[]>otherObjectStatement.block.statementList.statements) {
-					let statementName = statement["path"].segments.map(abstractNodeToString).filter(Boolean).join(".")
-					if (statement.operation instanceof ValueAssignment) {
-						statementName += ` = ${abstractNodeToString(statement.operation.pathValue)}`
-					}
-
-					statementsNames.push(statementName)
+				for (const statementName of this.createStatementNamesFromPrototypeNode(prototypeName, otherPositionedNode)) {
+					statementsNamesFromFile.push(statementName)
 				}
 			}
+			if (statementsNamesFromFile.length === 0) continue
+
+			const packageName = workspace.neosWorkspace.getPackageByUri(otherParsedFile.uri)?.getPackageName() ?? 'unknown package'
+			statementsNames.push(`// [${packageName}] ${NodePath.basename(otherParsedFile.uri)}`)
+			statementsNames.push(...statementsNamesFromFile)
 		}
 
 		const statementsNamesMarkdown = statementsNames.length > 0 ? "\n" + statementsNames.map(name => `  ${name}`).join("\n") + "\n" : " "
