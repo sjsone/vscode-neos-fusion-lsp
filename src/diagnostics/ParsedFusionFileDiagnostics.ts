@@ -82,7 +82,6 @@ function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 		})
 		if (foundIgnoreBlockComment) continue
 
-		// TODO: provide affectedNodeBySemanticComment in data for "addFusionIgnoreSemanticCommentAction"
 		const objectStatementText = node.path.map(e => e["value"]).join(".")
 		const diagnostic: Diagnostic = {
 			severity: DiagnosticSeverity.Warning,
@@ -91,9 +90,11 @@ function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 			source,
 			data: {
 				quickAction: 'ignorable',
-				commentType: findParent(node, DslExpressionValue) ? 'afx' : 'fusion'
+				commentType: findParent(node, DslExpressionValue) ? 'afx' : 'fusion',
+				affectedNodeRange: affectedNodeBySemanticComment.linePositionedNode.getPositionAsRange()
 			}
 		}
+
 		diagnostics.push(diagnostic)
 	}
 
