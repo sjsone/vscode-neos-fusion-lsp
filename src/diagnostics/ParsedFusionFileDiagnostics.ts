@@ -82,6 +82,7 @@ function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 		})
 		if (foundIgnoreBlockComment) continue
 
+		// TODO: provide affectedNodeBySemanticComment in data for "addFusionIgnoreSemanticCommentAction"
 		const objectStatementText = node.path.map(e => e["value"]).join(".")
 		const diagnostic: Diagnostic = {
 			severity: DiagnosticSeverity.Warning,
