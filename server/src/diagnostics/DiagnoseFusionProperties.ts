@@ -11,6 +11,14 @@ import { findParent, parseSemanticComment, SemanticCommentType, checkSemanticCom
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { CommonDiagnosticHelper } from './CommonDiagnosticHelper'
 
+function affectsCommentTheProperty(propertyName: string, commentNode: Comment, type: SemanticCommentType) {
+	const parsedSemanticComment = parseSemanticComment(commentNode.value.trim())
+	if (!parsedSemanticComment) return false
+	if (parsedSemanticComment.type !== type) return false
+
+	return checkSemanticCommentIgnoreArguments(propertyName, parsedSemanticComment.arguments)
+}
+
 export function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 	const diagnostics: Diagnostic[] = []
 
@@ -44,23 +52,14 @@ export function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 			const commentNode = nodeByLine.getNode()
 			if (!(commentNode instanceof Comment)) return false
 
-			const parsedSemanticComment = parseSemanticComment(commentNode.value.trim())
-			if (!parsedSemanticComment) return false
-			if (parsedSemanticComment.type !== SemanticCommentType.Ignore) return false
-
-			return checkSemanticCommentIgnoreArguments(objectStatementText, parsedSemanticComment.arguments)
+			return affectsCommentTheProperty(objectStatementText, commentNode, SemanticCommentType.Ignore)
 		})
 		if (foundIgnoreComment) continue
 
 		const fileComments = parsedFusionFile.getNodesByType(Comment) ?? []
 		const foundIgnoreBlockComment = (fileComments ? fileComments : []).find(positionedComment => {
 			const commentNode = positionedComment.getNode()
-
-			const parsedSemanticComment = parseSemanticComment(commentNode.value.trim())
-			if (!parsedSemanticComment) return false
-			if (parsedSemanticComment.type !== SemanticCommentType.IgnoreBlock) return false
-
-			if (!checkSemanticCommentIgnoreArguments(objectStatementText, parsedSemanticComment.arguments)) return false
+			if (!affectsCommentTheProperty(objectStatementText, commentNode, SemanticCommentType.IgnoreBlock)) return false
 
 			const commentParent = commentNode["parent"]
 			return !!findUntil(node, parentNode => parentNode === commentParent)
