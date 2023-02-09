@@ -230,7 +230,7 @@ export function checkSemanticCommentIgnoreArguments(propertyName: string, ignore
         let i = 0
         for (const element of ignoredNameParts) {
             if (propertyNameParts[i] === element) i++
-            if (i === propertyNameParts.length) return true
+            if (i === ignoredNameParts.length) return true
         }
     }
 
