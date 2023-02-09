@@ -21,7 +21,9 @@ export interface ExtensionConfiguration {
         packages: string[],
         fusion: string[],
         ignore: string[],
-        workspaceAsPackageFallback: boolean
+        workspaceAsPackageFallback: boolean,
+        followSymbolicLinks: boolean,
+        includeHiddenDirectories: boolean
     },
     logging: {
         level: LoggingLevel
