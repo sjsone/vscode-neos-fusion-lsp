@@ -4,7 +4,7 @@ import * as NodePath from 'path'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
-import { DefinitionLink, Location } from 'vscode-languageserver/node'
+import { DefinitionLink, Location, LocationLink } from 'vscode-languageserver/node'
 import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
 import { PhpClassNode } from '../fusion/PhpClassNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
@@ -27,6 +27,8 @@ import { ValueCopy } from 'ts-fusion-parser/out/fusion/nodes/ValueCopy'
 import { ActionUriActionNode } from '../fusion/ActionUriActionNode'
 import { ActionUriDefinitionNode } from '../fusion/ActionUriDefinitionNode'
 import { ActionUriControllerNode } from '../fusion/ActionUriControllerNode'
+import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
+import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 
 export interface ActionUriDefinition {
 	package: string
@@ -59,6 +61,8 @@ export class DefinitionCapability extends AbstractCapability {
 				return this.getResourceUriPathNodeDefinition(workspace, <LinePositionedNode<ResourceUriNode>>foundNodeByLine)
 			case node instanceof ObjectStatement:
 				return this.getControllerActionDefinition(parsedFile, workspace, <LinePositionedNode<ObjectStatement>>foundNodeByLine, <ParsedFileCapabilityContext<AbstractNode>>context)
+			case node instanceof TagAttributeNode:
+				return this.getTagAttributeDefinition(parsedFile, workspace, <LinePositionedNode<ObjectStatement>>foundNodeByLine, <ParsedFileCapabilityContext<AbstractNode>>context)
 		}
 
 		return null
@@ -269,7 +273,7 @@ export class DefinitionCapability extends AbstractCapability {
 		}
 	}
 
-	tryToCompleteActionUriDefinitionFromPrototypesInRoutes(node: AbstractNode, workspace: FusionWorkspace, actionUriDefinition: ActionUriDefinition): ActionUriDefinition {
+	protected tryToCompleteActionUriDefinitionFromPrototypesInRoutes(node: AbstractNode, workspace: FusionWorkspace, actionUriDefinition: ActionUriDefinition): ActionUriDefinition {
 		const foundPrototypeObjectStatement = findUntil<ObjectStatement>(node, (foundNode) => {
 			if (!(foundNode instanceof ObjectStatement)) return false
 			if (!(foundNode.path.segments[0] instanceof PrototypePathSegment)) return false
@@ -303,5 +307,25 @@ export class DefinitionCapability extends AbstractCapability {
 
 		this.logVerbose("could not find in routes")
 		return actionUriDefinition
+	}
+
+	getTagAttributeDefinition(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<TagAttributeNode>, context: ParsedFileCapabilityContext<TagAttributeNode>): null | LocationLink[] {
+		const node = foundNodeByLine.getNode()
+		const tagNode = findParent(node, TagNode)
+		const locationLinks: LocationLink[] = []
+		const originSelectionRange = foundNodeByLine.getPositionAsRange()
+
+		const properties = NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace, true)
+		for (const property of properties) {
+			if (getObjectIdentifier(property.statement) !== node.name) continue
+			locationLinks.push({
+				targetUri: property.uri!,
+				targetRange: property.statement.linePositionedNode.getPositionAsRange(),
+				targetSelectionRange: property.statement.linePositionedNode.getPositionAsRange(),
+				originSelectionRange
+			})
+		}
+
+		return locationLinks
 	}
 }

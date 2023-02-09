@@ -9,7 +9,7 @@
     "theme": "dark"
   },
   "license": "AGPL-3.0-or-later",
-  "version": "0.1.39",
+  "version": "0.1.45",
   "categories": [
     "Programming Languages"
   ],
@@ -48,6 +48,7 @@
         "title": "Folders",
         "properties": {
           "neosFusionLsp.folders.packages": {
+            "order": 1,
             "scope": "window",
             "type": "array",
             "items": {
@@ -66,12 +67,14 @@
             "description": "Folders with packages"
           },
           "neosFusionLsp.folders.workspaceAsPackageFallback": {
+            "order": 2,
             "scope": "window",
             "type": "boolean",
             "default": true,
             "description": "If no packages folders can be found, treat the workspace as a package"
           },
           "neosFusionLsp.folders.fusion": {
+            "order": 3,
             "scope": "window",
             "type": "array",
             "items": {
@@ -87,6 +90,7 @@
             "description": "Fusion Folder inside Package"
           },
           "neosFusionLsp.folders.ignore": {
+            "order": 4,
             "scope": "window",
             "type": "array",
             "items": {
@@ -97,6 +101,20 @@
               "Packages/Libraries"
             ],
             "description": "Folders to ignore"
+          },
+          "neosFusionLsp.folders.followSymbolicLinks": {
+            "order": 5,
+            "scope": "window",
+            "type": "boolean",
+            "default": false,
+            "description": "Should a symbolic link be followed while searching for packages?"
+          },
+          "neosFusionLsp.folders.includeHiddenDirectories": {
+            "order": 6,
+            "scope": "window",
+            "type": "boolean",
+            "default": false,
+            "description": "Should hidden directories be included while searching for packages?"
           }
         }
       },

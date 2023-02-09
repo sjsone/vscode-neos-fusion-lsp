@@ -12,7 +12,7 @@ import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
 import { LinePosition, LinePositionedNode } from '../common/LinePositionedNode'
 import { NodeService } from '../common/NodeService'
-import { findParent, getObjectIdentifier } from '../common/util'
+import { findParent, getObjectIdentifier, parseSemanticComment } from '../common/util'
 import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
 import { AbstractLanguageFeature } from './AbstractLanguageFeature'
 import { LanguageFeatureContext } from './LanguageFeatureContext'
@@ -168,7 +168,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 			const tagNode = findParent(tagAttributeNode.getNode(), TagNode)
 			if (tagNode === undefined) continue
 
-			const statements = NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], languageFeatureContext.workspace)
+			const statements = NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], languageFeatureContext.workspace, true)
 			for (const statement of statements) {
 				const identifier = getObjectIdentifier(statement.statement)
 
@@ -177,7 +177,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 						position: tagAttributeNode.getBegin(),
 						length: identifier.length,
 						type: 'property',
-						modifier: 'declaration'
+						modifier: 'definition'
 					})
 					break
 				}
@@ -197,7 +197,8 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 			const node = commentNode.getNode()
 			const commentValue = node.value
 
-			if (!['@fusion-ignore-block', '@fusion-ignore'].includes(commentValue.trim())) continue
+			const parsedSemanticComment = parseSemanticComment(node.value.trim())
+			if (!parsedSemanticComment) continue
 
 			const begin = commentNode.getBegin()
 			semanticTokenConstructs.push({

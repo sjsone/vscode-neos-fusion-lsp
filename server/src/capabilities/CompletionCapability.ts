@@ -254,7 +254,7 @@ export class CompletionCapability extends AbstractCapability {
 		const completions: CompletionItem[] = []
 
 		const node = foundNode.getNode()
-		if (!node.value.trim().startsWith("@")) return []
+		if (!node.value?.trim().startsWith("@")) return []
 
 		for (const semanticComment of ['@fusion-ignore', '@fusion-ignore-block']) {
 			const label = node.prefix === "//" ? `// ${semanticComment}` : `<!-- ${semanticComment} -->`

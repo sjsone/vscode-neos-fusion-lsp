@@ -1,6 +1,6 @@
 import * as NodeFs from 'fs'
 
-import { CodeAction, CodeActionKind, CodeActionParams, TextEdit } from 'vscode-languageserver';
+import { CodeAction, CodeActionKind, CodeActionParams, Range, TextEdit } from 'vscode-languageserver';
 import { getLinesFromLineDataCacheForFile, hasLineDataCacheFile, setLinesFromLineDataCacheForFile, uriToPath } from '../common/util';
 
 async function getLinesFromUri(uri: string) {
@@ -19,11 +19,13 @@ export async function addFusionIgnoreSemanticCommentAction(params: CodeActionPar
 
 		if (!hasLineDataCacheFile(uri)) setLinesFromLineDataCacheForFile(uri, await getLinesFromUri(uri))
 		const entry = getLinesFromLineDataCacheForFile(uri)
-		const lineIndent = entry.lineIndents[diagnostic.range.start.line]
+
+		const affectedNodeRange: Range = diagnostic.data?.affectedNodeRange ?? diagnostic.range
+		const lineIndent = entry.lineIndents[affectedNodeRange.start.line]
 
 		const insertPosition = {
-			line: diagnostic.range.start.line - 1,
-			character: entry.lineLengths[diagnostic.range.start.line - 1] + 1
+			line: affectedNodeRange.start.line - 1,
+			character: entry.lineLengths[affectedNodeRange.start.line - 1] + 1
 		}
 
 		const commentText = diagnostic.data?.commentType === "afx" ? "<!-- @fusion-ignore -->" : "// @fusion-ignore"

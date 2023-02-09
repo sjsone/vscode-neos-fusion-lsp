@@ -69,7 +69,7 @@ class NodeService {
 
 			if (parentObjectStatement) {
 				let prototypeName = undefined as string
-				
+
 				const parentOperation = parentObjectStatement.operation
 				if (parentOperation instanceof ValueAssignment) {
 					if (parentOperation.pathValue instanceof FusionObjectValue) {
@@ -84,10 +84,7 @@ class NodeService {
 				if (prototypeName) {
 					const statements = this.getInheritedPropertiesByPrototypeName(prototypeName, workspace)
 					for (const statement of statements) {
-						// TODO: Cleanup - statement should always be an ExternalObjectStatement
-						if (statement instanceof ExternalObjectStatement) yield statement
-						if (!(statement instanceof ObjectStatement)) continue
-						yield statement.path.segments[0]
+						yield statement
 					}
 					// return
 				}
@@ -100,10 +97,7 @@ class NodeService {
 					const statements = this.getInheritedPropertiesByPrototypeName(parentPrototypeName, workspace)
 
 					for (const statement of statements) {
-						// TODO: Cleanup - statement should always be an ExternalObjectStatement
-						if (statement instanceof ExternalObjectStatement) yield statement
-						if (!(statement instanceof ObjectStatement)) continue
-						yield statement.path.segments[0]
+						yield statement
 					}
 					// return
 				}
@@ -265,10 +259,12 @@ class NodeService {
 		return result
 	}
 
-	public getInheritedPropertiesByPrototypeName(name: string, workspace: FusionWorkspace) {
+	public getInheritedPropertiesByPrototypeName(name: string, workspace: FusionWorkspace, includeOverwrites: boolean = false) {
 		const statements: Array<ExternalObjectStatement> = []
 		for (const otherParsedFile of workspace.parsedFiles) {
-			for (const positionedNode of [...otherParsedFile.prototypeCreations]) {
+			const prototypeNodes = [...otherParsedFile.prototypeCreations]
+			if (includeOverwrites) prototypeNodes.push(...otherParsedFile.prototypeOverwrites)
+			for (const positionedNode of prototypeNodes) {
 				if (positionedNode.getNode().identifier !== name) continue
 				const objectStatement = findParent(positionedNode.getNode(), ObjectStatement)
 				const operation = objectStatement.operation
