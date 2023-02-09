@@ -91,6 +91,47 @@ Prototypes can be marked as deprecated via the Extension Configuration. The depr
 
 If an empty EEL-Expression `obj = ${}` is used instead of an literal null `obj = null`  it will be marked as deprecated with an Quick-Action-Fix.
 
+## Semantic Comments
+
+Every semantic comments starts with `@fusion-` followed by the name. Every comment works in Fusion (no hash comment) and AFX.
+
+Some comments have optional parameters which is a simple comma separated list:
+
+```javascript
+// @fusion-typeOfComment[argument1, argument2]
+```
+
+### `@fusion-ignore`
+
+With this comment the next line will be ignored from fusion property diagnostics, so no error, warning or info reporting. 
+
+If placed above a Tag in AFX the attributes will be affected as well. Even if they are in the lines below. 
+
+#### Parameters
+
+If no arguments are provided every property-warning will be ignored. 
+
+Every argument is treated as an property path. 
+
+In this example everything in `props.user` will be ignored but `props.noProperty` not.
+
+```javascript
+// @fusion-ignore[props.user]
+test = ${props.user.notExisitingProperty && props.noProperty}
+```
+
+### `@fusion-ignore-block`
+
+With this comment every fusion property diagnostic in the block and below will be ignored. 
+
+#### Parameters
+
+If no arguments are provided every property-warning will be ignored. 
+
+Every argument is treated as an property path. 
+
+Works the same as `@fusion-ignore`.
+
 ## Outline
 
 In the Explorer-View the outline is filled with symbols found in the current document.
