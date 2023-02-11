@@ -47,7 +47,7 @@ export function diagnoseEelHelperArguments(parsedFusionFile: ParsedFusionFile) {
 		const pathNode = node.pathNode
 		if (!(pathNode instanceof ObjectFunctionPathNode)) continue
 
-		console.log(pathNode)
+		// console.log(pathNode)
 
 		for (const eelHelper of parsedFusionFile.workspace.neosWorkspace.getEelHelperTokens()) {
 			for (const diagnostic of getDiagnosticFromEelHelper(positionedNode, pathNode, eelHelper)) {
