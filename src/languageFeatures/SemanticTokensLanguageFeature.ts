@@ -182,8 +182,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 			const tagNode = findParent(tagAttributeNode.getNode(), TagNode)
 			if (tagNode === undefined) continue
 
-			const statements = NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], languageFeatureContext.workspace, true)
-			for (const statement of statements) {
+			for (const statement of NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], languageFeatureContext.workspace, true)) {
 				const identifier = getObjectIdentifier(statement.statement)
 
 				if (tagAttributeNode.getNode().name === identifier) {
