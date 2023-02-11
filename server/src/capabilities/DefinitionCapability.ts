@@ -100,14 +100,14 @@ export class DefinitionCapability extends AbstractCapability {
 
 		const { foundIgnoreComment, foundIgnoreBlockComment } = NodeService.getSemanticCommentsNodeIsAffectedBy(objectNode, parsedFile)
 
-		if(foundIgnoreComment) {
+		if (foundIgnoreComment) {
 			return [{
 				uri: parsedFile.uri,
 				range: foundIgnoreComment.getPositionAsRange()
 			}]
 		}
 
-		if(foundIgnoreBlockComment) {
+		if (foundIgnoreBlockComment) {
 			return [{
 				uri: parsedFile.uri,
 				range: foundIgnoreBlockComment.getPositionAsRange()
@@ -208,34 +208,8 @@ export class DefinitionCapability extends AbstractCapability {
 
 		const actionUriDefinitionNode = <ActionUriDefinitionNode>actionUriPartNode.getNode()["parent"]
 
-		let actionUriDefinition = {
-			package: null as string,
-			controller: actionUriDefinitionNode.controller?.name.value ?? null as string,
-			action: actionUriDefinitionNode.action?.name.value ?? null as string
-		}
-
-		for (const statement of actionUriDefinitionNode.statement.block.statementList.statements) {
-			if (!(statement instanceof ObjectStatement)) continue
-			if (!(statement.operation instanceof ValueAssignment)) continue
-			if (!(statement.operation.pathValue instanceof StringValue)) continue
-			if (getObjectIdentifier(statement) !== "package") continue
-
-			actionUriDefinition.package = statement.operation.pathValue.value
-		}
-
-		if (!actionUriDefinition.package) {
-			actionUriDefinition = this.tryToCompleteActionUriDefinitionFromPrototypesInRoutes(node, workspace, actionUriDefinition)
-		}
-
-		if (!actionUriDefinition.package) {
-			this.log("No package in Action URI definition")
-			const neosPackage = workspace.neosWorkspace.getPackageByUri(parsedFile.uri)
-			if (!neosPackage) {
-				this.log("  Could not resolve Package for current file")
-				return null
-			}
-			actionUriDefinition.package = neosPackage.getPackageName()
-		}
+		let actionUriDefinition = this.buildBaseActionUriDefinitionFromActionUriDefinitionNode(actionUriDefinitionNode)
+		actionUriDefinition = this.tryToCompleteActionUriDefinitionPackage(node, workspace, parsedFile, actionUriDefinition)
 
 		this.logDebug("Found Action URI Definition: ", actionUriDefinition)
 
@@ -262,14 +236,12 @@ export class DefinitionCapability extends AbstractCapability {
 				continue
 			}
 
-			if (definitionTargetName === "controller") {
-				return [{
-					targetUri: classDefinition.uri,
-					targetRange: classDefinition.position,
-					targetSelectionRange: classDefinition.position,
-					originSelectionRange: node.operation.pathValue.linePositionedNode.getPositionAsRange()
-				}]
-			}
+			if (definitionTargetName === "controller") return [{
+				targetUri: classDefinition.uri,
+				targetRange: classDefinition.position,
+				targetSelectionRange: classDefinition.position,
+				originSelectionRange: node.operation.pathValue.linePositionedNode.getPositionAsRange()
+			}]
 
 			if (definitionTargetName === "action") {
 				const actionName = actionUriDefinition.action + "Action"
@@ -288,7 +260,43 @@ export class DefinitionCapability extends AbstractCapability {
 		}
 	}
 
-	protected tryToCompleteActionUriDefinitionFromPrototypesInRoutes(node: AbstractNode, workspace: FusionWorkspace, actionUriDefinition: ActionUriDefinition): ActionUriDefinition {
+	protected buildBaseActionUriDefinitionFromActionUriDefinitionNode(actionUriDefinitionNode: ActionUriDefinitionNode) {
+		let actionUriDefinition = {
+			package: null as string,
+			controller: actionUriDefinitionNode.controller?.name.value ?? null as string,
+			action: actionUriDefinitionNode.action?.name.value ?? null as string
+		}
+
+		for (const statement of actionUriDefinitionNode.statement.block.statementList.statements) {
+			if (!(statement instanceof ObjectStatement)) continue
+			if (!(statement.operation instanceof ValueAssignment)) continue
+			if (!(statement.operation.pathValue instanceof StringValue)) continue
+			if (getObjectIdentifier(statement) !== "package") continue
+
+			actionUriDefinition.package = statement.operation.pathValue.value
+		}
+
+		return actionUriDefinition
+	}
+
+	protected tryToCompleteActionUriDefinitionPackage(node: AbstractNode, workspace: FusionWorkspace, parsedFile: ParsedFusionFile, actionUriDefinition: ActionUriDefinition) {
+		if (!actionUriDefinition.package) {
+			actionUriDefinition = this.tryToCompleteActionUriDefinitionWithWorkspace(node, workspace, actionUriDefinition)
+		}
+
+		if (!actionUriDefinition.package) {
+			this.log("No package in Action URI definition")
+			const neosPackage = workspace.neosWorkspace.getPackageByUri(parsedFile.uri)
+			if (!neosPackage) {
+				this.log("  Could not resolve Package for current file")
+				return actionUriDefinition
+			}
+			actionUriDefinition.package = neosPackage.getPackageName()
+		}
+		return actionUriDefinition
+	}
+
+	protected tryToCompleteActionUriDefinitionWithWorkspace(node: AbstractNode, workspace: FusionWorkspace, actionUriDefinition: ActionUriDefinition): ActionUriDefinition {
 		const foundPrototypeObjectStatement = findUntil<ObjectStatement>(node, (foundNode) => {
 			if (!(foundNode instanceof ObjectStatement)) return false
 			if (!(foundNode.path.segments[0] instanceof PrototypePathSegment)) return false
@@ -305,23 +313,28 @@ export class DefinitionCapability extends AbstractCapability {
 		for (const otherParsedFile of workspace.parsedFiles) {
 			if (!(currentPrototypeName in otherParsedFile.prototypesInRoutes)) continue
 
-			for (const route of otherParsedFile.prototypesInRoutes[currentPrototypeName]) {
-				if (route.action !== actionUriDefinition.action) continue
-
-				if (actionUriDefinition.controller) {
-					if (route.controller !== actionUriDefinition.controller) continue
-					actionUriDefinition.package = route.package
-					return actionUriDefinition
-				}
-
-				actionUriDefinition.controller = route.controller
-				actionUriDefinition.package = route.package
-				return actionUriDefinition
-			}
+			const completedActionUriDefinition = this.tryToCompleteActionUriDefinitionWithParsedFile(currentPrototypeName, otherParsedFile, actionUriDefinition)
+			if (completedActionUriDefinition) return completedActionUriDefinition
 		}
 
 		this.logVerbose("could not find in routes")
 		return actionUriDefinition
+	}
+
+	protected tryToCompleteActionUriDefinitionWithParsedFile(currentPrototypeName: string, parsedFile: ParsedFusionFile, actionUriDefinition: ActionUriDefinition) {
+		for (const route of parsedFile.prototypesInRoutes[currentPrototypeName]) {
+			if (route.action !== actionUriDefinition.action) continue
+
+			if (actionUriDefinition.controller) {
+				if (route.controller !== actionUriDefinition.controller) continue
+				actionUriDefinition.package = route.package
+				return actionUriDefinition
+			}
+
+			actionUriDefinition.controller = route.controller
+			actionUriDefinition.package = route.package
+			return actionUriDefinition
+		}
 	}
 
 	getTagAttributeDefinition(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<TagAttributeNode>, context: ParsedFileCapabilityContext<TagAttributeNode>): null | LocationLink[] {

@@ -9,6 +9,7 @@ import { AbstractLiteralNode } from 'ts-fusion-parser/out/dsl/eel/nodes/Abstract
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
 import { InlayHintDepth } from '../ExtensionConfiguration';
 import { FusionWorkspace } from '../fusion/FusionWorkspace';
+import { EelHelperMethod } from '../eel/EelHelperMethod';
 
 export class InlayHintLanguageFeature extends AbstractLanguageFeature {
 
@@ -27,36 +28,43 @@ export class InlayHintLanguageFeature extends AbstractLanguageFeature {
 			if (!method) continue
 			if (!(node.pathNode instanceof ObjectFunctionPathNode)) continue
 
-			for (const index in node.pathNode.args) {
-				const arg = node.pathNode.args[index]
-				if (!this.canShowInlayHintForArgumentNode(workspace, arg)) continue
-
-				const parameter = method.parameters[index]
-				if (!parameter) continue
-
-				const linePositionedArg = arg.linePositionedNode
-
-				const hint: InlayHint = {
-					label: parameter.name.replace("$", "") + ':',
-					kind: InlayHintKind.Parameter,
-					tooltip: {
-						kind: MarkupKind.Markdown,
-						value: [
-							"```php",
-							`<?php`,
-							`${parameter.type ?? ""}${parameter.name}${parameter.defaultValue ?? ""}`,
-							"```"
-						].join("\n")
-					},
-					paddingRight: true,
-					position: linePositionedArg.getBegin()
-				}
-
+			for (const hint of this.getInlayHintsFromPhpClassMethodNode(node, method, workspace)) {
 				inlayHints.push(hint)
 			}
+
 		}
 
 		return inlayHints
+	}
+
+	protected * getInlayHintsFromPhpClassMethodNode(node: PhpClassMethodNode, method: EelHelperMethod, workspace: FusionWorkspace) {
+		if (!(node.pathNode instanceof ObjectFunctionPathNode)) return
+
+		for (const index in node.pathNode.args) {
+			const arg = node.pathNode.args[index]
+			if (!this.canShowInlayHintForArgumentNode(workspace, arg)) continue
+
+			const parameter = method.parameters[index]
+			if (!parameter) continue
+
+			const linePositionedArg = arg.linePositionedNode
+
+			yield {
+				label: parameter.name.replace("$", "") + ':',
+				kind: InlayHintKind.Parameter,
+				tooltip: {
+					kind: MarkupKind.Markdown,
+					value: [
+						"```php",
+						`<?php`,
+						`${parameter.type ?? ""}${parameter.name}${parameter.defaultValue ?? ""}`,
+						"```"
+					].join("\n")
+				},
+				paddingRight: true,
+				position: linePositionedArg.getBegin()
+			} as InlayHint
+		}
 	}
 
 	protected canShowInlayHintForArgumentNode(workspace: FusionWorkspace, argumentNode: AbstractNode) {
