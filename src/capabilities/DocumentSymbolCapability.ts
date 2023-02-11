@@ -141,10 +141,7 @@ export class DocumentSymbolCapability extends AbstractCapability {
 
 	protected getKindAndDetailForObjectStatement(node: ObjectStatement) {
 		if (node.path.segments[0] instanceof MetaPathSegment) return { detail: '', kind: SymbolKind.Event }
-
-		if (!node.operation || !(node.operation instanceof ValueAssignment)) {
-			return { detail: '', kind: SymbolKind.Property }
-		}
+		if (!node.operation || !(node.operation instanceof ValueAssignment)) return { detail: '', kind: SymbolKind.Property }
 
 		const value = node.operation.pathValue
 
