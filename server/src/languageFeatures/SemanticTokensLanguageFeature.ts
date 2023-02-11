@@ -10,6 +10,7 @@ import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjec
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
+import { GlobalCache } from '../common/Cache'
 import { LinePosition, LinePositionedNode } from '../common/LinePositionedNode'
 import { NodeService } from '../common/NodeService'
 import { findParent, getObjectIdentifier, parseSemanticComment } from '../common/util'
@@ -27,7 +28,6 @@ export interface SemanticTokenConstruct {
 export type TokenTypes = typeof SemanticTokensLanguageFeature.TokenTypes[number]
 export type TokenModifiers = typeof SemanticTokensLanguageFeature.TokenModifiers[number]
 
-//TODO: Implement cache 
 //TODO: Consolidate with DefinitionCapability::getControllerActionDefinition
 export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 
@@ -60,20 +60,25 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 	] as const
 
 	protected run(languageFeatureContext: LanguageFeatureContext) {
-		const semanticTokenConstructs: SemanticTokenConstruct[] = []
+		const fileUri = languageFeatureContext.parsedFile.uri
+		const cacheId = 'SemanticTokensLanguageFeature' + fileUri
 
-		semanticTokenConstructs.push(...this.generateActionUriTokens(languageFeatureContext))
-		semanticTokenConstructs.push(...this.generateLiteralStringTokens(languageFeatureContext))
-		semanticTokenConstructs.push(...this.generateLiteralNumberTokens(languageFeatureContext))
-		semanticTokenConstructs.push(...this.generateLiteralNullTokens(languageFeatureContext))
-		semanticTokenConstructs.push(...this.generateObjectPathTokens(languageFeatureContext))
-		semanticTokenConstructs.push(...this.generatePhpClassMethodTokens(languageFeatureContext))
-		semanticTokenConstructs.push(...this.generateTagAttributeTokens(languageFeatureContext))
-		semanticTokenConstructs.push(...this.generateSemanticCommentTokens(languageFeatureContext))
+		const data = GlobalCache.retrieve(cacheId, () => {
+			const semanticTokenConstructs: SemanticTokenConstruct[] = []
 
-		return {
-			data: this.generateTokenArray(semanticTokenConstructs)
-		}
+			semanticTokenConstructs.push(...this.generateActionUriTokens(languageFeatureContext))
+			semanticTokenConstructs.push(...this.generateLiteralStringTokens(languageFeatureContext))
+			semanticTokenConstructs.push(...this.generateLiteralNumberTokens(languageFeatureContext))
+			semanticTokenConstructs.push(...this.generateLiteralNullTokens(languageFeatureContext))
+			semanticTokenConstructs.push(...this.generateObjectPathTokens(languageFeatureContext))
+			semanticTokenConstructs.push(...this.generatePhpClassMethodTokens(languageFeatureContext))
+			semanticTokenConstructs.push(...this.generateTagAttributeTokens(languageFeatureContext))
+			semanticTokenConstructs.push(...this.generateSemanticCommentTokens(languageFeatureContext))
+
+			return this.generateData(semanticTokenConstructs)
+		}, [fileUri])
+
+		return { data }
 	}
 
 	protected generateActionUriTokens(languageFeatureContext: LanguageFeatureContext) {
@@ -227,7 +232,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 		return { type: 'variable', modifier: 'declaration' }
 	}
 
-	protected generateTokenArray(constructs: SemanticTokenConstruct[]) {
+	protected generateData(constructs: SemanticTokenConstruct[]) {
 		const sortedConstructs = constructs.sort((a, b) => {
 			if (a.position.line === b.position.line) return a.position.character - b.position.character
 			return a.position.line - b.position.line
