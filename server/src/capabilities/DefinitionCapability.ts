@@ -350,8 +350,7 @@ export class DefinitionCapability extends AbstractCapability {
 		const locationLinks: LocationLink[] = []
 		const originSelectionRange = foundNodeByLine.getPositionAsRange()
 
-		const properties = NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace, true)
-		for (const property of properties) {
+		for (const property of NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace, true)) {
 			if (getObjectIdentifier(property.statement) !== node.name) continue
 			locationLinks.push({
 				targetUri: property.uri,

@@ -104,8 +104,7 @@ export class CompletionCapability extends AbstractCapability {
 
 		const tagNode = findParent(attributeNode, TagNode)
 		if (tagNode !== undefined) {
-			const statements = NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace)
-			for (const statement of statements) {
+			for (const statement of NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace)) {
 				completions.push({
 					label: getObjectIdentifier(statement.statement),
 					kind: CompletionItemKind.Property
