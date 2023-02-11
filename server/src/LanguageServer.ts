@@ -24,7 +24,7 @@ import { clearLineDataCache, clearLineDataCacheForFile, uriToPath } from './comm
 import { AbstractLanguageFeature } from './languageFeatures/AbstractLanguageFeature'
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
-import { CodeActionParams } from 'vscode-languageserver';
+import { CodeActionParams, FileEvent } from 'vscode-languageserver';
 import { replaceDeprecatedQuickFixAction } from './actions/ReplaceDeprecatedQuickFixAction'
 import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
@@ -190,51 +190,56 @@ export class LanguageServer extends Logger {
 		for (const change of params.changes) {
 			// console.log(`CHANGE: ${change.type} ${change.uri}`)
 			this.logVerbose(`Watched: (${Object.keys(FileChangeType)[Object.values(FileChangeType).indexOf(change.type)]}) ${change.uri}`)
-			if (change.type === FileChangeType.Changed) {
-				if (!change.uri.endsWith(".php")) continue
+			if (change.type === FileChangeType.Changed) this.handleFileChanged(change)
+			if (change.type === FileChangeType.Created) this.handleFileCreated(change)
+			if (change.type === FileChangeType.Deleted) this.handleFileDeleted(change)
+		}
+	}
 
-				clearLineDataCacheForFile(change.uri)
+	protected handleFileChanged(change: FileEvent) {
+		if (!change.uri.endsWith(".php")) return
 
-				for (const workspace of this.fusionWorkspaces) {
-					for (const [_, neosPackage] of workspace.neosWorkspace.getPackages().entries()) {
-						const helper = neosPackage.getEelHelpers().find(helper => helper.uri === change.uri)
-						if (!helper) continue
+		clearLineDataCacheForFile(change.uri)
 
-						this.logVerbose(`  File was EEL-Helper ${helper.name}`)
+		for (const workspace of this.fusionWorkspaces) {
+			for (const [_, neosPackage] of workspace.neosWorkspace.getPackages().entries()) {
+				const helper = neosPackage.getEelHelpers().find(helper => helper.uri === change.uri)
+				if (!helper) continue
 
-						const namespace = helper.namespace
-						const classDefinition = namespace.getClassDefinitionFromFilePathAndClassName(uriToPath(helper.uri), helper.className, helper.pathParts)
+				this.logVerbose(`  File was EEL-Helper ${helper.name}`)
 
-						this.logVerbose(`  Methods: then ${helper.methods.length} now ${classDefinition.methods.length}`)
+				const namespace = helper.namespace
+				const classDefinition = namespace.getClassDefinitionFromFilePathAndClassName(uriToPath(helper.uri), helper.className, helper.pathParts)
 
-						helper.methods = classDefinition.methods
-						helper.position = classDefinition.position
-					}
-				}
-			}
-			if (change.type === FileChangeType.Created) {
-				if (!change.uri.endsWith(".fusion")) continue
-				const workspace = this.getWorkspaceForFileUri(change.uri)
-				if (!workspace) {
-					this.logInfo(`Created Fusion file corresponds to no workspace. ${change.uri}`)
-					continue
-				}
-				workspace.addParsedFileFromPath(uriToPath(change.uri))
-				this.logDebug(`Added new ParsedFusionFile ${change.uri}`)
-			}
+				this.logVerbose(`  Methods: then ${helper.methods.length} now ${classDefinition.methods.length}`)
 
-			if (change.type === FileChangeType.Deleted) {
-				clearLineDataCacheForFile(change.uri)
-
-				if (!change.uri.endsWith(".fusion")) continue
-				const workspace = this.getWorkspaceForFileUri(change.uri)
-				if (!workspace) {
-					this.logInfo(`Deleted Fusion file corresponds to no workspace. ${change.uri}`)
-					continue
-				}
-				workspace.removeParsedFile(change.uri)
+				helper.methods = classDefinition.methods
+				helper.position = classDefinition.position
 			}
 		}
+	}
+
+	protected handleFileCreated(change: FileEvent) {
+		if (!change.uri.endsWith(".fusion")) return
+		const workspace = this.getWorkspaceForFileUri(change.uri)
+		if (!workspace) {
+			this.logInfo(`Created Fusion file corresponds to no workspace. ${change.uri}`)
+			return
+		}
+		workspace.addParsedFileFromPath(uriToPath(change.uri))
+		this.logDebug(`Added new ParsedFusionFile ${change.uri}`)
+	}
+
+	protected handleFileDeleted(change: FileEvent) {
+		clearLineDataCacheForFile(change.uri)
+
+		if (!change.uri.endsWith(".fusion")) return
+		const workspace = this.getWorkspaceForFileUri(change.uri)
+		if (!workspace) {
+			this.logInfo(`Deleted Fusion file corresponds to no workspace. ${change.uri}`)
+			return
+		}
+		workspace.removeParsedFile(change.uri)
 	}
 
 	public async onCodeAction(params: CodeActionParams) {
