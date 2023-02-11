@@ -18,6 +18,7 @@ import { Comment } from 'ts-fusion-parser/out/common/Comment'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
 import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
+import { LinePositionedNode } from './LinePositionedNode'
 
 export class ExternalObjectStatement {
 	statement: ObjectStatement
@@ -266,44 +267,57 @@ class NodeService {
 	public getInheritedPropertiesByPrototypeName(name: string, workspace: FusionWorkspace, includeOverwrites: boolean = false) {
 		const statements: Array<ExternalObjectStatement> = []
 		for (const otherParsedFile of workspace.parsedFiles) {
-			const prototypeNodes = [...otherParsedFile.prototypeCreations]
-			if (includeOverwrites) prototypeNodes.push(...otherParsedFile.prototypeOverwrites)
-			for (const positionedNode of prototypeNodes) {
-				if (positionedNode.getNode().identifier !== name) continue
-				const objectStatement = findParent(positionedNode.getNode(), ObjectStatement)
-				const operation = objectStatement.operation
-				if (operation instanceof ValueCopy) {
-					const prototypeSegment = operation.assignedObjectPath.objectPath.segments[0]
-					if (prototypeSegment instanceof PrototypePathSegment) {
-						statements.push(...this.getInheritedPropertiesByPrototypeName(prototypeSegment.identifier, workspace))
-					}
-				}
-
-				if (!objectStatement.block) continue
-
-				let foundPropTypes: ObjectStatement | undefined = undefined
-				for (const statement of objectStatement.block.statementList.statements) {
-					if (!(statement instanceof ObjectStatement)) continue
-
-					const firstPathSegment = statement.path.segments[0]
-					if (firstPathSegment instanceof MetaPathSegment && firstPathSegment.identifier.toLowerCase() === "proptypes") {
-						foundPropTypes = statement
-						continue
-					}
-
-					statements.push(new ExternalObjectStatement(statement, otherParsedFile.uri))
-				}
-
-				if (foundPropTypes !== undefined) {
-					for (const propType of foundPropTypes.block.statementList.statements) {
-						if (!(propType instanceof ObjectStatement)) continue
-						statements.push(new ExternalObjectStatement(propType, otherParsedFile.uri))
-					}
-				}
+			for (const statement of this.getInheritedPropertiesByPrototypeNameFromParsedFile(name, otherParsedFile, workspace, includeOverwrites)) {
+				statements.push(statement)
 			}
 		}
 
 		return statements
+	}
+
+	public * getInheritedPropertiesByPrototypeNameFromParsedFile(name: string, parsedFile: ParsedFusionFile, workspace: FusionWorkspace, includeOverwrites: boolean = false) {
+		const prototypeNodes = [...parsedFile.prototypeCreations]
+		if (includeOverwrites) prototypeNodes.push(...parsedFile.prototypeOverwrites)
+		for (const positionedNode of prototypeNodes) {
+			yield* this.getInheritedPropertiesByPrototypeNameFromPrototypePathSegments(name, workspace, parsedFile, positionedNode)
+		}
+	}
+
+	public * getInheritedPropertiesByPrototypeNameFromPrototypePathSegments(name: string, workspace: FusionWorkspace, parsedFile: ParsedFusionFile, positionedNode: LinePositionedNode<PrototypePathSegment>) {
+		if (positionedNode.getNode().identifier !== name) return
+		const objectStatement = findParent(positionedNode.getNode(), ObjectStatement)
+		const operation = objectStatement.operation
+		if (operation instanceof ValueCopy) {
+			const prototypeSegment = operation.assignedObjectPath.objectPath.segments[0]
+			if (!(prototypeSegment instanceof PrototypePathSegment)) return
+			yield* this.getInheritedPropertiesByPrototypeName(prototypeSegment.identifier, workspace)
+		}
+
+		if (!objectStatement.block) return
+
+		yield* this.getMetaPropTypesAsExternalObjectStatements(objectStatement, parsedFile)
+	}
+
+	public * getMetaPropTypesAsExternalObjectStatements(objectStatement: ObjectStatement, parsedFile: ParsedFusionFile) {
+		let foundPropTypes: ObjectStatement | undefined = undefined
+		for (const statement of objectStatement.block.statementList.statements) {
+			if (!(statement instanceof ObjectStatement)) continue
+
+			const firstPathSegment = statement.path.segments[0]
+			if (firstPathSegment instanceof MetaPathSegment && firstPathSegment.identifier.toLowerCase() === "proptypes") {
+				foundPropTypes = statement
+				continue
+			}
+
+			yield new ExternalObjectStatement(statement, parsedFile.uri)
+		}
+
+		if (foundPropTypes !== undefined) {
+			for (const propType of foundPropTypes.block.statementList.statements) {
+				if (!(propType instanceof ObjectStatement)) continue
+				yield new ExternalObjectStatement(propType, parsedFile.uri)
+			}
+		}
 	}
 
 	public affectsCommentTheProperty(propertyName: string, commentNode: Comment, type: SemanticCommentType) {
@@ -319,7 +333,7 @@ class NodeService {
 		const affectedNodeBySemanticComment = this.getAffectedNodeBySemanticComment(node)
 		const affectedLine = affectedNodeBySemanticComment.linePositionedNode.getBegin().line - 1
 
-		if(!parsedFusionFile.nodesByLine) {
+		if (!parsedFusionFile.nodesByLine) {
 			return {
 				foundIgnoreComment: undefined,
 				foundIgnoreBlockComment: undefined
