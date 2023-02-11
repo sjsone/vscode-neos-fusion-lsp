@@ -67,7 +67,7 @@ export class NeosPackageNamespace {
 		const end = begin + classMatch[0].length
 		const fileUri = pathToUri(filePath)
 
-		const methodsRegex = /(public\s+(static\s+)?function\s+([a-zA-Z]+)\s?\((?: *([^)]+?) *\))?)/g
+		const methodsRegex = /(public\s+(static\s+)?function\s+([a-zA-Z0-9]+)\s?\((?: *([^)]+?) *\))?)/g
 		let lastIndex = 0
 		const rest = phpFileSource
 		let match = methodsRegex.exec(rest)
