@@ -1,4 +1,3 @@
-import { Comment } from 'ts-fusion-parser/out/common/Comment'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue'
 import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/nodes/MetaPathSegment'
@@ -6,17 +5,9 @@ import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStateme
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver'
 import { DefinitionCapability } from '../capabilities/DefinitionCapability'
 import { NodeService } from '../common/NodeService'
-import { findParent, parseSemanticComment, SemanticCommentType, checkSemanticCommentIgnoreArguments } from '../common/util'
+import { findParent } from '../common/util'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { CommonDiagnosticHelper } from './CommonDiagnosticHelper'
-
-function affectsCommentTheProperty(propertyName: string, commentNode: Comment, type: SemanticCommentType) {
-	const parsedSemanticComment = parseSemanticComment(commentNode.value.trim())
-	if (!parsedSemanticComment) return false
-	if (parsedSemanticComment.type !== type) return false
-
-	return checkSemanticCommentIgnoreArguments(propertyName, parsedSemanticComment.arguments)
-}
 
 export function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 	const diagnostics: Diagnostic[] = []
