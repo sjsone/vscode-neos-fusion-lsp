@@ -99,6 +99,22 @@ export class DefinitionCapability extends AbstractCapability {
 			return null
 		}
 
+		const { foundIgnoreComment, foundIgnoreBlockComment } = NodeService.getSemanticCommentsNodeIsAffectedBy(objectNode, parsedFile)
+
+		if(foundIgnoreComment) {
+			return [{
+				uri: parsedFile.uri,
+				range: foundIgnoreComment.getPositionAsRange()
+			}]
+		}
+
+		if(foundIgnoreBlockComment) {
+			return [{
+				uri: parsedFile.uri,
+				range: foundIgnoreBlockComment.getPositionAsRange()
+			}]
+		}
+
 		const segment = NodeService.findPropertyDefinitionSegment(objectNode, workspace)
 		if (segment) {
 			if (segment instanceof PathSegment) {
