@@ -1,7 +1,5 @@
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { TextDocumentPositionParams, WorkspaceSymbolParams } from 'vscode-languageserver/node'
-import { LanguageServer } from '../LanguageServer'
-import { Logger } from '../common/Logging'
 import { CapabilityContext, WorkspacesCapabilityContext } from './CapabilityContext'
 import { AbstractFunctionality } from '../common/AbstractFunctionality'
 

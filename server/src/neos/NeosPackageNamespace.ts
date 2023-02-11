@@ -1,7 +1,8 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
-import { EelHelperMethod, EelHelperMethodParameter } from '../eel/EelHelperMethod'
+import { EelHelperMethod } from '../eel/EelHelperMethod'
 import { getLineNumberOfChar, pathToUri } from '../common/util'
+import { PhpMethodParameter } from '../eel/PhpMethod'
 
 export interface ClassDefinition {
 	uri: string
@@ -76,7 +77,7 @@ export class NeosPackageNamespace {
 
 		while (match != null) {
 			const fullDefinition = match[1]
-			const isStatic = !!match[2]
+			// const isStatic = !!match[2]
 			const name = match[3]
 			const rawParameters = match[4] + ')'
 
@@ -126,8 +127,8 @@ export class NeosPackageNamespace {
 		return this.getClassDefinitionFromFilePathAndClassName(possibleFilePath, className, pathParts)
 	}
 
-	protected parseMethodParameters(rawParameters: string): EelHelperMethodParameter[] {
-		const parametersRegex = /(\w+ )?(\$\w*)( ?= ?.*?)?(?:,|\))/g
+	protected parseMethodParameters(rawParameters: string): PhpMethodParameter[] {
+		const parametersRegex = /(\w+ )?(\$\w*)( ?= ?.*?)?(?:[,\)])/g
 		let match = parametersRegex.exec(rawParameters)
 		const parameters = []
 		let runAwayPrevention = 0

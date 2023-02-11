@@ -196,7 +196,7 @@ export class LanguageServer extends Logger {
 				clearLineDataCacheForFile(change.uri)
 
 				for (const workspace of this.fusionWorkspaces) {
-					for (const [name, neosPackage] of workspace.neosWorkspace.getPackages().entries()) {
+					for (const [_, neosPackage] of workspace.neosWorkspace.getPackages().entries()) {
 						const helper = neosPackage.getEelHelpers().find(helper => helper.uri === change.uri)
 						if (!helper) continue
 
