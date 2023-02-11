@@ -214,32 +214,31 @@ class NodeService {
 		return undefined
 	}
 
+	protected getAppliedPropsFromPathValue(pathValue: AbstractPathValue): boolean | ObjectStatement[] {
+		if (pathValue instanceof EelExpressionValue) {
+			const appliedObjectNode = Array.isArray(pathValue.nodes) ? pathValue.nodes[0] : pathValue.nodes
+			if (!(appliedObjectNode instanceof ObjectNode)) return false
+			if (appliedObjectNode.path[0]["value"] === "props") return true
+
+			return false
+		}
+		if (pathValue instanceof FusionObjectValue) {
+			// TODO: Allow more than just `Neos.Fusion:DataStructure` as @apply value
+			if (pathValue.value !== "Neos.Fusion:DataStructure") return false
+			const objectStatement = findParent(pathValue, ObjectStatement)
+			if (!objectStatement.block) return false
+			const applyStatements = []
+			applyStatements.push(...objectStatement.block.statementList.statements)
+			return applyStatements.length === 0 ? false : applyStatements
+		}
+
+		return false
+	}
+
 	public foundApplyProps(statement: ObjectStatement): FoundApplyPropsResult | false {
 		const segment = statement.path.segments[0]
 		if (!(segment instanceof MetaPathSegment && segment.identifier === "apply")) return false
 
-		const getApplies = (pathValue: AbstractPathValue): boolean | ObjectStatement[] => {
-			if (pathValue instanceof EelExpressionValue) {
-				const appliedObjectNode = Array.isArray(pathValue.nodes) ? pathValue.nodes[0] : pathValue.nodes
-				if (!(appliedObjectNode instanceof ObjectNode)) return false
-				if (appliedObjectNode.path[0]["value"] === "props") return true
-
-				return false
-			}
-			if (pathValue instanceof FusionObjectValue) {
-				// TODO: Allow more than just `Neos.Fusion:DataStructure` as @apply value
-				if (pathValue.value !== "Neos.Fusion:DataStructure") return false
-				const objectStatement = findParent(pathValue, ObjectStatement)
-				if (!objectStatement.block) return false
-				const applyStatements = []
-				for (const statement of objectStatement.block.statementList.statements) {
-					applyStatements.push(statement)
-				}
-				return applyStatements.length === 0 ? false : applyStatements
-			}
-
-			return false
-		}
 
 		const result: FoundApplyPropsResult = {
 			appliedProps: false
@@ -251,7 +250,7 @@ class NodeService {
 			if (!(applyStatement instanceof ObjectStatement)) continue
 			if (!(applyStatement.operation instanceof ValueAssignment)) continue
 
-			const res = getApplies(applyStatement.operation.pathValue)
+			const res = this.getAppliedPropsFromPathValue(applyStatement.operation.pathValue)
 			if (res === true) result.appliedProps = true
 			if (res !== false && Array.isArray(res)) {
 				foundStatements.push(...res)
