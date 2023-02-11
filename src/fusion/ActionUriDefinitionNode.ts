@@ -9,7 +9,7 @@ export class ActionUriDefinitionNode extends AbstractNode {
 	controller?: ActionUriControllerNode
 
 	constructor(statement: ObjectStatement) {
-		super(statement["position"], undefined)
+		super(statement["position"])
 		this.statement = statement
 	}
 

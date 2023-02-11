@@ -49,7 +49,7 @@ class NodeService {
 		})
 
 		if (foundParentOperationPrototype instanceof ObjectStatement) {
-			const operation = <ValueAssignment>(<ObjectStatement>foundParentOperationPrototype).operation
+			const operation = <ValueAssignment>foundParentOperationPrototype.operation
 			return (<FusionObjectValue>operation.pathValue).value
 		}
 		return ""
@@ -176,7 +176,7 @@ class NodeService {
 
 			let parentIdentifiersRenderer = false
 			if (parentObjectIdentifier === "renderer") {
-				const rendererPrototype = <ObjectStatement>findUntil(parentObjectNode, (node) => {
+				const rendererPrototype = findUntil<ObjectStatement>(parentObjectNode, (node) => {
 					if (!(node instanceof ObjectStatement)) return false
 					if (!(node.operation instanceof ValueAssignment)) return false
 					if (!(node.operation.pathValue instanceof FusionObjectValue)) return false

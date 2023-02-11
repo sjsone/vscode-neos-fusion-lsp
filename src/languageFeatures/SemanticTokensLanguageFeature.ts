@@ -27,6 +27,13 @@ export interface SemanticTokenConstruct {
 export type TokenTypes = typeof SemanticTokensLanguageFeature.TokenTypes[number]
 export type TokenModifiers = typeof SemanticTokensLanguageFeature.TokenModifiers[number]
 
+function sortSemanticTokenConstructsByLineAndCharacter(constructs: SemanticTokenConstruct[]) {
+	return constructs.sort((a, b) => {
+		if (a.position.line === b.position.line) return a.position.character - b.position.character
+		return a.position.line - b.position.line
+	})
+}
+
 //TODO: Implement cache 
 //TODO: Consolidate with DefinitionCapability::getControllerActionDefinition
 export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
@@ -76,6 +83,28 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 		}
 	}
 
+	protected* getSemanticTokenConstructsFromObjectStatement(objectStatement: ObjectStatement) {
+		for (const statement of objectStatement.block.statementList.statements) {
+			if (!(statement instanceof ObjectStatement)) continue
+			if (!(statement.operation instanceof ValueAssignment)) continue
+			if (!(statement.operation.pathValue instanceof StringValue)) continue
+
+			const identifier = getObjectIdentifier(statement)
+
+			if(identifier !== "controller" && identifier !== "action" && identifier !== "package") continue
+
+			const begin = statement.operation.pathValue.linePositionedNode.getBegin()
+			yield {
+				position: {
+					character: begin.character + 1, // offset for quote
+					line: begin.line
+				},
+				length: statement.operation.pathValue.value.replace(/\\/g, "\\\\").length,
+				...this.getTypesAndModifier(identifier)
+			}
+		}
+	}
+
 	protected generateActionUriTokens(languageFeatureContext: LanguageFeatureContext) {
 		const fusionObjectValues = languageFeatureContext.parsedFile.getNodesByType(FusionObjectValue)
 		if (!fusionObjectValues) return []
@@ -90,23 +119,8 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 			if (!(objectStatement.operation instanceof ValueAssignment)) continue
 			if (objectStatement.block === undefined) continue
 
-			for (const statement of objectStatement.block.statementList.statements) {
-				if (!(statement instanceof ObjectStatement)) continue
-				if (!(statement.operation instanceof ValueAssignment)) continue
-				if (!(statement.operation.pathValue instanceof StringValue)) continue
-
-				const identifier = getObjectIdentifier(statement)
-				if (identifier === "controller" || identifier === "action" || identifier === "package") {
-					const begin = statement.operation.pathValue.linePositionedNode.getBegin()
-					semanticTokenConstructs.push({
-						position: {
-							character: begin.character + 1, // offset for quote
-							line: begin.line
-						},
-						length: statement.operation.pathValue.value.replace(/\\/g, "\\\\").length,
-						...this.getTypesAndModifier(identifier)
-					})
-				}
+			for(const semanticTokenConstruct of this.getSemanticTokenConstructsFromObjectStatement(objectStatement)) {
+				semanticTokenConstructs.push(semanticTokenConstruct)
 			}
 		}
 
@@ -228,10 +242,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 	}
 
 	protected generateTokenArray(constructs: SemanticTokenConstruct[]) {
-		const sortedConstructs = constructs.sort((a, b) => {
-			if (a.position.line === b.position.line) return a.position.character - b.position.character
-			return a.position.line - b.position.line
-		})
+		const sortedConstructs = sortSemanticTokenConstructsByLineAndCharacter(constructs)
 
 		const tokens: number[] = []
 

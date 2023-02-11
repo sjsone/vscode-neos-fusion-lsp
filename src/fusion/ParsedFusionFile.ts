@@ -199,7 +199,6 @@ export class ParsedFusionFile extends Logger {
 		if (classDefinition === undefined) return
 
 		const fqcnNode = new FqcnNode(operation.pathValue.value, classDefinition, operation.pathValue["position"])
-		// if(fqcn.endsWith("FormElementWrappingImplementation")) console.log("fqcn", fqcnNode)
 		this.addNode(fqcnNode, text)
 	}
 

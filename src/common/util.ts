@@ -1,9 +1,8 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
-import { AbstractNode as AbstractEelNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { AbstractNode as AbstractEelNode, AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode'
 import { LiteralNumberNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNumberNode'
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'

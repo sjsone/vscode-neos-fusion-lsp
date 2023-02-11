@@ -1,5 +1,4 @@
 import * as NodeFs from 'fs'
-import * as NodePath from 'path'
 
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
@@ -335,7 +334,7 @@ export class DefinitionCapability extends AbstractCapability {
 		for (const property of properties) {
 			if (getObjectIdentifier(property.statement) !== node.name) continue
 			locationLinks.push({
-				targetUri: property.uri!,
+				targetUri: property.uri,
 				targetRange: property.statement.linePositionedNode.getPositionAsRange(),
 				targetSelectionRange: property.statement.linePositionedNode.getPositionAsRange(),
 				originSelectionRange
