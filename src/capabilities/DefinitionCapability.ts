@@ -17,7 +17,7 @@ import { NodeService } from '../common/NodeService'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { FqcnNode } from '../fusion/FqcnNode'
-import { ClassDefinition } from '../neos/NeosPackageNamespace'
+import { ClassDefinition, NeosPackageNamespace } from '../neos/NeosPackageNamespace'
 import { ResourceUriNode } from '../fusion/ResourceUriNode'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
@@ -222,42 +222,49 @@ export class DefinitionCapability extends AbstractCapability {
 		}
 
 		const definitionTargetName = actionUriPartNode.getNode() instanceof ActionUriControllerNode ? 'controller' : 'action'
+		const className = actionUriDefinition.controller.replace("/", "\\") + 'Controller'
 
 		for (const namespace of neosPackage["namespaces"].values()) {
-			const className = actionUriDefinition.controller.replace("/", "\\") + 'Controller'
-			const fqcnParts = namespace["name"].split("\\").filter(Boolean)
-			fqcnParts.push('Controller')
-			fqcnParts.push(className)
-			const fqcn = fqcnParts.join('\\')
-
-			const classDefinition = namespace.getClassDefinitionFromFullyQualifiedClassName(fqcn)
-			if (classDefinition === undefined) {
-				this.logDebug(`Could not get class for built FQCN: "${fqcn}"`)
-				continue
-			}
-
-			if (definitionTargetName === "controller") return [{
-				targetUri: classDefinition.uri,
-				targetRange: classDefinition.position,
-				targetSelectionRange: classDefinition.position,
-				originSelectionRange: node.operation.pathValue.linePositionedNode.getPositionAsRange()
-			}]
-
-			if (definitionTargetName === "action") {
-				const actionName = actionUriDefinition.action + "Action"
-				for (const method of classDefinition.methods) {
-					if (method.name !== actionName) continue
-					return [{
-						targetUri: classDefinition.uri,
-						targetRange: method.position,
-						targetSelectionRange: method.position,
-						originSelectionRange: node.operation.pathValue.linePositionedNode.getPositionAsRange()
-					}]
-				}
-
-				this.logDebug(`Could not find action: "${actionName}"`)
-			}
+			const definition = this.searchInNamespaceForControllerActionDefinition(node.operation, definitionTargetName, namespace, className, actionUriDefinition.action)
+			if (definition) return definition
 		}
+	}
+
+	protected searchInNamespaceForControllerActionDefinition(operation: ValueAssignment, definitionTargetName: string, namespace: NeosPackageNamespace, className: string, actionName: string) {
+		const fqcnParts = namespace["name"].split("\\").filter(Boolean)
+		fqcnParts.push('Controller')
+		fqcnParts.push(className)
+		const fqcn = fqcnParts.join('\\')
+
+		const classDefinition = namespace.getClassDefinitionFromFullyQualifiedClassName(fqcn)
+		if (classDefinition === undefined) {
+			this.logDebug(`Could not get class for built FQCN: "${fqcn}"`)
+			return undefined
+		}
+
+		if (definitionTargetName === "controller") return [{
+			targetUri: classDefinition.uri,
+			targetRange: classDefinition.position,
+			targetSelectionRange: classDefinition.position,
+			originSelectionRange: operation.pathValue.linePositionedNode.getPositionAsRange()
+		}]
+
+		if (definitionTargetName === "action") {
+			const fullActionName = actionName + "Action"
+			for (const method of classDefinition.methods) {
+				if (method.name !== fullActionName) continue
+				return [{
+					targetUri: classDefinition.uri,
+					targetRange: method.position,
+					targetSelectionRange: method.position,
+					originSelectionRange: operation.pathValue.linePositionedNode.getPositionAsRange()
+				}]
+			}
+
+			this.logDebug(`Could not find action: "${fullActionName}"`)
+		}
+
+		return undefined
 	}
 
 	protected buildBaseActionUriDefinitionFromActionUriDefinitionNode(actionUriDefinitionNode: ActionUriDefinitionNode) {
