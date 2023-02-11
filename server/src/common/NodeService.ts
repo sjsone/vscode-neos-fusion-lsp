@@ -63,57 +63,52 @@ class NodeService {
 		return objectStatement.path.segments[0].identifier
 	}
 
+	public getPrototypeNameFromObjectStatement(objectStatement: ObjectStatement) {
+		const parentOperation = objectStatement.operation
+		if (parentOperation instanceof ValueAssignment) {
+			if (parentOperation.pathValue instanceof FusionObjectValue) {
+				return parentOperation.pathValue.value
+			}
+		}
+
+		if (objectStatement.path.segments[0] instanceof PrototypePathSegment) {
+			return objectStatement.path.segments[0].identifier
+		}
+
+		return undefined
+	}
+
 	public * findPropertyDefinitionSegments(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace) {
 		const objectStatement = objectNode instanceof ObjectStatement ? objectNode : findParent(objectNode, ObjectStatement) // [props.foo]
 
 		let statementList = findParent(objectNode, StatementList)
 
 		// TODO: get object identifier and match it runtime-like against the property definition to check if it resolves 
-		if (getObjectIdentifier(objectStatement).startsWith("renderer.") && !getObjectIdentifier(objectStatement).startsWith("renderer.@process")) {
+		const isObjectStatementRenderer = getObjectIdentifier(objectStatement).startsWith("renderer.") && !getObjectIdentifier(objectStatement).startsWith("renderer.@process")
+		if (isObjectStatementRenderer) {
 			const parentObjectStatement = findParent(statementList, ObjectStatement)
 
 			if (parentObjectStatement) {
-				let prototypeName = undefined as string
-
-				const parentOperation = parentObjectStatement.operation
-				if (parentOperation instanceof ValueAssignment) {
-					if (parentOperation.pathValue instanceof FusionObjectValue) {
-						prototypeName = parentOperation.pathValue.value
-					}
-				}
-
-				if (parentObjectStatement.path.segments[0] instanceof PrototypePathSegment) {
-					prototypeName = parentObjectStatement.path.segments[0].identifier
-				}
-
+				const prototypeName = this.getPrototypeNameFromObjectStatement(objectStatement)
 				if (prototypeName) {
-					const statements = this.getInheritedPropertiesByPrototypeName(prototypeName, workspace)
-					for (const statement of statements) {
-						yield statement
-					}
-					// return
+					yield* this.getInheritedPropertiesByPrototypeName(prototypeName, workspace)
 				}
-			}
+			}			
+		}
 
-			const parentPrototypeName = this.findPrototypeName(objectStatement)
-			if (parentPrototypeName) {
-				const potentialSurroundingPrototypeName = this.findPrototypeName(findParent(objectStatement, ObjectStatement))
-				if (potentialSurroundingPrototypeName) {
-					const statements = this.getInheritedPropertiesByPrototypeName(parentPrototypeName, workspace)
-
-					for (const statement of statements) {
-						yield statement
-					}
-					// return
-				}
+		const parentPrototypeName = this.findPrototypeName(objectStatement)
+		if (parentPrototypeName) {
+			const potentialSurroundingPrototypeName = this.findPrototypeName(findParent(objectStatement, ObjectStatement))
+			if (potentialSurroundingPrototypeName) {
+				yield* this.getInheritedPropertiesByPrototypeName(parentPrototypeName, workspace)
 			}
 		}
 
-		const parentPrototypeName = this.findParentPrototypeName(statementList)
 
 		let wasComingFromRenderer = false
 		const dsl = findParent(objectNode, DslExpressionValue)
 		if (dsl !== undefined) {
+			const parentPrototypeName = this.findParentPrototypeName(statementList)
 			wasComingFromRenderer = getObjectIdentifier(findParent(dsl, ObjectStatement)) === "renderer" && this.doesPrototypeOverrideProps(parentPrototypeName)
 		}
 
@@ -263,15 +258,10 @@ class NodeService {
 		return result
 	}
 
-	public getInheritedPropertiesByPrototypeName(name: string, workspace: FusionWorkspace, includeOverwrites: boolean = false) {
-		const statements: Array<ExternalObjectStatement> = []
+	public * getInheritedPropertiesByPrototypeName(name: string, workspace: FusionWorkspace, includeOverwrites: boolean = false) {
 		for (const otherParsedFile of workspace.parsedFiles) {
-			for (const statement of this.getInheritedPropertiesByPrototypeNameFromParsedFile(name, otherParsedFile, workspace, includeOverwrites)) {
-				statements.push(statement)
-			}
+			yield* this.getInheritedPropertiesByPrototypeNameFromParsedFile(name, otherParsedFile, workspace, includeOverwrites)
 		}
-
-		return statements
 	}
 
 	public * getInheritedPropertiesByPrototypeNameFromParsedFile(name: string, parsedFile: ParsedFusionFile, workspace: FusionWorkspace, includeOverwrites: boolean = false) {
