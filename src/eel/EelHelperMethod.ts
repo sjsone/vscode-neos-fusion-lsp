@@ -8,7 +8,7 @@ export class EelHelperMethod extends PhpMethod {
 	constructor(name: string, description: string | undefined, parameters: PhpMethodParameter[], position: { start: LinePosition, end: LinePosition }) {
 		super(name, description, parameters, position)
 
-		const nameWithoutGetter = this.name.replace(/get|is/, '').trim()
+		const nameWithoutGetter = this.name.replace(/get/, '').trim()
 		this.normalizedName = nameWithoutGetter ? nameWithoutGetter[0].toLowerCase() + nameWithoutGetter.substring(1) : name
 	}
 
