@@ -72,7 +72,7 @@ export function getLineNumberOfChar(data: string, index: number, textUri: string
     let totalLength = 0
     let column = index
     let i = 0
-    for (i i < entry.lineLengths.length i++) {
+    for (i; i < entry.lineLengths.length; i++) {
         totalLength += entry.lineLengths[i] + 1
         if (totalLength >= index) return { line: i, character: column }
         column -= entry.lineLengths[i] + 1
