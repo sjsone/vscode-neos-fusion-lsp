@@ -41,35 +41,35 @@ export class Extension {
 			})
 		}
 
-		const didOpenTextDocument = (document: TextDocument) => {
-			if (document.languageId !== 'fusion' || (document.uri.scheme !== 'file' && document.uri.scheme !== 'untitled')) return
-
-			const uri = document.uri
-			const folder = Workspace.getWorkspaceFolder(uri)
-			if (!folder) return
-
-			const outerMostWorkspaceFolder = this.getOuterMostWorkspaceFolder(folder)
-			if (this.clients.has(outerMostWorkspaceFolder.uri.toString())) return
-
-			const inspect = workspace.getConfiguration().get("neosFusionLsp.logging.inspect", false)
-			
-			this.startClient(outerMostWorkspaceFolder, inspect)
-		}
-
-		Workspace.onDidOpenTextDocument(didOpenTextDocument)
-		Workspace.textDocuments.forEach(didOpenTextDocument)
+		Workspace.onDidOpenTextDocument((document: TextDocument) => this.onDidOpenTextDocument(document))
+		Workspace.textDocuments.forEach((document: TextDocument) => this.onDidOpenTextDocument(document))
 
 		Workspace.onDidChangeWorkspaceFolders((event) => {
 			for (const folder of event.removed) {
 				const client = this.clients.get(folder.uri.toString())
-				if (client) {
-					this.clients.delete(folder.uri.toString())
-					client.stop()
-				}
+				if (!client) continue
+
+				this.clients.delete(folder.uri.toString())
+				client.stop()
 			}
 		})
 
 		this.registerCommand(InspectCommand)
+	}
+
+	protected onDidOpenTextDocument(document: TextDocument) {
+		if (document.languageId !== 'fusion' || (document.uri.scheme !== 'file' && document.uri.scheme !== 'untitled')) return
+
+		const uri = document.uri
+		const folder = Workspace.getWorkspaceFolder(uri)
+		if (!folder) return
+
+		const outerMostWorkspaceFolder = this.getOuterMostWorkspaceFolder(folder)
+		if (this.clients.has(outerMostWorkspaceFolder.uri.toString())) return
+
+		const inspect = workspace.getConfiguration().get("neosFusionLsp.logging.inspect", false)
+
+		this.startClient(outerMostWorkspaceFolder, inspect)
 	}
 
 	protected registerCommand(command: AbstractCommandConstructor) {

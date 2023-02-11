@@ -1,5 +1,4 @@
 import { Uri, workspace as Workspace } from 'vscode';
-import { Extension } from '../Extension';
 import { AbstractCommand } from './AbstractCommand';
 
 export class InspectCommand extends AbstractCommand {
