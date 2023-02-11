@@ -109,26 +109,26 @@ export class HoverCapability extends AbstractCapability {
 		const objectNode = node["parent"]
 		if (!(objectNode instanceof ObjectNode)) return null
 
-		if (objectNode.path[0]["value"] === "this" || objectNode.path[0]["value"] === "props") {
-			let segment = NodeService.findPropertyDefinitionSegment(objectNode, workspace)
-			if (segment instanceof ExternalObjectStatement) {
-				segment = <PathSegment>segment.statement.path.segments[0]
-			}
-			if (segment && segment instanceof PathSegment) {
-				const statement = findParent(segment, ObjectStatement)
-				if (!statement) return null
-				if (!(statement.operation instanceof ValueAssignment)) return null
+		if (objectNode.path[0]["value"] !== "this" && objectNode.path[0]["value"] !== "props") return null
 
-				const stringified = abstractNodeToString(statement.operation.pathValue)
-				const name = node["value"]
-				if (stringified !== undefined) {
-					return [
-						`EEL **${name}**`,
-						'```fusion',
-						`${name} = ${stringified}`,
-						'```'
-					].join('\n')
-				}
+		let segment = NodeService.findPropertyDefinitionSegment(objectNode, workspace)
+		if (segment instanceof ExternalObjectStatement) {
+			segment = <PathSegment>segment.statement.path.segments[0]
+		}
+		if (segment && segment instanceof PathSegment) {
+			const statement = findParent(segment, ObjectStatement)
+			if (!statement) return null
+			if (!(statement.operation instanceof ValueAssignment)) return null
+
+			const stringified = abstractNodeToString(statement.operation.pathValue)
+			const name = node["value"]
+			if (stringified !== undefined) {
+				return [
+					`EEL **${name}**`,
+					'```fusion',
+					`${name} = ${stringified}`,
+					'```'
+				].join('\n')
 			}
 		}
 

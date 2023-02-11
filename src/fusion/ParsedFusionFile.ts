@@ -106,35 +106,37 @@ export class ParsedFusionFile extends Logger {
 		for (const part of node.path) {
 			currentPath.push(part)
 			const isLastPathPart = currentPath.length === node.path.length
-			if (part instanceof ObjectFunctionPathNode || (isLastPathPart && (part instanceof ObjectPathNode))) {
-				if (currentPath.length === 1) {
-					// TODO: Allow immediate EEL-Helper (like "q(...)")
-					continue
-				}
 
-				const methodNode = currentPath.pop()
-				const eelHelperMethodNodePosition = new NodePosition(methodNode["position"].begin, methodNode["position"].begin + methodNode["value"].length)
-				const eelHelperMethodNode = new PhpClassMethodNode(methodNode["value"], part, eelHelperMethodNodePosition)
+			if (!(part instanceof ObjectFunctionPathNode) && !(isLastPathPart && (part instanceof ObjectPathNode))) continue
 
-				const position = new NodePosition(-1, -1)
-				const nameParts = []
-				for (const method of currentPath) {
-					const value = method["value"]
-					nameParts.push(value)
-					if (position.begin === -1) position.begin = method["position"].begin
-					position.end = method["position"].end
-				}
+			if (currentPath.length === 1) {
+				// TODO: Allow immediate EEL-Helper (like "q(...)")
+				continue
+			}
 
-				const eelHelperIdentifier = nameParts.join(".")
-				for (const eelHelper of eelHelperTokens) {
-					if (eelHelper.name === eelHelperIdentifier) {
-						const method = eelHelper.methods.find(method => method.valid(methodNode["value"]))
-						if (!method) continue
-						this.addNode(eelHelperMethodNode, text)
-						const eelHelperNode = new PhpClassNode(eelHelperIdentifier, eelHelperMethodNode, node, position)
-						this.addNode(eelHelperNode, text)
-					}
-				}
+			const methodNode = currentPath.pop()
+			const eelHelperMethodNodePosition = new NodePosition(methodNode["position"].begin, methodNode["position"].begin + methodNode["value"].length)
+			const eelHelperMethodNode = new PhpClassMethodNode(methodNode["value"], part, eelHelperMethodNodePosition)
+
+			const position = new NodePosition(-1, -1)
+			const nameParts = []
+			for (const method of currentPath) {
+				const value = method["value"]
+				nameParts.push(value)
+				if (position.begin === -1) position.begin = method["position"].begin
+				position.end = method["position"].end
+			}
+
+			const eelHelperIdentifier = nameParts.join(".")
+			for (const eelHelper of eelHelperTokens) {
+				if (eelHelper.name !== eelHelperIdentifier) continue
+
+				const method = eelHelper.methods.find(method => method.valid(methodNode["value"]))
+				if (!method) continue
+
+				this.addNode(eelHelperMethodNode, text)
+				const eelHelperNode = new PhpClassNode(eelHelperIdentifier, eelHelperMethodNode, node, position)
+				this.addNode(eelHelperNode, text)
 			}
 		}
 	}

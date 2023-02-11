@@ -57,19 +57,19 @@ export class DocumentSymbolCapability extends AbstractCapability {
 		}
 
 		const objectStatements = parsedFile.getNodesByType(ObjectStatement)
-		if (objectStatements !== undefined) {
-			for (const objectStatement of objectStatements) {
-				const node = objectStatement.getNode()
-				const parentStatementList = findParent(node, StatementList)
+		if (objectStatements === undefined) return symbols
 
-				if (!parentStatementList) continue
-				if (!(parentStatementList["parent"] instanceof FusionFile)) continue
-				if (node["block"] !== undefined) continue
-				if (!(node.path.segments[0] instanceof PrototypePathSegment)) continue
+		for (const objectStatement of objectStatements) {
+			const node = objectStatement.getNode()
+			const parentStatementList = findParent(node, StatementList)
 
-				const symbol = this.createDocumentSymbolFromPositionedNode(objectStatement)
-				if (symbol) symbols.push(symbol)
-			}
+			if (!parentStatementList) continue
+			if (!(parentStatementList["parent"] instanceof FusionFile)) continue
+			if (node["block"] !== undefined) continue
+			if (!(node.path.segments[0] instanceof PrototypePathSegment)) continue
+
+			const symbol = this.createDocumentSymbolFromPositionedNode(objectStatement)
+			if (symbol) symbols.push(symbol)
 		}
 
 		return symbols
