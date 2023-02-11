@@ -31,6 +31,7 @@ import { ActionUriControllerNode } from './ActionUriControllerNode'
 import { ActionUriDefinitionNode } from './ActionUriDefinitionNode'
 import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode'
 import { Logger } from '../common/Logging'
+import { FusionFile } from 'ts-fusion-parser/out/fusion/nodes/FusionFile'
 
 export class ParsedFusionFile extends Logger {
 	public workspace: FusionWorkspace
@@ -71,15 +72,7 @@ export class ParsedFusionFile extends Logger {
 			this.readStatementList(objectTree.statementList, text)
 
 			for (const nodeType of objectTree.nodesByType.keys()) {
-				for (const node of objectTree.nodesByType.get(nodeType)) {
-					if (node instanceof ObjectNode) this.handleEelObjectNode(node, text)
-					if (node instanceof TagNode) this.handleTagNameNode(node, text)
-					if (node instanceof TagAttributeNode) this.handleTagAttributeNode(node, text)
-					if (node instanceof ObjectStatement) this.handleObjectStatement(node, text)
-					if (node instanceof FusionObjectValue) this.handleFusionObjectValue(node, text)
-					if (node instanceof LiteralStringNode) this.handleLiteralStringNode(node, text)
-					this.addNode(node, text)
-				}
+				this.handleNodesByType(nodeType, objectTree, text)
 			}
 			if (this.uri.endsWith("FusionModules/Routing.fusion")) this.handleFusionRouting(text)
 			this.logVerbose("finished")
@@ -97,6 +90,18 @@ export class ParsedFusionFile extends Logger {
 	clearCaches() {
 		clearLineDataCacheForFile(this.uri)
 		this.logVerbose("Cleared caches")
+	}
+
+	handleNodesByType(nodeType: any, objectTree: FusionFile, text: string) {
+		for (const node of objectTree.nodesByType.get(nodeType)) {
+			if (node instanceof ObjectNode) this.handleEelObjectNode(node, text)
+			if (node instanceof TagNode) this.handleTagNameNode(node, text)
+			if (node instanceof TagAttributeNode) this.handleTagAttributeNode(node, text)
+			if (node instanceof ObjectStatement) this.handleObjectStatement(node, text)
+			if (node instanceof FusionObjectValue) this.handleFusionObjectValue(node, text)
+			if (node instanceof LiteralStringNode) this.handleLiteralStringNode(node, text)
+			this.addNode(node, text)
+		}
 	}
 
 	handleEelObjectNode(node: ObjectNode, text: string) {
@@ -118,16 +123,7 @@ export class ParsedFusionFile extends Logger {
 			const eelHelperMethodNodePosition = new NodePosition(methodNode["position"].begin, methodNode["position"].begin + methodNode["value"].length)
 			const eelHelperMethodNode = new PhpClassMethodNode(methodNode["value"], part, eelHelperMethodNodePosition)
 
-			const position = new NodePosition(-1, -1)
-			const nameParts = []
-			for (const method of currentPath) {
-				const value = method["value"]
-				nameParts.push(value)
-				if (position.begin === -1) position.begin = method["position"].begin
-				position.end = method["position"].end
-			}
-
-			const eelHelperIdentifier = nameParts.join(".")
+			const { position, eelHelperIdentifier } = this.createEelHelperIdentifierAndPositionFromPath(currentPath)
 			for (const eelHelper of eelHelperTokens) {
 				if (eelHelper.name !== eelHelperIdentifier) continue
 
@@ -138,6 +134,22 @@ export class ParsedFusionFile extends Logger {
 				const eelHelperNode = new PhpClassNode(eelHelperIdentifier, eelHelperMethodNode, node, position)
 				this.addNode(eelHelperNode, text)
 			}
+		}
+	}
+
+	createEelHelperIdentifierAndPositionFromPath(path: ObjectPathNode[]) {
+		const position = new NodePosition(-1, -1)
+		const nameParts = []
+		for (const method of path) {
+			const value = method["value"]
+			nameParts.push(value)
+			if (position.begin === -1) position.begin = method["position"].begin
+			position.end = method["position"].end
+		}
+
+		return {
+			eelHelperIdentifier: nameParts.join("."),
+			position
 		}
 	}
 

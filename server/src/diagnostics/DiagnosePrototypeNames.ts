@@ -50,11 +50,13 @@ function* getDiagnosticsFromFusionObjectValues(fusionObjectValues: LinePositione
 		const deprecated = isPrototypeDeprecated(parsedFusionFile.workspace, node.value)
 		if (deprecated === false) continue
 
+		const replacingPrototypeMessage = deprecated !== true ? ` Use ${deprecated} instead.` : ''
+
 		yield {
 			severity,
 			range,
 			tags: [DiagnosticTag.Deprecated],
-			message: `Prototype ${node.value} is deprecated.${deprecated !== true ? ` Use ${deprecated} instead.` : ''}`,
+			message: `Prototype ${node.value} is deprecated.${replacingPrototypeMessage}`,
 			source: CommonDiagnosticHelper.Source,
 			data: {
 				deprecatedName: node.value,
