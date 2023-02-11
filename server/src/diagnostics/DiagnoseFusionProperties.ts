@@ -1,13 +1,12 @@
 import { Comment } from 'ts-fusion-parser/out/common/Comment'
-import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
-import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue'
 import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/nodes/MetaPathSegment'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver'
 import { DefinitionCapability } from '../capabilities/DefinitionCapability'
-import { findParent, parseSemanticComment, SemanticCommentType, checkSemanticCommentIgnoreArguments, findUntil } from '../common/util'
+import { NodeService } from '../common/NodeService'
+import { findParent, parseSemanticComment, SemanticCommentType, checkSemanticCommentIgnoreArguments } from '../common/util'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { CommonDiagnosticHelper } from './CommonDiagnosticHelper'
 
@@ -45,26 +44,8 @@ export function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 
 		const objectStatementText = node.path.map(e => e["value"]).join(".")
 
-		const affectedNodeBySemanticComment = node["parent"] instanceof TagAttributeNode ? findParent(node, TagNode) : node
-		const nodesByLine = parsedFusionFile.nodesByLine[affectedNodeBySemanticComment.linePositionedNode.getBegin().line - 1] ?? []
-
-		const foundIgnoreComment = nodesByLine.find(nodeByLine => {
-			const commentNode = nodeByLine.getNode()
-			if (!(commentNode instanceof Comment)) return false
-
-			return affectsCommentTheProperty(objectStatementText, commentNode, SemanticCommentType.Ignore)
-		})
-		if (foundIgnoreComment) continue
-
-		const fileComments = parsedFusionFile.getNodesByType(Comment) ?? []
-		const foundIgnoreBlockComment = (fileComments ? fileComments : []).find(positionedComment => {
-			const commentNode = positionedComment.getNode()
-			if (!affectsCommentTheProperty(objectStatementText, commentNode, SemanticCommentType.IgnoreBlock)) return false
-
-			const commentParent = commentNode["parent"]
-			return !!findUntil(node, parentNode => parentNode === commentParent)
-		})
-		if (foundIgnoreBlockComment) continue
+		const { foundIgnoreComment, foundIgnoreBlockComment } = NodeService.getSemanticCommentsNodeIsAffectedBy(node, parsedFusionFile)
+		if (foundIgnoreComment || foundIgnoreBlockComment) continue
 
 		const diagnostic: Diagnostic = {
 			severity: DiagnosticSeverity.Warning,
@@ -74,7 +55,7 @@ export function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 			data: {
 				quickAction: 'ignorable',
 				commentType: findParent(node, DslExpressionValue) ? 'afx' : 'fusion',
-				affectedNodeRange: affectedNodeBySemanticComment.linePositionedNode.getPositionAsRange()
+				affectedNodeRange: NodeService.getAffectedNodeBySemanticComment(node).linePositionedNode.getPositionAsRange()
 			}
 		}
 

@@ -62,7 +62,7 @@ export class DefinitionCapability extends AbstractCapability {
 			case node instanceof ObjectStatement:
 				return this.getControllerActionDefinition(parsedFile, workspace, <LinePositionedNode<ObjectStatement>>foundNodeByLine, <ParsedFileCapabilityContext<AbstractNode>>context)
 			case node instanceof TagAttributeNode:
-				return this.getTagAttributeDefinition(parsedFile, workspace, <LinePositionedNode<ObjectStatement>>foundNodeByLine, <ParsedFileCapabilityContext<AbstractNode>>context)
+				return this.getTagAttributeDefinition(parsedFile, workspace, <LinePositionedNode<TagAttributeNode>>foundNodeByLine, <ParsedFileCapabilityContext<TagAttributeNode>>context)
 		}
 
 		return null
@@ -97,6 +97,22 @@ export class DefinitionCapability extends AbstractCapability {
 		if ((objectNode.path[0]["value"] !== "this" && objectNode.path[0]["value"] !== "props") || objectNode.path.length === 1) {
 			// TODO: handle context properties
 			return null
+		}
+
+		const { foundIgnoreComment, foundIgnoreBlockComment } = NodeService.getSemanticCommentsNodeIsAffectedBy(objectNode, parsedFile)
+
+		if(foundIgnoreComment) {
+			return [{
+				uri: parsedFile.uri,
+				range: foundIgnoreComment.getPositionAsRange()
+			}]
+		}
+
+		if(foundIgnoreBlockComment) {
+			return [{
+				uri: parsedFile.uri,
+				range: foundIgnoreBlockComment.getPositionAsRange()
+			}]
 		}
 
 		const segment = NodeService.findPropertyDefinitionSegment(objectNode, workspace)
