@@ -28,6 +28,7 @@ import { ActionUriDefinitionNode } from '../fusion/ActionUriDefinitionNode'
 import { ActionUriControllerNode } from '../fusion/ActionUriControllerNode'
 import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
 import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
+import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue'
 
 export interface ActionUriDefinition {
 	package: string
@@ -93,15 +94,20 @@ export class DefinitionCapability extends AbstractCapability {
 		const objectNode = node["parent"]
 		if (!(objectNode instanceof ObjectNode)) return null
 
-		const isThisProperty = objectNode.path[0]["value"] !== "this"
-		const isPropsProperty = objectNode.path[0]["value"] !== "props"
+		const isThisProperty = objectNode.path[0]["value"] === "this"
+		const isPropsProperty = objectNode.path[0]["value"] === "props"
 
-		if ((isThisProperty && isPropsProperty) || objectNode.path.length === 1) {
+		if ((!isThisProperty && !isPropsProperty) || objectNode.path.length === 1) {
 			// TODO: handle context properties
 			return null
 		}
 
 		// TODO: handle `this.` correctly
+		if (isThisProperty) {
+			const isObjectNodeInDsl = findParent(node, DslExpressionValue) !== undefined
+			if (isObjectNodeInDsl) return null
+		}
+
 		const { foundIgnoreComment, foundIgnoreBlockComment } = NodeService.getSemanticCommentsNodeIsAffectedBy(objectNode, parsedFile)
 		if (foundIgnoreComment) return [{
 			uri: parsedFile.uri,
