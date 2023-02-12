@@ -139,7 +139,7 @@ export function findParent<T extends new (...args: any) => AbstractNode>(node: A
     return undefined
 }
 
-export function findUntil<T extends AbstractNode>(node: any, condition: (AbstractNode) => boolean): T | undefined {
+export function findUntil<T extends AbstractNode>(node: any, condition: (parent: AbstractNode) => boolean): T | undefined {
     let parent = node["parent"]
     while (parent) {
         if (condition(parent)) {
