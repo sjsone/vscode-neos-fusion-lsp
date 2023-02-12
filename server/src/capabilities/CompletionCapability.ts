@@ -138,7 +138,7 @@ export class CompletionCapability extends AbstractCapability {
 	protected getPropertyDefinitionSegments(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace) {
 		const completions = []
 
-		for (const segmentOrExternalStatement of NodeService.findPropertyDefinitionSegments(objectNode, workspace)) {
+		for (const segmentOrExternalStatement of NodeService.findPropertyDefinitionSegments(objectNode, workspace, true)) {
 			const segment = segmentOrExternalStatement instanceof ExternalObjectStatement ? segmentOrExternalStatement.statement.path.segments[0] : segmentOrExternalStatement
 			if (!(segment instanceof PathSegment)) continue
 			if (segment.identifier === "renderer" || !segment.identifier) continue

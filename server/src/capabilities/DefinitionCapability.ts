@@ -93,43 +93,37 @@ export class DefinitionCapability extends AbstractCapability {
 		const objectNode = node["parent"]
 		if (!(objectNode instanceof ObjectNode)) return null
 
-		if ((objectNode.path[0]["value"] !== "this" && objectNode.path[0]["value"] !== "props") || objectNode.path.length === 1) {
+		const isThisProperty = objectNode.path[0]["value"] !== "this"
+		const isPropsProperty = objectNode.path[0]["value"] !== "props"
+
+		if ((isThisProperty && isPropsProperty) || objectNode.path.length === 1) {
 			// TODO: handle context properties
 			return null
 		}
 
+		// TODO: handle `this.` correctly
 		const { foundIgnoreComment, foundIgnoreBlockComment } = NodeService.getSemanticCommentsNodeIsAffectedBy(objectNode, parsedFile)
+		if (foundIgnoreComment) return [{
+			uri: parsedFile.uri,
+			range: foundIgnoreComment.getPositionAsRange()
+		}]
+		if (foundIgnoreBlockComment) return [{
+			uri: parsedFile.uri,
+			range: foundIgnoreBlockComment.getPositionAsRange()
+		}]
 
-		if (foundIgnoreComment) {
-			return [{
-				uri: parsedFile.uri,
-				range: foundIgnoreComment.getPositionAsRange()
-			}]
-		}
+		const segment = NodeService.findPropertyDefinitionSegment(objectNode, workspace, true)
+		if (!segment) return null
 
-		if (foundIgnoreBlockComment) {
-			return [{
-				uri: parsedFile.uri,
-				range: foundIgnoreBlockComment.getPositionAsRange()
-			}]
-		}
+		if (segment instanceof PathSegment) return [{
+			uri: parsedFile.uri,
+			range: segment.linePositionedNode.getPositionAsRange()
+		}]
 
-		const segment = NodeService.findPropertyDefinitionSegment(objectNode, workspace)
-		if (segment) {
-			if (segment instanceof PathSegment) {
-				return [{
-					uri: parsedFile.uri,
-					range: segment.linePositionedNode.getPositionAsRange()
-				}]
-			} else {
-				return [{
-					uri: segment.uri,
-					range: segment.statement.path.segments[0].linePositionedNode.getPositionAsRange()
-				}]
-			}
-		}
-
-		return null
+		return [{
+			uri: segment.uri,
+			range: segment.statement.path.segments[0].linePositionedNode.getPositionAsRange()
+		}]
 	}
 
 	getEelHelperDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<PhpClassNode>) {
