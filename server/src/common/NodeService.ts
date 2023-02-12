@@ -100,7 +100,7 @@ class NodeService {
 		return false
 	}
 
-	public * findPropertyDefinitionSegments(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace) {
+	public * findPropertyDefinitionSegments(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace, includeOverwrites: boolean = false) {
 		const objectStatement = objectNode instanceof ObjectStatement ? objectNode : findParent(objectNode, ObjectStatement) // [props.foo]
 
 		let statementList = findParent(objectNode, StatementList)
@@ -113,7 +113,7 @@ class NodeService {
 			if (parentObjectStatement) {
 				const prototypeName = this.getPrototypeNameFromObjectStatement(objectStatement)
 				if (prototypeName) {
-					yield* this.getInheritedPropertiesByPrototypeName(prototypeName, workspace)
+					yield* this.getInheritedPropertiesByPrototypeName(prototypeName, workspace, includeOverwrites)
 				}
 			}
 		}
@@ -122,7 +122,7 @@ class NodeService {
 		if (parentPrototypeName) {
 			const potentialSurroundingPrototypeName = this.findPrototypeName(findParent(objectStatement, ObjectStatement))
 			if (potentialSurroundingPrototypeName) {
-				yield* this.getInheritedPropertiesByPrototypeName(parentPrototypeName, workspace)
+				yield* this.getInheritedPropertiesByPrototypeName(parentPrototypeName, workspace, includeOverwrites)
 			}
 		}
 
@@ -156,7 +156,7 @@ class NodeService {
 
 						const prototypeSegment = operation instanceof ValueCopy ? operation.assignedObjectPath.objectPath.segments[0] : prototypeObjectStatement.path.segments[0]
 						if (prototypeSegment instanceof PrototypePathSegment) {
-							statements.push(...this.getInheritedPropertiesByPrototypeName(prototypeSegment.identifier, workspace))
+							statements.push(...this.getInheritedPropertiesByPrototypeName(prototypeSegment.identifier, workspace, includeOverwrites))
 						}
 					}
 				}
@@ -214,8 +214,8 @@ class NodeService {
 		} while (traverseUpwards && statementList && !(statementList["parent"] instanceof FusionFile))
 	}
 
-	public findPropertyDefinitionSegment(objectNode: ObjectNode, workspace?: FusionWorkspace) {
-		for (const segmentOrExternalStatement of this.findPropertyDefinitionSegments(objectNode, workspace)) {
+	public findPropertyDefinitionSegment(objectNode: ObjectNode, workspace?: FusionWorkspace, includeOverwrites: boolean = false) {
+		for (const segmentOrExternalStatement of this.findPropertyDefinitionSegments(objectNode, workspace, includeOverwrites)) {
 			if (segmentOrExternalStatement instanceof ExternalObjectStatement) {
 				if (segmentOrExternalStatement.statement.path.segments[0]["identifier"] === objectNode.path[1]["value"]) return segmentOrExternalStatement
 			}
