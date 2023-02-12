@@ -37,15 +37,15 @@ class Cache<T> extends Logger {
 	}
 
 	public retrieve(key: string, retrieveCallback: () => T, tags: string[] = []): T {
-		let value = this.get(key)
+		this.logDebug(`Retrieving for ${key} with tags`, tags)
 
-		if (!value) {
-			value = retrieveCallback()
+		if (this.has(key)) {
+			const value = retrieveCallback()
 			this.set(key, value, tags)
+			return value
+		} else {
+			return this.get(key)
 		}
-		this.logDebug(`Retrieved for ${key} with tags`, tags)
-
-		return value
 	}
 
 	public delete(key: string): boolean {
