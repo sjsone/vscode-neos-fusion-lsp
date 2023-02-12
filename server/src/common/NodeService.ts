@@ -78,6 +78,28 @@ class NodeService {
 		return undefined
 	}
 
+	public isPrototypeOneOf(prototypeName: string, oneOf: string, workspace: FusionWorkspace) {
+		// TODO: cache
+		if (prototypeName === oneOf) return true
+
+		for (const parsedFile of workspace.parsedFiles) {
+			for (const prototypeCreation of [...parsedFile.prototypeCreations, ...parsedFile.prototypeOverwrites]) {
+				const objectStatement = findParent(prototypeCreation.getNode(), ObjectStatement)
+				const prototype = objectStatement.path.segments[0]
+				if (!(prototype instanceof PrototypePathSegment)) continue
+				if (prototype.identifier !== prototypeName) continue
+
+				if (!(objectStatement.operation instanceof ValueCopy)) continue
+				const copiedPrototype = objectStatement.operation["assignedObjectPath"].objectPath.segments[0]
+				if (!(copiedPrototype instanceof PrototypePathSegment)) continue
+				if (copiedPrototype.identifier === oneOf) return true
+				if (this.isPrototypeOneOf(copiedPrototype.identifier, oneOf, workspace)) return true
+			}
+		}
+
+		return false
+	}
+
 	public * findPropertyDefinitionSegments(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace) {
 		const objectStatement = objectNode instanceof ObjectStatement ? objectNode : findParent(objectNode, ObjectStatement) // [props.foo]
 
@@ -93,7 +115,7 @@ class NodeService {
 				if (prototypeName) {
 					yield* this.getInheritedPropertiesByPrototypeName(prototypeName, workspace)
 				}
-			}			
+			}
 		}
 
 		const parentPrototypeName = this.findPrototypeName(objectStatement)
@@ -258,28 +280,28 @@ class NodeService {
 		return result
 	}
 
-	public * getInheritedPropertiesByPrototypeName(name: string, workspace: FusionWorkspace, includeOverwrites: boolean = false) {
+	public * getInheritedPropertiesByPrototypeName(name: string, workspace: FusionWorkspace, includeOverwrites: boolean = false, debug: boolean = false): Generator<ExternalObjectStatement, void, unknown> {
 		for (const otherParsedFile of workspace.parsedFiles) {
-			yield* this.getInheritedPropertiesByPrototypeNameFromParsedFile(name, otherParsedFile, workspace, includeOverwrites)
+			yield* this.getInheritedPropertiesByPrototypeNameFromParsedFile(name, otherParsedFile, workspace, includeOverwrites, debug)
 		}
 	}
 
-	public * getInheritedPropertiesByPrototypeNameFromParsedFile(name: string, parsedFile: ParsedFusionFile, workspace: FusionWorkspace, includeOverwrites: boolean = false) {
+	public * getInheritedPropertiesByPrototypeNameFromParsedFile(name: string, parsedFile: ParsedFusionFile, workspace: FusionWorkspace, includeOverwrites: boolean = false, debug: boolean = false) {
 		const prototypeNodes = [...parsedFile.prototypeCreations]
 		if (includeOverwrites) prototypeNodes.push(...parsedFile.prototypeOverwrites)
 		for (const positionedNode of prototypeNodes) {
-			yield* this.getInheritedPropertiesByPrototypeNameFromPrototypePathSegments(name, workspace, parsedFile, positionedNode)
+			yield* this.getInheritedPropertiesByPrototypeNameFromPrototypePathSegments(name, workspace, parsedFile, positionedNode, includeOverwrites, debug)
 		}
 	}
 
-	public * getInheritedPropertiesByPrototypeNameFromPrototypePathSegments(name: string, workspace: FusionWorkspace, parsedFile: ParsedFusionFile, positionedNode: LinePositionedNode<PrototypePathSegment>) {
+	public * getInheritedPropertiesByPrototypeNameFromPrototypePathSegments(name: string, workspace: FusionWorkspace, parsedFile: ParsedFusionFile, positionedNode: LinePositionedNode<PrototypePathSegment>, includeOverwrites: boolean = false, debug: boolean = false) {
 		if (positionedNode.getNode().identifier !== name) return
 		const objectStatement = findParent(positionedNode.getNode(), ObjectStatement)
 		const operation = objectStatement.operation
 		if (operation instanceof ValueCopy) {
 			const prototypeSegment = operation.assignedObjectPath.objectPath.segments[0]
 			if (!(prototypeSegment instanceof PrototypePathSegment)) return
-			yield* this.getInheritedPropertiesByPrototypeName(prototypeSegment.identifier, workspace)
+			yield* this.getInheritedPropertiesByPrototypeName(prototypeSegment.identifier, workspace, includeOverwrites)
 		}
 
 		if (!objectStatement.block) return
