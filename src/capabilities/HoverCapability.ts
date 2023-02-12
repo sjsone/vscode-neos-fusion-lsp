@@ -111,7 +111,7 @@ export class HoverCapability extends AbstractCapability {
 
 		if (objectNode.path[0]["value"] !== "this" && objectNode.path[0]["value"] !== "props") return null
 
-		let segment = NodeService.findPropertyDefinitionSegment(objectNode, workspace)
+		let segment = NodeService.findPropertyDefinitionSegment(objectNode, workspace, true)
 		if (segment instanceof ExternalObjectStatement) {
 			segment = <PathSegment>segment.statement.path.segments[0]
 		}
