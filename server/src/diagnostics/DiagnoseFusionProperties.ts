@@ -1,4 +1,3 @@
-import { Comment } from 'ts-fusion-parser/out/common/Comment'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue'
 import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/nodes/MetaPathSegment'
@@ -6,16 +5,25 @@ import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStateme
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver'
 import { DefinitionCapability } from '../capabilities/DefinitionCapability'
 import { NodeService } from '../common/NodeService'
-import { findParent, parseSemanticComment, SemanticCommentType, checkSemanticCommentIgnoreArguments } from '../common/util'
+import { abstractNodeToString, findParent } from '../common/util'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { CommonDiagnosticHelper } from './CommonDiagnosticHelper'
 
-function affectsCommentTheProperty(propertyName: string, commentNode: Comment, type: SemanticCommentType) {
-	const parsedSemanticComment = parseSemanticComment(commentNode.value.trim())
-	if (!parsedSemanticComment) return false
-	if (parsedSemanticComment.type !== type) return false
+function hasObjectNodeApplicableObjectStatement(node: ObjectNode) {
+	const objectStatement = findParent(node, ObjectStatement)
+	if (objectStatement === undefined) return false
+	if (objectStatement.path.segments[0] instanceof MetaPathSegment) return false
 
-	return checkSemanticCommentIgnoreArguments(propertyName, parsedSemanticComment.arguments)
+	return true
+}
+
+function hasObjectNodeApplicablePath(node: ObjectNode) {
+	const pathBegin = node.path[0]["value"]
+	if (pathBegin !== "props") return false
+	if (node.path.length === 1) return false
+	if (node.path[1]["value"] === "content") return false
+
+	return true
 }
 
 export function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
@@ -30,19 +38,11 @@ export function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 	for (const positionedObjectNode of positionedObjectNodes) {
 		const node = positionedObjectNode.getNode()
 
-		const objectStatement = findParent(node, ObjectStatement)
-		if (objectStatement === undefined) continue
-		if (objectStatement.path.segments[0] instanceof MetaPathSegment) continue
-
-		const pathBegin = node.path[0]["value"]
-		if (pathBegin !== "props") continue
-		if (node.path.length === 1) continue
-		if (node.path[1]["value"] === "content") continue
+		if (!hasObjectNodeApplicableObjectStatement(node)) continue
+		if (!hasObjectNodeApplicablePath(node)) continue
 
 		const definition = definitionCapability.getPropertyDefinitions(this, parsedFusionFile.workspace, node.path[0].linePositionedNode)
 		if (definition) continue
-
-		const objectStatementText = node.path.map(e => e["value"]).join(".")
 
 		const { foundIgnoreComment, foundIgnoreBlockComment } = NodeService.getSemanticCommentsNodeIsAffectedBy(node, parsedFusionFile)
 		if (foundIgnoreComment || foundIgnoreBlockComment) continue
@@ -50,7 +50,7 @@ export function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 		const diagnostic: Diagnostic = {
 			severity: DiagnosticSeverity.Warning,
 			range: positionedObjectNode.getPositionAsRange(),
-			message: `Could not resolve "${objectStatementText}"`,
+			message: `Could not resolve "${abstractNodeToString(node)}"`,
 			source: CommonDiagnosticHelper.Source,
 			data: {
 				quickAction: 'ignorable',

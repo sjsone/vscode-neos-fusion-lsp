@@ -6,7 +6,7 @@ import {
 export type ExternalExtensionPreferenceModification<T> = ExternalExtensionPreferenceModificationNonNullable<T> | ExternalExtensionPreferenceModificationNullable<T>
 
 export interface ExternalExtensionPreferenceModificationNonNullable<T> extends ExternalExtensionPreferenceModificationBase {
-	allowNull?: false | undefined
+	allowNull?: false
 	modifier: (value: T) => T
 }
 

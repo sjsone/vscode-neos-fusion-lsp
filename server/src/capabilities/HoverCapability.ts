@@ -109,26 +109,26 @@ export class HoverCapability extends AbstractCapability {
 		const objectNode = node["parent"]
 		if (!(objectNode instanceof ObjectNode)) return null
 
-		if (objectNode.path[0]["value"] === "this" || objectNode.path[0]["value"] === "props") {
-			let segment = NodeService.findPropertyDefinitionSegment(objectNode, workspace)
-			if (segment instanceof ExternalObjectStatement) {
-				segment = <PathSegment>segment.statement.path.segments[0]
-			}
-			if (segment && segment instanceof PathSegment) {
-				const statement = findParent(segment, ObjectStatement)
-				if (!statement) return null
-				if (!(statement.operation instanceof ValueAssignment)) return null
+		if (objectNode.path[0]["value"] !== "this" && objectNode.path[0]["value"] !== "props") return null
 
-				const stringified = abstractNodeToString(statement.operation.pathValue)
-				const name = node["value"]
-				if (stringified !== undefined) {
-					return [
-						`EEL **${name}**`,
-						'```fusion',
-						`${name} = ${stringified}`,
-						'```'
-					].join('\n')
-				}
+		let segment = NodeService.findPropertyDefinitionSegment(objectNode, workspace)
+		if (segment instanceof ExternalObjectStatement) {
+			segment = <PathSegment>segment.statement.path.segments[0]
+		}
+		if (segment && segment instanceof PathSegment) {
+			const statement = findParent(segment, ObjectStatement)
+			if (!statement) return null
+			if (!(statement.operation instanceof ValueAssignment)) return null
+
+			const stringified = abstractNodeToString(statement.operation.pathValue)
+			const name = node["value"]
+			if (stringified !== undefined) {
+				return [
+					`EEL **${name}**`,
+					'```fusion',
+					`${name} = ${stringified}`,
+					'```'
+				].join('\n')
 			}
 		}
 
@@ -136,11 +136,11 @@ export class HoverCapability extends AbstractCapability {
 	}
 
 	getMarkdownForEelHelperMethod(node: PhpClassMethodNode, workspace: FusionWorkspace) {
-		const header = `EEL-Helper *${(<PhpClassMethodNode>node).eelHelper.identifier}*.**${(<PhpClassMethodNode>node).identifier}** \n`
+		const header = `EEL-Helper *${node.eelHelper.identifier}*.**${node.identifier}** \n`
 
-		const eelHelper = workspace.neosWorkspace.getEelHelperTokensByName((<PhpClassMethodNode>node).eelHelper.identifier)
+		const eelHelper = workspace.neosWorkspace.getEelHelperTokensByName(node.eelHelper.identifier)
 		if (eelHelper) {
-			const method = eelHelper.methods.find(method => method.valid((<PhpClassMethodNode>node).identifier))
+			const method = eelHelper.methods.find(method => method.valid(node.identifier))
 			if (method) {
 
 				const phpParameters = method.parameters.map(p => `${p.type ?? ''}${p.name}${p.defaultValue ?? ''}`).join(", ")

@@ -1,9 +1,8 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
-import { AbstractNode as AbstractEelNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { AbstractNode as AbstractEelNode, AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode'
 import { LiteralNumberNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNumberNode'
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
@@ -139,7 +138,7 @@ export function findParent<T extends new (...args: any) => AbstractNode>(node: A
     return undefined
 }
 
-export function findUntil<T extends AbstractNode>(node: any, condition: (AbstractNode) => boolean): T | undefined {
+export function findUntil<T extends AbstractNode>(node: any, condition: (parent: AbstractNode) => boolean): T | undefined {
     let parent = node["parent"]
     while (parent) {
         if (condition(parent)) {
@@ -207,7 +206,7 @@ export interface ParsedSemanticComment {
 }
 
 export function parseSemanticComment(comment: string): ParsedSemanticComment {
-    const semanticCommentRegex = /^ *@fusion-([\w-_]+) *(?:\[(.*)\])?$/
+    const semanticCommentRegex = /^ *@fusion-(\w+) *(?:\[(.*)\])?$/
 
     const matches = semanticCommentRegex.exec(comment)
     if (!matches) return undefined

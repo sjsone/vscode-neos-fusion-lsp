@@ -1,4 +1,3 @@
-import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { Logger } from '../common/Logging'
 import { uriToPath } from '../common/util'

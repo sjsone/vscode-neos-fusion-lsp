@@ -47,10 +47,10 @@ export class CompletionCapability extends AbstractCapability {
 					break
 				case foundNode instanceof ResourceUriNode:
 					completions.push(...this.getResourceUriCompletions(workspace, <LinePositionedNode<ResourceUriNode>>foundNodeByLine))
-
-
+					break
 				case foundNode instanceof Comment:
 					completions.push(...this.getSemanticCommentCompletions(<LinePositionedNode<Comment>>foundNodeByLine))
+					break
 				default:
 				// stub
 			}
@@ -104,8 +104,7 @@ export class CompletionCapability extends AbstractCapability {
 
 		const tagNode = findParent(attributeNode, TagNode)
 		if (tagNode !== undefined) {
-			const statements = NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace)
-			for (const statement of statements) {
+			for (const statement of NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace)) {
 				completions.push({
 					label: getObjectIdentifier(statement.statement),
 					kind: CompletionItemKind.Property
@@ -124,8 +123,8 @@ export class CompletionCapability extends AbstractCapability {
 	}
 
 	protected getFusionPropertyCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {
-		const node = <ObjectPathNode>foundNode.getNode()
-		const objectNode = <ObjectNode>node["parent"]
+		const node = foundNode.getNode()
+		const objectNode = node["parent"]
 		if (!(objectNode instanceof ObjectNode)) return null
 
 		if ((objectNode.path[0]["value"] !== "this" && objectNode.path[0]["value"] !== "props") || objectNode.path.length === 1) {
@@ -193,17 +192,17 @@ export class CompletionCapability extends AbstractCapability {
 		return completions
 	}
 
-	protected createCompletionItem(label: string, linePositioneNode: LinePositionedNode<AbstractNode>, kind: CompletionItemKind): CompletionItem {
+	protected createCompletionItem(label: string, linePositionedNode: LinePositionedNode<AbstractNode>, kind: CompletionItemKind): CompletionItem {
 		return {
 			label,
 			kind,
 			insertTextMode: InsertTextMode.adjustIndentation,
 			insertText: label,
 			textEdit: {
-				insert: linePositioneNode.getPositionAsRange(),
+				insert: linePositionedNode.getPositionAsRange(),
 				replace: {
-					start: linePositioneNode.getBegin(),
-					end: { line: linePositioneNode.getEnd().line, character: linePositioneNode.getEnd().character + label.length },
+					start: linePositionedNode.getBegin(),
+					end: { line: linePositionedNode.getEnd().line, character: linePositionedNode.getEnd().character + label.length },
 				},
 				newText: label
 			}

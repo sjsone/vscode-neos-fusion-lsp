@@ -34,17 +34,26 @@ export class DocumentSymbolCapability extends AbstractCapability {
 		const cacheId = 'DocumentSymbolCapability_' + parsedFile.uri		
 
 		this.alreadyParsedPrototypes = []
-		
+
 		return GlobalCache.retrieve(cacheId, () => this.getSymbolsFromParsedFile(parsedFile), [parsedFile.uri])
 	}
 
-	protected getSymbolsFromParsedFile(parsedFile: ParsedFusionFile) {
-		const symbols: DocumentSymbol[] = []
+	protected getSymbolsFromParsedFile(parsedFile: ParsedFusionFile): DocumentSymbol[] {
+		return [
+			...this.getSymbolsFromPrototypeCreations(parsedFile),
+			...this.getSymbolsFromPrototypeOverwrites(parsedFile),
+			...this.getSymbolsFromObjectStatements(parsedFile)
+		]
+	}
+
+	protected * getSymbolsFromPrototypeCreations(parsedFile: ParsedFusionFile) {
 		for (const prototypeDefinition of parsedFile.prototypeCreations) {
 			const symbol = this.createDocumentSymbolFromPositionedNode(prototypeDefinition)
-			if (symbol) symbols.push(symbol)
+			if (symbol) yield symbol
 		}
+	}
 
+	protected * getSymbolsFromPrototypeOverwrites(parsedFile: ParsedFusionFile) {
 		for (const prototypeOverwrite of parsedFile.prototypeOverwrites) {
 			const node = prototypeOverwrite.getNode()
 
@@ -53,68 +62,76 @@ export class DocumentSymbolCapability extends AbstractCapability {
 			if (!(parentStatementList["parent"] instanceof FusionFile)) continue
 
 			const symbol = this.createDocumentSymbolFromPositionedNode(prototypeOverwrite, undefined, SymbolKind.Interface)
-			if (symbol) symbols.push(symbol)
+			if (symbol) yield symbol
 		}
+	}
 
+	protected * getSymbolsFromObjectStatements(parsedFile: ParsedFusionFile) {
 		const objectStatements = parsedFile.getNodesByType(ObjectStatement)
-		if (objectStatements !== undefined) {
-			for (const objectStatement of objectStatements) {
-				const node = objectStatement.getNode()
-				const parentStatementList = findParent(node, StatementList)
+		if (objectStatements === undefined) return
 
-				if (!parentStatementList) continue
-				if (!(parentStatementList["parent"] instanceof FusionFile)) continue
-				if (node["block"] !== undefined) continue
-				if (!(node.path.segments[0] instanceof PrototypePathSegment)) continue
+		for (const objectStatement of objectStatements) {
+			const node = objectStatement.getNode()
+			const parentStatementList = findParent(node, StatementList)
 
-				const symbol = this.createDocumentSymbolFromPositionedNode(objectStatement)
+			if (!parentStatementList) continue
+			if (!(parentStatementList["parent"] instanceof FusionFile)) continue
+			if (node["block"] !== undefined) continue
+			if (!(node.path.segments[0] instanceof PrototypePathSegment)) continue
+
+			const symbol = this.createDocumentSymbolFromPositionedNode(objectStatement)
+			if (symbol) yield symbol
+		}
+	}
+
+	protected createDocumentSymbolFromPositionedPrototypePathSegment(node: PrototypePathSegment, detail: string, kind: SymbolKind) {
+		if (this.alreadyParsedPrototypes.includes(node)) return null
+		this.alreadyParsedPrototypes.push(node)
+
+		const range = node.linePositionedNode.getPositionAsRange()
+		const symbols: DocumentSymbol[] = []
+		const objectStatement = findParent(node, ObjectStatement)
+		if (objectStatement && objectStatement.block) {
+			for (const statement of objectStatement.block.statementList.statements) {
+				const symbol = this.createDocumentSymbolFromPositionedNode(statement.linePositionedNode, undefined, SymbolKind.Interface)
 				if (symbol) symbols.push(symbol)
 			}
 		}
 
-		return symbols
+		return DocumentSymbol.create(node.identifier, detail, kind, range, range, symbols)
+	}
+
+	protected createDocumentSymbolFromPositionedObjectStatement(node: ObjectStatement) {
+		const firstSegment = node.path.segments[0]
+		const range = firstSegment.linePositionedNode.getPositionAsRange()
+
+		if (firstSegment instanceof PrototypePathSegment) {
+			return this.createDocumentSymbolFromPositionedNode(firstSegment.linePositionedNode, undefined, SymbolKind.Interface)
+		}
+
+		if (node.operation && node.operation instanceof ValueUnset) return null
+
+		const symbols: DocumentSymbol[] = []
+		if (node.block) {
+			for (const statement of node.block.statementList.statements) {
+				const symbol = this.createDocumentSymbolFromPositionedNode(statement.linePositionedNode, undefined, SymbolKind.Interface)
+				if (symbol) symbols.push(symbol)
+			}
+		}
+
+		const { detail, kind } = this.getKindAndDetailForObjectStatement(node)
+		return DocumentSymbol.create(getObjectIdentifier(node), detail, kind, range, range, symbols)
 	}
 
 	protected createDocumentSymbolFromPositionedNode(positionedNode: LinePositionedNode<AbstractNode>, detail: string = '', kind: SymbolKind = SymbolKind.Class) {
 		const node = positionedNode.getNode()
 
 		if (node instanceof PrototypePathSegment) {
-			if (this.alreadyParsedPrototypes.includes(node)) return null
-			this.alreadyParsedPrototypes.push(node)
-
-			const range = positionedNode.getPositionAsRange()
-			const symbols: DocumentSymbol[] = []
-			const objectStatement = findParent(node, ObjectStatement)
-			if (objectStatement && objectStatement.block) {
-				for (const statement of objectStatement.block.statementList.statements) {
-					const symbol = this.createDocumentSymbolFromPositionedNode(statement.linePositionedNode, undefined, SymbolKind.Interface)
-					if (symbol) symbols.push(symbol)
-				}
-			}
-
-			return DocumentSymbol.create(node.identifier, detail, kind, range, range, symbols)
+			return this.createDocumentSymbolFromPositionedPrototypePathSegment(node, detail, kind)
 		}
 
 		if (node instanceof ObjectStatement) {
-			const firstSegment = node.path.segments[0]
-			const range = firstSegment.linePositionedNode.getPositionAsRange()
-
-			if (firstSegment instanceof PrototypePathSegment) {
-				return this.createDocumentSymbolFromPositionedNode(firstSegment.linePositionedNode, undefined, SymbolKind.Interface)
-			}
-
-			if (node.operation && node.operation instanceof ValueUnset) return null
-
-			const symbols: DocumentSymbol[] = []
-			if (node.block) {
-				for (const statement of node.block.statementList.statements) {
-					const symbol = this.createDocumentSymbolFromPositionedNode(statement.linePositionedNode, undefined, SymbolKind.Interface)
-					if (symbol) symbols.push(symbol)
-				}
-			}
-
-			const { detail, kind } = this.getKindAndDetailForObjectStatement(node)
-			return DocumentSymbol.create(getObjectIdentifier(node), detail, kind, range, range, symbols)
+			return this.createDocumentSymbolFromPositionedObjectStatement(node)
 		}
 
 		this.logDebug(`Could not create symbol for: ${node.constructor.name}`)
@@ -124,29 +141,27 @@ export class DocumentSymbolCapability extends AbstractCapability {
 
 	protected getKindAndDetailForObjectStatement(node: ObjectStatement) {
 		if (node.path.segments[0] instanceof MetaPathSegment) return { detail: '', kind: SymbolKind.Event }
+		if (!node.operation || !(node.operation instanceof ValueAssignment)) return { detail: '', kind: SymbolKind.Property }
 
-		if (node.operation && node.operation instanceof ValueAssignment) {
-			const value = node.operation.pathValue
+		const value = node.operation.pathValue
 
-			if (value instanceof EelExpressionValue) {
-				if (value.nodes instanceof LiteralArrayNode) return { detail: '${Array}', kind: SymbolKind.Array }
-				return { detail: '${...}', kind: SymbolKind.Variable }
-			}
-			if (value instanceof FusionObjectValue) return { detail: value.value, kind: SymbolKind.Object }
-			if (value instanceof DslExpressionValue) return { detail: 'afx`...`', kind: SymbolKind.Constructor }
+		if (value instanceof EelExpressionValue) return this.getKindAndDetailForEelExpressionValue(value)
+		if (value instanceof FusionObjectValue) return { detail: value.value, kind: SymbolKind.Object }
+		if (value instanceof DslExpressionValue) return { detail: 'afx`...`', kind: SymbolKind.Constructor }
 
-			if (value instanceof StringValue) return { detail: `"${value.value}"`, kind: SymbolKind.String }
-			if (value instanceof CharValue) return { detail: `"${value.value}"`, kind: SymbolKind.String }
+		if (value instanceof StringValue) return { detail: `"${value.value}"`, kind: SymbolKind.String }
+		if (value instanceof CharValue) return { detail: `"${value.value}"`, kind: SymbolKind.String }
 
-			if (value instanceof FloatValue) return { detail: value.value.toString(), kind: SymbolKind.Number }
-			if (value instanceof IntValue) return { detail: value.value.toString(), kind: SymbolKind.Number }
+		if (value instanceof FloatValue) return { detail: value.value.toString(), kind: SymbolKind.Number }
+		if (value instanceof IntValue) return { detail: value.value.toString(), kind: SymbolKind.Number }
 
-			if (value instanceof NullValue) return { detail: 'NULL', kind: SymbolKind.Null }
-			if (value instanceof BoolValue) return { detail: value.value ? 'true' : 'false', kind: SymbolKind.Boolean }
+		if (value instanceof NullValue) return { detail: 'NULL', kind: SymbolKind.Null }
+		if (value instanceof BoolValue) return { detail: value.value ? 'true' : 'false', kind: SymbolKind.Boolean }
+	}
 
-		}
-
-		return { detail: '', kind: SymbolKind.Property }
+	protected getKindAndDetailForEelExpressionValue(value: EelExpressionValue) {
+		if (value.nodes instanceof LiteralArrayNode) return { detail: '${Array}', kind: SymbolKind.Array }
+		return { detail: '${...}', kind: SymbolKind.Variable }
 	}
 
 }

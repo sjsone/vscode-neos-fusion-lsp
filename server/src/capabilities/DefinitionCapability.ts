@@ -1,5 +1,4 @@
 import * as NodeFs from 'fs'
-import * as NodePath from 'path'
 
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
@@ -18,7 +17,7 @@ import { NodeService } from '../common/NodeService'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { FqcnNode } from '../fusion/FqcnNode'
-import { ClassDefinition } from '../neos/NeosPackageNamespace'
+import { ClassDefinition, NeosPackageNamespace } from '../neos/NeosPackageNamespace'
 import { ResourceUriNode } from '../fusion/ResourceUriNode'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
@@ -101,14 +100,14 @@ export class DefinitionCapability extends AbstractCapability {
 
 		const { foundIgnoreComment, foundIgnoreBlockComment } = NodeService.getSemanticCommentsNodeIsAffectedBy(objectNode, parsedFile)
 
-		if(foundIgnoreComment) {
+		if (foundIgnoreComment) {
 			return [{
 				uri: parsedFile.uri,
 				range: foundIgnoreComment.getPositionAsRange()
 			}]
 		}
 
-		if(foundIgnoreBlockComment) {
+		if (foundIgnoreBlockComment) {
 			return [{
 				uri: parsedFile.uri,
 				range: foundIgnoreBlockComment.getPositionAsRange()
@@ -209,6 +208,66 @@ export class DefinitionCapability extends AbstractCapability {
 
 		const actionUriDefinitionNode = <ActionUriDefinitionNode>actionUriPartNode.getNode()["parent"]
 
+		let actionUriDefinition = this.buildBaseActionUriDefinitionFromActionUriDefinitionNode(actionUriDefinitionNode)
+		actionUriDefinition = this.tryToCompleteActionUriDefinitionPackage(node, workspace, parsedFile, actionUriDefinition)
+
+		this.logDebug("Found Action URI Definition: ", actionUriDefinition)
+
+		if (!actionUriDefinition.package || !actionUriDefinition.controller || !actionUriDefinition.action) return null
+
+		const neosPackage = workspace.neosWorkspace.getPackage(actionUriDefinition.package)
+		if (!neosPackage) {
+			this.logDebug(`  Could not resolve defined Package "${actionUriDefinition.package}"`)
+			return null
+		}
+
+		const definitionTargetName = actionUriPartNode.getNode() instanceof ActionUriControllerNode ? 'controller' : 'action'
+		const className = actionUriDefinition.controller.replace("/", "\\") + 'Controller'
+
+		for (const namespace of neosPackage["namespaces"].values()) {
+			const definition = this.searchInNamespaceForControllerActionDefinition(node.operation, definitionTargetName, namespace, className, actionUriDefinition.action)
+			if (definition) return definition
+		}
+	}
+
+	protected searchInNamespaceForControllerActionDefinition(operation: ValueAssignment, definitionTargetName: string, namespace: NeosPackageNamespace, className: string, actionName: string) {
+		const fqcnParts = namespace["name"].split("\\").filter(Boolean)
+		fqcnParts.push('Controller')
+		fqcnParts.push(className)
+		const fqcn = fqcnParts.join('\\')
+
+		const classDefinition = namespace.getClassDefinitionFromFullyQualifiedClassName(fqcn)
+		if (classDefinition === undefined) {
+			this.logDebug(`Could not get class for built FQCN: "${fqcn}"`)
+			return undefined
+		}
+
+		if (definitionTargetName === "controller") return [{
+			targetUri: classDefinition.uri,
+			targetRange: classDefinition.position,
+			targetSelectionRange: classDefinition.position,
+			originSelectionRange: operation.pathValue.linePositionedNode.getPositionAsRange()
+		}]
+
+		if (definitionTargetName === "action") {
+			const fullActionName = actionName + "Action"
+			for (const method of classDefinition.methods) {
+				if (method.name !== fullActionName) continue
+				return [{
+					targetUri: classDefinition.uri,
+					targetRange: method.position,
+					targetSelectionRange: method.position,
+					originSelectionRange: operation.pathValue.linePositionedNode.getPositionAsRange()
+				}]
+			}
+
+			this.logDebug(`Could not find action: "${fullActionName}"`)
+		}
+
+		return undefined
+	}
+
+	protected buildBaseActionUriDefinitionFromActionUriDefinitionNode(actionUriDefinitionNode: ActionUriDefinitionNode) {
 		let actionUriDefinition = {
 			package: null as string,
 			controller: actionUriDefinitionNode.controller?.name.value ?? null as string,
@@ -224,8 +283,12 @@ export class DefinitionCapability extends AbstractCapability {
 			actionUriDefinition.package = statement.operation.pathValue.value
 		}
 
+		return actionUriDefinition
+	}
+
+	protected tryToCompleteActionUriDefinitionPackage(node: AbstractNode, workspace: FusionWorkspace, parsedFile: ParsedFusionFile, actionUriDefinition: ActionUriDefinition) {
 		if (!actionUriDefinition.package) {
-			actionUriDefinition = this.tryToCompleteActionUriDefinitionFromPrototypesInRoutes(node, workspace, actionUriDefinition)
+			actionUriDefinition = this.tryToCompleteActionUriDefinitionWithWorkspace(node, workspace, actionUriDefinition)
 		}
 
 		if (!actionUriDefinition.package) {
@@ -233,63 +296,14 @@ export class DefinitionCapability extends AbstractCapability {
 			const neosPackage = workspace.neosWorkspace.getPackageByUri(parsedFile.uri)
 			if (!neosPackage) {
 				this.log("  Could not resolve Package for current file")
-				return null
+				return actionUriDefinition
 			}
 			actionUriDefinition.package = neosPackage.getPackageName()
 		}
-
-		this.logDebug("Found Action URI Definition: ", actionUriDefinition)
-
-		if (!actionUriDefinition.package || !actionUriDefinition.controller || !actionUriDefinition.action) return null
-
-		const neosPackage = workspace.neosWorkspace.getPackage(actionUriDefinition.package)
-		if (!neosPackage) {
-			this.logDebug(`  Could not resolve defined Package "${actionUriDefinition.package}"`)
-			return null
-		}
-
-		const definitionTargetName = actionUriPartNode.getNode() instanceof ActionUriControllerNode ? 'controller' : 'action'
-
-		for (const namespace of neosPackage["namespaces"].values()) {
-			const className = actionUriDefinition.controller.replace("/", "\\") + 'Controller'
-			const fqcnParts = namespace["name"].split("\\").filter(Boolean)
-			fqcnParts.push('Controller')
-			fqcnParts.push(className)
-			const fqcn = fqcnParts.join('\\')
-
-			const classDefinition = namespace.getClassDefinitionFromFullyQualifiedClassName(fqcn)
-			if (classDefinition === undefined) {
-				this.logDebug(`Could not get class for built FQCN: "${fqcn}"`)
-				continue
-			}
-
-			if (definitionTargetName === "controller") {
-				return [{
-					targetUri: classDefinition.uri,
-					targetRange: classDefinition.position,
-					targetSelectionRange: classDefinition.position,
-					originSelectionRange: node.operation.pathValue.linePositionedNode.getPositionAsRange()
-				}]
-			}
-
-			if (definitionTargetName === "action") {
-				const actionName = actionUriDefinition.action + "Action"
-				for (const method of classDefinition.methods) {
-					if (method.name !== actionName) continue
-					return [{
-						targetUri: classDefinition.uri,
-						targetRange: method.position,
-						targetSelectionRange: method.position,
-						originSelectionRange: node.operation.pathValue.linePositionedNode.getPositionAsRange()
-					}]
-				}
-
-				this.logDebug(`Could not find action: "${actionName}"`)
-			}
-		}
+		return actionUriDefinition
 	}
 
-	protected tryToCompleteActionUriDefinitionFromPrototypesInRoutes(node: AbstractNode, workspace: FusionWorkspace, actionUriDefinition: ActionUriDefinition): ActionUriDefinition {
+	protected tryToCompleteActionUriDefinitionWithWorkspace(node: AbstractNode, workspace: FusionWorkspace, actionUriDefinition: ActionUriDefinition): ActionUriDefinition {
 		const foundPrototypeObjectStatement = findUntil<ObjectStatement>(node, (foundNode) => {
 			if (!(foundNode instanceof ObjectStatement)) return false
 			if (!(foundNode.path.segments[0] instanceof PrototypePathSegment)) return false
@@ -306,23 +320,28 @@ export class DefinitionCapability extends AbstractCapability {
 		for (const otherParsedFile of workspace.parsedFiles) {
 			if (!(currentPrototypeName in otherParsedFile.prototypesInRoutes)) continue
 
-			for (const route of otherParsedFile.prototypesInRoutes[currentPrototypeName]) {
-				if (route.action !== actionUriDefinition.action) continue
-
-				if (actionUriDefinition.controller) {
-					if (route.controller !== actionUriDefinition.controller) continue
-					actionUriDefinition.package = route.package
-					return actionUriDefinition
-				}
-
-				actionUriDefinition.controller = route.controller
-				actionUriDefinition.package = route.package
-				return actionUriDefinition
-			}
+			const completedActionUriDefinition = this.tryToCompleteActionUriDefinitionWithParsedFile(currentPrototypeName, otherParsedFile, actionUriDefinition)
+			if (completedActionUriDefinition) return completedActionUriDefinition
 		}
 
 		this.logVerbose("could not find in routes")
 		return actionUriDefinition
+	}
+
+	protected tryToCompleteActionUriDefinitionWithParsedFile(currentPrototypeName: string, parsedFile: ParsedFusionFile, actionUriDefinition: ActionUriDefinition) {
+		for (const route of parsedFile.prototypesInRoutes[currentPrototypeName]) {
+			if (route.action !== actionUriDefinition.action) continue
+
+			if (actionUriDefinition.controller) {
+				if (route.controller !== actionUriDefinition.controller) continue
+				actionUriDefinition.package = route.package
+				return actionUriDefinition
+			}
+
+			actionUriDefinition.controller = route.controller
+			actionUriDefinition.package = route.package
+			return actionUriDefinition
+		}
 	}
 
 	getTagAttributeDefinition(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<TagAttributeNode>, context: ParsedFileCapabilityContext<TagAttributeNode>): null | LocationLink[] {
@@ -331,11 +350,10 @@ export class DefinitionCapability extends AbstractCapability {
 		const locationLinks: LocationLink[] = []
 		const originSelectionRange = foundNodeByLine.getPositionAsRange()
 
-		const properties = NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace, true)
-		for (const property of properties) {
+		for (const property of NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace, true)) {
 			if (getObjectIdentifier(property.statement) !== node.name) continue
 			locationLinks.push({
-				targetUri: property.uri!,
+				targetUri: property.uri,
 				targetRange: property.statement.linePositionedNode.getPositionAsRange(),
 				targetSelectionRange: property.statement.linePositionedNode.getPositionAsRange(),
 				originSelectionRange

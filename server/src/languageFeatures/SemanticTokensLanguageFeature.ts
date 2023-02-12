@@ -28,6 +28,13 @@ export interface SemanticTokenConstruct {
 export type TokenTypes = typeof SemanticTokensLanguageFeature.TokenTypes[number]
 export type TokenModifiers = typeof SemanticTokensLanguageFeature.TokenModifiers[number]
 
+function sortSemanticTokenConstructsByLineAndCharacter(constructs: SemanticTokenConstruct[]) {
+	return constructs.sort((a, b) => {
+		if (a.position.line === b.position.line) return a.position.character - b.position.character
+		return a.position.line - b.position.line
+	})
+}
+
 //TODO: Consolidate with DefinitionCapability::getControllerActionDefinition
 export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 
@@ -75,10 +82,54 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 			semanticTokenConstructs.push(...this.generateTagAttributeTokens(languageFeatureContext))
 			semanticTokenConstructs.push(...this.generateSemanticCommentTokens(languageFeatureContext))
 
-			return this.generateData(semanticTokenConstructs)
+			return this.generateTokenArray(semanticTokenConstructs)
 		}, [fileUri])
 
 		return { data }
+	}
+
+	protected* getSemanticTokenConstructsFromObjectStatement(objectStatement: ObjectStatement) {
+		for (const statement of objectStatement.block.statementList.statements) {
+			if (!(statement instanceof ObjectStatement)) continue
+			if (!(statement.operation instanceof ValueAssignment)) continue
+			if (!(statement.operation.pathValue instanceof StringValue)) continue
+
+			const identifier = getObjectIdentifier(statement)
+
+			if(identifier !== "controller" && identifier !== "action" && identifier !== "package") continue
+
+			const begin = statement.operation.pathValue.linePositionedNode.getBegin()
+			yield {
+				position: {
+					character: begin.character + 1, // offset for quote
+					line: begin.line
+				},
+				length: statement.operation.pathValue.value.replace(/\\/g, "\\\\").length,
+				...this.getTypesAndModifier(identifier)
+			}
+		}
+	}
+
+	protected* getSemanticTokenConstructsFromObjectStatement(objectStatement: ObjectStatement) {
+		for (const statement of objectStatement.block.statementList.statements) {
+			if (!(statement instanceof ObjectStatement)) continue
+			if (!(statement.operation instanceof ValueAssignment)) continue
+			if (!(statement.operation.pathValue instanceof StringValue)) continue
+
+			const identifier = getObjectIdentifier(statement)
+
+			if(identifier !== "controller" && identifier !== "action" && identifier !== "package") continue
+
+			const begin = statement.operation.pathValue.linePositionedNode.getBegin()
+			yield {
+				position: {
+					character: begin.character + 1, // offset for quote
+					line: begin.line
+				},
+				length: statement.operation.pathValue.value.replace(/\\/g, "\\\\").length,
+				...this.getTypesAndModifier(identifier)
+			}
+		}
 	}
 
 	protected generateActionUriTokens(languageFeatureContext: LanguageFeatureContext) {
@@ -95,23 +146,8 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 			if (!(objectStatement.operation instanceof ValueAssignment)) continue
 			if (objectStatement.block === undefined) continue
 
-			for (const statement of objectStatement.block.statementList.statements) {
-				if (!(statement instanceof ObjectStatement)) continue
-				if (!(statement.operation instanceof ValueAssignment)) continue
-				if (!(statement.operation.pathValue instanceof StringValue)) continue
-
-				const identifier = getObjectIdentifier(statement)
-				if (identifier === "controller" || identifier === "action" || identifier === "package") {
-					const begin = statement.operation.pathValue.linePositionedNode.getBegin()
-					semanticTokenConstructs.push({
-						position: {
-							character: begin.character + 1, // offset for quote
-							line: begin.line
-						},
-						length: statement.operation.pathValue.value.replace(/\\/g, "\\\\").length,
-						...this.getTypesAndModifier(identifier)
-					})
-				}
+			for(const semanticTokenConstruct of this.getSemanticTokenConstructsFromObjectStatement(objectStatement)) {
+				semanticTokenConstructs.push(semanticTokenConstruct)
 			}
 		}
 
@@ -173,8 +209,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 			const tagNode = findParent(tagAttributeNode.getNode(), TagNode)
 			if (tagNode === undefined) continue
 
-			const statements = NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], languageFeatureContext.workspace, true)
-			for (const statement of statements) {
+			for (const statement of NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], languageFeatureContext.workspace, true)) {
 				const identifier = getObjectIdentifier(statement.statement)
 
 				if (tagAttributeNode.getNode().name === identifier) {
@@ -232,11 +267,8 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 		return { type: 'variable', modifier: 'declaration' }
 	}
 
-	protected generateData(constructs: SemanticTokenConstruct[]) {
-		const sortedConstructs = constructs.sort((a, b) => {
-			if (a.position.line === b.position.line) return a.position.character - b.position.character
-			return a.position.line - b.position.line
-		})
+	protected generateTokenArray(constructs: SemanticTokenConstruct[]) {
+		const sortedConstructs = sortSemanticTokenConstructsByLineAndCharacter(constructs)
 
 		const tokens: number[] = []
 

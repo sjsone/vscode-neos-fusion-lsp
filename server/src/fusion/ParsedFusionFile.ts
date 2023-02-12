@@ -31,6 +31,7 @@ import { ActionUriControllerNode } from './ActionUriControllerNode'
 import { ActionUriDefinitionNode } from './ActionUriDefinitionNode'
 import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode'
 import { Logger } from '../common/Logging'
+import { FusionFile } from 'ts-fusion-parser/out/fusion/nodes/FusionFile'
 import { GlobalCache } from '../common/Cache'
 
 export class ParsedFusionFile extends Logger {
@@ -73,15 +74,7 @@ export class ParsedFusionFile extends Logger {
 			this.readStatementList(objectTree.statementList, text)
 
 			for (const nodeType of objectTree.nodesByType.keys()) {
-				for (const node of objectTree.nodesByType.get(nodeType)) {
-					if (node instanceof ObjectNode) this.handleEelObjectNode(node, text)
-					if (node instanceof TagNode) this.handleTagNameNode(node, text)
-					if (node instanceof TagAttributeNode) this.handleTagAttributeNode(node, text)
-					if (node instanceof ObjectStatement) this.handleObjectStatement(node, text)
-					if (node instanceof FusionObjectValue) this.handleFusionObjectValue(node, text)
-					if (node instanceof LiteralStringNode) this.handleLiteralStringNode(node, text)
-					this.addNode(node, text)
-				}
+				this.handleNodesByType(nodeType, objectTree, text)
 			}
 			if (this.uri.endsWith("FusionModules/Routing.fusion")) this.handleFusionRouting(text)
 			this.logVerbose("finished")
@@ -101,6 +94,18 @@ export class ParsedFusionFile extends Logger {
 		this.logVerbose("Cleared caches")
 	}
 
+	handleNodesByType(nodeType: any, objectTree: FusionFile, text: string) {
+		for (const node of objectTree.nodesByType.get(nodeType)) {
+			if (node instanceof ObjectNode) this.handleEelObjectNode(node, text)
+			if (node instanceof TagNode) this.handleTagNameNode(node, text)
+			if (node instanceof TagAttributeNode) this.handleTagAttributeNode(node, text)
+			if (node instanceof ObjectStatement) this.handleObjectStatement(node, text)
+			if (node instanceof FusionObjectValue) this.handleFusionObjectValue(node, text)
+			if (node instanceof LiteralStringNode) this.handleLiteralStringNode(node, text)
+			this.addNode(node, text)
+		}
+	}
+
 	handleEelObjectNode(node: ObjectNode, text: string) {
 		const eelHelperTokens = this.workspace.neosWorkspace.getEelHelperTokens()
 
@@ -108,36 +113,45 @@ export class ParsedFusionFile extends Logger {
 		for (const part of node.path) {
 			currentPath.push(part)
 			const isLastPathPart = currentPath.length === node.path.length
-			if (part instanceof ObjectFunctionPathNode || (isLastPathPart && (part instanceof ObjectPathNode))) {
-				if (currentPath.length === 1) {
-					// TODO: Allow immediate EEL-Helper (like "q(...)")
-					continue
-				}
 
-				const methodNode = currentPath.pop()
-				const eelHelperMethodNodePosition = new NodePosition(methodNode["position"].begin, methodNode["position"].begin + methodNode["value"].length)
-				const eelHelperMethodNode = new PhpClassMethodNode(methodNode["value"], part, eelHelperMethodNodePosition)
+			if (!(part instanceof ObjectFunctionPathNode) && !(isLastPathPart && (part instanceof ObjectPathNode))) continue
 
-				const position = new NodePosition(-1, -1)
-				const nameParts = []
-				for (const method of currentPath) {
-					const value = method["value"]
-					nameParts.push(value)
-					if (position.begin === -1) position.begin = method["position"].begin
-					position.end = method["position"].end
-				}
-
-				const eelHelperIdentifier = nameParts.join(".")
-				for (const eelHelper of eelHelperTokens) {
-					if (eelHelper.name === eelHelperIdentifier) {
-						const method = eelHelper.methods.find(method => method.valid(methodNode["value"]))
-						if (!method) continue
-						this.addNode(eelHelperMethodNode, text)
-						const eelHelperNode = new PhpClassNode(eelHelperIdentifier, eelHelperMethodNode, node, position)
-						this.addNode(eelHelperNode, text)
-					}
-				}
+			if (currentPath.length === 1) {
+				// TODO: Allow immediate EEL-Helper (like "q(...)")
+				continue
 			}
+
+			const methodNode = currentPath.pop()
+			const eelHelperMethodNodePosition = new NodePosition(methodNode["position"].begin, methodNode["position"].begin + methodNode["value"].length)
+			const eelHelperMethodNode = new PhpClassMethodNode(methodNode["value"], part, eelHelperMethodNodePosition)
+
+			const { position, eelHelperIdentifier } = this.createEelHelperIdentifierAndPositionFromPath(currentPath)
+			for (const eelHelper of eelHelperTokens) {
+				if (eelHelper.name !== eelHelperIdentifier) continue
+
+				const method = eelHelper.methods.find(method => method.valid(methodNode["value"]))
+				if (!method) continue
+
+				this.addNode(eelHelperMethodNode, text)
+				const eelHelperNode = new PhpClassNode(eelHelperIdentifier, eelHelperMethodNode, node, position)
+				this.addNode(eelHelperNode, text)
+			}
+		}
+	}
+
+	createEelHelperIdentifierAndPositionFromPath(path: ObjectPathNode[]) {
+		const position = new NodePosition(-1, -1)
+		const nameParts = []
+		for (const method of path) {
+			const value = method["value"]
+			nameParts.push(value)
+			if (position.begin === -1) position.begin = method["position"].begin
+			position.end = method["position"].end
+		}
+
+		return {
+			eelHelperIdentifier: nameParts.join("."),
+			position
 		}
 	}
 
@@ -201,7 +215,6 @@ export class ParsedFusionFile extends Logger {
 		if (classDefinition === undefined) return
 
 		const fqcnNode = new FqcnNode(operation.pathValue.value, classDefinition, operation.pathValue["position"])
-		// if(fqcn.endsWith("FormElementWrappingImplementation")) console.log("fqcn", fqcnNode)
 		this.addNode(fqcnNode, text)
 	}
 
