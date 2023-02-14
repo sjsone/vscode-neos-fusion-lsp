@@ -6,8 +6,8 @@ export class ResourceUriNode extends AbstractNode {
 	protected namespace: string
 	protected relativePath: string
 
-	constructor(identifier: string, position: NodePosition) {
-		super(position)
+	constructor(identifier: string, position: NodePosition, parent: AbstractNode) {
+		super(position, parent)
 		this.identifier = identifier
 
 		const matches = /resource:\/\/(.*?)(\/.*)/.exec(this.identifier)

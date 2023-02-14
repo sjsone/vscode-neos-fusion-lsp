@@ -187,7 +187,7 @@ export class ParsedFusionFile extends Logger {
 					begin: node["position"].end - value.length - 1,
 					end: node["position"].end
 				}
-				const resourceUriNode = new ResourceUriNode(value, position)
+				const resourceUriNode = new ResourceUriNode(value, position, node["parent"])
 				if (resourceUriNode) this.addNode(resourceUriNode, text)
 			}
 
@@ -221,7 +221,7 @@ export class ParsedFusionFile extends Logger {
 	handleStringValue(stringValue: StringValue, text: string) {
 		const value = stringValue.value
 		if (value.startsWith("resource://")) {
-			const resourceUriNode = new ResourceUriNode(value, stringValue["position"])
+			const resourceUriNode = new ResourceUriNode(value, stringValue["position"], stringValue["parent"])
 			if (resourceUriNode) this.addNode(resourceUriNode, text)
 		}
 	}
@@ -258,7 +258,7 @@ export class ParsedFusionFile extends Logger {
 	protected handleLiteralStringNode(literalStringNode: LiteralStringNode, text: string) {
 		const value = literalStringNode["value"]
 		if (value.startsWith("resource://")) {
-			const resourceUriNode = new ResourceUriNode(value, literalStringNode["position"])
+			const resourceUriNode = new ResourceUriNode(value, literalStringNode["position"], literalStringNode["parent"])
 			if (resourceUriNode) this.addNode(resourceUriNode, text)
 		}
 	}
