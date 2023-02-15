@@ -38,6 +38,7 @@ export interface FoundApplyPropsResult {
 class NodeService {
 
 	public doesPrototypeOverrideProps(name: string): boolean {
+		// TODO: use this.isPrototypeOneOf ? 
 		return !["Neos.Fusion:Case", "Neos.Fusion:Loop", "Neos.Neos:ImageUri", "Neos.Neos:NodeUri"].includes(name)
 	}
 
@@ -131,7 +132,7 @@ class NodeService {
 		const dsl = findParent(objectNode, DslExpressionValue)
 		if (dsl !== undefined) {
 			const parentPrototypeName = this.findParentPrototypeName(statementList)
-			wasComingFromRenderer = getObjectIdentifier(findParent(dsl, ObjectStatement)) === "renderer" && this.doesPrototypeOverrideProps(parentPrototypeName)
+			wasComingFromRenderer = getObjectIdentifier(findParent(dsl, ObjectStatement)) === "renderer" && this.doesPrototypeOverrideProps(parentPrototypeName, workspace)
 		}
 
 		let traverseUpwards = true
@@ -202,7 +203,7 @@ class NodeService {
 				})
 				parentIdentifiersRenderer = true
 				if (rendererPrototype instanceof ObjectStatement && rendererPrototype.operation instanceof ValueAssignment) {
-					parentIdentifiersRenderer = this.doesPrototypeOverrideProps(rendererPrototype.operation.pathValue["value"])
+					parentIdentifiersRenderer = this.doesPrototypeOverrideProps(rendererPrototype.operation.pathValue["value"], workspace)
 				}
 			}
 
