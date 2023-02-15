@@ -207,7 +207,7 @@ export interface ParsedSemanticComment {
 }
 
 export function parseSemanticComment(comment: string): ParsedSemanticComment {
-    const semanticCommentRegex = /^ *@fusion-(\w+) *(?:\[(.*)\])?$/
+    const semanticCommentRegex = /^ *@fusion-([a-zA-Z0-9_-]+) *(?:\[(.*)\])?$/
 
     const matches = semanticCommentRegex.exec(comment)
     if (!matches) return undefined
