@@ -42,7 +42,6 @@ export class DefinitionCapability extends AbstractCapability {
 		const { workspace, parsedFile, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
 		const node = foundNodeByLine.getNode()
 
-		// TODO: handle afx TagNodeAttribute like `<Vendor.Site:Thing text={props.test} />`. `text` should be clickable
 		this.logVerbose(`node type "${foundNodeByLine.getNode().constructor.name}"`)
 		switch (true) {
 			case node instanceof FusionObjectValue:
@@ -102,10 +101,24 @@ export class DefinitionCapability extends AbstractCapability {
 			return null
 		}
 
-		// TODO: handle `this.` correctly
 		if (isThisProperty) {
 			const isObjectNodeInDsl = findParent(node, DslExpressionValue) !== undefined
+			// TODO: handle `this.foo` in AFX
 			if (isObjectNodeInDsl) return null
+
+			const objectStatement = findParent(objectNode, ObjectStatement)
+			const prototypeName = NodeService.findPrototypeName(objectStatement)
+
+			for (const property of NodeService.getInheritedPropertiesByPrototypeName(prototypeName, workspace)) {
+				const firstPropertyPathSegment = property.statement.path.segments[0]
+				if (firstPropertyPathSegment["identifier"] === objectNode.path[1]["value"]) {
+					return [{
+						uri: property.uri,
+						range: firstPropertyPathSegment.linePositionedNode.getPositionAsRange()
+					}]
+				}
+			}
+			return null
 		}
 
 		const { foundIgnoreComment, foundIgnoreBlockComment } = NodeService.getSemanticCommentsNodeIsAffectedBy(objectNode, parsedFile)
