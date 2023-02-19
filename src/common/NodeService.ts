@@ -132,7 +132,7 @@ class NodeService {
 		const dsl = findParent(objectNode, DslExpressionValue)
 		if (dsl !== undefined) {
 			const parentPrototypeName = this.findParentPrototypeName(statementList)
-			wasComingFromRenderer = getObjectIdentifier(findParent(dsl, ObjectStatement)) === "renderer" && this.doesPrototypeOverrideProps(parentPrototypeName, workspace)
+			wasComingFromRenderer = getObjectIdentifier(findParent(dsl, ObjectStatement)) === "renderer" && this.doesPrototypeOverrideProps(parentPrototypeName)
 		}
 
 		let traverseUpwards = true
@@ -203,7 +203,7 @@ class NodeService {
 				})
 				parentIdentifiersRenderer = true
 				if (rendererPrototype instanceof ObjectStatement && rendererPrototype.operation instanceof ValueAssignment) {
-					parentIdentifiersRenderer = this.doesPrototypeOverrideProps(rendererPrototype.operation.pathValue["value"], workspace)
+					parentIdentifiersRenderer = this.doesPrototypeOverrideProps(rendererPrototype.operation.pathValue["value"])
 				}
 			}
 
