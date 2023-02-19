@@ -10,6 +10,10 @@ import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
 import { InlayHintDepth } from '../ExtensionConfiguration';
 import { FusionWorkspace } from '../fusion/FusionWorkspace';
 import { EelHelperMethod } from '../eel/EelHelperMethod';
+import { LiteralNumberNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNumberNode';
+import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode';
+import { LiteralNullNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNullNode';
+import { LiteralObjectEntryNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralObjectEntryNode';
 
 export class InlayHintLanguageFeature extends AbstractLanguageFeature {
 
@@ -69,6 +73,14 @@ export class InlayHintLanguageFeature extends AbstractLanguageFeature {
 
 	protected canShowInlayHintForArgumentNode(workspace: FusionWorkspace, argumentNode: AbstractNode) {
 		if (workspace.getConfiguration().inlayHint.depth === InlayHintDepth.Always) return true
-		return argumentNode instanceof AbstractLiteralNode || argumentNode instanceof LiteralObjectNode || argumentNode instanceof LiteralArrayNode
+
+		// TODO: it should be just `AbstractLiteralNode` once "ts-fusion-parser" is updated
+		return argumentNode instanceof AbstractLiteralNode 
+			|| argumentNode instanceof LiteralObjectNode 
+			|| argumentNode instanceof LiteralArrayNode 
+			|| argumentNode instanceof LiteralNumberNode 
+			|| argumentNode instanceof LiteralStringNode
+			|| argumentNode instanceof LiteralNullNode
+			|| argumentNode instanceof LiteralObjectEntryNode
 	}
 }
