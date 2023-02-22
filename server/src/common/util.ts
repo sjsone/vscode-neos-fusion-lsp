@@ -26,7 +26,7 @@ export interface LineDataCacheEntry {
     lineIndents: string[]
 }
 
-const lineDataCache = new Cache<LineDataCacheEntry>()
+const lineDataCache = new Cache<LineDataCacheEntry>("LineData")
 
 export function clearLineDataCacheForFile(textUri: string) {
     if (lineDataCache.has(textUri)) lineDataCache.delete(textUri)
@@ -41,7 +41,7 @@ export function hasLineDataCacheFile(textUri: string) {
 }
 
 export function setLinesFromLineDataCacheForFile(textUri: string, lines: string[]) {
-    return lineDataCache.set(textUri, buildEntryForLineDataCache(lines))
+    return lineDataCache.set(textUri, buildEntryForLineDataCache(lines), [textUri])
 }
 
 const whitespaceRegex = /^[ \t]+/
