@@ -68,7 +68,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 
 	protected run(languageFeatureContext: LanguageFeatureContext) {
 		const fileUri = languageFeatureContext.parsedFile.uri
-		const cacheId = 'SemanticTokensLanguageFeature' + fileUri
+		const cacheId = 'SemanticTokensLanguageFeature_' + fileUri
 
 		const data = GlobalCache.retrieve(cacheId, () => {
 			const semanticTokenConstructs: SemanticTokenConstruct[] = []
@@ -88,7 +88,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 		return { data }
 	}
 
-	protected* getSemanticTokenConstructsFromObjectStatement(objectStatement: ObjectStatement) {
+	protected * getSemanticTokenConstructsFromObjectStatement(objectStatement: ObjectStatement) {
 		for (const statement of objectStatement.block.statementList.statements) {
 			if (!(statement instanceof ObjectStatement)) continue
 			if (!(statement.operation instanceof ValueAssignment)) continue
@@ -96,29 +96,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 
 			const identifier = getObjectIdentifier(statement)
 
-			if(identifier !== "controller" && identifier !== "action" && identifier !== "package") continue
-
-			const begin = statement.operation.pathValue.linePositionedNode.getBegin()
-			yield {
-				position: {
-					character: begin.character + 1, // offset for quote
-					line: begin.line
-				},
-				length: statement.operation.pathValue.value.replace(/\\/g, "\\\\").length,
-				...this.getTypesAndModifier(identifier)
-			}
-		}
-	}
-
-	protected* getSemanticTokenConstructsFromObjectStatement(objectStatement: ObjectStatement) {
-		for (const statement of objectStatement.block.statementList.statements) {
-			if (!(statement instanceof ObjectStatement)) continue
-			if (!(statement.operation instanceof ValueAssignment)) continue
-			if (!(statement.operation.pathValue instanceof StringValue)) continue
-
-			const identifier = getObjectIdentifier(statement)
-
-			if(identifier !== "controller" && identifier !== "action" && identifier !== "package") continue
+			if (identifier !== "controller" && identifier !== "action" && identifier !== "package") continue
 
 			const begin = statement.operation.pathValue.linePositionedNode.getBegin()
 			yield {
@@ -146,7 +124,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 			if (!(objectStatement.operation instanceof ValueAssignment)) continue
 			if (objectStatement.block === undefined) continue
 
-			for(const semanticTokenConstruct of this.getSemanticTokenConstructsFromObjectStatement(objectStatement)) {
+			for (const semanticTokenConstruct of this.getSemanticTokenConstructsFromObjectStatement(objectStatement)) {
 				semanticTokenConstructs.push(semanticTokenConstruct)
 			}
 		}
