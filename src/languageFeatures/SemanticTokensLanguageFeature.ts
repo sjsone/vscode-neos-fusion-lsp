@@ -8,6 +8,7 @@ import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStr
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
+import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
 import { LinePosition, LinePositionedNode } from '../common/LinePositionedNode'
@@ -75,6 +76,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 		semanticTokenConstructs.push(...this.generateLiteralNullTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generateObjectPathTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generatePhpClassMethodTokens(languageFeatureContext))
+		semanticTokenConstructs.push(...this.generateTagTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generateTagAttributeTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generateSemanticCommentTokens(languageFeatureContext))
 
@@ -83,7 +85,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 		}
 	}
 
-	protected* getSemanticTokenConstructsFromObjectStatement(objectStatement: ObjectStatement) {
+	protected * getSemanticTokenConstructsFromObjectStatement(objectStatement: ObjectStatement) {
 		for (const statement of objectStatement.block.statementList.statements) {
 			if (!(statement instanceof ObjectStatement)) continue
 			if (!(statement.operation instanceof ValueAssignment)) continue
@@ -91,7 +93,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 
 			const identifier = getObjectIdentifier(statement)
 
-			if(identifier !== "controller" && identifier !== "action" && identifier !== "package") continue
+			if (identifier !== "controller" && identifier !== "action" && identifier !== "package") continue
 
 			const begin = statement.operation.pathValue.linePositionedNode.getBegin()
 			yield {
@@ -119,7 +121,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 			if (!(objectStatement.operation instanceof ValueAssignment)) continue
 			if (objectStatement.block === undefined) continue
 
-			for(const semanticTokenConstruct of this.getSemanticTokenConstructsFromObjectStatement(objectStatement)) {
+			for (const semanticTokenConstruct of this.getSemanticTokenConstructsFromObjectStatement(objectStatement)) {
 				semanticTokenConstructs.push(semanticTokenConstruct)
 			}
 		}
@@ -170,6 +172,26 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 			type: 'method',
 			modifier: 'declaration'
 		}))
+	}
+
+	protected generateTagTokens(languageFeatureContext: LanguageFeatureContext) {
+		const prototypePathSegments = languageFeatureContext.parsedFile.getNodesByType(PrototypePathSegment)
+		if (!prototypePathSegments) return []
+
+		const semanticTokenConstructs: SemanticTokenConstruct[] = []
+		for (const prototypePathSegment of prototypePathSegments) {
+			const node = prototypePathSegment.getNode()
+			if (!(node["parent"] instanceof TagNode)) continue
+
+			semanticTokenConstructs.push({
+				position: prototypePathSegment.getBegin(),
+				length: node.identifier.length,
+				type: 'class',
+				modifier: 'definition'
+			})
+		}
+
+		return semanticTokenConstructs
 	}
 
 	protected generateTagAttributeTokens(languageFeatureContext: LanguageFeatureContext) {
