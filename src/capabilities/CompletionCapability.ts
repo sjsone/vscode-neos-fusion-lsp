@@ -7,7 +7,7 @@ import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjec
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
-import { CompletionItem, CompletionItemKind, InsertTextMode } from 'vscode-languageserver/node'
+import { Command, CompletionItem, CompletionItemKind, InsertTextMode } from 'vscode-languageserver/node'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ResourceUriNode } from '../fusion/ResourceUriNode'
 import { LinePositionedNode } from '../common/LinePositionedNode'
@@ -21,6 +21,12 @@ import { findParent, getObjectIdentifier } from '../common/util'
 import { Comment } from 'ts-fusion-parser/out/common/Comment'
 
 export class CompletionCapability extends AbstractCapability {
+
+	static SuggestCommand: Command = {
+		title: 'Trigger Suggest',
+
+		command: 'editor.action.triggerSuggest'
+	}
 
 	protected run(context: CapabilityContext<AbstractNode>) {
 		const { workspace, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
@@ -41,9 +47,12 @@ export class CompletionCapability extends AbstractCapability {
 				case foundNode instanceof PrototypePathSegment:
 					completions.push(...this.getPrototypeCompletions(workspace, <LinePositionedNode<FusionObjectValue | PrototypePathSegment>>foundNodeByLine))
 					break
+				case foundNode instanceof ObjectNode:
+					completions.push(...this.getFusionPropertyCompletionsForObjectNode(workspace, <LinePositionedNode<ObjectNode>>foundNodeByLine))
+					break
 				case foundNode instanceof ObjectPathNode:
-					completions.push(...this.getEelHelperCompletions(workspace, <LinePositionedNode<ObjectPathNode>>foundNodeByLine))
-					completions.push(...this.getFusionPropertyCompletions(workspace, <LinePositionedNode<ObjectPathNode>>foundNodeByLine))
+					completions.push(...this.getEelHelperCompletionsForObjectPath(workspace, <LinePositionedNode<ObjectPathNode>>foundNodeByLine))
+					completions.push(...this.getFusionPropertyCompletionsForObjectPath(workspace, <LinePositionedNode<ObjectPathNode>>foundNodeByLine))
 					break
 				case foundNode instanceof ResourceUriNode:
 					completions.push(...this.getResourceUriCompletions(workspace, <LinePositionedNode<ResourceUriNode>>foundNodeByLine))
@@ -122,10 +131,28 @@ export class CompletionCapability extends AbstractCapability {
 		return this.getPropertyDefinitionSegments(node, workspace)
 	}
 
-	protected getFusionPropertyCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {
+	protected getFusionPropertyCompletionsForObjectPath(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {
 		const node = foundNode.getNode()
 		const objectNode = node["parent"]
 		if (!(objectNode instanceof ObjectNode)) return null
+
+
+		if (objectNode.path.length === 1) {
+			return [
+				{
+					label: 'props',
+					insertText: 'props.',
+					kind: CompletionItemKind.Keyword,
+					command: CompletionCapability.SuggestCommand
+				},
+				{
+					label: 'this',
+					insertText: 'this.',
+					kind: CompletionItemKind.Keyword,
+					command: CompletionCapability.SuggestCommand
+				}
+			]
+		}
 
 		if ((objectNode.path[0]["value"] !== "this" && objectNode.path[0]["value"] !== "props") || objectNode.path.length === 1) {
 			// TODO: handle context properties
@@ -170,7 +197,15 @@ export class CompletionCapability extends AbstractCapability {
 		return completions
 	}
 
-	protected getEelHelperCompletions(fusionWorkspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {
+	protected getFusionPropertyCompletionsForObjectNode(fusionWorkspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectNode>): CompletionItem[] {
+		const node = foundNode.getNode()
+		if (node.path[0]["value"] !== "props") return null
+		if (node.path.length !== 1) return null
+
+		return this.getPropertyDefinitionSegments(node, fusionWorkspace)
+	}
+
+	protected getEelHelperCompletionsForObjectPath(fusionWorkspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {
 		const node = foundNode.getNode()
 		const objectNode = <ObjectNode>node["parent"]
 		const linePositionedObjectNode = objectNode.linePositionedNode
@@ -217,7 +252,9 @@ export class CompletionCapability extends AbstractCapability {
 			return Array.from(workspace.neosWorkspace.getPackages().values()).map((neosPackage: NeosPackage) => {
 				return {
 					label: neosPackage.getPackageName(),
-					kind: CompletionItemKind.Module
+					kind: CompletionItemKind.Module,
+					insertText: neosPackage.getPackageName() + '/',
+					command: CompletionCapability.SuggestCommand
 				}
 			})
 		}
@@ -229,21 +266,21 @@ export class CompletionCapability extends AbstractCapability {
 		const nextPath = NodePath.join(neosPackage["path"], "Resources", node.getRelativePath())
 		if (!NodeFs.existsSync(nextPath)) return []
 
-		const completions = []
+		const completions: CompletionItem[] = []
 		const thingsInFolder = NodeFs.readdirSync(nextPath, { withFileTypes: true })
 		for (const thing of thingsInFolder) {
-			if (thing.isFile()) {
-				completions.push({
-					label: thing.name,
-					kind: CompletionItemKind.File
-				})
-			}
-			if (thing.isDirectory()) {
-				completions.push({
-					label: thing.name,
-					kind: CompletionItemKind.Folder
-				})
-			}
+			if (thing.isFile()) completions.push({
+				label: thing.name,
+				kind: CompletionItemKind.File,
+				insertText: thing.name,
+			})
+
+			if (thing.isDirectory()) completions.push({
+				label: thing.name,
+				kind: CompletionItemKind.Folder,
+				insertText: thing.name + '/',
+				command: CompletionCapability.SuggestCommand
+			})
 		}
 
 		return completions
