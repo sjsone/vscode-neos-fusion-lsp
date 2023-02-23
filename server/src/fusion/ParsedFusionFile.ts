@@ -1,6 +1,6 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
-import { ObjectTreeParser } from 'ts-fusion-parser'
+import { FusionParserOptions, ObjectTreeParser } from 'ts-fusion-parser'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { NodePosition } from 'ts-fusion-parser/out/common/NodePosition'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
@@ -32,6 +32,25 @@ import { ActionUriDefinitionNode } from './ActionUriDefinitionNode'
 import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode'
 import { Logger } from '../common/Logging'
 import { FusionFile } from 'ts-fusion-parser/out/fusion/nodes/FusionFile'
+import { EelParserOptions } from 'ts-fusion-parser/out/dsl/eel/parser'
+import { AfxParserOptions } from 'ts-fusion-parser/out/dsl/afx/parser'
+
+
+const eelParserOptions: EelParserOptions = {
+	allowIncompleteObjectPaths: true
+}
+
+const afxParserOptions: AfxParserOptions = {
+	eelParserOptions,
+	allowUnclosedTags: true
+}
+
+const fusionParserOptions: FusionParserOptions = {
+	afxParserOptions,
+	eelParserOptions,
+	ignoreErrors: true
+}
+
 
 export class ParsedFusionFile extends Logger {
 	public workspace: FusionWorkspace
@@ -67,7 +86,7 @@ export class ParsedFusionFile extends Logger {
 				this.logVerbose("    read text from file")
 			}
 
-			const objectTree = ObjectTreeParser.parse(text, undefined, true)
+			const objectTree = ObjectTreeParser.parse(text, undefined, fusionParserOptions)
 			this.ignoredErrorsByParser = objectTree.errors
 			this.readStatementList(objectTree.statementList, text)
 
