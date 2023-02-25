@@ -181,7 +181,7 @@ export class ParsedFusionFile extends Logger {
 			node["position"].begin + 1 + identifier.length
 		))
 
-		prototypePath["parent"] = node["parent"]
+		prototypePath["parent"] = node
 		this.addNode(prototypePath, text)
 
 		if (node["selfClosing"] || node["end"] === undefined) return
@@ -192,7 +192,7 @@ export class ParsedFusionFile extends Logger {
 			node["end"]["position"].begin + endOffset + identifier.length
 		))
 
-		endPrototypePath["parent"] = node["parent"]
+		endPrototypePath["parent"] = node
 		this.addNode(endPrototypePath, text)
 	}
 
