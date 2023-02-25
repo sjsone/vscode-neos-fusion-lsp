@@ -291,7 +291,8 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 			semanticTokenConstructs.push(...this.createRendererTokenConstructFromStatementList(block.statementList))
 		}
 
-		for (const fusionObjectValue of languageFeatureContext.parsedFile.getNodesByType(FusionObjectValue)) {
+		const fusionObjectValues = languageFeatureContext.parsedFile.getNodesByType(FusionObjectValue)
+		if (fusionObjectValues) for (const fusionObjectValue of fusionObjectValues) {
 			const node = fusionObjectValue.getNode()
 			if (node.value !== 'Neos.Fusion:Component') continue
 
