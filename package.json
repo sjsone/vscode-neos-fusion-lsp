@@ -9,7 +9,7 @@
     "theme": "dark"
   },
   "license": "AGPL-3.0-or-later",
-  "version": "0.1.47",
+  "version": "0.1.50",
   "categories": [
     "Programming Languages"
   ],
@@ -194,12 +194,12 @@
         "title": "Code",
         "order": 5,
         "properties": {
-          "neosFusionLsp.code.deprecations.fusion": {
+          "neosFusionLsp.code.deprecations.fusion.prototypes": {
             "type": "object",
             "additionalProperties": {
               "type": "string"
             },
-            "description": "An object of deprecated fusion-prototypes. [OldPrototype](Item): NewPrototype(Value)",
+            "description": "An object of deprecated fusion-prototypes. [OldPrototype](Item): NewPrototype(Value). \nIf it should be ignored use '{ignore}' as the value",
             "default": {
               "Neos.Fusion:Array": "Neos.Fusion:Join",
               "Neos.Fusion:Collection": "Neos.Fusion:Loop",

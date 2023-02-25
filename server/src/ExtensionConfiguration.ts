@@ -16,6 +16,7 @@ export enum DeprecationsDiagnosticLevels {
     Warning = "warning",
     Error = "error",
 }
+
 export interface ExtensionConfiguration {
     folders: {
         packages: string[],
@@ -40,7 +41,10 @@ export interface ExtensionConfiguration {
     },
     code: {
         deprecations: {
-            fusion: { [key: string]: string }
+            fusion: {
+                // TODO: Create an enum with "{ignored}" and more
+                prototypes: { [key: string]: (string | "{ignored}") }
+            }
         }
     },
     inlayHint: {

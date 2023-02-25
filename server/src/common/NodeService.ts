@@ -38,6 +38,7 @@ export interface FoundApplyPropsResult {
 class NodeService {
 
 	public doesPrototypeOverrideProps(name: string): boolean {
+		// TODO: use this.isPrototypeOneOf ? 
 		return !["Neos.Fusion:Case", "Neos.Fusion:Loop", "Neos.Neos:ImageUri", "Neos.Neos:NodeUri"].includes(name)
 	}
 

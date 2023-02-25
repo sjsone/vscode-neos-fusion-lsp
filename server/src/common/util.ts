@@ -108,8 +108,11 @@ export function getPrototypeNameFromNode(node: AbstractNode) {
 
 export function isPrototypeDeprecated(workspace: FusionWorkspace, prototypeName: string): string | boolean {
     const configuration = workspace.getConfiguration()
-    const deprecations = configuration.code.deprecations.fusion ?? {}
-    return deprecations[prototypeName] ?? false
+    const deprecations = configuration.code.deprecations.fusion.prototypes ?? {}
+
+    const deprecated = deprecations[prototypeName] ?? false
+    if(deprecated === "{ignore}") return false
+    return deprecated
 }
 
 export function mergeObjects(source: unknown, target: unknown) {
@@ -206,7 +209,7 @@ export interface ParsedSemanticComment {
 }
 
 export function parseSemanticComment(comment: string): ParsedSemanticComment {
-    const semanticCommentRegex = /^ *@fusion-(\w+) *(?:\[(.*)\])?$/
+    const semanticCommentRegex = /^ *@fusion-([a-zA-Z0-9_-]+) *(?:\[(.*)\])?$/
 
     const matches = semanticCommentRegex.exec(comment)
     if (!matches) return undefined
