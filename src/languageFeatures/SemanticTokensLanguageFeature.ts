@@ -8,7 +8,9 @@ import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStr
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
+import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
+import { StatementList } from 'ts-fusion-parser/out/fusion/nodes/StatementList'
 import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
 import { LinePosition, LinePositionedNode } from '../common/LinePositionedNode'
@@ -79,6 +81,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 		semanticTokenConstructs.push(...this.generateTagTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generateTagAttributeTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generateSemanticCommentTokens(languageFeatureContext))
+		semanticTokenConstructs.push(...this.generateComponentRendererTokens(languageFeatureContext))
 
 		return {
 			data: this.generateTokenArray(semanticTokenConstructs)
@@ -245,6 +248,52 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 				type: 'operator',
 				modifier: 'modification'
 			})
+		}
+
+		return semanticTokenConstructs
+	}
+
+	protected createRendererTokenConstructFromStatementList(statementList: StatementList) {
+		const semanticTokenConstructs: SemanticTokenConstruct[] = []
+
+		for (const statement of statementList.statements) {
+			if (!(statement instanceof ObjectStatement)) continue
+			const firstSegment = statement.path.segments[0]
+			if (!(firstSegment instanceof PathSegment)) continue
+			if (firstSegment.identifier !== 'renderer') continue
+
+			semanticTokenConstructs.push({
+				position: firstSegment.linePositionedNode.getBegin(),
+				length: 'renderer'.length,
+				type: 'property',
+				modifier: 'static'
+			})
+		}
+
+		return semanticTokenConstructs
+	}
+
+	protected generateComponentRendererTokens(languageFeatureContext: LanguageFeatureContext) {
+		const semanticTokenConstructs: SemanticTokenConstruct[] = []
+
+		for (const prototypeDefinition of [...languageFeatureContext.parsedFile.prototypeCreations, ...languageFeatureContext.parsedFile.prototypeOverwrites]) {
+			const node = prototypeDefinition.getNode()
+			if (!NodeService.isPrototypeOneOf(node.identifier, 'Neos.Fusion:Component', languageFeatureContext.workspace)) continue
+
+			const block = findParent(node, ObjectStatement)?.block
+			if (!block) continue
+
+			semanticTokenConstructs.push(...this.createRendererTokenConstructFromStatementList(block.statementList))
+		}
+
+		for (const fusionObjectValue of languageFeatureContext.parsedFile.getNodesByType(FusionObjectValue)) {
+			const node = fusionObjectValue.getNode()
+			if (node.value !== 'Neos.Fusion:Component') continue
+
+			const block = findParent(node, ObjectStatement)?.block
+			if (!block) continue
+
+			semanticTokenConstructs.push(...this.createRendererTokenConstructFromStatementList(block.statementList))
 		}
 
 		return semanticTokenConstructs
