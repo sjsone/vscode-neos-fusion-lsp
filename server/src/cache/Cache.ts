@@ -1,4 +1,4 @@
-import { Logger } from './Logging'
+import { Logger } from '../common/Logging'
 
 export type CacheTag = string
 export type CacheKey = string

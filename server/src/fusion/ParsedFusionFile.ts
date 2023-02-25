@@ -32,7 +32,7 @@ import { ActionUriDefinitionNode } from './ActionUriDefinitionNode'
 import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode'
 import { Logger } from '../common/Logging'
 import { FusionFile } from 'ts-fusion-parser/out/fusion/nodes/FusionFile'
-import { GlobalCache } from '../common/Cache'
+import { GlobalCache } from '../cache/Cache'
 import { EelParserOptions } from 'ts-fusion-parser/out/dsl/eel/parser'
 import { AfxParserOptions } from 'ts-fusion-parser/out/dsl/afx/parser'
 

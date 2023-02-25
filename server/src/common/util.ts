@@ -19,7 +19,7 @@ import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { OperationNode } from 'ts-fusion-parser/out/dsl/eel/nodes/OperationNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
-import { Cache } from './Cache'
+import { Cache } from '../cache/Cache'
 
 export interface LineDataCacheEntry {
     lineLengths: number[]

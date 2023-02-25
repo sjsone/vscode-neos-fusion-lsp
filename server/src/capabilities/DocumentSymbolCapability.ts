@@ -22,7 +22,7 @@ import { LinePositionedNode } from '../common/LinePositionedNode';
 import { findParent, getObjectIdentifier } from '../common/util';
 import { AbstractCapability } from './AbstractCapability';
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext';
-import { GlobalCache } from '../common/Cache';
+import { GlobalCache } from '../cache/Cache';
 
 export class DocumentSymbolCapability extends AbstractCapability {
 	protected noPositionedNode: boolean = true
