@@ -22,20 +22,22 @@ import { LinePositionedNode } from '../common/LinePositionedNode';
 import { findParent, getObjectIdentifier } from '../common/util';
 import { AbstractCapability } from './AbstractCapability';
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext';
-import { GlobalCache } from '../cache/Cache';
+import { FusionFileAffectedCache } from '../cache/FusionFileAffectedCache';
 
 export class DocumentSymbolCapability extends AbstractCapability {
-	protected noPositionedNode: boolean = true
+	protected cache: FusionFileAffectedCache<DocumentSymbol[]> = new FusionFileAffectedCache('DocumentSymbolCapability')
 
+	protected noPositionedNode: boolean = true
 	protected alreadyParsedPrototypes: AbstractNode[] = []
+
 
 	protected run(context: CapabilityContext<AbstractNode>) {
 		const { parsedFile } = <ParsedFileCapabilityContext<AbstractNode>>context
-		const cacheId = 'DocumentSymbolCapability_' + parsedFile.uri		
+		const cacheId = 'DocumentSymbolCapability_' + parsedFile.uri
 
 		this.alreadyParsedPrototypes = []
 
-		return GlobalCache.retrieve(cacheId, () => this.getSymbolsFromParsedFile(parsedFile), [parsedFile.uri])
+		return this.cache.retrieve(cacheId, () => this.getSymbolsFromParsedFile(parsedFile), [parsedFile.uri])
 	}
 
 	protected getSymbolsFromParsedFile(parsedFile: ParsedFusionFile): DocumentSymbol[] {

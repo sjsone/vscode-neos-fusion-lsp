@@ -37,7 +37,7 @@ export class HoverCapability extends AbstractCapability {
 
 	protected getMarkdownByNode(foundNodeByLine: LinePositionedNode<AbstractNode>, parsedFile: ParsedFusionFile, workspace: FusionWorkspace) {
 		const node = foundNodeByLine.getNode()
-		// return `Type: ${node.constructor.name}`
+		return `Type: ${node.constructor.name}`
 		this.logVerbose(`FoundNode: ` + node.constructor.name)
 
 		switch (true) {

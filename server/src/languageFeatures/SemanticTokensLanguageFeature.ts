@@ -13,7 +13,7 @@ import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/Prototyp
 import { StatementList } from 'ts-fusion-parser/out/fusion/nodes/StatementList'
 import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
-import { GlobalCache } from '../cache/Cache'
+import { FusionFileAffectedCache } from '../cache/FusionFileAffectedCache'
 import { LinePosition, LinePositionedNode } from '../common/LinePositionedNode'
 import { NodeService } from '../common/NodeService'
 import { findParent, getObjectIdentifier, parseSemanticComment } from '../common/util'
@@ -40,6 +40,7 @@ function sortSemanticTokenConstructsByLineAndCharacter(constructs: SemanticToken
 
 //TODO: Consolidate with DefinitionCapability::getControllerActionDefinition
 export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
+	protected cache: FusionFileAffectedCache<number[]> = new FusionFileAffectedCache('SemanticTokensLanguageFeature')
 
 	static TokenTypes = [
 		'namespace', 'type',
@@ -73,7 +74,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 		const fileUri = languageFeatureContext.parsedFile.uri
 		const cacheId = 'SemanticTokensLanguageFeature_' + fileUri
 
-		const data = GlobalCache.retrieve(cacheId, () => {
+		const data = this.cache.retrieve(cacheId, () => {
 			const semanticTokenConstructs: SemanticTokenConstruct[] = []
 
 			semanticTokenConstructs.push(...this.generateActionUriTokens(languageFeatureContext))

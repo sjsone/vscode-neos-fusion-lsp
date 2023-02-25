@@ -30,6 +30,7 @@ import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapabil
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { AbstractFunctionality } from './common/AbstractFunctionality'
 import { addFusionIgnoreSemanticCommentAction } from './actions/AddFusionIgnoreSemanticCommentAction'
+import { CacheManager } from './cache/CacheManager'
 
 
 export class LanguageServer extends Logger {
@@ -199,7 +200,7 @@ export class LanguageServer extends Logger {
 	protected handleFileChanged(change: FileEvent) {
 		if (!change.uri.endsWith(".php")) return
 
-		clearLineDataCacheForFile(change.uri)
+		CacheManager.clearByFusionFileUri(change.uri)
 
 		for (const workspace of this.fusionWorkspaces) {
 			for (const [_, neosPackage] of workspace.neosWorkspace.getPackages().entries()) {
@@ -231,7 +232,7 @@ export class LanguageServer extends Logger {
 	}
 
 	protected handleFileDeleted(change: FileEvent) {
-		clearLineDataCacheForFile(change.uri)
+		CacheManager.clearByFusionFileUri(change.uri)
 
 		if (!change.uri.endsWith(".fusion")) return
 		const workspace = this.getWorkspaceForFileUri(change.uri)

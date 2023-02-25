@@ -3,7 +3,7 @@ import { Logger } from '../common/Logging'
 export type CacheTag = string
 export type CacheKey = string
 
-class Cache<T> extends Logger {
+export class Cache<T> extends Logger {
 	private cacheStore: Map<string, T>
 	private keyTags: Map<CacheKey, CacheTag[]>
 	private tagKeys: Map<CacheTag, CacheKey[]>
@@ -84,7 +84,3 @@ class Cache<T> extends Logger {
 		this.tagKeys.clear()
 	}
 }
-
-const GlobalCache = new Cache<any>("GlobalCache")
-
-export { Cache, GlobalCache }
