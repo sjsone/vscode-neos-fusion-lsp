@@ -209,6 +209,8 @@ export class DefinitionCapability extends AbstractCapability {
 	getControllerActionDefinition(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<ObjectStatement>, context: ParsedFileCapabilityContext<AbstractNode>) {
 		const node = foundNodeByLine.getNode()
 
+		// TODO: Account for multiple action definitions as resolving cannot be a 100% certain
+
 		if (!(node.operation instanceof ValueAssignment)) return null
 
 		const line = context.params.position.line
@@ -331,8 +333,6 @@ export class DefinitionCapability extends AbstractCapability {
 		if (!currentPrototypeName) return actionUriDefinition
 
 		for (const otherParsedFile of workspace.parsedFiles) {
-			if (!(currentPrototypeName in otherParsedFile.prototypesInRoutes)) continue
-
 			const completedActionUriDefinition = this.tryToCompleteActionUriDefinitionWithParsedFile(currentPrototypeName, otherParsedFile, actionUriDefinition)
 			if (completedActionUriDefinition) return completedActionUriDefinition
 		}
@@ -342,19 +342,19 @@ export class DefinitionCapability extends AbstractCapability {
 	}
 
 	protected tryToCompleteActionUriDefinitionWithParsedFile(currentPrototypeName: string, parsedFile: ParsedFusionFile, actionUriDefinition: ActionUriDefinition) {
-		for (const route of parsedFile.prototypesInRoutes[currentPrototypeName]) {
-			if (route.action !== actionUriDefinition.action) continue
-
+		for (const routeDefinition of parsedFile.getRouteDefinitionsForPrototypeName(currentPrototypeName)) {
 			if (actionUriDefinition.controller) {
-				if (route.controller !== actionUriDefinition.controller) continue
-				actionUriDefinition.package = route.package
+				if (routeDefinition.controllerName !== actionUriDefinition.controller) continue
+				actionUriDefinition.package = routeDefinition.packageName
 				return actionUriDefinition
 			}
 
-			actionUriDefinition.controller = route.controller
-			actionUriDefinition.package = route.package
+			actionUriDefinition.controller = routeDefinition.controllerName
+			actionUriDefinition.package = routeDefinition.packageName
 			return actionUriDefinition
 		}
+
+		return undefined
 	}
 
 	getTagAttributeDefinition(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<TagAttributeNode>, context: ParsedFileCapabilityContext<TagAttributeNode>): null | LocationLink[] {
