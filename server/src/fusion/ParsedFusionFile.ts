@@ -302,10 +302,6 @@ export class ParsedFusionFile extends Logger {
 		this.nodesByType.set(type, nodesWithType)
 	}
 
-	public async diagnose(): Promise<Diagnostic[] | null> {
-		return diagnose(this)
-	}
-
 	protected handleFusionRouting(text: string) {
 		const fusionObjectValues = this.getNodesByType(FusionObjectValue) ?? []
 		for (const fusionObjectValue of fusionObjectValues) {
