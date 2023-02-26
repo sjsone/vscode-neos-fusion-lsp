@@ -20,6 +20,7 @@ export { logServiceInstance as LogService, LogService as LogServiceClass }
 
 export class Logger {
 	private loggerLogName: string
+	private loggingEnabled: boolean = true
 
 	static LogNameAndLevel = (level: string, name: string, ...things: any) => {
 		console.log(`[${level.padStart(7, " ")}] <${(new Date()).toISOString()}> [${name}]`, ...things)
@@ -27,11 +28,11 @@ export class Logger {
 
 	constructor(suffix: string | undefined = undefined) {
 		this.loggerLogName = this.constructor.name
-		if(suffix) this.loggerLogName += "|"+suffix
+		if (suffix) this.loggerLogName += "|" + suffix
 	}
 
 	private logLevel(level: string, ...things: any) {
-		Logger.LogNameAndLevel(level.toUpperCase().padStart(7, " "), this.loggerLogName, ...things)
+		if (this.loggingEnabled) Logger.LogNameAndLevel(level.toUpperCase().padStart(7, " "), this.loggerLogName, ...things)
 	}
 
 	log(...things: any) {
