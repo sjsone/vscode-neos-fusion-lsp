@@ -83,6 +83,7 @@
             },
             "default": [
               "Resources/Private/Fusion",
+              "Resources/Private/FusionModule",
               "Resources/Private/FusionModules",
               "Resources/Private/FusionPlugins",
               "NodeTypes"
