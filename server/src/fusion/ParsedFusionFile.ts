@@ -2,37 +2,18 @@ import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { FusionParserOptions, ObjectTreeParser } from 'ts-fusion-parser'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
-import { NodePosition } from 'ts-fusion-parser/out/common/NodePosition'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
-import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
-import { StatementList } from 'ts-fusion-parser/out/fusion/nodes/StatementList'
-import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
-import { ValueCopy } from 'ts-fusion-parser/out/fusion/nodes/ValueCopy'
-import { PhpClassMethodNode } from './PhpClassMethodNode'
-import { PhpClassNode } from './PhpClassNode'
 import { FusionWorkspace } from './FusionWorkspace'
 import { LinePositionedNode } from '../common/LinePositionedNode'
-import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
-import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
-import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
-import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 import { clearLineDataCacheForFile, findParent, getNodeWeight, getObjectIdentifier, getPrototypeNameFromNode, uriToPath } from '../common/util'
-import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/nodes/MetaPathSegment'
-import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
-import { FqcnNode } from './FqcnNode'
-import { ResourceUriNode } from './ResourceUriNode'
-import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
-import { ActionUriActionNode } from './ActionUriActionNode'
-import { ActionUriControllerNode } from './ActionUriControllerNode'
-import { ActionUriDefinitionNode } from './ActionUriDefinitionNode'
-import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode'
 import { Logger } from '../common/Logging'
-import { FusionFile } from 'ts-fusion-parser/out/fusion/nodes/FusionFile'
 import { EelParserOptions } from 'ts-fusion-parser/out/dsl/eel/parser'
 import { AfxParserOptions } from 'ts-fusion-parser/out/dsl/afx/parser'
 import { FusionFileProcessor } from './FusionFileProcessor'
+import { NeosPackage } from '../neos/NeosPackage'
+import { AbstractPathSegment } from 'ts-fusion-parser/out/fusion/nodes/AbstractPathSegment'
 
 
 const eelParserOptions: EelParserOptions = {
@@ -50,10 +31,16 @@ const fusionParserOptions: FusionParserOptions = {
 	ignoreErrors: true
 }
 
+export interface RouteDefinition {
+	packageName: string,
+	controllerName: string,
+	actions: { [key: string]: string[] }
+}
 
 export class ParsedFusionFile extends Logger {
 	protected fusionFileProcessor: FusionFileProcessor
 	public workspace: FusionWorkspace
+	public neosPackage: NeosPackage
 	public uri: string
 	public tokens: any[] = []
 
@@ -63,20 +50,22 @@ export class ParsedFusionFile extends Logger {
 
 	public nodesByLine: { [key: string]: LinePositionedNode<AbstractNode>[] } = {}
 	public nodesByType: Map<new (...args: unknown[]) => AbstractNode, LinePositionedNode<AbstractNode>[]> = new Map()
-	public prototypesInRoutes: { [key: string]: { action: string, controller: string, package?: string }[] } = {}
+
+	public routeDefinitions: { [key: string]: RouteDefinition } = {}
 
 	public ignoredDueToError = false
 	public ignoredErrorsByParser: Error[] = []
 
 	protected debug: boolean
 
-	constructor(uri: string, workspace: FusionWorkspace) {
+	constructor(uri: string, workspace: FusionWorkspace, neosPackage: NeosPackage) {
 		const loggerPrefix = NodePath.basename(uriToPath(uri))
 		super(loggerPrefix)
 		this.fusionFileProcessor = new FusionFileProcessor(this, loggerPrefix)
 		this.uri = uri
 		this.workspace = workspace
-		this.debug = this.uri.endsWith("Test.fusion")
+		this.neosPackage = neosPackage
+		this.debug = this.uri.endsWith("FusionModule/Routing.fusion")
 	}
 
 	init(text: string = undefined) {
@@ -150,6 +139,46 @@ export class ParsedFusionFile extends Logger {
 		}
 	}
 
+	protected extractPackageAndControllerNameFromFusionRoute(segments: AbstractPathSegment[]) {
+		const fusionRoute = segments.map(s => s["identifier"]).join('.')
+		const ownPackageNameWithDot = this.neosPackage.getPackageName() + '.'
+
+		if (fusionRoute.startsWith(ownPackageNameWithDot)) {
+			const controllerPathParts = fusionRoute.replace(ownPackageNameWithDot, '').split('.')
+
+			const fullControllerName = controllerPathParts.join('/')
+			const controllerName = fullControllerName.replace(/(Controller)$/, "")
+
+			return {
+				packageName: this.neosPackage.getPackageName(),
+				controllerName
+			}
+		}
+
+
+		const packageName = segments.slice(0, 2).map(s => s["identifier"]).join('.')
+
+		const fullControllerName = segments.slice(2).map(s => s["identifier"]).join('/')
+		const controllerName = fullControllerName.replace(/(Controller)$/, "")
+
+		return {
+			packageName,
+			controllerName
+		}
+	}
+
+	public getRouteDefinitionsForPrototypeName(prototypeName: string) {
+		const routeDefinitions: RouteDefinition[] = []
+		for (const routeDefinition of Object.values(this.routeDefinitions)) {
+			for (const actionName in routeDefinition.actions) {
+				const action = routeDefinition.actions[actionName]
+				if (action.includes(prototypeName)) routeDefinitions.push(routeDefinition)
+			}
+		}
+
+		return routeDefinitions
+	}
+
 	protected addPrototypeInRoutes(node: PrototypePathSegment | FusionObjectValue) {
 		const prototypeName = getPrototypeNameFromNode(node)
 		const actionObjectStatement = findParent(node, ObjectStatement)
@@ -159,18 +188,18 @@ export class ParsedFusionFile extends Logger {
 
 		const controllerPathSegments = controllerObjectStatement.path.segments
 
-		const packageName = controllerPathSegments.slice(0, 2).map(s => s["identifier"]).join('.')
+		const { packageName, controllerName } = this.extractPackageAndControllerNameFromFusionRoute(controllerPathSegments)
 
-		const fullControllerName = controllerPathSegments.slice(2).map(s => s["identifier"]).join('/')
-		const controllerName = fullControllerName.replace(/(Controller)$/, "")
+		const routeIdentifier = packageName + '_' + controllerName
 
-		if (this.prototypesInRoutes[prototypeName] === undefined) this.prototypesInRoutes[prototypeName] = []
+		if (this.routeDefinitions[routeIdentifier] === undefined) this.routeDefinitions[routeIdentifier] = {
+			packageName,
+			controllerName,
+			actions: {}
+		}
 
-		this.prototypesInRoutes[prototypeName].push({
-			action: actionName,
-			controller: controllerName,
-			package: packageName
-		})
+		if (this.routeDefinitions[routeIdentifier].actions[actionName] === undefined) this.routeDefinitions[routeIdentifier].actions[actionName] = []
+		if (!this.routeDefinitions[routeIdentifier].actions[actionName].includes(prototypeName)) this.routeDefinitions[routeIdentifier].actions[actionName].push(prototypeName)
 	}
 
 	getNodesByLineAndColumn(line: number, column: number) {
