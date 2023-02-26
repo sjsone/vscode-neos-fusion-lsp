@@ -11,6 +11,7 @@ import { Logger, LogService } from '../common/Logging'
 import { LanguageServer } from '../LanguageServer'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { diagnose } from '../diagnostics/ParsedFusionFileDiagnostics'
+import { NeosPackage } from '../neos/NeosPackage'
 
 export class FusionWorkspace extends Logger {
     public uri: string
@@ -75,7 +76,8 @@ export class FusionWorkspace extends Logger {
 
         const incrementPerPackage = 100 / packagesPaths.length
 
-        for (const packagePath of packagesPaths) {
+        for (const neosPackage of this.neosWorkspace.getPackages().values()) {
+            const packagePath = neosPackage["path"]
             this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
                 message: `Package: ${packagePath}`
             })
@@ -84,7 +86,7 @@ export class FusionWorkspace extends Logger {
                 if (!NodeFs.existsSync(fusionFolderPath)) continue
 
                 for (const fusionFilePath of getFiles(fusionFolderPath)) {
-                    this.addParsedFileFromPath(fusionFilePath)
+                    this.addParsedFileFromPath(fusionFilePath, neosPackage)
                 }
             }
             this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
@@ -109,9 +111,9 @@ export class FusionWorkspace extends Logger {
         this.processFilesToDiagnose()
     }
 
-    addParsedFileFromPath(fusionFilePath: string) {
+    addParsedFileFromPath(fusionFilePath: string, neosPackage: NeosPackage) {
         try {
-            const parsedFile = new ParsedFusionFile(pathToUri(fusionFilePath), this)
+            const parsedFile = new ParsedFusionFile(pathToUri(fusionFilePath), this, neosPackage)
             this.initParsedFile(parsedFile)
             this.parsedFiles.push(parsedFile)
         } catch (e) {
