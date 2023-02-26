@@ -361,7 +361,14 @@ export class DefinitionCapability extends AbstractCapability {
 		const node = foundNodeByLine.getNode()
 		const tagNode = findParent(node, TagNode)
 		const locationLinks: LocationLink[] = []
-		const originSelectionRange = foundNodeByLine.getPositionAsRange()
+		const nodePositionBegin = foundNodeByLine.getBegin()
+		const originSelectionRange = {
+			start: nodePositionBegin,
+			end: {
+				line: nodePositionBegin.line,
+				character: nodePositionBegin.character + node.name.length
+			}
+		}
 
 		for (const property of NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace, true)) {
 			if (getObjectIdentifier(property.statement) !== node.name) continue
