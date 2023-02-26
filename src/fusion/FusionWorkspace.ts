@@ -10,6 +10,7 @@ import { getFiles, pathToUri, uriToPath } from '../common/util'
 import { Logger, LogService } from '../common/Logging'
 import { LanguageServer } from '../LanguageServer'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { diagnose } from '../diagnostics/ParsedFusionFileDiagnostics'
 
 export class FusionWorkspace extends Logger {
     public uri: string
@@ -183,7 +184,7 @@ export class FusionWorkspace extends Logger {
 
     protected async processFilesToDiagnose() {
         await Promise.all(this.filesToDiagnose.map(async parsedFile => {
-            const diagnostics = await parsedFile.diagnose()
+            const diagnostics = await diagnose(parsedFile)
             if (diagnostics) {
                 this.languageServer.sendDiagnostics({
                     uri: parsedFile.uri,
