@@ -35,6 +35,7 @@ export interface ExtensionConfiguration {
         ignore: {
             folders: string[]
         },
+        alwaysDiagnoseChangedFile: boolean,
         levels: {
             deprecations: DeprecationsDiagnosticLevels
         }

@@ -159,6 +159,11 @@ export class FusionWorkspace extends Logger {
         const file = this.getParsedFileByUri(change.document.uri)
         if (file === undefined) return
         this.initParsedFile(file, change.document.getText())
+
+        if (this.configuration.diagnostics.alwaysDiagnoseChangedFile && !this.filesToDiagnose.includes(file)) {
+            this.filesToDiagnose.push(file)
+        }
+
         await this.processFilesToDiagnose()
     }
 

@@ -125,11 +125,13 @@
         "properties": {
           "neosFusionLsp.diagnostics.enabled": {
             "type": "boolean",
+            "order": 0,
             "default": true,
             "description": "Enable diagnostics feature."
           },
           "neosFusionLsp.diagnostics.levels.deprecations": {
             "type": "string",
+            "order": 1,
             "default": "hint",
             "enum": [
               "hint",
@@ -148,6 +150,7 @@
           "neosFusionLsp.diagnostics.ignore.folders": {
             "scope": "window",
             "type": "array",
+            "order": 2,
             "items": {
               "type": "string",
               "title": "Folder path"
@@ -156,6 +159,13 @@
               "Packages/"
             ],
             "description": "Folders to ignore automatic diagnostics in"
+          },
+          "neosFusionLsp.diagnostics.alwaysDiagnoseChangedFile": {
+            "scope": "window",
+            "type": "boolean",
+            "order": 3,
+            "default": false,
+            "description": "Always diagnose changed files even if they are in ignored folders."
           }
         }
       },
