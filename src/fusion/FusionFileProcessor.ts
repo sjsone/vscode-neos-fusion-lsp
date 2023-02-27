@@ -119,6 +119,9 @@ export class FusionFileProcessor extends Logger {
 
 		endPrototypePath["parent"] = node
 		this.parsedFusionFile.addNode(endPrototypePath, text)
+
+		// TODO: Handle `<Neos.Fusion.Form:Form form.target.action ... />` as new ActionUriActionNode
+		// TODO: Handle `<Neos.Fusion.Form:Form form.target.controller ... />` as new ActionUriControllerNode
 	}
 
 	protected processTagAttributeNode(node: TagAttributeNode, text: string) {
