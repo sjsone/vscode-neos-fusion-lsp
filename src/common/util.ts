@@ -86,7 +86,7 @@ export function* getFiles(dir: string, withExtension = ".fusion") {
         if (dirent.isSymbolicLink()) continue
         const res = NodePath.resolve(dir, dirent.name)
         if (dirent.isDirectory()) {
-            yield* getFiles(res)
+            yield* getFiles(res, withExtension)
         } else if (NodePath.extname(res) === withExtension) {
             yield res
         }
