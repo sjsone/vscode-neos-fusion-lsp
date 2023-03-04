@@ -1,5 +1,6 @@
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { SymbolKind, WorkspaceSymbol } from 'vscode-languageserver';
+import { Position, Range, SymbolKind, WorkspaceSymbol } from 'vscode-languageserver';
+import { FusionWorkspace } from '../fusion/FusionWorkspace';
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
 import { AbstractCapability } from './AbstractCapability';
 import { CapabilityContext, WorkspacesCapabilityContext } from './CapabilityContext';
@@ -12,6 +13,9 @@ export class WorkspaceSymbolCapability extends AbstractCapability {
 		for (const workspace of workspaces) {
 			for (const parsedFile of workspace.parsedFiles) {
 				symbols.push(...this.getSymbolsFromParsedFile(parsedFile))
+
+				// TODO: Make NodeTypes WorkspaceSymbols configurable in settings
+				symbols.push(...this.getSymbolsFromNodeTypes(workspace))
 			}
 		}
 
@@ -43,6 +47,24 @@ export class WorkspaceSymbolCapability extends AbstractCapability {
 				location: { uri: parsedFile.uri, range: prototypePathSegment.getPositionAsRange() },
 				kind: SymbolKind.Constructor,
 			})
+		}
+
+		return symbols
+	}
+
+	protected getSymbolsFromNodeTypes(workspace: FusionWorkspace): WorkspaceSymbol[] {
+		const symbols: WorkspaceSymbol[] = []
+
+		for (const neosPackage of workspace.neosWorkspace.getPackages().values()) {
+			const nodeTypeDefinitions = neosPackage["configuration"]["nodeTypeDefinitions"]
+			if (!nodeTypeDefinitions) continue
+			for (const nodeTypeDefinition of nodeTypeDefinitions) {
+				symbols.push({
+					name: `${nodeTypeDefinition.nodeType} [${neosPackage?.getPackageName()}]`,
+					location: { uri: nodeTypeDefinition.uri, range: Range.create(Position.create(0, 0), Position.create(0, 0)) },
+					kind: SymbolKind.Struct,
+				})
+			}
 		}
 
 		return symbols
