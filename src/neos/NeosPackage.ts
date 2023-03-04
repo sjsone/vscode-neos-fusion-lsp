@@ -29,6 +29,7 @@ export class NeosPackage extends Logger {
 	protected composerJson: any
 
 	protected namespaces: Map<string, NeosPackageNamespace> = new Map()
+	protected configuration: FlowConfiguration
 	protected eelHelpers: EELHelperToken[] = []
 
 	protected debug: boolean
@@ -47,6 +48,7 @@ export class NeosPackage extends Logger {
 		this.debug = this.getName() === "neos/fusion"
 
 		this.initNamespaceLoading()
+		this.configuration = FlowConfiguration.FromFolder(this.path)
 	}
 
 	protected initNamespaceLoading() {
@@ -60,13 +62,9 @@ export class NeosPackage extends Logger {
 	}
 
 	public initEelHelper() {
-		const configurationFolderPath = NodePath.join(this.path, "Configuration")
-		if (!NodeFs.existsSync(configurationFolderPath)) return undefined
-		const neosConfiguration = FlowConfiguration.FromFolder(configurationFolderPath)
+		if (this.configuration["settingsConfiguration"] === null) return undefined
 
-		if (neosConfiguration["parsedYamlConfiguration"] === null) return undefined
-
-		const defaultNeosFusionContext = neosConfiguration.get<{}>("Neos.Fusion.defaultContext")
+		const defaultNeosFusionContext = this.configuration.get<{}>("Neos.Fusion.defaultContext")
 		if (!defaultNeosFusionContext) return undefined
 
 		this.logVerbose("Found EEL-Helpers:")
