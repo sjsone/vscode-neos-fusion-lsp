@@ -59,6 +59,12 @@ It currently only works when it is a fusion string. When the file is an image it
 
 ![resource:// capability](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/resource_completion_and_hover.gif?raw=true)
 
+### CodeLens
+
+Currently it CodeLens only provides a link to the NodeType-YAML-File for Prototype-Creations.
+
+![resource:// capability](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/codelens_nodetype.gif?raw=true)
+
 ## Diagnostics
 
 ### Fusion Properties
