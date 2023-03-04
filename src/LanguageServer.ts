@@ -30,6 +30,7 @@ import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapabil
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { AbstractFunctionality } from './common/AbstractFunctionality'
 import { addFusionIgnoreSemanticCommentAction } from './actions/AddFusionIgnoreSemanticCommentAction'
+import { CodeLensCapability } from './capabilities/CodeLensCapability'
 
 
 export class LanguageServer extends Logger {
@@ -51,6 +52,7 @@ export class LanguageServer extends Logger {
 		this.addFunctionalityInstance(ReferenceCapability)
 		this.addFunctionalityInstance(DocumentSymbolCapability)
 		this.addFunctionalityInstance(WorkspaceSymbolCapability)
+		this.addFunctionalityInstance(CodeLensCapability)
 
 		this.addFunctionalityInstance(InlayHintLanguageFeature)
 		this.addFunctionalityInstance(SemanticTokensLanguageFeature)
@@ -117,6 +119,9 @@ export class LanguageServer extends Logger {
 				},
 				codeActionProvider: true,
 				definitionProvider: true,
+				codeLensProvider: {
+					resolveProvider: false
+				},
 				hoverProvider: true,
 				referencesProvider: true,
 				documentSymbolProvider: true,
@@ -226,7 +231,9 @@ export class LanguageServer extends Logger {
 			this.logInfo(`Created Fusion file corresponds to no workspace. ${change.uri}`)
 			return
 		}
-		workspace.addParsedFileFromPath(uriToPath(change.uri))
+
+		const neosPackage = workspace.neosWorkspace.getPackageByUri(change.uri)
+		workspace.addParsedFileFromPath(uriToPath(change.uri), neosPackage)
 		this.logDebug(`Added new ParsedFusionFile ${change.uri}`)
 	}
 

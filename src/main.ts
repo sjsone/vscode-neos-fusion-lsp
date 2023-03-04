@@ -13,6 +13,7 @@ import { ReferenceCapability } from './capabilities/ReferenceCapability'
 import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
+import { CodeLensCapability } from './capabilities/CodeLensCapability'
 
 export type FusionDocument = TextDocument
 
@@ -41,6 +42,7 @@ connection.onCompletionResolve(item => item)
 connection.onHover(params => languageserver.runCapability(HoverCapability, params))
 connection.onDocumentSymbol(params => languageserver.runCapability(DocumentSymbolCapability, params))
 connection.onWorkspaceSymbol(params => languageserver.runCapability(WorkspaceSymbolCapability, params))
+connection.onCodeLens(params => languageserver.runCapability(CodeLensCapability, params))
 
 connection.languages.semanticTokens.on(params => languageserver.runLanguageFeature(SemanticTokensLanguageFeature, params))
 connection.languages.inlayHint.on(params => languageserver.runLanguageFeature(InlayHintLanguageFeature, params))
