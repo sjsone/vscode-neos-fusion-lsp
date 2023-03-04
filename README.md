@@ -61,7 +61,7 @@ It currently only works when it is a fusion string. When the file is an image it
 
 ### CodeLens
 
-Currently it CodeLens only provides a link to the NodeType-YAML-File for Prototype-Creations.
+Currently it only provides a link to the NodeType-YAML-File for Prototype-Creations.
 
 ![resource:// capability](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/codelens_nodetype.gif?raw=true)
 
