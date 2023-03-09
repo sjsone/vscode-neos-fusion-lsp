@@ -262,7 +262,11 @@
         "aliases": [
           "Fusion"
         ],
-        "configuration": "./language-configuration.json"
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "dark": "./icons/filetype_dark_fusion.svg",
+          "light": "./icons/filetype_light_fusion.svg"
+        }
       }
     ]
   },

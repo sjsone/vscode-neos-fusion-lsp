@@ -8,6 +8,8 @@
 contributing.md
 .travis.yml
 *.svg
+!icons/filetype_dark_fusion.svg
+!icons/filetype_light_fusion.svg
 images/
 !images/logo.png
 @types
