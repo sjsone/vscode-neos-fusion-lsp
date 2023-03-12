@@ -8,6 +8,7 @@ import {
 } from 'vscode-languageclient/node'
 import { AbstractCommandConstructor } from './commands/AbstractCommand'
 import { InspectCommand } from './commands/InspectCommand'
+import { ReloadCommand } from './commands/ReloadCommand'
 import { PreferenceService } from './PreferenceService'
 import { ProgressNotificationService } from './ProgressNotificationService'
 import { StatusItemService } from './StatusItemService'
@@ -55,6 +56,7 @@ export class Extension {
 		})
 
 		this.registerCommand(InspectCommand)
+		this.registerCommand(ReloadCommand)
 	}
 
 	protected onDidOpenTextDocument(document: TextDocument) {
@@ -73,7 +75,7 @@ export class Extension {
 	}
 
 	protected registerCommand(command: AbstractCommandConstructor) {
-		this.context.subscriptions.push(commands.registerCommand(command.Identifier, (new command(this)).callback));
+		this.context.subscriptions.push(commands.registerCommand(command.Identifier, (...args: any[]) => (new command(this)).callback(...args)));
 	}
 
 	public deactivate() {

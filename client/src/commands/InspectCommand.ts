@@ -1,21 +1,10 @@
-import { Uri, workspace as Workspace } from 'vscode';
-import { AbstractCommand } from './AbstractCommand';
+import { WorkspaceFolder } from 'vscode';
+import { ReloadCommand } from './ReloadCommand';
 
-export class InspectCommand extends AbstractCommand {
+export class InspectCommand extends ReloadCommand {
 	static Identifier = "neos-fusion-lsp.inspect"
 
-	public async callback(name: string = 'world') {
-		const uris = Array.from(this.extension.getClients().keys())
-
-		await this.extension.stopClients()
-
-		for (const uri of uris) {
-			const folder = Workspace.getWorkspaceFolder(Uri.file(uri.replace("file://", "")))
-			if (!folder) continue
-
-			const outerMostWorkspaceFolder = this.extension.getOuterMostWorkspaceFolder(folder)
-			this.extension.startClient(outerMostWorkspaceFolder, true)
-		}
+	protected startClient(workspaceFolder: WorkspaceFolder): void {
+		this.extension.startClient(workspaceFolder, true)
 	}
-
 }

@@ -250,7 +250,11 @@
     "commands": [
       {
         "command": "neos-fusion-lsp.inspect",
-        "title": "inspect Neos Fusion LSP "
+        "title": "Fusion: Inspect Neos Fusion LSP "
+      },
+      {
+        "command": "neos-fusion-lsp.reload",
+        "title": "Fusion: Reload Neos Fusion LSP "
       }
     ],
     "languages": [
