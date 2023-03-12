@@ -170,6 +170,8 @@ export class LanguageServer extends Logger {
 
 	public onDidChangeConfiguration(params: DidChangeConfigurationParams) {
 		const configuration: ExtensionConfiguration = params.settings.neosFusionLsp
+		Object.freeze(configuration)
+
 		this.sendBusyCreate('configuration', {
 			busy: true,
 			text: "$(rocket)",

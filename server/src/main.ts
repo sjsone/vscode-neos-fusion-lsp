@@ -15,7 +15,7 @@ import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokens
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 import { CodeLensCapability } from './capabilities/CodeLensCapability'
 
-export type FusionDocument = TextDocument
+export interface FusionDocument extends TextDocument { }
 
 // INFO: https://github.com/microsoft/vscode/issues/135453
 
