@@ -14,15 +14,23 @@ import { LiteralNumberNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNum
 import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode';
 import { LiteralNullNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNullNode';
 import { LiteralObjectEntryNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralObjectEntryNode';
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
 
 export class InlayHintLanguageFeature extends AbstractLanguageFeature {
 
 	protected run({ parsedFile, workspace }: LanguageFeatureContext) {
 		if (workspace.getConfiguration().inlayHint.depth === InlayHintDepth.Disabled) return null
 
-		const inlayHints: InlayHint[] = []
+		return [
+			...this.buildInlineHintForPhpClassMethodNodes(parsedFile, workspace)
+		]
+	}
+
+	protected buildInlineHintForPhpClassMethodNodes(parsedFile: ParsedFusionFile, workspace: FusionWorkspace): InlayHint[] {
 		const phpMethodNodes = parsedFile.getNodesByType(PhpClassMethodNode)
-		if (!phpMethodNodes) return null
+		if (!phpMethodNodes) return []
+
+		const inlayHints: InlayHint[] = []
 		for (const phpMethodNode of phpMethodNodes) {
 			const node = phpMethodNode.getNode()
 			const eelHelper = workspace.neosWorkspace.getEelHelperTokensByName(node.eelHelper.identifier)
@@ -35,7 +43,6 @@ export class InlayHintLanguageFeature extends AbstractLanguageFeature {
 			for (const hint of this.getInlayHintsFromPhpClassMethodNode(node, method, workspace)) {
 				inlayHints.push(hint)
 			}
-
 		}
 
 		return inlayHints
@@ -75,10 +82,10 @@ export class InlayHintLanguageFeature extends AbstractLanguageFeature {
 		if (workspace.getConfiguration().inlayHint.depth === InlayHintDepth.Always) return true
 
 		// TODO: it should be just `AbstractLiteralNode` once "ts-fusion-parser" is updated
-		return argumentNode instanceof AbstractLiteralNode 
-			|| argumentNode instanceof LiteralObjectNode 
-			|| argumentNode instanceof LiteralArrayNode 
-			|| argumentNode instanceof LiteralNumberNode 
+		return argumentNode instanceof AbstractLiteralNode
+			|| argumentNode instanceof LiteralObjectNode
+			|| argumentNode instanceof LiteralArrayNode
+			|| argumentNode instanceof LiteralNumberNode
 			|| argumentNode instanceof LiteralStringNode
 			|| argumentNode instanceof LiteralNullNode
 			|| argumentNode instanceof LiteralObjectEntryNode

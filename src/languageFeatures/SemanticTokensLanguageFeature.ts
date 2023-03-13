@@ -6,6 +6,7 @@ import { LiteralNullNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNullN
 import { LiteralNumberNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNumberNode'
 import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode'
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
+import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
@@ -78,6 +79,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 		semanticTokenConstructs.push(...this.generateLiteralNullTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generateObjectPathTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generatePhpClassMethodTokens(languageFeatureContext))
+		semanticTokenConstructs.push(...this.generateFlowQueryTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generateTagTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generateTagAttributeTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generateSemanticCommentTokens(languageFeatureContext))
@@ -133,12 +135,15 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 	}
 
 	protected generateLiteralStringTokens(languageFeatureContext: LanguageFeatureContext) {
-		return this.generateForType(LiteralStringNode, languageFeatureContext, node => ({
-			position: node.getBegin(),
-			length: node.getNode()["value"].length + 2, // offset for quotes
-			type: 'string',
-			modifier: 'declaration'
-		}))
+		return this.generateForType(LiteralStringNode, languageFeatureContext, node => {
+			if (findParent(node.getNode(), EelExpressionValue)) return undefined
+			return {
+				position: node.getBegin(),
+				length: node.getNode()["value"].length + 2, // offset for quotes
+				type: 'string',
+				modifier: 'declaration'
+			}
+		})
 	}
 
 	protected generateLiteralNumberTokens(languageFeatureContext: LanguageFeatureContext) {
@@ -175,6 +180,25 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 			type: 'method',
 			modifier: 'declaration'
 		}))
+	}
+
+	protected generateFlowQueryTokens(languageFeatureContext: LanguageFeatureContext) {
+		const prototypePathSegments = languageFeatureContext.parsedFile.getNodesByType(PrototypePathSegment)
+		if (!prototypePathSegments) return []
+
+		const semanticTokenConstructs: SemanticTokenConstruct[] = []
+		for (const prototypePathSegment of prototypePathSegments) {
+			const node = prototypePathSegment.getNode()
+			if (!(node["parent"] instanceof LiteralStringNode)) continue
+			semanticTokenConstructs.push({
+				position: prototypePathSegment.getBegin(),
+				length: node.identifier.length,
+				type: 'class',
+				modifier: 'definition'
+			})
+		}
+
+		return semanticTokenConstructs
 	}
 
 	protected generateTagTokens(languageFeatureContext: LanguageFeatureContext) {
@@ -302,7 +326,13 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 
 	protected generateForType<T extends AbstractNode>(type: new (...args: any) => T, languageFeatureContext: LanguageFeatureContext, createConstructCallback: (node: LinePositionedNode<T>) => SemanticTokenConstruct) {
 		const nodes = languageFeatureContext.parsedFile.getNodesByType(type)
-		return nodes ? nodes.map(createConstructCallback) : []
+		if (!nodes) return []
+
+		return nodes.reduce((prev, current) => {
+			const value = createConstructCallback(current)
+			if (value) prev.push(value)
+			return prev
+		}, [])
 	}
 
 	protected getTypesAndModifier(identifier: string): { type: TokenTypes, modifier: TokenModifiers } {
