@@ -206,6 +206,20 @@ export class FusionFileProcessor extends Logger {
 			const resourceUriNode = new ResourceUriNode(value, literalStringNode["position"])
 			if (resourceUriNode) this.parsedFusionFile.addNode(resourceUriNode, text)
 		}
+		// [instanceof Neos.Demo:Document.Chapter]
+		if (value.startsWith('[instanceof ') && value.endsWith(']')) {
+			const prototypeName = value.slice('[instanceof '.length, value.length - 1).trim()
+			const begin = literalStringNode["position"].begin + '[instanceof '.length + 1
+			const position = {
+				begin,
+				end: begin + prototypeName.length
+			}
+			const prototypePath = new PrototypePathSegment(prototypeName, position)
+			if (prototypePath) {
+				prototypePath["parent"] = literalStringNode
+				this.parsedFusionFile.addNode(prototypePath, text)
+			}
+		}
 	}
 
 	readStatementList(statementList: StatementList, text: string) {
