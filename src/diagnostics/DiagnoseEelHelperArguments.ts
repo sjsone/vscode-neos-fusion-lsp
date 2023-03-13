@@ -6,6 +6,8 @@ import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
 import { EELHelperToken } from '../neos/NeosPackage'
 import { CommonDiagnosticHelper } from './CommonDiagnosticHelper'
 
+// TODO: Watch for php changes and re-diagnose all relevant FusionFiles
+
 function* getDiagnosticFromEelHelper(positionedNode: LinePositionedNode<PhpClassMethodNode>, pathNode: ObjectFunctionPathNode, eelHelper: EELHelperToken) {
 	const node = positionedNode.getNode()
 	if (eelHelper.name !== node.eelHelper.identifier) return
