@@ -14,6 +14,7 @@ import { AfxParserOptions } from 'ts-fusion-parser/out/dsl/afx/parser'
 import { FusionFileProcessor } from './FusionFileProcessor'
 import { NeosPackage } from '../neos/NeosPackage'
 import { AbstractPathSegment } from 'ts-fusion-parser/out/fusion/nodes/AbstractPathSegment'
+import { Position } from 'vscode-languageserver'
 
 
 const eelParserOptions: EelParserOptions = {
@@ -200,6 +201,12 @@ export class ParsedFusionFile extends Logger {
 
 		if (this.routeDefinitions[routeIdentifier].actions[actionName] === undefined) this.routeDefinitions[routeIdentifier].actions[actionName] = []
 		if (!this.routeDefinitions[routeIdentifier].actions[actionName].includes(prototypeName)) this.routeDefinitions[routeIdentifier].actions[actionName].push(prototypeName)
+	}
+
+	getNodesByPosition(position: Position) {
+		const line = position.line
+		const column = position.character
+		return this.getNodesByLineAndColumn(line, column)
 	}
 
 	getNodesByLineAndColumn(line: number, column: number) {
