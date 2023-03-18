@@ -22,6 +22,7 @@ import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
 import { AbstractLanguageFeature } from './AbstractLanguageFeature'
 import { LanguageFeatureContext } from './LanguageFeatureContext'
 import { NeosFusionFormDefinitionNode } from '../fusion/NeosFusionFormDefinitionNode'
+import { ActionUriDefinitionNode } from '../fusion/ActionUriDefinitionNode'
 
 export interface SemanticTokenConstruct {
 	position: LinePosition
@@ -95,16 +96,12 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 	protected generateActionUriTokens(languageFeatureContext: LanguageFeatureContext) {
 		const semanticTokenConstructs: SemanticTokenConstruct[] = []
 
-		const fusionObjectValues = languageFeatureContext.parsedFile.getNodesByType(FusionObjectValue)
-		if (fusionObjectValues) for (const fusionObjectValue of fusionObjectValues) {
-			const node = fusionObjectValue.getNode()
-			if (!ActionUriService.hasPrototypeNameActionUri(node.value, languageFeatureContext.workspace)) continue
+		const actionUriDefinitionNodes = languageFeatureContext.parsedFile.getNodesByType(ActionUriDefinitionNode)
+		if (actionUriDefinitionNodes) for (const actionUriDefinitionNode of actionUriDefinitionNodes) {
+			console.log("actionUriDefinitionNode", actionUriDefinitionNode)
+			const node = actionUriDefinitionNode.getNode()
 
-			const objectStatement = findParent(node, ObjectStatement)
-			if (!(objectStatement.operation instanceof ValueAssignment)) continue
-			if (objectStatement.block === undefined) continue
-
-			for (const semanticTokenConstruct of this.getSemanticTokenConstructsFromObjectStatement(objectStatement)) {
+			for (const semanticTokenConstruct of this.getSemanticTokenConstructsFromObjectStatement(node.statement)) {
 				semanticTokenConstructs.push(semanticTokenConstruct)
 			}
 		}

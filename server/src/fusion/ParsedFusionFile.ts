@@ -62,11 +62,11 @@ export class ParsedFusionFile extends Logger {
 	constructor(uri: string, workspace: FusionWorkspace, neosPackage: NeosPackage) {
 		const loggerPrefix = NodePath.basename(uriToPath(uri))
 		super(loggerPrefix)
-		this.fusionFileProcessor = new FusionFileProcessor(this, loggerPrefix)
 		this.uri = uri
 		this.workspace = workspace
 		this.neosPackage = neosPackage
 		this.debug = this.uri.endsWith("FusionModule/Routing.fusion")
+		this.fusionFileProcessor = new FusionFileProcessor(this, loggerPrefix)
 	}
 
 	init(text: string = undefined) {
