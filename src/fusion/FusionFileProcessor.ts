@@ -123,20 +123,20 @@ export class FusionFileProcessor extends Logger {
 
 		endPrototypePath["parent"] = node
 		this.parsedFusionFile.addNode(endPrototypePath, text)
-		
+
 		if (node["name"] === "Neos.Fusion.Form:Form") {
 			const neosFusionFormDefinitionNode = new NeosFusionFormDefinitionNode(node)
 			for (const attribute of node["attributes"]) {
 				if (!(attribute instanceof TagAttributeNode)) continue
 				if (!attribute["name"].startsWith("form.target")) continue
 				if (typeof attribute["value"] !== "string") continue
-	
+
 				if (attribute["name"] === "form.target.action") {
 					const actionUriActionNode = new NeosFusionFormActionNode(attribute)
 					neosFusionFormDefinitionNode.setAction(actionUriActionNode)
 					this.parsedFusionFile.addNode(actionUriActionNode, text)
 				}
-	
+
 				if (attribute["name"] === "form.target.controller") {
 					const actionUriControllerNode = new NeosFusionFormControllerNode(attribute)
 					neosFusionFormDefinitionNode.setController(actionUriControllerNode)
@@ -171,6 +171,12 @@ export class FusionFileProcessor extends Logger {
 			if (metaPathSegment instanceof MetaPathSegment) return this.processMetaObjectStatement(objectStatement, metaPathSegment, text)
 			if (objectStatement.operation.pathValue instanceof StringValue) return this.processStringValue(objectStatement.operation.pathValue, text)
 		}
+
+		if (objectStatement.operation instanceof ValueCopy && segments[0] instanceof PrototypePathSegment) {
+			// TODO: Implement second pass of `.processNodesByType` so NodeService.isPrototypeOneOf works as it should
+			const isPlugin = objectStatement.operation.assignedObjectPath.objectPath.segments[0]?.["identifier"] === "Neos.Neos:Plugin"
+			if (isPlugin) this.processActionUriObjectStatement(objectStatement, text)
+		}
 	}
 
 	protected processMetaObjectStatement(objectStatement: ObjectStatement, metaPathSegment: MetaPathSegment, text: string) {
@@ -198,13 +204,17 @@ export class FusionFileProcessor extends Logger {
 		if (!ActionUriService.hasPrototypeNameActionUri(fusionObjectValue.value, this.parsedFusionFile.workspace)) return
 		const objectStatement = findParent(fusionObjectValue, ObjectStatement)
 		if (!objectStatement || !objectStatement.block) return
+
+		this.processActionUriObjectStatement(objectStatement, text)
+	}
+
+	protected processActionUriObjectStatement(objectStatement: ObjectStatement, text: string) {
 		const actionUriDefinitionNode = new ActionUriDefinitionNode(objectStatement)
 
 		for (const statement of objectStatement.block.statementList.statements) {
 			if (!(statement instanceof ObjectStatement)) continue
 			if (!(statement.operation instanceof ValueAssignment)) continue
 			if (!(statement.operation.pathValue instanceof StringValue)) continue
-
 
 			if (getObjectIdentifier(statement) === ActionUriPartTypes.Action) {
 				const actionUriActionNode = new ActionUriActionNode(statement, statement.operation.pathValue)
@@ -217,10 +227,9 @@ export class FusionFileProcessor extends Logger {
 				actionUriDefinitionNode.setController(actionUriControllerNode)
 				this.parsedFusionFile.addNode(actionUriControllerNode, text)
 			}
-
 		}
-		this.parsedFusionFile.addNode(actionUriDefinitionNode, text)
 
+		this.parsedFusionFile.addNode(actionUriDefinitionNode, text)
 	}
 
 	protected processLiteralStringNode(literalStringNode: LiteralStringNode, text: string) {
@@ -229,7 +238,7 @@ export class FusionFileProcessor extends Logger {
 			const resourceUriNode = new ResourceUriNode(value, literalStringNode["position"])
 			if (resourceUriNode) this.parsedFusionFile.addNode(resourceUriNode, text)
 		}
-		
+
 		if (value.startsWith('[instanceof ') && value.endsWith(']')) {
 			const prototypeName = value.slice('[instanceof '.length, value.length - 1).trim()
 			const begin = literalStringNode["position"].begin + '[instanceof '.length + 1
