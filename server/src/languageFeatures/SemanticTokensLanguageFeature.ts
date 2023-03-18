@@ -21,6 +21,7 @@ import { findParent, getObjectIdentifier, parseSemanticComment } from '../common
 import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
 import { AbstractLanguageFeature } from './AbstractLanguageFeature'
 import { LanguageFeatureContext } from './LanguageFeatureContext'
+import { NeosFusionFormDefinitionNode } from '../fusion/NeosFusionFormDefinitionNode'
 
 export interface SemanticTokenConstruct {
 	position: LinePosition
@@ -92,12 +93,10 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 	}
 
 	protected generateActionUriTokens(languageFeatureContext: LanguageFeatureContext) {
-		const fusionObjectValues = languageFeatureContext.parsedFile.getNodesByType(FusionObjectValue)
-		if (!fusionObjectValues) return []
-
 		const semanticTokenConstructs: SemanticTokenConstruct[] = []
 
-		for (const fusionObjectValue of fusionObjectValues) {
+		const fusionObjectValues = languageFeatureContext.parsedFile.getNodesByType(FusionObjectValue)
+		if (fusionObjectValues) for (const fusionObjectValue of fusionObjectValues) {
 			const node = fusionObjectValue.getNode()
 			if (!ActionUriService.hasPrototypeNameActionUri(node.value, languageFeatureContext.workspace)) continue
 
@@ -107,6 +106,23 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 
 			for (const semanticTokenConstruct of this.getSemanticTokenConstructsFromObjectStatement(objectStatement)) {
 				semanticTokenConstructs.push(semanticTokenConstruct)
+			}
+		}
+
+		const neosFusionFormDefinitionNodes = languageFeatureContext.parsedFile.getNodesByType(NeosFusionFormDefinitionNode)
+		if (neosFusionFormDefinitionNodes) for (const neosFusionFormDefinitionNode of neosFusionFormDefinitionNodes) {
+			const node = neosFusionFormDefinitionNode.getNode()
+
+			for (const definition of [node.action, node.controller].filter(Boolean)) {
+				const begin = definition.tagAttribute.linePositionedNode.getBegin()
+				semanticTokenConstructs.push({
+					position: {
+						character: begin.character + definition.tagAttribute.name.length + 2, // offset for quote and `=`
+						line: begin.line
+					},
+					length: definition.tagAttribute.value.replace(/\\/g, "\\\\").length - 2,
+					...this.getTypesAndModifier(definition.tagAttribute.name.replace('form.target.', ''))
+				})
 			}
 		}
 
