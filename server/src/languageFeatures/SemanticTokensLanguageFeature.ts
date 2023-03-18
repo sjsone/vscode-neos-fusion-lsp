@@ -14,7 +14,7 @@ import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/Prototyp
 import { StatementList } from 'ts-fusion-parser/out/fusion/nodes/StatementList'
 import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
-import { ActionUriService } from '../common/ActionUriService'
+import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService'
 import { LinePosition, LinePositionedNode } from '../common/LinePositionedNode'
 import { NodeService } from '../common/NodeService'
 import { findParent, getObjectIdentifier, parseSemanticComment } from '../common/util'
@@ -91,28 +91,6 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 		}
 	}
 
-	protected * getSemanticTokenConstructsFromObjectStatement(objectStatement: ObjectStatement) {
-		for (const statement of objectStatement.block.statementList.statements) {
-			if (!(statement instanceof ObjectStatement)) continue
-			if (!(statement.operation instanceof ValueAssignment)) continue
-			if (!(statement.operation.pathValue instanceof StringValue)) continue
-
-			const identifier = getObjectIdentifier(statement)
-
-			if (identifier !== "controller" && identifier !== "action" && identifier !== "package") continue
-
-			const begin = statement.operation.pathValue.linePositionedNode.getBegin()
-			yield {
-				position: {
-					character: begin.character + 1, // offset for quote
-					line: begin.line
-				},
-				length: statement.operation.pathValue.value.replace(/\\/g, "\\\\").length,
-				...this.getTypesAndModifier(identifier)
-			}
-		}
-	}
-
 	protected generateActionUriTokens(languageFeatureContext: LanguageFeatureContext) {
 		const fusionObjectValues = languageFeatureContext.parsedFile.getNodesByType(FusionObjectValue)
 		if (!fusionObjectValues) return []
@@ -133,6 +111,27 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 		}
 
 		return semanticTokenConstructs
+	}
+
+	protected * getSemanticTokenConstructsFromObjectStatement(objectStatement: ObjectStatement) {
+		for (const statement of objectStatement.block.statementList.statements) {
+			if (!(statement instanceof ObjectStatement)) continue
+			if (!(statement.operation instanceof ValueAssignment)) continue
+			if (!(statement.operation.pathValue instanceof StringValue)) continue
+
+			const identifier = getObjectIdentifier(statement)
+			if (identifier !== ActionUriPartTypes.Action && identifier !== ActionUriPartTypes.Controller && identifier !== ActionUriPartTypes.Package) continue
+
+			const begin = statement.operation.pathValue.linePositionedNode.getBegin()
+			yield {
+				position: {
+					character: begin.character + 1, // offset for quote
+					line: begin.line
+				},
+				length: statement.operation.pathValue.value.replace(/\\/g, "\\\\").length,
+				...this.getTypesAndModifier(identifier)
+			}
+		}
 	}
 
 	protected generateLiteralStringTokens(languageFeatureContext: LanguageFeatureContext) {
@@ -337,9 +336,9 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 	}
 
 	protected getTypesAndModifier(identifier: string): { type: TokenTypes, modifier: TokenModifiers } {
-		if (identifier === "action") return { type: 'method', modifier: 'declaration' }
-		if (identifier === "controller") return { type: 'class', modifier: 'declaration' }
-		if (identifier === "package") return { type: 'namespace', modifier: 'declaration' }
+		if (identifier === ActionUriPartTypes.Action) return { type: 'method', modifier: 'declaration' }
+		if (identifier === ActionUriPartTypes.Controller) return { type: 'class', modifier: 'declaration' }
+		if (identifier === ActionUriPartTypes.Package) return { type: 'namespace', modifier: 'declaration' }
 		return { type: 'variable', modifier: 'declaration' }
 	}
 
