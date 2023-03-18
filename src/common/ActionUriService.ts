@@ -39,7 +39,7 @@ class ActionUriService extends Logger {
 		let actionUriDefinition = this.buildBaseActionUriDefinitionFromFusionFormDefinitionNode(neosFusionFormDefinitionNode)
 		// TODO: implement tryToCompleteActionUriDefinitionPackage for `NeosFusionFormDefinitionNode`
 		// actionUriDefinition = this.tryToCompleteActionUriDefinitionPackage(tagAttributeNode, workspace, parsedFile, actionUriDefinition)
-		this.logInfo("Found Action URI Definition: ", actionUriDefinition)
+		this.logDebug("Found Action URI Definition: ", actionUriDefinition)
 
 		if (!actionUriDefinition.package || !actionUriDefinition.controller || !actionUriDefinition.action) return null
 
