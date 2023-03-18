@@ -22,6 +22,7 @@ export enum ActionUriPartTypes {
 	Controller = 'controller'
 }
 
+//TODO: Maybe there is a better name than `ActionUri` for Action/Controller/Package combination 
 class ActionUriService extends Logger {
 
 	public hasPrototypeNameActionUri(prototypeName: string, workspace: FusionWorkspace) {
