@@ -14,6 +14,7 @@ import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/Prototyp
 import { StatementList } from 'ts-fusion-parser/out/fusion/nodes/StatementList'
 import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
+import { ActionUriService } from '../common/ActionUriService'
 import { LinePosition, LinePositionedNode } from '../common/LinePositionedNode'
 import { NodeService } from '../common/NodeService'
 import { findParent, getObjectIdentifier, parseSemanticComment } from '../common/util'
@@ -120,7 +121,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 
 		for (const fusionObjectValue of fusionObjectValues) {
 			const node = fusionObjectValue.getNode()
-			if (!["Neos.Fusion:ActionUri", "Neos.Fusion:UriBuilder"].includes(node.value)) continue
+			if (!ActionUriService.hasPrototypeNameActionUri(node.value, languageFeatureContext.workspace)) continue
 
 			const objectStatement = findParent(node, ObjectStatement)
 			if (!(objectStatement.operation instanceof ValueAssignment)) continue

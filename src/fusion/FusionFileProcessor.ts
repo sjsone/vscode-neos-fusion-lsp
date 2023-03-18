@@ -16,6 +16,7 @@ import { StatementList } from 'ts-fusion-parser/out/fusion/nodes/StatementList';
 import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue';
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment';
 import { ValueCopy } from 'ts-fusion-parser/out/fusion/nodes/ValueCopy';
+import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService';
 import { LinePositionedNode } from '../common/LinePositionedNode';
 import { Logger } from '../common/Logging';
 import { findParent, getObjectIdentifier } from '../common/util';
@@ -27,6 +28,9 @@ import { ParsedFusionFile } from './ParsedFusionFile';
 import { PhpClassMethodNode } from './PhpClassMethodNode';
 import { PhpClassNode } from './PhpClassNode';
 import { ResourceUriNode } from './ResourceUriNode';
+import { NeosFusionFormDefinitionNode } from './NeosFusionFormDefinitionNode';
+import { NeosFusionFormActionNode } from './NeosFusionFormActionNode';
+import { NeosFusionFormControllerNode } from './NeosFusionFormControllerNode';
 
 export class FusionFileProcessor extends Logger {
 	protected parsedFusionFile: ParsedFusionFile
@@ -119,9 +123,28 @@ export class FusionFileProcessor extends Logger {
 
 		endPrototypePath["parent"] = node
 		this.parsedFusionFile.addNode(endPrototypePath, text)
-
-		// TODO: Handle `<Neos.Fusion.Form:Form form.target.action ... />` as new ActionUriActionNode
-		// TODO: Handle `<Neos.Fusion.Form:Form form.target.controller ... />` as new ActionUriControllerNode
+		
+		if (node["name"] === "Neos.Fusion.Form:Form") {
+			const neosFusionFormDefinitionNode = new NeosFusionFormDefinitionNode(node)
+			for (const attribute of node["attributes"]) {
+				if (!(attribute instanceof TagAttributeNode)) continue
+				if (!attribute["name"].startsWith("form.target")) continue
+				if (typeof attribute["value"] !== "string") continue
+	
+				if (attribute["name"] === "form.target.action") {
+					const actionUriActionNode = new NeosFusionFormActionNode(attribute)
+					neosFusionFormDefinitionNode.setAction(actionUriActionNode)
+					this.parsedFusionFile.addNode(actionUriActionNode, text)
+				}
+	
+				if (attribute["name"] === "form.target.controller") {
+					const actionUriControllerNode = new NeosFusionFormControllerNode(attribute)
+					neosFusionFormDefinitionNode.setController(actionUriControllerNode)
+					this.parsedFusionFile.addNode(actionUriControllerNode, text)
+				}
+			}
+			this.parsedFusionFile.addNode(neosFusionFormDefinitionNode, text)
+		}
 	}
 
 	protected processTagAttributeNode(node: TagAttributeNode, text: string) {
@@ -172,7 +195,7 @@ export class FusionFileProcessor extends Logger {
 	}
 
 	protected processFusionObjectValue(fusionObjectValue: FusionObjectValue, text: string) {
-		if (!["Neos.Fusion:ActionUri", "Neos.Fusion:UriBuilder"].includes(fusionObjectValue.value)) return
+		if (!ActionUriService.hasPrototypeNameActionUri(fusionObjectValue.value, this.parsedFusionFile.workspace)) return
 		const objectStatement = findParent(fusionObjectValue, ObjectStatement)
 		if (!objectStatement || !objectStatement.block) return
 		const actionUriDefinitionNode = new ActionUriDefinitionNode(objectStatement)
@@ -183,13 +206,13 @@ export class FusionFileProcessor extends Logger {
 			if (!(statement.operation.pathValue instanceof StringValue)) continue
 
 
-			if (getObjectIdentifier(statement) === "action") {
+			if (getObjectIdentifier(statement) === ActionUriPartTypes.Action) {
 				const actionUriActionNode = new ActionUriActionNode(statement, statement.operation.pathValue)
 				actionUriDefinitionNode.setAction(actionUriActionNode)
 				this.parsedFusionFile.addNode(actionUriActionNode, text)
 			}
 
-			if (getObjectIdentifier(statement) === "controller") {
+			if (getObjectIdentifier(statement) === ActionUriPartTypes.Controller) {
 				const actionUriControllerNode = new ActionUriControllerNode(statement, statement.operation.pathValue)
 				actionUriDefinitionNode.setController(actionUriControllerNode)
 				this.parsedFusionFile.addNode(actionUriControllerNode, text)
@@ -206,7 +229,7 @@ export class FusionFileProcessor extends Logger {
 			const resourceUriNode = new ResourceUriNode(value, literalStringNode["position"])
 			if (resourceUriNode) this.parsedFusionFile.addNode(resourceUriNode, text)
 		}
-		// [instanceof Neos.Demo:Document.Chapter]
+		
 		if (value.startsWith('[instanceof ') && value.endsWith(']')) {
 			const prototypeName = value.slice('[instanceof '.length, value.length - 1).trim()
 			const begin = literalStringNode["position"].begin + '[instanceof '.length + 1
