@@ -19,6 +19,7 @@ import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { OperationNode } from 'ts-fusion-parser/out/dsl/eel/nodes/OperationNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { DeprecationConfigurationSpecialType } from '../ExtensionConfiguration'
 
 export interface LineDataCacheEntry {
     lineLengths: number[]
@@ -112,7 +113,7 @@ export function isPrototypeDeprecated(workspace: FusionWorkspace, prototypeName:
     const deprecations = configuration.code.deprecations.fusion.prototypes ?? {}
 
     const deprecated = deprecations[prototypeName] ?? false
-    if(deprecated === "{ignore}") return false
+    if (deprecated === DeprecationConfigurationSpecialType.Ignore) return false
     return deprecated
 }
 
