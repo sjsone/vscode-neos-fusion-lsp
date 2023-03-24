@@ -100,7 +100,8 @@ export function uriToPath(uri: string) {
 }
 
 export function pathToUri(path: string) {
-    return pathToFileURL(path).toString()
+    // FIXME: There has to be another way to handle `:` in URIs
+    return "file://" + pathToFileURL(path).toString().replace("file://", "").replace(":", "%3A")
 }
 
 export function getPrototypeNameFromNode(node: AbstractNode) {
