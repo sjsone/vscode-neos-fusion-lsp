@@ -30,10 +30,16 @@ export abstract class AbstractCapability extends AbstractFunctionality {
 		const uri = params.textDocument.uri
 
 		const workspace = this.languageServer.getWorkspaceForFileUri(uri)
-		if (workspace === undefined) return null
+		if (workspace === undefined) {
+			this.logDebug(`Could not find workspace for URI: ${uri}`)
+			return null
+		}
 
 		const parsedFile = workspace.getParsedFileByUri(uri)
-		if (parsedFile === undefined) return null
+		if (parsedFile === undefined) {
+			this.logDebug(`Could not find File for URI: ${uri}`)
+			return null
+		}
 
 		const context: CapabilityContext<AbstractNode> = {
 			workspace,
@@ -48,7 +54,10 @@ export abstract class AbstractCapability extends AbstractFunctionality {
 			this.logDebug(`${line}/${column} ${params.textDocument.uri}`)
 
 			const foundNodeByLine = parsedFile.getNodeByLineAndColumn(line, column)
-			if (foundNodeByLine === undefined) return null
+			if (foundNodeByLine === undefined) {
+				this.logDebug(`Could not find node for line/column: ${line}/${column}`)
+				return null
+			}
 			context.foundNodeByLine = foundNodeByLine
 		}
 

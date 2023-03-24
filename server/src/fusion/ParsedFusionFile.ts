@@ -67,6 +67,8 @@ export class ParsedFusionFile extends Logger {
 		this.neosPackage = neosPackage
 		this.debug = this.uri.endsWith("FusionModule/Routing.fusion")
 		this.fusionFileProcessor = new FusionFileProcessor(this, loggerPrefix)
+
+		this.logVerbose("Created", uri)
 	}
 
 	init(text: string = undefined) {
