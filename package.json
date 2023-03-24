@@ -282,7 +282,11 @@
         "watch-server": "cd server && yarn run esbuild-watch",
         "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
         "lint-fix": "eslint --fix ./client/src ./server/src --ext .ts,.tsx",
-        "postinstall": "cd client && yarn install && cd ../server && yarn install && cd .."
+        "postinstall": "cd client && yarn install && cd ../server && yarn install && cd ..",
+        "create-pre-release": "VERSION=\"$(node utility.js --pre)\"; git tag -a \"v${VERSION}-pre\" -m \"Pre-Release Version ${VERSION}\"; git push origin \"v${VERSION}-pre\";",
+        "create-patch-release": "VERSION=\"$(node utility.js --patch)\"; git tag -a \"v${VERSION}\" -m \"Version ${VERSION}\"; git push origin \"v${VERSION}\";",
+        "create-minor-release": "VERSION=\"$(node utility.js --minor)\"; git tag -a \"v${VERSION}\" -m \"Version ${VERSION}\"; git push origin \"v${VERSION}\";",
+        "create-major-release": "VERSION=\"$(node utility.js --major)\"; git tag -a \"v${VERSION}\" -m \"Version ${VERSION}\"; git push origin \"v${VERSION}\";"
     },
     "devDependencies": {
         "@types/mocha": "^5.2.0",
