@@ -74,7 +74,10 @@ export class DefinitionCapability extends AbstractCapability {
 
 	getPrototypeDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<AbstractNode>) {
 		const goToPrototypeName = getPrototypeNameFromNode(foundNodeByLine.getNode())
-		if (goToPrototypeName === "") return null
+		if (goToPrototypeName === "") {
+			this.logDebug("No PrototypeName found for this node")
+			return null
+		}
 
 		const locations: DefinitionLink[] = []
 
