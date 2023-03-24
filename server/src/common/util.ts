@@ -20,6 +20,7 @@ import { OperationNode } from 'ts-fusion-parser/out/dsl/eel/nodes/OperationNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { DeprecationConfigurationSpecialType } from '../ExtensionConfiguration'
+import { fileURLToPath, pathToFileURL } from 'url'
 
 export interface LineDataCacheEntry {
     lineLengths: number[]
@@ -95,11 +96,11 @@ export function* getFiles(dir: string, withExtension = ".fusion") {
 }
 
 export function uriToPath(uri: string) {
-    return uri.replace("file://", "")
+    return fileURLToPath(new URL(uri))
 }
 
 export function pathToUri(path: string) {
-    return "file://" + path
+    return pathToFileURL(path).toString()
 }
 
 export function getPrototypeNameFromNode(node: AbstractNode) {
