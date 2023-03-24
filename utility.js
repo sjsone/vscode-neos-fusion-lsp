@@ -1,7 +1,7 @@
-const NodeFs = require('fs');
+const NodeFs = require('fs')
 
 function parseCommandLineArguments(config) {
-	const args = process.argv.slice(2);
+	const args = process.argv.slice(2)
 	const parsedArguments = {}
 
 	for (let i = 0; i < args.length; i++) {
@@ -16,14 +16,15 @@ function parseCommandLineArguments(config) {
 }
 
 function incrementPatchVersion(version, incrementMajor = 0, incrementMinor = 0, incrementPatch = 0) {
-	const [major, minor, patch] = version.split('.');
-	return `${Number(major) + incrementMajor}.${Number(minor) + incrementMinor}.${Number(patch) + incrementPatch}`;
+	const [major, minor, patch] = version.split('.')
+	return `${Number(major) + incrementMajor}.${Number(minor) + incrementMinor}.${Number(patch) + incrementPatch}`
 }
 
 function updatePackageVersion(packagePath, incrementMajor = 0, incrementMinor = 0, incrementPatch = 0) {
-	const packageJson = require(packagePath);
-	packageJson.version = incrementPatchVersion(packageJson.version, incrementMajor, incrementMinor, incrementPatch);
-	NodeFs.writeFileSync(packagePath, JSON.stringify(packageJson, null, 4) + '\n');
+	const packageJson = require(packagePath)
+	packageJson.version = incrementPatchVersion(packageJson.version, incrementMajor, incrementMinor, incrementPatch)
+	NodeFs.writeFileSync(packagePath, JSON.stringify(packageJson, null, 4) + '\n')
+	return packageJson.version
 }
 
 function buildIncrementsFromCommandLineArguments(commandLineArguments) {
@@ -41,6 +42,8 @@ const commandLineArguments = parseCommandLineArguments({
 })
 
 const increments = buildIncrementsFromCommandLineArguments(commandLineArguments)
+const versions = []
 for (const path of ['./package.json', './server/package.json', './client/package.json']) {
-	updatePackageVersion(path, increments.major, increments.minor, increments.patch);
+	versions.push(updatePackageVersion(path, increments.major, increments.minor, increments.patch))
 }
+if (versions[0]) console.log(versions[0])
