@@ -1,22 +1,22 @@
 {
-	"name": "vscode-neos-fusion-lsp-client",
-	"description": "Neos Fusion Language Server Client for VSCode",
-	"author": "Simon J. Schmidt",
-	"license": "MIT",
-	"version": "0.1.57",
-	"publisher": "SimonSchmidt",
-	"engines": {
-		"vscode": "^1.52.0"
-	},
-	"scripts": {
-		"esbuild-base": "esbuild ./src/main.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
-		"esbuild": "yarn run esbuild-base --minify",
-		"esbuild-watch": "yarn run esbuild-base --sourcemap --watch"
-	},
-	"dependencies": {
-		"vscode-languageclient": "^8.0.0"
-	},
-	"devDependencies": {
-		"@types/vscode": "^1.52.0"
-	}
+    "name": "vscode-neos-fusion-lsp-client",
+    "description": "Neos Fusion Language Server Client for VSCode",
+    "author": "Simon J. Schmidt",
+    "license": "MIT",
+    "version": "0.1.57",
+    "publisher": "SimonSchmidt",
+    "engines": {
+        "vscode": "^1.52.0"
+    },
+    "scripts": {
+        "esbuild-base": "esbuild ./src/main.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+        "esbuild": "yarn run esbuild-base --minify",
+        "esbuild-watch": "yarn run esbuild-base --sourcemap --watch"
+    },
+    "dependencies": {
+        "vscode-languageclient": "^8.0.0"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.52.0"
+    }
 }
