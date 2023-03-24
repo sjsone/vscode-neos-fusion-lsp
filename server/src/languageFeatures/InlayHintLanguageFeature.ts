@@ -81,6 +81,7 @@ export class InlayHintLanguageFeature extends AbstractLanguageFeature {
 	protected canShowInlayHintForArgumentNode(workspace: FusionWorkspace, argumentNode: AbstractNode) {
 		if (workspace.getConfiguration().inlayHint.depth === InlayHintDepth.Always) return true
 
+		// TODO: if the node is an Operation and the first operand is and AbstractLiteralNode it should be shown as well
 		// TODO: it should be just `AbstractLiteralNode` once "ts-fusion-parser" is updated
 		return argumentNode instanceof AbstractLiteralNode
 			|| argumentNode instanceof LiteralObjectNode
