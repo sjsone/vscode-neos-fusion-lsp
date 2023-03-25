@@ -20,7 +20,8 @@ import { OperationNode } from 'ts-fusion-parser/out/dsl/eel/nodes/OperationNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { DeprecationConfigurationSpecialType } from '../ExtensionConfiguration'
-import { fileURLToPath, pathToFileURL } from 'url'
+import { URI } from 'vscode-uri'
+import { uriToFsPath } from 'vscode-uri/lib/umd/uri'
 
 export interface LineDataCacheEntry {
     lineLengths: number[]
@@ -96,12 +97,11 @@ export function* getFiles(dir: string, withExtension = ".fusion") {
 }
 
 export function uriToPath(uri: string) {
-    return fileURLToPath(new URL(uri))
+    return uriToFsPath(URI.parse(uri), false)
 }
 
 export function pathToUri(path: string) {
-    // FIXME: There has to be another way to handle `:` in URIs
-    return "file://" + pathToFileURL(path).toString().replace("file://", "").replace(":", "%3A")
+    return URI.file(path).toString()
 }
 
 export function getPrototypeNameFromNode(node: AbstractNode) {
