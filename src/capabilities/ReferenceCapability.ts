@@ -1,14 +1,16 @@
-import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/objectTreeParser/ast/FusionObjectValue'
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { Location } from 'vscode-languageserver/node'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
-import { getPrototypeNameFromNode } from '../util'
+import { getPrototypeNameFromNode } from '../common/util'
 import { AbstractCapability } from './AbstractCapability'
-import { CapabilityContext } from './CapabilityContext'
+import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 
 export class ReferenceCapability extends AbstractCapability {
 
-	protected run(context: CapabilityContext<any>): any {
-		const { workspace, foundNodeByLine } = context
+	protected run(context: CapabilityContext<AbstractNode>): any {
+		const { workspace, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
+
 
 		this.logVerbose(`Found node type "${foundNodeByLine.getNode().constructor.name}"`)
 
@@ -33,8 +35,7 @@ export class ReferenceCapability extends AbstractCapability {
 	}
 
 	protected getOtherNodesFromOtherParsedFile(otherParsedFile: ParsedFusionFile) {
-		const fusionObjectValues = otherParsedFile.getNodesByType(FusionObjectValue) || []
-		return [...otherParsedFile.prototypeExtends, ...fusionObjectValues]
+		return otherParsedFile.getNodesByType(PrototypePathSegment) || []
 	}
 
 }
