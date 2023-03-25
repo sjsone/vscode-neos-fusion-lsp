@@ -1,7 +1,6 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
-import { Logger } from './Logging';
-import { uriToPath } from './util';
+import { Logger } from './common/Logging'
 
 export interface ConfigurationContext {
 	name: string,
