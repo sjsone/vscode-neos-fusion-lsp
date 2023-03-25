@@ -4,6 +4,11 @@ Normal Release: 🚀
 
 Pre-Release: 🧪
 
+## 🧪 0.1.63
+
+- Added Badges to Readme
+- Improved URI handling by using [`vscode-uri`](https://www.npmjs.com/package/vscode-uri)
+
 ## 🧪 0.1.61
 
 - Fixes wrongly encoded file-URIs. Should now work on windows.
