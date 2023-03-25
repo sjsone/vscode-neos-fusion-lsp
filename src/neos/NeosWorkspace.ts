@@ -70,8 +70,8 @@ export class NeosWorkspace extends Logger {
 
 	getResourceUriPath(packageName: string, relativePath: string) {
 		for (const neosPackage of this.packages.values()) {
-			const resourceUri = neosPackage.getResourceUriPath(packageName, relativePath)
-			if (resourceUri) return resourceUri
+			const resourceUriPath = neosPackage.getResourceUriPath(packageName, relativePath)
+			if (resourceUriPath) return resourceUriPath
 		}
 		return undefined
 	}
