@@ -1,16 +1,25 @@
 import {
     createConnection,
     TextDocuments,
-    ProposedFeatures,
-    CompletionItem,
-    TextDocumentPositionParams,
-    HoverParams,
-    Hover,
+    ProposedFeatures
 } from "vscode-languageserver/node"
 import { TextDocument } from "vscode-languageserver-textdocument"
 import { LanguageServer } from './LanguageServer'
+import { CompletionCapability } from './capabilities/CompletionCapability'
+import { DefinitionCapability } from './capabilities/DefinitionCapability'
+import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
+import { HoverCapability } from './capabilities/HoverCapability'
+import { ReferenceCapability } from './capabilities/ReferenceCapability'
+import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
+import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
+import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
+import { CodeLensCapability } from './capabilities/CodeLensCapability'
 
-export type FusionDocument = TextDocument
+export interface FusionDocument extends TextDocument { }
+
+// INFO: https://github.com/microsoft/vscode/issues/135453
+
+// TODO: implement `const document = documents.get(textDocumentPosition.textDocument.uri);` throughout the project
 
 const connection = createConnection(ProposedFeatures.all)
 const documents: TextDocuments<FusionDocument> = new TextDocuments(TextDocument)
@@ -18,45 +27,28 @@ const documents: TextDocuments<FusionDocument> = new TextDocuments(TextDocument)
 const languageserver = new LanguageServer(connection, documents)
 
 
-documents.onDidChangeContent(change => {
-    return languageserver.onDidChangeContent(change)
-})
+connection.onInitialize(params => languageserver.onInitialize(params))
+connection.onDidChangeConfiguration(params => languageserver.onDidChangeConfiguration(params))
 
-documents.onDidOpen((event) => {
-    return languageserver.onDidOpen(event)
-})
+documents.onDidOpen(event => languageserver.onDidOpen(event))
+documents.onDidChangeContent(change => languageserver.onDidChangeContent(change))
+connection.onDidChangeWatchedFiles(params => languageserver.onDidChangeWatchedFiles(params))
 
-connection.onInitialize((params) => {
-    return <any>languageserver.onInitialize(params)
-})
 
-connection.onDidChangeWatchedFiles((params) => {
-    // TODO: Updated EEL-Helpers depending on changes
-    // for(const change of params.changes) {
-    //     connection.console.log(`  ${change.type} ${change.uri}`)
-    // }
-})
+connection.onDefinition(params => languageserver.runCapability(DefinitionCapability, params))
+connection.onReferences(params => languageserver.runCapability(ReferenceCapability, params))
+connection.onCompletion(params => languageserver.runCapability(CompletionCapability, params))
+connection.onCompletionResolve(item => item)
+connection.onHover(params => languageserver.runCapability(HoverCapability, params))
+connection.onDocumentSymbol(params => languageserver.runCapability(DocumentSymbolCapability, params))
+connection.onWorkspaceSymbol(params => languageserver.runCapability(WorkspaceSymbolCapability, params))
+connection.onCodeLens(params => languageserver.runCapability(CodeLensCapability, params))
 
-connection.onDidChangeConfiguration((params) => {
-    languageserver.onDidChangeConfiguration(params)
-})
+connection.languages.semanticTokens.on(params => languageserver.runLanguageFeature(SemanticTokensLanguageFeature, params))
+connection.languages.inlayHint.on(params => languageserver.runLanguageFeature(InlayHintLanguageFeature, params))
 
-connection.onDefinition((params) => {
-    return languageserver.getCapability("onDefinition").execute(params)
-})
+connection.onCodeAction(params => languageserver.onCodeAction(params))
 
-connection.onReferences(params => {
-    return languageserver.getCapability("onReferences").execute(params)
-})
-
-connection.onCompletion((textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-    return languageserver.getCapability("onCompletion").execute(textDocumentPosition)
-})
-connection.onCompletionResolve((item: CompletionItem): CompletionItem => item)
-
-connection.onHover((params: HoverParams): Hover => {
-    return languageserver.getCapability("onHover").execute(params)
-})
 
 documents.listen(connection)
 connection.listen()

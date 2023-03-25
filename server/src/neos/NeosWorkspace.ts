@@ -1,7 +1,7 @@
-import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { ConfigurationManager } from '../ConfigurationManager'
-import { Logger } from '../Logging'
+import { Logger } from '../common/Logging'
+import { uriToPath } from '../common/util'
 import { EELHelperToken, NeosPackage } from './NeosPackage'
 export class NeosWorkspace extends Logger {
 	protected workspacePath: string
@@ -23,17 +23,12 @@ export class NeosWorkspace extends Logger {
 		} catch (error) {
 			if (error instanceof Error) {
 				if (error["code"] === 'ENOENT') {
-					console.log('File not found!')
+					console.log('File not found!', packagePath)
 				} else {
 					throw error
 				}
 			}
 		}
-	}
-
-	getEelHelperFromFullyQualifiedClassNameWithStaticMethod(fullyQualifiedClassName: string, staticMethod?: string) {
-		if (!staticMethod) return this.getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName)
-		return undefined
 	}
 
 	getPackages() {
@@ -44,6 +39,21 @@ export class NeosWorkspace extends Logger {
 		for (const neosPackage of this.packages.values()) {
 			if (neosPackage.getPackageName() === packageName) return neosPackage
 		}
+		return undefined
+	}
+
+	getPackageByUri(uri: string): NeosPackage | undefined {
+		const uriPath = uriToPath(uri)
+		for (const neosPackage of this.packages.values()) {
+			if (uriPath.startsWith(neosPackage["path"])) return neosPackage
+		}
+
+		return undefined
+	}
+
+	getEelHelperFromFullyQualifiedClassNameWithStaticMethod(fullyQualifiedClassName: string, staticMethod?: string) {
+		if (!staticMethod) return this.getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName)
+		return undefined
 	}
 
 	getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName: string) {
@@ -64,8 +74,8 @@ export class NeosWorkspace extends Logger {
 
 	getResourceUriPath(packageName: string, relativePath: string) {
 		for (const neosPackage of this.packages.values()) {
-			const resourceUri = neosPackage.getResourceUriPath(packageName, relativePath)
-			if (resourceUri) return resourceUri
+			const resourceUriPath = neosPackage.getResourceUriPath(packageName, relativePath)
+			if (resourceUriPath) return resourceUriPath
 		}
 		return undefined
 	}

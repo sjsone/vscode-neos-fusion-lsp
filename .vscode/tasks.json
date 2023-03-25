@@ -1,33 +1,67 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"type": "npm",
-			"script": "compile",
-			"group": "build",
-			"presentation": {
-				"panel": "dedicated",
-				"reveal": "never"
-			},
-			"problemMatcher": [
-				"$tsc"
-			]
-		},
-		{
-			"type": "npm",
-			"script": "watch",
-			"isBackground": true,
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
-			"presentation": {
-				"panel": "dedicated",
-				"reveal": "never"
-			},
-			"problemMatcher": [
-				"$tsc-watch"
-			]
-		}
-	]
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "npm",
+            "script": "compile",
+            "group": "build",
+            "presentation": {
+                "panel": "dedicated",
+                "reveal": "never"
+            },
+            "problemMatcher": [
+                "$esbuild"
+            ]
+        },
+        {
+            "type": "npm",
+            "script": "compile-without-minify",
+            "group": "build",
+            "presentation": {
+                "panel": "dedicated",
+                "reveal": "never"
+            },
+            "problemMatcher": [
+                "$esbuild"
+            ]
+        },
+        {
+            "label": "Client Watch",
+            "command": "yarn",
+            "args": [
+                "run",
+                "esbuild-watch"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/client"
+            },
+        },
+        {
+            "label": "Server Watch",
+            "command": "yarn",
+            "args": [
+                "run",
+                "esbuild-watch"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/server"
+            }
+        },
+        {
+            "label": "Watch all",
+            "dependsOn": [
+                "Client Watch",
+                "Server Watch"
+            ],
+            "isBackground": true,
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "panel": "dedicated",
+                "reveal": "never"
+            }
+        }
+    ]
 }

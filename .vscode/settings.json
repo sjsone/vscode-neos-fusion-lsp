@@ -2,5 +2,17 @@
 	"editor.insertSpaces": false,
 	"typescript.tsc.autoDetect": "off",
 	"typescript.preferences.quoteStyle": "single",
-	"todo-tree.highlights.enabled": false
+	"todo-tree.highlights.enabled": false,
+	"cSpell.words": [
+		"autoload",
+		"esbuild",
+		"formulahendry",
+		"fqcn",
+		"Neos",
+		"networkteam",
+		"outfile",
+		"proptypes",
+		"sjsone"
+	],
+	"typescript.tsdk": "node_modules/typescript/lib"
 }

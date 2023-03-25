@@ -3,12 +3,15 @@ import * as NodePath from "path"
 import { TextDocumentChangeEvent } from 'vscode-languageserver'
 import { TextDocument } from "vscode-languageserver-textdocument"
 import { LoggingLevel, type ExtensionConfiguration } from '../ExtensionConfiguration'
-import { LinePositionedNode } from '../LinePositionedNode'
+import { LinePositionedNode } from '../common/LinePositionedNode'
 import { NeosWorkspace } from '../neos/NeosWorkspace'
 import { ParsedFusionFile } from './ParsedFusionFile'
-import { getFiles, pathToUri, uriToPath } from '../util'
-import { Logger, LogService } from '../Logging'
+import { getFiles, pathToUri, uriToPath } from '../common/util'
+import { Logger, LogService } from '../common/Logging'
 import { LanguageServer } from '../LanguageServer'
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { diagnose } from '../diagnostics/ParsedFusionFileDiagnostics'
+import { NeosPackage } from '../neos/NeosPackage'
 
 export class FusionWorkspace extends Logger {
     public uri: string
@@ -36,6 +39,10 @@ export class FusionWorkspace extends Logger {
         this.selectedFlowContextName = contextName
     }
 
+    getConfiguration() {
+        return this.configuration
+    }
+
     getUri() {
         return this.uri
     }
@@ -54,8 +61,10 @@ export class FusionWorkspace extends Logger {
 
         for (const filteredPackagesRootPath of filteredPackagesRootPaths) {
             for (const folder of NodeFs.readdirSync(filteredPackagesRootPath, { withFileTypes: true })) {
-                // TODO: make symbolic link following and hidden folder configurable
-                if (folder.isSymbolicLink() || folder.name.startsWith(".") || !folder.isDirectory()) continue
+                if (folder.isSymbolicLink() && !configuration.folders.followSymbolicLinks) continue
+                if (!folder.isDirectory()) continue
+                if (folder.name.startsWith(".") && !configuration.folders.includeHiddenDirectories) continue
+
                 packagesPaths.push(NodePath.join(filteredPackagesRootPath, folder.name))
             }
         }
@@ -72,7 +81,8 @@ export class FusionWorkspace extends Logger {
 
         const incrementPerPackage = 100 / packagesPaths.length
 
-        for (const packagePath of packagesPaths) {
+        for (const neosPackage of this.neosWorkspace.getPackages().values()) {
+            const packagePath = neosPackage["path"]
             this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
                 message: `Package: ${packagePath}`
             })
@@ -81,13 +91,7 @@ export class FusionWorkspace extends Logger {
                 if (!NodeFs.existsSync(fusionFolderPath)) continue
 
                 for (const fusionFilePath of getFiles(fusionFolderPath)) {
-                    try {
-                        const parsedFile = new ParsedFusionFile(pathToUri(fusionFilePath), this)
-                        this.initParsedFile(parsedFile)
-                        this.parsedFiles.push(parsedFile)
-                    } catch (e) {
-                        this.filesWithErrors.push(pathToUri(fusionFilePath))
-                    }
+                    this.addParsedFileFromPath(fusionFilePath, neosPackage)
                 }
             }
             this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
@@ -110,6 +114,24 @@ export class FusionWorkspace extends Logger {
         this.languageServer.sendProgressNotificationFinish("fusion_workspace_init")
 
         this.processFilesToDiagnose()
+    }
+
+    addParsedFileFromPath(fusionFilePath: string, neosPackage: NeosPackage) {
+        try {
+            const parsedFile = new ParsedFusionFile(pathToUri(fusionFilePath), this, neosPackage)
+            this.initParsedFile(parsedFile)
+            this.parsedFiles.push(parsedFile)
+        } catch (e) {
+            this.filesWithErrors.push(pathToUri(fusionFilePath))
+        }
+    }
+
+    removeParsedFile(uri: string) {
+        const parsedFileIndex = this.parsedFiles.findIndex(parsedFile => parsedFile.uri === uri)
+        if (parsedFileIndex > -1) {
+            this.parsedFiles.splice(parsedFileIndex, 1)
+            this.logDebug(`Removed ParsedFusionFile ${uri}`)
+        }
     }
 
     initParsedFile(parsedFile: ParsedFusionFile, text: string = undefined) {
@@ -142,6 +164,11 @@ export class FusionWorkspace extends Logger {
         const file = this.getParsedFileByUri(change.document.uri)
         if (file === undefined) return
         this.initParsedFile(file, change.document.getText())
+
+        if (this.configuration.diagnostics.alwaysDiagnoseChangedFile && !this.filesToDiagnose.includes(file)) {
+            this.filesToDiagnose.push(file)
+        }
+
         await this.processFilesToDiagnose()
     }
 
@@ -153,7 +180,7 @@ export class FusionWorkspace extends Logger {
         return this.parsedFiles.find(file => file.uri === uri)
     }
 
-    getNodesByType<T extends abstract new (...args: any) => any>(type: T): Array<{ uri: string, nodes: LinePositionedNode<InstanceType<T>>[] }> {
+    getNodesByType<T extends new (...args: unknown[]) => AbstractNode>(type: T): Array<{ uri: string, nodes: LinePositionedNode<InstanceType<T>>[] }> {
         const nodes = []
         for (const file of this.parsedFiles) {
             const fileNodes = file.nodesByType.get(type)
@@ -169,7 +196,7 @@ export class FusionWorkspace extends Logger {
 
     protected async processFilesToDiagnose() {
         await Promise.all(this.filesToDiagnose.map(async parsedFile => {
-            const diagnostics = await parsedFile.diagnose()
+            const diagnostics = await diagnose(parsedFile)
             if (diagnostics) {
                 this.languageServer.sendDiagnostics({
                     uri: parsedFile.uri,

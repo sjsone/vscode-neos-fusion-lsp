@@ -1,11 +1,15 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { EelHelperMethod } from '../eel/EelHelperMethod'
-import { getLineNumberOfChar, pathToUri } from '../util'
+import { getLineNumberOfChar, pathToUri } from '../common/util'
+import { PhpMethodParameter } from '../eel/PhpMethod'
 
 export interface ClassDefinition {
 	uri: string
-	methods: EelHelperMethod[]
+	methods: EelHelperMethod[],
+	namespace: NeosPackageNamespace
+	className: string
+	pathParts: string[]
 	position: {
 		start: { line: number, character: number }
 		end: { line: number, character: number }
@@ -17,6 +21,7 @@ export class NeosPackageNamespace {
 	protected path: string
 
 	protected fileUriCache: Map<string, string> = new Map()
+	protected fqcnCache: Map<string, { possibleFilePath: string, className: string, pathParts: string[] }> = new Map()
 
 	constructor(name: string, path: string) {
 		this.name = name
@@ -47,18 +52,11 @@ export class NeosPackageNamespace {
 		return fileUri
 	}
 
+	getClassDefinitionFromFilePathAndClassName(filePath: string, className: string, pathParts: string[]): ClassDefinition {
+		const phpFileSource = NodeFs.readFileSync(filePath).toString()
 
-	getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName: string): ClassDefinition {
-		const path = fullyQualifiedClassName.replace(this.name, "")
-
-		const pathParts = path.split("\\")
-		const className = pathParts.pop()
-		const possibleFilePath = NodePath.join(this.path, ...pathParts, className + ".php")
-
-		if (!NodeFs.existsSync(possibleFilePath)) return undefined
-		const phpFileSource = NodeFs.readFileSync(possibleFilePath).toString()
-
-		const namespaceRegex = new RegExp(`namespace\\s+${(this.name + pathParts.join("\\")).split("\\").join("\\\\")};`)
+		const namespace = this.name + pathParts.join("\\")
+		const namespaceRegex = new RegExp(`namespace\\s+${(namespace).split("\\").join("\\\\")};`)
 		if (!namespaceRegex.test(phpFileSource)) return undefined
 
 		const classRegex = new RegExp(`class\\s+${className}`)
@@ -68,10 +66,9 @@ export class NeosPackageNamespace {
 
 		const begin = phpFileSource.indexOf(classMatch[0])
 		const end = begin + classMatch[0].length
-		const fileUri = pathToUri(possibleFilePath)
+		const fileUri = pathToUri(filePath)
 
-		const methodsRegex = /(public\s+(static\s+)?function\s+([a-zA-Z]+)\s?\()/g
-
+		const methodsRegex = /(public\s+(static\s+)?function\s+([a-zA-Z0-9]+)\s?\((?: *([^)]+?) *\))?)/g
 		let lastIndex = 0
 		const rest = phpFileSource
 		let match = methodsRegex.exec(rest)
@@ -80,16 +77,18 @@ export class NeosPackageNamespace {
 
 		while (match != null) {
 			const fullDefinition = match[1]
-			const isStatic = !!match[2]
+			// const isStatic = !!match[2]
 			const name = match[3]
+			const rawParameters = match[4] + ')'
+
+			const parameters = this.parseMethodParameters(rawParameters)
 
 			const identifierIndex = rest.substring(lastIndex).indexOf(fullDefinition) + lastIndex
-
 			const { description } = this.parseMethodComment(identifierIndex, phpFileSource)
 
-			methods.push(new EelHelperMethod(name, description, {
-				start: getLineNumberOfChar(phpFileSource, identifierIndex),
-				end: getLineNumberOfChar(phpFileSource, identifierIndex + fullDefinition.length)
+			methods.push(new EelHelperMethod(name, description, parameters, {
+				start: getLineNumberOfChar(phpFileSource, identifierIndex, fileUri),
+				end: getLineNumberOfChar(phpFileSource, identifierIndex + fullDefinition.length, fileUri)
 			}))
 
 			lastIndex = identifierIndex + fullDefinition.length
@@ -98,12 +97,50 @@ export class NeosPackageNamespace {
 
 		return {
 			uri: fileUri,
+			namespace: this,
+			pathParts,
+			className,
 			methods,
 			position: {
-				start: getLineNumberOfChar(phpFileSource, begin),
-				end: getLineNumberOfChar(phpFileSource, end)
+				start: getLineNumberOfChar(phpFileSource, begin, fileUri),
+				end: getLineNumberOfChar(phpFileSource, end, fileUri)
 			},
 		}
+	}
+
+	getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName: string): ClassDefinition {
+		if (this.fqcnCache.has(fullyQualifiedClassName)) {
+			const { possibleFilePath, className, pathParts } = this.fqcnCache.get(fullyQualifiedClassName)
+			if (!NodeFs.existsSync(possibleFilePath)) return undefined
+			return this.getClassDefinitionFromFilePathAndClassName(possibleFilePath, className, pathParts)
+		}
+
+		const path = fullyQualifiedClassName.replace(this.name, "")
+
+		const pathParts = path.split("\\")
+		const className = pathParts.pop()
+		const possibleFilePath = NodePath.join(this.path, ...pathParts, className + ".php")
+
+		this.fqcnCache.set(fullyQualifiedClassName, { possibleFilePath, className, pathParts })
+
+		if (!NodeFs.existsSync(possibleFilePath)) return undefined
+		return this.getClassDefinitionFromFilePathAndClassName(possibleFilePath, className, pathParts)
+	}
+
+	protected parseMethodParameters(rawParameters: string): PhpMethodParameter[] {
+		const parametersRegex = /(\w+ )?(\$\w*)( ?= ?.*?)?(?:[,\)])/g
+		let match = parametersRegex.exec(rawParameters)
+		const parameters = []
+		let runAwayPrevention = 0
+		while (match != null && runAwayPrevention++ < 1000) {
+			parameters.push({
+				name: match[2],
+				defaultValue: match[3],
+				type: match[1]
+			})
+			match = parametersRegex.exec(rawParameters)
+		}
+		return parameters
 	}
 
 	protected parseMethodComment(offset: number, code: string) {

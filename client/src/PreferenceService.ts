@@ -6,7 +6,7 @@ import {
 export type ExternalExtensionPreferenceModification<T> = ExternalExtensionPreferenceModificationNonNullable<T> | ExternalExtensionPreferenceModificationNullable<T>
 
 export interface ExternalExtensionPreferenceModificationNonNullable<T> extends ExternalExtensionPreferenceModificationBase {
-	allowNull?: false | undefined
+	allowNull?: false
 	modifier: (value: T) => T
 }
 
@@ -20,7 +20,7 @@ export interface ExternalExtensionPreferenceModificationBase {
 	allowNull?: boolean
 }
 
-
+// TODO: is the service really needed? : https://code.visualstudio.com/api/references/contribution-points#contributes.configurationDefaults 
 export class PreferenceService {
 	protected outputChannel: OutputChannel
 

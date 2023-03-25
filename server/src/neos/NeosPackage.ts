@@ -1,7 +1,8 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { EelHelperMethod } from '../eel/EelHelperMethod'
-import { Logger } from '../Logging'
+import { LinePosition } from '../common/LinePositionedNode'
+import { Logger } from '../common/Logging'
 import { FlowConfiguration } from './FlowConfiguration'
 import { NeosPackageNamespace } from './NeosPackageNamespace'
 import { NeosWorkspace } from './NeosWorkspace'
@@ -9,10 +10,14 @@ import { NeosWorkspace } from './NeosWorkspace'
 export interface EELHelperToken {
 	name: string,
 	uri: string,
+	namespace: NeosPackageNamespace
+	pathParts: string[]
+	className: string
+	package: NeosPackage
 	regex: RegExp,
 	position: {
-		start: { line: number, character: number },
-		end: { line: number, character: number }
+		start: LinePosition,
+		end: LinePosition
 	},
 	methods: EelHelperMethod[]
 }
@@ -24,6 +29,7 @@ export class NeosPackage extends Logger {
 	protected composerJson: any
 
 	protected namespaces: Map<string, NeosPackageNamespace> = new Map()
+	protected configuration: FlowConfiguration
 	protected eelHelpers: EELHelperToken[] = []
 
 	protected debug: boolean
@@ -42,24 +48,23 @@ export class NeosPackage extends Logger {
 		this.debug = this.getName() === "neos/fusion"
 
 		this.initNamespaceLoading()
+		this.configuration = FlowConfiguration.FromFolder(this.path)
 	}
 
 	protected initNamespaceLoading() {
-		const autoloadNamespaces = this.composerJson?.autoload?.["psr-4"] ?? []
-		for (const namespace in autoloadNamespaces) {
+		const autoloadNamespaces = this.composerJson?.autoload?.["psr-4"] ?? {}
+		const sortedAutoloadNamespaceNames = Object.keys(autoloadNamespaces).sort((a, b) => b.length - a.length)
+
+		for (const namespace of sortedAutoloadNamespaceNames) {
 			const namespacePath = autoloadNamespaces[namespace]
 			this.namespaces.set(namespace, new NeosPackageNamespace(namespace, NodePath.join(this.path, namespacePath)))
 		}
 	}
 
 	public initEelHelper() {
-		const configurationFolderPath = NodePath.join(this.path, "Configuration")
-		if (!NodeFs.existsSync(configurationFolderPath)) return undefined
-		const neosConfiguration = FlowConfiguration.FromFolder(configurationFolderPath)
+		if (this.configuration["settingsConfiguration"] === null) return undefined
 
-		if (neosConfiguration["parsedYamlConfiguration"] === null) return undefined
-
-		const defaultNeosFusionContext = neosConfiguration.get<any>("Neos.Fusion.defaultContext")
+		const defaultNeosFusionContext = this.configuration.get<{}>("Neos.Fusion.defaultContext")
 		if (!defaultNeosFusionContext) return undefined
 
 		this.logVerbose("Found EEL-Helpers:")
@@ -69,6 +74,10 @@ export class NeosPackage extends Logger {
 			if (eelHelper !== undefined) {
 				const location = {
 					name: eelHelperPrefix,
+					namespace: eelHelper.namespace,
+					pathParts: eelHelper.pathParts,
+					className: eelHelper.className,
+					package: this,
 					uri: eelHelper.uri,
 					regex: RegExp(`(${eelHelperPrefix.split('.').join('\\.')})(\\.\\w+)?`),
 					position: eelHelper.position,
