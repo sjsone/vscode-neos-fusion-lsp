@@ -21,3 +21,8 @@ images/
 
 !client/out/main.js
 !server/out/main.js
+client/package.json
+server/package.json
+
+*.vsix
+*.cpuprofile
