@@ -9,7 +9,7 @@ import { PhpClassNode } from '../fusion/PhpClassNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
-import { findParent, findUntil, getObjectIdentifier, getPrototypeNameFromNode } from '../common/util'
+import { findParent, getObjectIdentifier, getPrototypeNameFromNode, pathToUri } from '../common/util'
 import { AbstractCapability } from './AbstractCapability'
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
@@ -198,13 +198,23 @@ export class DefinitionCapability extends AbstractCapability {
 
 	getResourceUriPathNodeDefinition(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<ResourceUriNode>) {
 		const node = foundNodeByLine.getNode()
-		if (!node.canBeFound()) return null
-		const uri = workspace.neosWorkspace.getResourceUriPath(node.getNamespace(), node.getRelativePath())
-		if (!uri || !NodeFs.existsSync(uri)) return null
+		if (!node.canBeFound()) {
+			this.logDebug("ResourceURI cannot be found")
+			return null
+		}
+		const path = workspace.neosWorkspace.getResourceUriPath(node.getNamespace(), node.getRelativePath())
+		if (!path || !NodeFs.existsSync(path)) {
+			this.logDebug(`Resource path path is "${path}" with node.namespace "${node.getNamespace()}" and node.relativePath "${node.getRelativePath()}"`)
+			return null
+		}
+
 		const targetRange = {
 			start: { line: 0, character: 0 },
 			end: { line: 0, character: 0 },
 		}
+
+		const uri = pathToUri(path)
+		this.logDebug(`Resource path path is "${path}" and uri is "${uri}"`)
 
 		return [{
 			targetUri: uri,
