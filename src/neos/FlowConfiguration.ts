@@ -1,28 +1,28 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
-import { parse as parseYaml } from 'yaml'
-import { LoggingLevel } from '../ExtensionConfiguration'
+import { Position, Range } from 'vscode-languageserver'
 import { Logger, LogService } from '../common/Logging'
-import { getFiles, mergeObjects, pathToUri } from '../common/util'
-import { Position } from 'vscode-languageserver'
-import { YamlLexer } from '../yaml/YamlLexer'
-
-export type ParsedYaml = string | null | number | { [key: string]: ParsedYaml }
-
-export interface NodeTypeDefinition {
-	uri: string
-	nodeType: string
-	position: Position
-}
+import { getFiles, mergeObjects } from '../common/util'
+import { LoggingLevel } from '../ExtensionConfiguration'
+import { FlowConfigurationFile, FlowConfigurationFileType, NodeTypeDefinition, ParsedYaml } from './FlowConfigurationFile'
+import { NeosPackage } from './NeosPackage'
 
 export class FlowConfiguration extends Logger {
 	protected settingsConfiguration: ParsedYaml
 	protected nodeTypeDefinitions: NodeTypeDefinition[]
+	protected configurationFiles: FlowConfigurationFile[] = []
+	protected neosPackage: NeosPackage
+	protected folderPath: string
 
-	protected constructor(settingsConfiguration: ParsedYaml, nodeTypeDefinitions: NodeTypeDefinition[]) {
-		super()
-		this.settingsConfiguration = settingsConfiguration
-		this.nodeTypeDefinitions = nodeTypeDefinitions
+	protected constructor(neosPackage: NeosPackage) {
+		const folderPath = neosPackage["path"]
+		super(NodePath.basename(folderPath))
+
+		this.neosPackage = neosPackage
+		this.folderPath = folderPath
+
+		this.logDebug("Created", folderPath)
+		// this.logInfo("ContextPath", neosPackage["neosWorkspace"].configurationManager.getContextPath())
 	}
 
 	get<T extends ParsedYaml>(path: string | string[], settingsConfiguration = this.settingsConfiguration): T {
@@ -35,95 +35,82 @@ export class FlowConfiguration extends Logger {
 		return (typeof value === 'object' && typeof value !== 'function') ? this.get(path, value) : undefined
 	}
 
-	static FromFolder(folderPath: string) {
-		const nodeTypeDefinitions = []
-		const nodeTypeDefinitionsFolderPath = NodePath.join(folderPath, 'NodeTypes')
-		if (NodeFs.existsSync(nodeTypeDefinitionsFolderPath)) {
-			nodeTypeDefinitions.push(...FlowConfiguration.ReadNodeTypesFolderConfiguration(nodeTypeDefinitionsFolderPath))
+	search<T extends ParsedYaml>(path: string | string[], filterByCurrentFlowContext = true): { value: T, file: FlowConfigurationFile, range: Range }[] {
+		if (!Array.isArray(path)) path = path.split(".")
+
+		const results: { value: T, file: FlowConfigurationFile, range: Range }[] = []
+		const contextPath = this.neosPackage["neosWorkspace"].configurationManager.getContextPath()
+
+		for (const configurationFile of this.configurationFiles) {
+			if (filterByCurrentFlowContext && !configurationFile.isOfContext(contextPath)) continue
+
+			const value = configurationFile.getValueByPath(path)
+			if (value !== undefined) {
+				const resolvedRange = configurationFile.resolvePositionRangeForPath(path)
+				console.log("Found resolvedRange ", resolvedRange, configurationFile["uri"])
+
+				results.push({
+					range: resolvedRange ?? Range.create(Position.create(0, 0), Position.create(0, 0)),
+					value: <any>value,
+					file: configurationFile
+				})
+			}
 		}
 
-		let settings = {}
-		const settingsFolderPath = NodePath.join(folderPath, 'Configuration')
-		if (NodeFs.existsSync(settingsFolderPath)) {
-			const settingsAndNodeTypes = FlowConfiguration.ReadSettingsAndNodeTypesConfiguration(settingsFolderPath)
-			settings = settingsAndNodeTypes.configuration
-			nodeTypeDefinitions.push(...settingsAndNodeTypes.nodeTypeDefinitions)
-		}
-
-		// if (LogService.isLogLevel(LoggingLevel.Verbose)) {
-		// Logger.LogNameAndLevel(LoggingLevel.Verbose.toUpperCase(), 'FlowConfiguration:FromFolder', 'Created FlowConfiguration from: ' + folderPath)
-		// }
-		return new FlowConfiguration(settings, nodeTypeDefinitions)
+		return results
 	}
 
-	protected static ReadSettingsAndNodeTypesConfiguration(folderPath: string) {
-		const nodeTypeDefinitions: NodeTypeDefinition[] = []
-		let configuration: ParsedYaml = {}
+	static ForPackage(neosPackage: NeosPackage) {
+		const configuration = new FlowConfiguration(neosPackage);
+		configuration.readNodeTypeDefinitionsFromNodeTypesFolder()
+		configuration.readConfigurationsFromConfigurationFolder()
 
-		for (const configurationFilePath of <string[]>getFiles(folderPath, ".yaml")) {
-			if (NodePath.basename(configurationFilePath).startsWith("Settings")) {
-				const configurationFileYaml = NodeFs.readFileSync(configurationFilePath).toString()
-				const parsedYaml = parseYaml(configurationFileYaml)
+		// ConfigurationManager
+
+		return configuration
+	}
+
+	protected readNodeTypeDefinitionsFromNodeTypesFolder() {
+		this.nodeTypeDefinitions = []
+		const nodeTypeDefinitionsFolderPath = NodePath.join(this.folderPath, 'NodeTypes')
+		if (!NodeFs.existsSync(nodeTypeDefinitionsFolderPath)) return
+
+		for (const nodeTypeFilePath of <string[]>getFiles(nodeTypeDefinitionsFolderPath, ".yaml")) {
+			const configurationFile = new FlowConfigurationFile(nodeTypeFilePath)
+			this.nodeTypeDefinitions.push(...configurationFile.parseNodeTypeDefinitions())
+			this.configurationFiles.push(configurationFile)
+		}
+	}
+
+	protected readConfigurationsFromConfigurationFolder() {
+		this.settingsConfiguration = {}
+		const settingsFolderPath = NodePath.join(this.folderPath, 'Configuration')
+		if (!NodeFs.existsSync(settingsFolderPath)) return
+
+		for (const configurationFilePath of <string[]>getFiles(settingsFolderPath, ".yaml")) {
+			const configurationFile = new FlowConfigurationFile(configurationFilePath)
+
+			if (configurationFile.isOfType(FlowConfigurationFileType.Settings)) {
+				const parsedYaml = configurationFile.parseYaml()
 
 				try {
-					const mergedConfiguration = <ParsedYaml>mergeObjects(parsedYaml, configuration)
-					configuration = mergedConfiguration ? mergedConfiguration : configuration
-					if (LogService.isLogLevel(LoggingLevel.Debug)) {
-						Logger.LogNameAndLevel(LoggingLevel.Debug.toUpperCase(), 'FlowConfiguration:FromFolder', 'Read configuration from: ' + configurationFilePath)
-					}
+					const mergedConfiguration = <ParsedYaml>mergeObjects(parsedYaml, this.settingsConfiguration)
+					this.settingsConfiguration = mergedConfiguration ? mergedConfiguration : this.settingsConfiguration
+					if (LogService.isLogLevel(LoggingLevel.Debug)) Logger.LogNameAndLevel(LoggingLevel.Debug.toUpperCase(), 'FlowConfiguration:FromFolder', 'Read configuration from: ' + configurationFilePath)
 				} catch (e) {
 					if (e instanceof Error) {
-						console.log("ERROR: configuration", configuration)
-						console.log("ERROR: ", e.message, e.stack)
+						console.log("ERROR: configuration", this.settingsConfiguration)
+						console.log("    ", e.message, e.stack)
 					}
 				}
 			}
 
-			if (NodePath.basename(configurationFilePath).startsWith('NodeTypes')) {
-				nodeTypeDefinitions.push(...FlowConfiguration.ReadNodeTypeConfiguration(configurationFilePath))
+			if (configurationFile.isOfType(FlowConfigurationFileType.NodeTypes)) {
+				this.nodeTypeDefinitions.push(...configurationFile.parseNodeTypeDefinitions())
 			}
-		}
 
-		return { configuration, nodeTypeDefinitions }
+			this.configurationFiles.push(configurationFile)
+		}
 	}
 
-	protected static ReadNodeTypesFolderConfiguration(nodeTypeDefinitionsFolderPath: string): NodeTypeDefinition[] {
-		const nodeTypeDefinitions: NodeTypeDefinition[] = []
-
-		for (const nodeTypeFilePath of <string[]>getFiles(nodeTypeDefinitionsFolderPath, ".yaml")) {
-			nodeTypeDefinitions.push(...FlowConfiguration.ReadNodeTypeConfiguration(nodeTypeFilePath))
-		}
-
-		return nodeTypeDefinitions
-	}
-
-
-	protected static ReadNodeTypeConfiguration(nodeTypeFilePath: string): NodeTypeDefinition[] {
-		const nodeTypeDefinitions: NodeTypeDefinition[] = []
-
-		try {
-			const configurationFileYaml = NodeFs.readFileSync(nodeTypeFilePath).toString()
-			const yamlLexer = new YamlLexer(configurationFileYaml, nodeTypeFilePath)
-			for (const yamlToken of yamlLexer.tokenize()) {
-				if (yamlToken.indent !== 0) continue
-				if (yamlToken.type !== "complexstring" && yamlToken.type !== "string") continue
-
-				const match = /^[0-9a-zA-Z.]+(?::[0-9a-zA-Z.]+$)/m.exec(yamlToken.value)
-				if (match === null) continue
-
-				nodeTypeDefinitions.push({
-					uri: pathToUri(nodeTypeFilePath),
-					nodeType: match[0],
-					position: Position.create(0, 0)
-				})
-			}
-		} catch (e) {
-			if (e instanceof Error) {
-				console.log("ERROR: ReadNodeTypeConfiguration", nodeTypeFilePath)
-				console.log("\\----: ", e.message, e.stack)
-			}
-		}
-
-		return nodeTypeDefinitions
-	}
 }

@@ -3,7 +3,7 @@ import * as NodeFs from 'fs'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
-import { DefinitionLink, Location, LocationLink } from 'vscode-languageserver/node'
+import { DefinitionLink, Location, LocationLink, Position, Range } from 'vscode-languageserver/node'
 import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
 import { PhpClassNode } from '../fusion/PhpClassNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
@@ -32,6 +32,9 @@ import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpress
 import { NeosFusionFormActionNode } from '../fusion/NeosFusionFormActionNode'
 import { NeosFusionFormControllerNode } from '../fusion/NeosFusionFormControllerNode'
 import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService'
+import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
+import { NeosWorkspace } from '../neos/NeosWorkspace'
+import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode'
 
 export interface ActionUriDefinition {
 	package: string
@@ -47,8 +50,10 @@ export class DefinitionCapability extends AbstractCapability {
 		const { workspace, parsedFile, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
 		const node = foundNodeByLine.getNode()
 
-		this.logVerbose(`node type "${foundNodeByLine.getNode().constructor.name}"`)
+		this.logInfo(`node type "${foundNodeByLine.getNode().constructor.name}"`)
 		switch (true) {
+			case node instanceof ObjectFunctionPathNode:
+				return this.getConfigurationSettingsDefinitions(parsedFile, workspace, <LinePositionedNode<ObjectFunctionPathNode>>foundNodeByLine)
 			case node instanceof FusionObjectValue:
 			case node instanceof PrototypePathSegment:
 				return this.getPrototypeDefinitions(workspace, foundNodeByLine)
@@ -276,6 +281,34 @@ export class DefinitionCapability extends AbstractCapability {
 			if (resolvedDefinition) locationLinks.push(...resolvedDefinition)
 		}
 
+
+		return locationLinks
+	}
+
+	getConfigurationSettingsDefinitions(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<ObjectFunctionPathNode>) {
+		const node = foundNodeByLine.getNode()
+		const firstArgument = node["args"][0]
+		const objectNode = <ObjectNode>node["parent"]
+
+		if (!(objectNode.path[0] instanceof ObjectPathNode) || objectNode.path[0]["value"] !== "Configuration") return null
+		if (!(objectNode.path[1] instanceof ObjectFunctionPathNode) || objectNode.path[1]["value"] !== "setting") return null
+		if (!(firstArgument instanceof LiteralStringNode)) return null
+
+		const locationLinks: LocationLink[] = []
+		this.logInfo("searching for ", firstArgument["value"])
+
+		const originSelectionRange = firstArgument.linePositionedNode.getPositionAsRange()
+
+		for (const neosPackage of workspace.neosWorkspace.getPackages().values()) {
+			for (const result of neosPackage["configuration"].search(firstArgument["value"])) {
+				locationLinks.push({
+					targetUri: result.file["uri"],
+					targetRange: result.range,
+					targetSelectionRange: result.range,
+					originSelectionRange
+				})
+			}
+		}
 
 		return locationLinks
 	}
