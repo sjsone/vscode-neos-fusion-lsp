@@ -35,13 +35,12 @@ function updatePackageVersion(packagePath, commandLineArguments) {
 }
 
 function buildIncrementsFromCommandLineArguments(commandLineArguments, version) {
-	if (commandLineArguments['--pre'] === true) {
-		const [_currentMajor, _currentMinor, currentPatch] = version.split('.')
-		const prePathIncrease = currentPatch / 2 === 0 ? 1 : 2
-		return { major: 0, minor: 0, patch: prePathIncrease }
-	}
+	const [_currentMajor, _currentMinor, currentPatch] = version.split('.')
+	const isNormalRelease = Number(currentPatch) % 2 === 0
+	if (commandLineArguments['--pre'] === true) return { major: 0, minor: 0, patch: isNormalRelease ? 1 : 2 }
+	if (commandLineArguments['--patch'] === true) return { major: 0, minor: 0, patch: isNormalRelease ? 2 : 1 }
 	return {
-		major: commandLineArguments['--major'] === true ? 1 : 0, minor: commandLineArguments['--minor'] === true ? 1 : 0, patch: commandLineArguments['--patch'] === true ? 1 : 0
+		major: commandLineArguments['--major'] === true ? 1 : 0, minor: commandLineArguments['--minor'] === true ? 1 : 0, patch: 0
 	}
 }
 
