@@ -22,6 +22,7 @@ import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { DeprecationConfigurationSpecialType } from '../ExtensionConfiguration'
 import { URI } from 'vscode-uri'
 import { uriToFsPath } from 'vscode-uri/lib/umd/uri'
+import { Position } from 'vscode-languageserver'
 
 export interface LineDataCacheEntry {
     lineLengths: number[]
@@ -80,7 +81,7 @@ export function getLineNumberOfChar(data: string, index: number, textUri: string
         if (totalLength >= index) return { line: i, character: column }
         column -= entry.lineLengths[i] + 1
     }
-    return { line: i, character: column }
+    return { line: i, character: column } as Position
 }
 
 export function* getFiles(dir: string, withExtension = ".fusion") {
