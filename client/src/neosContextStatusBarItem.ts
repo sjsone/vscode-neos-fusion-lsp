@@ -36,7 +36,11 @@ class NeosContextStatusBarItem {
 	updateText(name: string) {
 		this.selectedContextName = name
 		this.eventEmitter.emit(NeosContextStatusBarItem.ChangedContextEvent, this.selectedContextName)
-		this.contextStatusBarItem.text = `Context: ${this.selectedContextName}`
+		// globe
+		// milestone
+		// squirrel
+		// 🚧 
+		this.contextStatusBarItem.text = `🚧 Flow Context: ${this.selectedContextName}`
 	}
 
 	addListener(eventName: string | symbol, listener: (...args: any[]) => void) {
