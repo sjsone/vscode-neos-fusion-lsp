@@ -12,7 +12,7 @@ export class ConfigurationManager extends Logger {
 	protected workspacePath: string
 	protected packagePaths: string[] = []
 	protected allContexts?: ConfigurationContext
-	protected selectedContextPath?: string
+	protected selectedContextPath?: string = "Development"
 
 	constructor(workspacePath: string) {
 		super()
@@ -61,20 +61,22 @@ export class ConfigurationManager extends Logger {
 		this.selectedContextPath = path
 	}
 
+	getContextPath() {
+		return this.selectedContextPath
+	}
+
 	getContexts(): string[] | undefined {
 		if (this.allContexts === undefined || Object.keys(this.allContexts.contexts).length === 0) return undefined
 
 		const getFromContexts = (context: ConfigurationContext): string[] => {
 			const list = [context.name]
-
 			for (const subContext of Object.values(context.contexts)) {
 				const result = getFromContexts(subContext).map(c => `${context.name}/${c}`)
 				list.push(...result)
 			}
-
 			return list
 		}
 
-		return Object.values(this.allContexts.contexts).reduce((carry, subContext) => [...carry, ...getFromContexts(subContext)], [])
+		return Object.values(this.allContexts.contexts).reduce((contexts, subContext) => [...contexts, ...getFromContexts(subContext)], [])
 	}
 }

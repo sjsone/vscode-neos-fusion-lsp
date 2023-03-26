@@ -48,7 +48,7 @@ export class NeosPackage extends Logger {
 		this.debug = this.getName() === "neos/fusion"
 
 		this.initNamespaceLoading()
-		this.configuration = FlowConfiguration.FromFolder(this.path)
+		this.configuration = FlowConfiguration.ForPackage(this)
 	}
 
 	protected initNamespaceLoading() {
@@ -63,6 +63,9 @@ export class NeosPackage extends Logger {
 
 	public initEelHelper() {
 		if (this.configuration["settingsConfiguration"] === null) return undefined
+
+		// const found = this.configuration.search("Neos.Flow.core")
+		// if (found.length > 1) this.logInfo("Test found", found)
 
 		const defaultNeosFusionContext = this.configuration.get<{}>("Neos.Fusion.defaultContext")
 		if (!defaultNeosFusionContext) return undefined
