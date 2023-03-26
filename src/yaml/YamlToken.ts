@@ -1,70 +1,87 @@
-export type YamlToken = ColonToken | DashToken | NumberToken | TildeToken | ComplexStringToken | AliasToken | AnchorToken | TagToken | StringToken | StringBlockToken | CommentToken | SymbolToken | NewlineToken | SpaceToken 
+export type YamlToken = ColonToken | DashToken | NumberToken | TildeToken | ComplexStringToken | AliasToken | AnchorToken | TagToken | StringToken | StringBlockToken | CommentToken | SymbolToken | NewlineToken | SpaceToken
 
+export enum YamlTokenType {
+    Colon = "colon",
+    Dash = "dash",
+    Number = "number",
+    Tilde = "tilde",
+    ComplexString = "complexstring",
+    Alias = "alias",
+    Anchor = "anchor",
+    Tag = "tag",
+    String = "string",
+    StringBlock = "stringblock",
+    Comment = "comment",
+    Symbol = "symbol",
+    Newline = "newline",
+    Space = "space",
+
+    Document = "document",
+    List = "list"
+}
 
 interface AbstractYamlToken {
-    type: any
+    type: YamlTokenType
     value?: any
     position: number,
-    indent: number,
-    inLine: boolean
+    indent: number
 }
 
 export interface ColonToken extends AbstractYamlToken {
-    type: "colon",
+    type: YamlTokenType.Colon,
     value: ':'
 }
 
 export interface DashToken extends AbstractYamlToken {
-    type: "dash",
+    type: YamlTokenType.Dash,
     value: '-'
 }
 
 export interface NumberToken extends AbstractYamlToken {
-    type: "number"
+    type: YamlTokenType.Number
 }
 
 export interface TildeToken extends AbstractYamlToken {
-    type: "tilde",
+    type: YamlTokenType.Tilde,
     value: '~'
 }
 
 export interface ComplexStringToken extends AbstractYamlToken {
-    type: "complexstring"
+    type: YamlTokenType.ComplexString
 }
 
 export interface AliasToken extends AbstractYamlToken {
-    type: "alias"
+    type: YamlTokenType.Alias
 }
 
 export interface AnchorToken extends AbstractYamlToken {
-    type: "anchor"
+    type: YamlTokenType.Anchor
 }
 
 export interface TagToken extends AbstractYamlToken {
-    type: "tag"
+    type: YamlTokenType.Tag
 }
 
 export interface StringToken extends AbstractYamlToken {
-    type: "string"
-    stringType: "'" | '"'
+    type: YamlTokenType.String
 }
 
 export interface StringBlockToken extends AbstractYamlToken {
-    type: "stringblock"
+    type: YamlTokenType.StringBlock
 }
 
 export interface CommentToken extends AbstractYamlToken {
-    type: "comment"
+    type: YamlTokenType.Comment
 }
 
 export interface SymbolToken extends AbstractYamlToken {
-    type: "symbol"
+    type: YamlTokenType.Symbol
 }
 
 export interface NewlineToken extends AbstractYamlToken {
-    type: "newline"
+    type: YamlTokenType.Newline
 }
 
 export interface SpaceToken extends AbstractYamlToken {
-    type: "space"
+    type: YamlTokenType.Space
 }
