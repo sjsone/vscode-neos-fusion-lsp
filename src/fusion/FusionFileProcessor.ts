@@ -210,6 +210,7 @@ export class FusionFileProcessor extends Logger {
 
 	protected processActionUriObjectStatement(objectStatement: ObjectStatement, text: string) {
 		const actionUriDefinitionNode = new ActionUriDefinitionNode(objectStatement)
+		if (objectStatement.block === undefined) return
 
 		for (const statement of objectStatement.block.statementList.statements) {
 			if (!(statement instanceof ObjectStatement)) continue
