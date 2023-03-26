@@ -7,12 +7,10 @@ export class YamlLexer {
     private currentIndent: number = 0
     private indentLocked: boolean = false
     private lastIndentType?: string
-    protected extra: any
     protected inLine: boolean
 
-    constructor(input: string, extra: any = undefined) {
+    constructor(input: string) {
         this.input = input
-        this.extra = extra
         this.currentPos = 0
         this.inLine = false
     }
@@ -53,7 +51,7 @@ export class YamlLexer {
 
     protected tokenizeComplexString(rest: string) {
         const position = this.currentPos
-        let value = rest.match(/^([<>a-zA-Z0-9\/\._\-!:]+?):[ |\n]{1}/m)![1]
+        let value = rest.match(/^([<>a-zA-Z0-9\\\/\._\-!:]+?):[ |\n]{1}/m)![1]
         this.currentPos += value.length
         return { inLine: this.inLine, indent: this.getIndent(), position, type: "complexstring", value } as ComplexStringToken
     }
@@ -169,7 +167,7 @@ export class YamlLexer {
             } else if (char === "~") {
                 this.inLine = true
                 yield this.tokenizeTilde()
-            } else if ((rest.match(/^([<>a-zA-Z0-9\/\._\-!:]+?):[ |\n]{1}/m)?.[1]) !== undefined) {
+            } else if ((rest.match(/^([<>a-zA-Z0-9\\\/\._\-!:]+?):[ |\n]{1}/m)?.[1]) !== undefined) {
                 this.inLine = true
                 yield this.tokenizeComplexString(rest)
             } else if (char.match(/[a-zA-Z!*&\/\\]/)) {
