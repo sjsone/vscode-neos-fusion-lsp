@@ -187,7 +187,8 @@ export class LanguageServer extends Logger {
 			busy: true,
 			text: "$(rocket)",
 			detail: "initializing language server",
-			name: "initializing"
+			name: "initializing",
+			severity: 1 // Warning
 		})
 
 		LogService.setLogLevel(configuration.logging.level)
