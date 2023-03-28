@@ -31,6 +31,8 @@ import { ResourceUriNode } from './ResourceUriNode';
 import { NeosFusionFormDefinitionNode } from './NeosFusionFormDefinitionNode';
 import { NeosFusionFormActionNode } from './NeosFusionFormActionNode';
 import { NeosFusionFormControllerNode } from './NeosFusionFormControllerNode';
+import { FlowConfigurationPathNode } from './FlowConfigurationPathNode';
+import path = require('path');
 
 export class FusionFileProcessor extends Logger {
 	protected parsedFusionFile: ParsedFusionFile
@@ -82,6 +84,10 @@ export class FusionFileProcessor extends Logger {
 				const eelHelperNode = new PhpClassNode(eelHelperIdentifier, eelHelperMethodNode, node, position)
 				this.parsedFusionFile.addNode(eelHelperNode, text)
 			}
+
+			if (eelHelperIdentifier + "." + eelHelperMethodNode.identifier === "Configuration.setting") {
+				this.createFlowConfigurationPathNode(<ObjectFunctionPathNode>methodNode, text)
+			}
 		}
 	}
 
@@ -98,6 +104,19 @@ export class FusionFileProcessor extends Logger {
 		return {
 			eelHelperIdentifier: nameParts.join("."),
 			position
+		}
+	}
+
+	protected createFlowConfigurationPathNode(functionNode: ObjectFunctionPathNode, text: string) {
+		const configurationPath = functionNode.args[0]
+		if (!(configurationPath instanceof LiteralStringNode)) return
+
+		const flowConfigurationPathNode = FlowConfigurationPathNode.FromLiteralStringNode(configurationPath)
+		if (flowConfigurationPathNode) {
+			this.parsedFusionFile.addNode(flowConfigurationPathNode, text)
+			for (const pathPart of flowConfigurationPathNode["path"]) {
+				this.parsedFusionFile.addNode(pathPart, text)
+			}
 		}
 	}
 

@@ -23,6 +23,7 @@ import { DeprecationConfigurationSpecialType } from '../ExtensionConfiguration'
 import { URI } from 'vscode-uri'
 import { uriToFsPath } from 'vscode-uri/lib/umd/uri'
 import { Position } from 'vscode-languageserver'
+import { FlowConfigurationPathPartNode } from '../fusion/FlowConfigurationPathPartNode'
 
 export interface LineDataCacheEntry {
     lineLengths: number[]
@@ -194,6 +195,7 @@ export function getNodeWeight(node: any) {
         case node instanceof PhpClassNode: return 30
         case node instanceof FqcnNode: return 20
         case node instanceof PrototypePathSegment: return 18
+        case node instanceof FlowConfigurationPathPartNode: return 17
         case node instanceof ResourceUriNode: return 16
         case node instanceof ObjectPathNode: return 15
         case node instanceof ObjectStatement: return 10
