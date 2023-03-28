@@ -17,20 +17,30 @@ function parseCommandLineArguments(config) {
 
 function incrementPatchVersion(version, incrementMajor = 0, incrementMinor = 0, incrementPatch = 0) {
 	const [major, minor, patch] = version.split('.')
-	return `${Number(major) + incrementMajor}.${Number(minor) + incrementMinor}.${Number(patch) + incrementPatch}`
+	const majorVersion = Number(major) + incrementMajor
+	const minorVersion = incrementMajor > 0 ? 0 : Number(minor) + incrementMinor
+	const patchVersion = incrementMajor > 0 || incrementMinor > 0 ? 0 : Number(patch) + incrementPatch
+
+	return `${majorVersion}.${minorVersion}.${patchVersion}`
 }
 
-function updatePackageVersion(packagePath, incrementMajor = 0, incrementMinor = 0, incrementPatch = 0) {
+function updatePackageVersion(packagePath, commandLineArguments) {
 	const packageJson = require(packagePath)
-	packageJson.version = incrementPatchVersion(packageJson.version, incrementMajor, incrementMinor, incrementPatch)
+
+	const increments = buildIncrementsFromCommandLineArguments(commandLineArguments, packageJson.version)
+
+	packageJson.version = incrementPatchVersion(packageJson.version, increments.major, increments.minor, increments.patch)
 	NodeFs.writeFileSync(packagePath, JSON.stringify(packageJson, null, 4) + '\n')
 	return packageJson.version
 }
 
-function buildIncrementsFromCommandLineArguments(commandLineArguments) {
-	if (commandLineArguments['--pre'] === true) return { major: 0, minor: 0, patch: 2 }
+function buildIncrementsFromCommandLineArguments(commandLineArguments, version) {
+	const [_currentMajor, _currentMinor, currentPatch] = version.split('.')
+	const isNormalRelease = Number(currentPatch) % 2 === 0
+	if (commandLineArguments['--pre'] === true) return { major: 0, minor: 0, patch: isNormalRelease ? 1 : 2 }
+	if (commandLineArguments['--patch'] === true) return { major: 0, minor: 0, patch: isNormalRelease ? 2 : 1 }
 	return {
-		major: commandLineArguments['--major'] === true ? 1 : 0, minor: commandLineArguments['--minor'] === true ? 1 : 0, patch: commandLineArguments['--patch'] === true ? 1 : 0
+		major: commandLineArguments['--major'] === true ? 1 : 0, minor: commandLineArguments['--minor'] === true ? 1 : 0, patch: 0
 	}
 }
 
@@ -41,9 +51,8 @@ const commandLineArguments = parseCommandLineArguments({
 	'--major': Boolean
 })
 
-const increments = buildIncrementsFromCommandLineArguments(commandLineArguments)
 const versions = []
 for (const path of ['./package.json', './server/package.json', './client/package.json']) {
-	versions.push(updatePackageVersion(path, increments.major, increments.minor, increments.patch))
+	versions.push(updatePackageVersion(path, commandLineArguments))
 }
 if (versions[0]) console.log(versions[0])

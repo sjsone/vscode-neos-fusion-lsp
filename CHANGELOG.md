@@ -4,6 +4,10 @@ Normal Release: 🚀
 
 Pre-Release: 🧪
 
+## 🚀 0.2.0
+
+- Fixed handling of Prototypes extending from `Neos.Neos.Plugin`
+
 ## 🧪 0.1.63
 
 - Added Badges to Readme
