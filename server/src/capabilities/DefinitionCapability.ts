@@ -47,7 +47,7 @@ export class DefinitionCapability extends AbstractCapability {
 		const { workspace, parsedFile, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
 		const node = foundNodeByLine.getNode()
 
-		this.logInfo(`node type "${foundNodeByLine.getNode().constructor.name}"`)
+		this.logDebug(`node type "${foundNodeByLine.getNode().constructor.name}"`)
 		switch (true) {
 			case node instanceof FlowConfigurationPathPartNode:
 				return this.getConfigurationSettingsDefinitions(workspace, <LinePositionedNode<FlowConfigurationPathPartNode>>foundNodeByLine)
@@ -291,7 +291,7 @@ export class DefinitionCapability extends AbstractCapability {
 
 		const pathParts = node["path"].slice(0, partIndex + 1)
 		const searchPath = pathParts.map(part => part["value"]).join(".")
-		this.logInfo("searching for ", searchPath)
+		this.logDebug("searching for ", searchPath)
 
 		const nodeBegin = node.linePositionedNode.getBegin()
 		const originSelectionRange = {

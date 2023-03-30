@@ -17,10 +17,10 @@ export class FlowConfigurationPathNode extends AbstractNode {
 		const baseBegin = literalStringNode["position"].begin + 1
 
 		const pathParts = literalStringNode["value"].split(".")
-		const pathPartNodes = pathParts.filter(Boolean).map((pathPart, index) => {
+		const pathPartNodes = pathParts.map((pathPart, index) => {
 			const offset = pathParts.slice(0, index).join('.').length
-			const begin = baseBegin + offset + (index > 0 ? 1 : 0)
-			const position = { begin, end: begin + pathPart.length }
+			const begin = baseBegin + offset
+			const position = { begin, end: begin + pathPart.length + (index > 0 ? 1 : 0) }
 
 			return new FlowConfigurationPathPartNode(pathPart, position)
 		})

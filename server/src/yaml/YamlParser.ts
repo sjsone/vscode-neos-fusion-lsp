@@ -8,10 +8,7 @@ import { Position, Range } from 'vscode-languageserver'
 
 const traverseUpwards = (node: AbstractYamlNode, steps: number) => {
     for (let i = 0; i < steps; i++) {
-        if (node["parent"] === undefined) {
-            console.error("node", node)
-            throw Error(`Trying to get parent but it is undefined`)
-        }
+        if (node["parent"] === undefined) throw Error(`Trying to get parent but it is undefined: ${JSON.stringify(node)}`)
         node = node["parent"]!
     }
     return node
