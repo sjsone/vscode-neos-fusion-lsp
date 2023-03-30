@@ -106,7 +106,8 @@ export function pathToUri(path: string) {
 
 export function getPrototypeNameFromNode(node: AbstractNode) {
     if (node instanceof FusionObjectValue) return node.value
-    else if (node instanceof PrototypePathSegment) return node.identifier
+    if (node instanceof PrototypePathSegment) return node.identifier
+    if (node instanceof FusionObjectValue) return node["value"]
     return null
 }
 
