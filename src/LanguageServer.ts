@@ -205,7 +205,6 @@ export class LanguageServer extends Logger {
 
 	public onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams) {
 		// TODO: Create separate Watchers (like capabilities)
-		// TODO: Update `FlowConfigurationFile`s if a .yaml files changes
 		// TODO: Update relevant ParsedFusionFiles but check if it was not a change the LSP does know of
 		for (const change of params.changes) {
 			// console.log(`CHANGE: ${change.type} ${change.uri}`)
@@ -217,6 +216,21 @@ export class LanguageServer extends Logger {
 	}
 
 	protected handleFileChanged(change: FileEvent) {
+		if (change.uri.endsWith(".yaml")) {
+			for (const fusionWorkspace of this.fusionWorkspaces) {
+				for (const neosPackage of fusionWorkspace.neosWorkspace.getPackages().values()) {
+					for (const configurationFile of neosPackage["configuration"]["configurationFiles"]) {
+						if (configurationFile["uri"] !== change.uri) continue
+						clearLineDataCacheForFile(change.uri)
+						configurationFile.reset()
+						configurationFile.parseYaml()
+						this.logDebug("Updated YAML")
+						return
+					}
+				}
+			}
+		}
+
 		if (!change.uri.endsWith(".php")) return
 		clearLineDataCacheForFile(change.uri)
 

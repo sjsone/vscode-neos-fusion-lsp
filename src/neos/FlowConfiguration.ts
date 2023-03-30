@@ -45,9 +45,10 @@ export class FlowConfiguration extends Logger {
 			if (filterByCurrentFlowContext && !configurationFile.isOfContext(contextPath)) continue
 
 			const value = configurationFile.getValueByPath(path)
-			if (value !== undefined) {
+			
+			if (value != undefined) {
 				const resolvedRange = configurationFile.resolvePositionRangeForPath(path)
-				console.log("Found resolvedRange ", resolvedRange, configurationFile["uri"])
+				// console.log("Found resolvedRange ", resolvedRange, configurationFile["uri"])
 
 				results.push({
 					range: resolvedRange ?? Range.create(Position.create(0, 0), Position.create(0, 0)),

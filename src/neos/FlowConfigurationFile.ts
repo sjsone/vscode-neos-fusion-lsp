@@ -72,7 +72,7 @@ export class FlowConfigurationFile extends Logger {
 			try {
 				this.positionedParsedYaml = YamlParser.Parse(this.uri)
 			} catch (error) {
-				this.logInfo("Error while parsing", this.uri, error)
+				this.logVerbose("Error while parsing", this.uri, error)
 				this.positionedParsedYaml = null
 			}
 		}
@@ -80,8 +80,7 @@ export class FlowConfigurationFile extends Logger {
 
 		const result = this.getNodeByPathInListNode(this.positionedParsedYaml, path)
 		if (result === undefined) return undefined
-
-		return result["token"]["range"]
+		return result["token"]?.["range"]
 	}
 
 	public isOfContext(context: string) {
@@ -126,6 +125,13 @@ export class FlowConfigurationFile extends Logger {
 			}
 		}
 		return this.nodeTypeDefinitions
+	}
+
+	public reset() {
+		this.parsedYaml = undefined
+		this.nodeTypeDefinitions = []
+		this.yamlTokens = []
+		this.positionedParsedYaml = undefined
 	}
 
 	protected getNodeByPathInListNode(listNode: AbstractListYamlNode, path: string[]): undefined | AbstractYamlNode {

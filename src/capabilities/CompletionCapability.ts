@@ -1,24 +1,25 @@
 import * as NodeFs from 'fs'
 import * as NodePath from 'path'
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { Comment } from 'ts-fusion-parser/out/common/Comment'
+import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
+import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { Command, CompletionItem, CompletionItemKind, InsertTextMode } from 'vscode-languageserver/node'
+import { LinePositionedNode } from '../common/LinePositionedNode'
+import { ExternalObjectStatement, NodeService } from '../common/NodeService'
+import { findParent, getObjectIdentifier } from '../common/util'
+import { FlowConfigurationPathPartNode } from '../fusion/FlowConfigurationPathPartNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ResourceUriNode } from '../fusion/ResourceUriNode'
-import { LinePositionedNode } from '../common/LinePositionedNode'
 import { NeosPackage } from '../neos/NeosPackage'
-import { ExternalObjectStatement, NodeService } from '../common/NodeService'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
-import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
-import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
-import { findParent, getObjectIdentifier } from '../common/util'
-import { Comment } from 'ts-fusion-parser/out/common/Comment'
 
 // TODO: eel helper arguments
 export class CompletionCapability extends AbstractCapability {
@@ -47,6 +48,9 @@ export class CompletionCapability extends AbstractCapability {
 				case foundNode instanceof FusionObjectValue:
 				case foundNode instanceof PrototypePathSegment:
 					completions.push(...this.getPrototypeCompletions(workspace, <LinePositionedNode<FusionObjectValue | PrototypePathSegment>>foundNodeByLine))
+					break
+				case foundNode instanceof FlowConfigurationPathPartNode:
+					completions.push(...this.getFlowConfigurationCompletions(workspace, <LinePositionedNode<FlowConfigurationPathPartNode>>foundNodeByLine))
 					break
 				case foundNode instanceof ObjectNode:
 					completions.push(...this.getFusionPropertyCompletionsForObjectNode(workspace, <LinePositionedNode<ObjectNode>>foundNodeByLine))
@@ -191,6 +195,40 @@ export class CompletionCapability extends AbstractCapability {
 				const label = fileNode.getNode().identifier
 				if (!completions.find(completion => completion.label === label)) {
 					completions.push(this.createCompletionItem(label, foundNode, CompletionItemKind.Class))
+				}
+			}
+		}
+
+		return completions
+	}
+
+	protected getFlowConfigurationCompletions(fusionWorkspace: FusionWorkspace, partNode: LinePositionedNode<FlowConfigurationPathPartNode>): CompletionItem[] {
+		const completions: CompletionItem[] = []
+		const node = partNode.getNode()["parent"]
+		const partIndex = node["path"].indexOf(partNode.getNode())
+		if (partIndex === -1) return []
+
+		const pathParts = node["path"].slice(0, partIndex + 1)
+		const searchPath = pathParts.map(part => part["value"]).filter(Boolean)
+		this.logDebug("searching for ", searchPath)
+
+		for (const neosPackage of fusionWorkspace.neosWorkspace.getPackages().values()) {
+			for (const result of neosPackage["configuration"].search(searchPath)) {
+				if (typeof result.value === "string") {
+					completions.push(this.createCompletionItem(result.value, partNode, CompletionItemKind.Text))
+				}
+
+				if (typeof result.value === "object") {
+					for (const itemName in result.value) {
+						const label = (searchPath.length > 0 ? '.' : '') + itemName
+						if (completions.find(completion => completion.label === label)) continue
+
+						const value = result.value[itemName]
+						let type: CompletionItemKind = CompletionItemKind.Value
+						if (typeof value === "string") type = CompletionItemKind.Text
+						if (typeof value === "object") type = CompletionItemKind.Class
+						completions.push(this.createCompletionItem(label, partNode, type))
+					}
 				}
 			}
 		}
