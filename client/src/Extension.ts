@@ -140,6 +140,7 @@ export class Extension {
 				configurationSection: 'neosFusionLsp',
 				fileEvents: [
 					workspace.createFileSystemWatcher('**/*.php'),
+					workspace.createFileSystemWatcher('**/*.yaml'),
 					workspace.createFileSystemWatcher('**/*.fusion')
 				]
 			},
