@@ -4,6 +4,10 @@ Normal Release: 🚀
 
 Pre-Release: 🧪
 
+## 🧪 0.2.1
+
+- Improved Prototype References
+
 ## 🚀 0.2.0
 
 - Fixed handling of Prototypes extending from `Neos.Neos.Plugin`
