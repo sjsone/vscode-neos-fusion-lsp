@@ -12,6 +12,7 @@ import { LanguageServer } from '../LanguageServer'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { diagnose } from '../diagnostics/ParsedFusionFileDiagnostics'
 import { NeosPackage } from '../neos/NeosPackage'
+import { ComposerService } from '../common/ComposerService'
 
 export class FusionWorkspace extends Logger {
     public uri: string
@@ -71,6 +72,11 @@ export class FusionWorkspace extends Logger {
 
         const usingWorkspaceAsPackageFallback = packagesPaths.length === 0 && configuration.folders.workspaceAsPackageFallback
         if (usingWorkspaceAsPackageFallback) packagesPaths.push(workspacePath)
+
+        const sortedPackagePaths = ComposerService.getSortedPackagePaths(packagesPaths)
+        
+        console.log("packagesPaths", packagesPaths.length)
+        console.log("sortedPackagePaths", sortedPackagePaths.length)
 
         this.neosWorkspace = new NeosWorkspace(workspacePath, this.name)
         for (const packagePath of packagesPaths) {
