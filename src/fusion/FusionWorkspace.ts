@@ -73,13 +73,9 @@ export class FusionWorkspace extends Logger {
         const usingWorkspaceAsPackageFallback = packagesPaths.length === 0 && configuration.folders.workspaceAsPackageFallback
         if (usingWorkspaceAsPackageFallback) packagesPaths.push(workspacePath)
 
-        const sortedPackagePaths = ComposerService.getSortedPackagePaths(packagesPaths)
-        
-        console.log("packagesPaths", packagesPaths.length)
-        console.log("sortedPackagePaths", sortedPackagePaths.length)
-
         this.neosWorkspace = new NeosWorkspace(workspacePath, this.name)
-        for (const packagePath of packagesPaths) {
+        const sortedPackagePaths = ComposerService.getSortedPackagePaths(packagesPaths)
+        for (const packagePath of sortedPackagePaths) {
             this.neosWorkspace.addPackage(packagePath)
         }
 

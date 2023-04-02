@@ -1,4 +1,3 @@
-import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { EelHelperMethod } from '../eel/EelHelperMethod'
 import { LinePosition } from '../common/LinePositionedNode'
@@ -6,6 +5,7 @@ import { Logger } from '../common/Logging'
 import { FlowConfiguration } from './FlowConfiguration'
 import { NeosPackageNamespace } from './NeosPackageNamespace'
 import { NeosWorkspace } from './NeosWorkspace'
+import { ComposerService } from '../common/ComposerService'
 
 export interface EELHelperToken {
 	name: string,
@@ -35,9 +35,7 @@ export class NeosPackage extends Logger {
 	protected debug: boolean
 
 	constructor(path: string, neosWorkspace: NeosWorkspace) {
-		const composerJsonFilePath = NodePath.join(path, "composer.json")
-		const composerJson = JSON.parse(NodeFs.readFileSync(composerJsonFilePath).toString())
-
+		const composerJson = ComposerService.getComposerJsonByPath(path)
 		super(composerJson.name)
 
 		this.path = path
