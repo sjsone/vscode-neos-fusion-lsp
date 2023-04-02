@@ -38,7 +38,7 @@ export class NeosPackage extends Logger {
 		const composerJson = ComposerService.getComposerJsonByPath(path)
 		super(composerJson.name)
 
-		this.path = path
+		this.path = NodePath.resolve(neosWorkspace["workspacePath"], path)
 		this.neosWorkspace = neosWorkspace
 
 		this.composerJson = composerJson
