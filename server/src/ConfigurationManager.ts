@@ -1,6 +1,7 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { Logger } from './common/Logging'
+import { NeosWorkspace } from './neos/NeosWorkspace'
 
 export interface ConfigurationContext {
 	name: string,
@@ -9,16 +10,14 @@ export interface ConfigurationContext {
 }
 
 export class ConfigurationManager extends Logger {
-	protected workspacePath: string
+	protected workspace: NeosWorkspace
 	protected packagePaths: string[] = []
 	protected allContexts?: ConfigurationContext
 	protected selectedContextPath?: string = "Development"
 
-	constructor(workspacePath: string) {
+	constructor(workspace: NeosWorkspace) {
 		super()
-		this.workspacePath = workspacePath
-		// this.logInfo(`workspacePath ${workspacePath}`)
-
+		this.workspace = workspace
 	}
 
 	addPackage(path: string) {
