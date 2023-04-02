@@ -3,16 +3,19 @@ import { ConfigurationManager } from '../ConfigurationManager'
 import { Logger } from '../common/Logging'
 import { uriToPath } from '../common/util'
 import { EELHelperToken, NeosPackage } from './NeosPackage'
+import { FusionWorkspace } from '../fusion/FusionWorkspace'
 export class NeosWorkspace extends Logger {
+	protected fusionWorkspace: FusionWorkspace
 	protected workspacePath: string
 	public configurationManager: ConfigurationManager
 
 	protected packages: Map<string, NeosPackage> = new Map()
 
-	constructor(workspacePath: string, name: string) {
-		super(name)
-		this.workspacePath = workspacePath
-		this.configurationManager = new ConfigurationManager(workspacePath)
+	constructor(fusionWorkspace: FusionWorkspace) {
+		super(fusionWorkspace.name)
+		this.fusionWorkspace = fusionWorkspace
+		this.workspacePath = uriToPath(fusionWorkspace.uri)
+		this.configurationManager = new ConfigurationManager(this)
 	}
 
 	addPackage(packagePath: string) {
