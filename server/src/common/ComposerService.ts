@@ -3,6 +3,7 @@ import * as NodePath from "path"
 
 class ComposerService {
 	protected parsedComposerJsonByName: { [key: string]: any } = {}
+	protected packagePathByName: { [key: string]: string } = {}
 
 	protected alreadyParsed: string[] = []
 
@@ -17,45 +18,49 @@ class ComposerService {
 			const composerJson = JSON.parse(NodeFs.readFileSync(composerJsonPath).toString())
 			if (composerJson.type === "neos-site") pseudoRootPackage.require[composerJson.name] = "0.0.0"
 			this.parsedComposerJsonByName[composerJson.name] = composerJson
+			this.packagePathByName[composerJson.name] = packagePath
 		}
 
 		const tree = this.buildRequireTree(pseudoRootPackage)
-		console.log(tree)
-		for (const name in tree) {
-			console.group(`Site: ${name}`)
-			for (const test of tree[name]) console.log(test)
-			console.groupEnd()
-		}
-
-		const treeLevels = this.test(tree)
-		console.log("treeLevels", treeLevels)
-
-		return treeLevels.reduce((list, level) => {
+		const treeLevels = this.buildTreeLevels(tree)
+		const sortedPackagePaths = treeLevels.reduce((list, level) => {
 			for (const name of level) {
-				if (!list.includes(name)) list.unshift(name)
+				const packagePath = this.packagePathByName[name]
+				if (!list.includes(packagePath)) list.unshift(packagePath)
 			}
 			return list
 		}, [])
+
+		const remaining = packagesPaths.filter(item => !sortedPackagePaths.includes(item));
+		return sortedPackagePaths.concat(remaining);
 	}
 
-	protected test(tree: any, treeLevels: any[] = [], currentLevel: number = 0) {
+	getComposerJsonByPath(path: string) {
+		const nameIndex = Object.values(this.packagePathByName).findIndex(packagePath => packagePath === path)
+		if (nameIndex === undefined) return undefined
+
+		const name = Object.keys(this.packagePathByName)[nameIndex]
+		return this.parsedComposerJsonByName[name]
+	}
+
+	protected buildTreeLevels(tree: any, treeLevels: any[] = [], currentLevel: number = 0) {
 		if (treeLevels[currentLevel] === undefined) treeLevels[currentLevel] = []
 
 		for (const name of Object.keys(tree)) {
 			if (!treeLevels[currentLevel].includes(name)) treeLevels[currentLevel].push(name)
 			for (const node of tree[name]) {
-				this.test(node, treeLevels, currentLevel + 1)
+				this.buildTreeLevels(node, treeLevels, currentLevel + 1)
 			}
 		}
 
 		return treeLevels
 	}
 
-	private readComposerJson(packageName: string) {
+	protected readComposerJson(packageName: string) {
 		return this.parsedComposerJsonByName[packageName]
 	}
 
-	private buildRequireTree(composerJson: { [key: string]: any }) {
+	protected buildRequireTree(composerJson: { [key: string]: any }) {
 		const requireTree: any = {}
 		const dependencies = composerJson.require
 
@@ -68,10 +73,6 @@ class ComposerService {
 			if (!composerJson) continue
 
 			requireTree[packageName] = []
-
-			// for (const include of Object.keys(composerJson.require || {})) {
-			// 	requireTree[packageName].push(include)
-			// }
 
 			const childTree = this.buildRequireTree(composerJson)
 

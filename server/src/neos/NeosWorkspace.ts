@@ -17,7 +17,7 @@ export class NeosWorkspace extends Logger {
 
 	addPackage(packagePath: string) {
 		try {
-			const neosPackage = new NeosPackage(NodePath.resolve(this.workspacePath, packagePath), this)
+			const neosPackage = new NeosPackage(packagePath, this)
 			this.packages.set(neosPackage.getName(), neosPackage)
 			this.configurationManager.addPackage(packagePath)
 		} catch (error) {
