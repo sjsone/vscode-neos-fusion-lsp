@@ -73,8 +73,15 @@
                         "default": true,
                         "description": "If no packages folders can be found, treat the workspace as a package"
                     },
-                    "neosFusionLsp.folders.fusion": {
+                    "neosFusionLsp.folders.projectConfiguration": {
                         "order": 3,
+                        "scope": "window",
+                        "type": "string",
+                        "default": "Configuration",
+                        "description": "Path to the base Configuration folder in the Project"
+                    },
+                    "neosFusionLsp.folders.fusion": {
+                        "order": 4,
                         "scope": "window",
                         "type": "array",
                         "items": {
@@ -91,7 +98,7 @@
                         "description": "Fusion Folder inside Package"
                     },
                     "neosFusionLsp.folders.ignore": {
-                        "order": 4,
+                        "order": 5,
                         "scope": "window",
                         "type": "array",
                         "items": {
@@ -104,14 +111,14 @@
                         "description": "Folders to ignore"
                     },
                     "neosFusionLsp.folders.followSymbolicLinks": {
-                        "order": 5,
+                        "order": 6,
                         "scope": "window",
                         "type": "boolean",
                         "default": false,
                         "description": "Should a symbolic link be followed while searching for packages?"
                     },
                     "neosFusionLsp.folders.includeHiddenDirectories": {
-                        "order": 6,
+                        "order": 7,
                         "scope": "window",
                         "type": "boolean",
                         "default": false,
