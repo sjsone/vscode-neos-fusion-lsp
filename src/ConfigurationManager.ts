@@ -26,7 +26,8 @@ export class ConfigurationManager extends Logger {
 	}
 
 	buildConfiguration(selectedFlowContextName?: string) {
-		const globalConfigurationPath = NodePath.join(this.workspacePath, "Configuration")
+		const projectConfigurationFolder = this.workspace["fusionWorkspace"].getConfiguration().folders.projectConfiguration
+		const globalConfigurationPath = NodePath.join(this.workspace["workspacePath"], projectConfigurationFolder)
 		// console.log("globalConfigurationPath", globalConfigurationPath, NodeFs.existsSync(globalConfigurationPath))
 		if (!NodeFs.existsSync(globalConfigurationPath)) return
 
@@ -65,7 +66,10 @@ export class ConfigurationManager extends Logger {
 	}
 
 	getContexts(): string[] | undefined {
-		if (this.allContexts === undefined || Object.keys(this.allContexts.contexts).length === 0) return undefined
+		if (this.allContexts === undefined || Object.keys(this.allContexts.contexts).length === 0) {
+			console.log("allContexts is undefined or empty")
+			return undefined
+		}
 
 		const getFromContexts = (context: ConfigurationContext): string[] => {
 			const list = [context.name]

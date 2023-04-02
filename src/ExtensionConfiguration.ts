@@ -25,6 +25,7 @@ export interface ExtensionConfiguration {
         packages: string[],
         fusion: string[],
         ignore: string[],
+        projectConfiguration: string,
         workspaceAsPackageFallback: boolean,
         followSymbolicLinks: boolean,
         includeHiddenDirectories: boolean
