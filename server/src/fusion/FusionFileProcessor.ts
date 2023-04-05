@@ -241,16 +241,20 @@ export class FusionFileProcessor extends Logger {
 		}
 
 		if (value.startsWith('[instanceof ') && value.endsWith(']')) {
-			const prototypeName = value.slice('[instanceof '.length, value.length - 1).trim()
-			const begin = literalStringNode["position"].begin + '[instanceof '.length + 1
-			const position = {
-				begin,
-				end: begin + prototypeName.length
-			}
-			const prototypePath = new PrototypePathSegment(prototypeName, position)
-			if (prototypePath) {
-				prototypePath["parent"] = literalStringNode
-				this.parsedFusionFile.addNode(prototypePath, text)
+			const instanceofRegex = /(?:\[instanceof (.+?)\])+/gm
+			let result: RegExpExecArray
+			while ((result = instanceofRegex.exec(value)) !== null) {
+				const prototypeName = result[1]
+				const begin = literalStringNode["position"].begin + value.indexOf(prototypeName, result.index) + 1
+				const position = {
+					begin,
+					end: begin + prototypeName.length
+				}
+				const prototypePath = new PrototypePathSegment(prototypeName, position)
+				if (prototypePath) {
+					prototypePath["parent"] = literalStringNode
+					this.parsedFusionFile.addNode(prototypePath, text)
+				}
 			}
 		}
 	}
