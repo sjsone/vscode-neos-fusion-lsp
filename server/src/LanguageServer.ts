@@ -107,14 +107,16 @@ export class LanguageServer extends Logger {
 		}
 
 		this.connection.onNotification("custom/flowContext/set", ({ selectedContextName }) => {
-			this.logInfo(`Setting FusionContext to ${selectedContextName}`)
+			this.logInfo(`Setting FusionContext to "${selectedContextName}"`)
 			for (const fusionWorkspace of this.fusionWorkspaces) {
 				fusionWorkspace.setSelectedFlowContextName(selectedContextName)
 			}
 		})
 
 		this.connection.onRequest("custom/neosContexts/get", () => {
-			return this.fusionWorkspaces[0].neosWorkspace.configurationManager.getContexts()
+			const contexts = this.fusionWorkspaces[0].neosWorkspace.configurationManager.getContexts()
+			const selectedContext = this.fusionWorkspaces[0].neosWorkspace.configurationManager.getContextPath()
+			return contexts.map(context => ({ context, selected: selectedContext === context }))
 		})
 
 		return {

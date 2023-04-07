@@ -11,20 +11,36 @@ class NeosContextStatusBarItem {
 	init({ subscriptions }: ExtensionContext, client: LanguageClient, outputChannel: OutputChannel) {
 		const selectContextCommandId = 'fusion-lsp.selectContext';
 		subscriptions.push(commands.registerCommand(selectContextCommandId, async () => {
-			const result: string[] = await client.sendRequest("custom/neosContexts/get")
-			const options: QuickPickItem[] = result.map(label => ({ label }))
+			const results: { context: string, selected: boolean }[] = await client.sendRequest("custom/neosContexts/get")
 
-			const quickPick = window.createQuickPick();
+			const options: QuickPickItem[] = []
+			for (const result of results) {
+				const option: QuickPickItem = {
+					label: result.context,
+					picked: result.selected
+				}
+				if (result.selected) {
+					options.unshift({
+						label: "",
+						kind: QuickPickItemKind.Separator
+					})
+					options.unshift(option)
+				} else {
+					options.push(option)
+				}
+			}
+
+			const quickPick = window.createQuickPick()
 			quickPick.title = "Set FLOW_CONTEXT"
 			quickPick.items = options
+			quickPick.selectedItems = options.filter(option => option.picked)
 			quickPick.onDidChangeSelection(selection => {
 				this.updateText(selection[0].label)
-				// window.showInformationMessage(`Yeah, ${JSON.stringify(selection[0].label)}`);
 				quickPick.hide()
-			});
-			quickPick.onDidHide(() => quickPick.dispose());
-			quickPick.show();
-		}));
+			})
+			quickPick.onDidHide(() => quickPick.dispose())
+			quickPick.show()
+		}))
 
 		this.contextStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
 		this.contextStatusBarItem.command = selectContextCommandId;

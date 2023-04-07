@@ -38,6 +38,7 @@ export class FusionWorkspace extends Logger {
 
     setSelectedFlowContextName(contextName: string) {
         this.selectedFlowContextName = contextName
+        this.neosWorkspace.configurationManager.selectContextPath(contextName)
     }
 
     getConfiguration() {
