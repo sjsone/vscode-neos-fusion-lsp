@@ -300,15 +300,13 @@ export class DefinitionCapability extends AbstractCapability {
 		}
 
 		const locationLinks: LocationLink[] = []
-		for (const neosPackage of workspace.neosWorkspace.getPackages().values()) {
-			for (const result of neosPackage["configuration"].search(searchPath)) {
-				locationLinks.push({
-					targetUri: result.file["uri"],
-					targetRange: result.range,
-					targetSelectionRange: result.range,
-					originSelectionRange
-				})
-			}
+		for (const result of workspace["neosWorkspace"]["configurationManager"].search(searchPath)) {
+			locationLinks.push({
+				targetUri: result.file["uri"],
+				targetRange: result.range,
+				targetSelectionRange: result.range,
+				originSelectionRange
+			})
 		}
 		return locationLinks
 	}

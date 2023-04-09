@@ -1,9 +1,12 @@
 import * as NodePath from "path"
+import * as NodeFs from "fs"
 import { ConfigurationManager } from '../ConfigurationManager'
 import { Logger } from '../common/Logging'
 import { uriToPath } from '../common/util'
 import { EELHelperToken, NeosPackage } from './NeosPackage'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { getFiles } from '../common/util'
+import { FlowConfiguration } from './FlowConfiguration'
 export class NeosWorkspace extends Logger {
 	protected fusionWorkspace: FusionWorkspace
 	protected workspacePath: string
@@ -16,6 +19,26 @@ export class NeosWorkspace extends Logger {
 		this.fusionWorkspace = fusionWorkspace
 		this.workspacePath = uriToPath(fusionWorkspace.uri)
 		this.configurationManager = new ConfigurationManager(this)
+	}
+
+	init(selectedFlowContextName?: string) {
+		this.initConfiguration(selectedFlowContextName)
+		this.initEelHelpers()
+	}
+
+	initEelHelpers() {
+		for (const neosPackage of this.packages.values()) {
+			neosPackage.initEelHelper()
+		}
+	}
+
+	initConfiguration(selectedFlowContextName?: string) {
+		this.configurationManager.buildConfiguration(selectedFlowContextName)
+		const configurationBasePath = NodePath.join(uriToPath(this.fusionWorkspace.uri), 'Configuration')
+		console.log("configurationBasePath", configurationBasePath, NodeFs.existsSync(configurationBasePath))
+		if (NodeFs.existsSync(configurationBasePath)) {
+			FlowConfiguration.ForPath(this, uriToPath(this.fusionWorkspace.uri))
+		}
 	}
 
 	addPackage(packagePath: string) {
@@ -81,17 +104,6 @@ export class NeosWorkspace extends Logger {
 			if (resourceUriPath) return resourceUriPath
 		}
 		return undefined
-	}
-
-	init(selectedFlowContextName?: string) {
-		this.configurationManager.buildConfiguration(selectedFlowContextName)
-		this.initEelHelpers()
-	}
-
-	initEelHelpers() {
-		for (const neosPackage of this.packages.values()) {
-			neosPackage.initEelHelper()
-		}
 	}
 
 	getEelHelperTokens() {
