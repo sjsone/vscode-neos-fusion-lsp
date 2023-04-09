@@ -2,6 +2,9 @@ import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { Logger } from './common/Logging'
 import { NeosWorkspace } from './neos/NeosWorkspace'
+import { FlowConfiguration } from './neos/FlowConfiguration'
+import { Range } from 'vscode-languageserver'
+import { ParsedYaml, FlowConfigurationFile } from './neos/FlowConfigurationFile'
 
 export interface ConfigurationContext {
 	name: string,
@@ -14,6 +17,7 @@ export class ConfigurationManager extends Logger {
 	protected packagePaths: string[] = []
 	protected allContexts?: ConfigurationContext
 	protected selectedContextPath?: string = "Development"
+	protected configurations: FlowConfiguration[] = []
 
 	constructor(workspace: NeosWorkspace) {
 		super()
@@ -81,5 +85,13 @@ export class ConfigurationManager extends Logger {
 		}
 
 		return Object.values(this.allContexts.contexts).reduce((contexts, subContext) => [...contexts, ...getFromContexts(subContext)], [])
+	}
+
+	search(searchPath: string) {
+		const results: { value: ParsedYaml, file: FlowConfigurationFile, range: Range }[] = []
+		for (const configuration of this.configurations) {
+			results.push(...configuration.search(searchPath))
+		}
+		return results
 	}
 }

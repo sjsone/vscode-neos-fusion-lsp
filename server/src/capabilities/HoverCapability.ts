@@ -93,11 +93,12 @@ export class HoverCapability extends AbstractCapability {
 		this.logDebug("searching for ", searchPath)
 
 		const results = []
-		for (const neosPackage of workspace.neosWorkspace.getPackages().values()) {
-			for (const result of neosPackage["configuration"].search(searchPath)) {
-				results.push(`# [${neosPackage.getPackageName()}] ${NodePath.basename(result.file["uri"])}`)
-				results.push(YAML.stringify(result.value, undefined, 3))
-			}
+		for (const result of workspace.neosWorkspace["configurationManager"].search(searchPath)) {
+			const fileUri = result.file["uri"]
+			const neosPackage = workspace.neosWorkspace.getPackageByUri(fileUri)
+			const packageName = neosPackage?.getPackageName() ?? 'Project Configuration'
+			results.push(`# [${packageName}] ${NodePath.basename(fileUri)}`)
+			results.push(YAML.stringify(result.value, undefined, 3))
 		}
 
 		return [
