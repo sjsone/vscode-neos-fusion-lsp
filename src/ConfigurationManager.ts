@@ -5,6 +5,8 @@ import { NeosWorkspace } from './neos/NeosWorkspace'
 import { FlowConfiguration } from './neos/FlowConfiguration'
 import { Range } from 'vscode-languageserver'
 import { ParsedYaml, FlowConfigurationFile } from './neos/FlowConfigurationFile'
+import { NeosPackage } from './neos/NeosPackage'
+import { mergeObjects } from './common/util'
 
 export interface ConfigurationContext {
 	name: string,
@@ -18,15 +20,22 @@ export class ConfigurationManager extends Logger {
 	protected allContexts?: ConfigurationContext
 	protected selectedContextPath?: string = "Development"
 	protected configurations: FlowConfiguration[] = []
+	protected configurationTest: ParsedYaml = {}
 
 	constructor(workspace: NeosWorkspace) {
 		super()
 		this.workspace = workspace
 	}
 
-	addPackage(path: string) {
+	addPackage(neosPackage: NeosPackage, path: string) {
 		// this.logInfo(`Adding package ${path}`)
 		this.packagePaths.push(path)
+		try {
+			const mergedConfiguration = <ParsedYaml>mergeObjects(neosPackage["configuration"]["settingsConfiguration"], this.configurationTest)
+			this.configurationTest = mergedConfiguration ? mergedConfiguration : this.configurationTest
+		} catch (error) {
+			console.log(error)
+		}
 	}
 
 	buildConfiguration(selectedFlowContextName?: string) {

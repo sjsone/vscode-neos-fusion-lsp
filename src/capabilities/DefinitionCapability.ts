@@ -299,6 +299,11 @@ export class DefinitionCapability extends AbstractCapability {
 			end: foundNodeByLine.getEnd()
 		}
 
+		// TODO: test
+		const test = workspace["neosWorkspace"]["configurationManager"]["configurationTest"]
+		// CONTINUE: Check why flow context is ""
+		console.log("test", test["Neos"]["Flow"])
+
 		const locationLinks: LocationLink[] = []
 		for (const result of workspace["neosWorkspace"]["configurationManager"].search(searchPath)) {
 			locationLinks.push({

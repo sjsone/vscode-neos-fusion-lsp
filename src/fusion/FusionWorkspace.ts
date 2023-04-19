@@ -76,6 +76,7 @@ export class FusionWorkspace extends Logger {
 
         this.neosWorkspace = new NeosWorkspace(this)
         const sortedPackagePaths = ComposerService.getSortedPackagePaths(packagesPaths)
+        console.log("sortedPackagePaths", sortedPackagePaths)
         for (const packagePath of sortedPackagePaths) {
             this.neosWorkspace.addPackage(packagePath)
         }

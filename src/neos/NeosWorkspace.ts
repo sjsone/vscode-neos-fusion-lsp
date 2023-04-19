@@ -45,7 +45,8 @@ export class NeosWorkspace extends Logger {
 		try {
 			const neosPackage = new NeosPackage(packagePath, this)
 			this.packages.set(neosPackage.getName(), neosPackage)
-			this.configurationManager.addPackage(packagePath)
+			this.configurationManager.addPackage(neosPackage, packagePath)
+			return neosPackage
 		} catch (error) {
 			if (error instanceof Error) {
 				if (error["code"] === 'ENOENT') {
@@ -55,6 +56,7 @@ export class NeosWorkspace extends Logger {
 				}
 			}
 		}
+		return undefined
 	}
 
 	getPackages() {
