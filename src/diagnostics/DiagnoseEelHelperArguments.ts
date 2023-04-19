@@ -27,7 +27,10 @@ function* getDiagnosticFromEelHelper(positionedNode: LinePositionedNode<PhpClass
 		}
 	}
 
-	if (pathNode.args.length > method.parameters.length) {
+	const hasTooManyArgs = pathNode.args.length > method.parameters.length
+	const isLastParameterSpread = method.parameters[method.parameters.length - 1]?.spread
+
+	if (hasTooManyArgs && isLastParameterSpread !== true) {
 		for (const exceedingArgument of pathNode.args.slice(method.parameters.length)) {
 			yield {
 				severity: DiagnosticSeverity.Warning,
