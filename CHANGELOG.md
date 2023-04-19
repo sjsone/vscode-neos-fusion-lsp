@@ -4,6 +4,11 @@ Normal Release: 🚀
 
 Pre-Release: 🧪
 
+## 🧪 0.2.3
+
+- fixed multiple `[instanceof ...]`
+- fixed [#4](https://github.com/sjsone/vscode-neos-fusion-lsp/issues/4) "EelHelpers with ...$param not working"
+
 ## 🧪 0.2.1
 
 - Improved Prototype References
