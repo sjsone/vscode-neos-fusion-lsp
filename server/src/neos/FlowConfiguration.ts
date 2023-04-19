@@ -60,6 +60,10 @@ export class FlowConfiguration extends Logger {
 		return results
 	}
 
+	getConfigurationFileByUri(uri: string) {
+		return this.configurationFiles.find(file => file["uri"] === uri)
+	}
+
 	protected readNodeTypeDefinitionsFromNodeTypesFolder() {
 		this.nodeTypeDefinitions = []
 		const nodeTypeDefinitionsFolderPath = NodePath.join(this.folderPath, 'NodeTypes')
@@ -85,8 +89,12 @@ export class FlowConfiguration extends Logger {
 
 				try {
 					const mergedConfiguration = <ParsedYaml>mergeObjects(parsedYaml, this.settingsConfiguration)
+
+					
 					this.settingsConfiguration = mergedConfiguration ? mergedConfiguration : this.settingsConfiguration
 					if (LogService.isLogLevel(LoggingLevel.Debug)) Logger.LogNameAndLevel(LoggingLevel.Debug.toUpperCase(), 'FlowConfiguration:FromFolder', 'Read configuration from: ' + configurationFilePath)
+					const testContext = this.settingsConfiguration?.["Neos"]?.["Flow"]?.["core"]?.["context"]
+					console.log("testContext", testContext)
 				} catch (e) {
 					if (e instanceof Error) {
 						console.log("ERROR: configuration", this.settingsConfiguration)

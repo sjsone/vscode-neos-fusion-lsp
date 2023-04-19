@@ -32,7 +32,7 @@ class ComposerService {
 		}, [])
 
 		const remaining = packagesPaths.filter(item => !sortedPackagePaths.includes(item));
-		return sortedPackagePaths.concat(remaining);
+		return remaining.concat(sortedPackagePaths);
 	}
 
 	getComposerJsonByPath(path: string) {

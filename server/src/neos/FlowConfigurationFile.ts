@@ -34,7 +34,6 @@ export class FlowConfigurationFile extends Logger {
 	protected context: string
 	protected parsedYaml?: ParsedYaml
 	protected nodeTypeDefinitions: NodeTypeDefinition[] = []
-	protected yamlTokens: YamlToken[] = []
 
 	protected positionedParsedYaml?: DocumentNode
 
@@ -130,7 +129,6 @@ export class FlowConfigurationFile extends Logger {
 	public reset() {
 		this.parsedYaml = undefined
 		this.nodeTypeDefinitions = []
-		this.yamlTokens = []
 		this.positionedParsedYaml = undefined
 	}
 
