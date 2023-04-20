@@ -93,8 +93,8 @@ export class FlowConfiguration extends Logger {
 					
 					this.settingsConfiguration = mergedConfiguration ? mergedConfiguration : this.settingsConfiguration
 					if (LogService.isLogLevel(LoggingLevel.Debug)) Logger.LogNameAndLevel(LoggingLevel.Debug.toUpperCase(), 'FlowConfiguration:FromFolder', 'Read configuration from: ' + configurationFilePath)
-					const testContext = this.settingsConfiguration?.["Neos"]?.["Flow"]?.["core"]?.["context"]
-					console.log("testContext", testContext)
+					// const testContext = this.settingsConfiguration?.["Neos"]?.["Flow"]?.["core"]?.["context"]
+					// console.log("testContext", testContext)
 				} catch (e) {
 					if (e instanceof Error) {
 						console.log("ERROR: configuration", this.settingsConfiguration)
