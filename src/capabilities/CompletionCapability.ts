@@ -26,7 +26,6 @@ export class CompletionCapability extends AbstractCapability {
 
 	static SuggestCommand: Command = {
 		title: 'Trigger Suggest',
-
 		command: 'editor.action.triggerSuggest'
 	}
 
@@ -220,14 +219,19 @@ export class CompletionCapability extends AbstractCapability {
 
 				if (typeof result.value === "object") {
 					for (const itemName in result.value) {
-						const label = (searchPath.length > 0 ? '.' : '') + itemName
+						const value = result.value[itemName]
+						const isObject = typeof value === "object"
+
+						const label = (searchPath.length > 0 ? '.' : '') + itemName + (isObject ? '.' : '')
 						if (completions.find(completion => completion.label === label)) continue
 
-						const value = result.value[itemName]
 						let type: CompletionItemKind = CompletionItemKind.Value
 						if (typeof value === "string") type = CompletionItemKind.Text
-						if (typeof value === "object") type = CompletionItemKind.Class
-						completions.push(this.createCompletionItem(label, partNode, type))
+						if (isObject) type = CompletionItemKind.Class
+
+						const completion = this.createCompletionItem(label, partNode, type)
+						completion.command = CompletionCapability.SuggestCommand
+						completions.push(completion)
 					}
 				}
 			}
