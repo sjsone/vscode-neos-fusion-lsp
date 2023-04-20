@@ -3,6 +3,7 @@ import { LinePosition } from '../common/LinePositionedNode'
 export interface PhpMethodParameter {
 	name: string,
 	defaultValue?: string
+	spread: boolean,
 	type?: string
 }
 

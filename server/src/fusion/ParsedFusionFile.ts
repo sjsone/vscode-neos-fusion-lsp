@@ -101,6 +101,10 @@ export class ParsedFusionFile extends Logger {
 		}
 	}
 
+	runPostProcessing() {
+		this.fusionFileProcessor.runPostProcessing()
+	}
+
 	clearCaches() {
 		clearLineDataCacheForFile(this.uri)
 		this.logVerbose("Cleared caches")

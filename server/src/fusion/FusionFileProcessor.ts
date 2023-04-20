@@ -32,10 +32,12 @@ import { NeosFusionFormDefinitionNode } from './NeosFusionFormDefinitionNode';
 import { NeosFusionFormActionNode } from './NeosFusionFormActionNode';
 import { NeosFusionFormControllerNode } from './NeosFusionFormControllerNode';
 import { FlowConfigurationPathNode } from './FlowConfigurationPathNode';
-import path = require('path');
+import { NodeService } from '../common/NodeService';
 
+type PostProcess = () => void
 export class FusionFileProcessor extends Logger {
 	protected parsedFusionFile: ParsedFusionFile
+	protected postProcessors: PostProcess[] = []
 
 	constructor(parsedFusionFile: ParsedFusionFile, suffix: string | undefined = undefined) {
 		super(suffix)
@@ -52,6 +54,11 @@ export class FusionFileProcessor extends Logger {
 			if (node instanceof LiteralStringNode) this.processLiteralStringNode(node, text)
 			this.parsedFusionFile.addNode(node, text)
 		}
+	}
+
+	runPostProcessing() {
+		for (const postProcess of this.postProcessors) postProcess()
+		this.postProcessors = []
 	}
 
 	protected processEelObjectNode(node: ObjectNode, text: string) {
@@ -191,10 +198,11 @@ export class FusionFileProcessor extends Logger {
 			if (objectStatement.operation.pathValue instanceof StringValue) return this.processStringValue(objectStatement.operation.pathValue, text)
 		}
 
-		if (objectStatement.operation instanceof ValueCopy && segments[0] instanceof PrototypePathSegment) {
-			// TODO: Implement second pass of `.processNodesByType` so NodeService.isPrototypeOneOf works as it should
-			const isPlugin = objectStatement.operation.assignedObjectPath.objectPath.segments[0]?.["identifier"] === "Neos.Neos:Plugin"
-			if (isPlugin) this.processActionUriObjectStatement(objectStatement, text)
+		if (segments[0] instanceof PrototypePathSegment) {
+			this.postProcessors.push(() => {
+				const isPlugin = NodeService.isPrototypeOneOf((segments[0] as PrototypePathSegment)?.identifier, "Neos.Neos:Plugin", this.parsedFusionFile.workspace)
+				if (isPlugin) this.processActionUriObjectStatement(objectStatement, text)
+			})
 		}
 	}
 
