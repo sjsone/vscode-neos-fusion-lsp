@@ -51,17 +51,28 @@ export class InlayHintLanguageFeature extends AbstractLanguageFeature {
 	protected * getInlayHintsFromPhpClassMethodNode(node: PhpClassMethodNode, method: EelHelperMethod, workspace: FusionWorkspace) {
 		if (!(node.pathNode instanceof ObjectFunctionPathNode)) return
 
+		// TODO: improve spread parameter label 
+		let spreadParameterIndex = undefined
 		for (const index in node.pathNode.args) {
 			const arg = node.pathNode.args[index]
 			if (!this.canShowInlayHintForArgumentNode(workspace, arg)) continue
 
-			const parameter = method.parameters[index]
-			if (!parameter) continue
+			let parameter = method.parameters[index]
+			if (!parameter && spreadParameterIndex === undefined) continue
+			if (parameter?.spread) {
+				spreadParameterIndex = index
+			} else if (spreadParameterIndex !== undefined) {
+				parameter = method.parameters[spreadParameterIndex]
+			}
 
 			const linePositionedArg = arg.linePositionedNode
-
+			const isSpread = parameter.spread
+			const spreadOffset = isSpread ? parseInt(index) - spreadParameterIndex : 0
+			const showParameterName = !isSpread || spreadOffset < 1
+			const parameterName = parameter.name.replace("$", "")
+			
 			yield {
-				label: parameter.name.replace("$", "") + ':',
+				label: `${isSpread ? '...' : ''}${showParameterName ? parameterName : ''}${isSpread ? `[${spreadOffset}]` : ''}:`,
 				kind: InlayHintKind.Parameter,
 				tooltip: {
 					kind: MarkupKind.Markdown,
