@@ -98,7 +98,6 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 
 		const actionUriDefinitionNodes = languageFeatureContext.parsedFile.getNodesByType(ActionUriDefinitionNode)
 		if (actionUriDefinitionNodes) for (const actionUriDefinitionNode of actionUriDefinitionNodes) {
-			console.log("actionUriDefinitionNode", actionUriDefinitionNode)
 			const node = actionUriDefinitionNode.getNode()
 
 			for (const semanticTokenConstruct of this.getSemanticTokenConstructsFromObjectStatement(node.statement)) {
