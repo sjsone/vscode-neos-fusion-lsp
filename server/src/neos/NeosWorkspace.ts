@@ -34,10 +34,9 @@ export class NeosWorkspace extends Logger {
 
 	initConfiguration(selectedFlowContextName?: string) {
 		this.configurationManager.buildConfiguration(selectedFlowContextName)
-		const configurationBasePath = NodePath.join(uriToPath(this.fusionWorkspace.uri), 'Configuration')
-		console.log("configurationBasePath", configurationBasePath, NodeFs.existsSync(configurationBasePath))
-		if (NodeFs.existsSync(configurationBasePath)) {
-			FlowConfiguration.ForPath(this, uriToPath(this.fusionWorkspace.uri))
+		const fusionWorkspacePath = uriToPath(this.fusionWorkspace.uri)
+		if (NodeFs.existsSync(NodePath.join(fusionWorkspacePath, 'Configuration'))) {
+			FlowConfiguration.ForPath(this, fusionWorkspacePath)
 		}
 	}
 
