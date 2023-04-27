@@ -7,6 +7,7 @@ import { diagnoseEmptyEel } from './DiagnoseEmptyEel';
 import { diagnosePrototypeNames } from './DiagnosePrototypeNames';
 import { diagnoseResourceUris } from './DiagnoseResourceUris';
 import { diagnoseTagNames } from './DiagnoseTagNames';
+import { diagnoseNodeTypeDefinitions } from './DiagnoseNodeTypeDefinitions';
 
 export async function diagnose(parsedFusionFile: ParsedFusionFile) {
 	const diagnostics: Diagnostic[] = []
@@ -18,6 +19,7 @@ export async function diagnose(parsedFusionFile: ParsedFusionFile) {
 	diagnostics.push(...diagnosePrototypeNames(parsedFusionFile))
 	diagnostics.push(...diagnoseEmptyEel(parsedFusionFile))
 	diagnostics.push(...diagnoseActionUri(parsedFusionFile))
+	diagnostics.push(...diagnoseNodeTypeDefinitions(parsedFusionFile))
 
 	return diagnostics
 }
