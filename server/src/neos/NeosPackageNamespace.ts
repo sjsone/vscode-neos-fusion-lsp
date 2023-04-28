@@ -128,14 +128,15 @@ export class NeosPackageNamespace {
 	}
 
 	protected parseMethodParameters(rawParameters: string): PhpMethodParameter[] {
-		const parametersRegex = /(\w+ )?(\$\w*)( ?= ?.*?)?(?:[,\)])/g
+		const parametersRegex = /(\w+ )?(\.\.\.\s*?)?(\$\w*)( ?= ?.*?)?(?:[,\)])/g
 		let match = parametersRegex.exec(rawParameters)
 		const parameters = []
 		let runAwayPrevention = 0
 		while (match != null && runAwayPrevention++ < 1000) {
 			parameters.push({
-				name: match[2],
-				defaultValue: match[3],
+				name: match[3],
+				defaultValue: match[4],
+				spread: !!match[2],
 				type: match[1]
 			})
 			match = parametersRegex.exec(rawParameters)

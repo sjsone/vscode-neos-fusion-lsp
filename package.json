@@ -1,278 +1,278 @@
 {
-  "name": "vscode-neos-fusion-lsp",
-  "displayName": "NEOS Fusion & AFX Language Server",
-  "description": "Language server for Neos Fusion (and AFX)",
-  "author": "Simon J. Schmidt",
-  "icon": "images/logo.png",
-  "galleryBanner": {
-    "color": "#6600CC",
-    "theme": "dark"
-  },
-  "license": "AGPL-3.0-or-later",
-  "version": "0.1.55",
-  "categories": [
-    "Programming Languages"
-  ],
-  "keywords": [
-    "Neos",
-    "NEOS CMS",
-    "Fusion",
-    "AFX",
-    "EEL"
-  ],
-  "publisher": "SimonSchmidt",
-  "engines": {
-    "vscode": "^1.70.0"
-  },
-  "activationEvents": [
-    "onLanguage:fusion",
-    "workspaceContains:**/*.fusion"
-  ],
-  "extensionKind": [
-    "workspace",
-    "ui"
-  ],
-  "main": "./client/out/main.js",
-  "extensionDependencies": [
-    "networkteam.neos-fusion"
-  ],
-  "extensionPack": [
-    "formulahendry.auto-rename-tag",
-    "formulahendry.auto-close-tag"
-  ],
-  "contributes": {
-    "configuration": [
-      {
-        "type": "object",
-        "order": 1,
-        "title": "Folders",
-        "properties": {
-          "neosFusionLsp.folders.packages": {
-            "order": 1,
-            "scope": "window",
-            "type": "array",
-            "items": {
-              "type": "string",
-              "title": "Folder path"
+    "name": "vscode-neos-fusion-lsp",
+    "displayName": "NEOS Fusion & AFX Language Server",
+    "description": "Language server for Neos Fusion (and AFX)",
+    "author": "Simon J. Schmidt",
+    "icon": "images/logo.png",
+    "galleryBanner": {
+        "color": "#6600CC",
+        "theme": "dark"
+    },
+    "license": "AGPL-3.0-or-later",
+    "version": "0.2.3",
+    "categories": [
+        "Programming Languages"
+    ],
+    "keywords": [
+        "Neos",
+        "NEOS CMS",
+        "Fusion",
+        "AFX",
+        "EEL"
+    ],
+    "publisher": "SimonSchmidt",
+    "engines": {
+        "vscode": "^1.70.0"
+    },
+    "activationEvents": [
+        "onLanguage:fusion",
+        "workspaceContains:**/*.fusion"
+    ],
+    "extensionKind": [
+        "workspace",
+        "ui"
+    ],
+    "main": "./client/out/main.js",
+    "extensionDependencies": [
+        "networkteam.neos-fusion"
+    ],
+    "extensionPack": [
+        "formulahendry.auto-rename-tag",
+        "formulahendry.auto-close-tag"
+    ],
+    "contributes": {
+        "configuration": [
+            {
+                "type": "object",
+                "order": 1,
+                "title": "Folders",
+                "properties": {
+                    "neosFusionLsp.folders.packages": {
+                        "order": 1,
+                        "scope": "window",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "title": "Folder path"
+                        },
+                        "default": [
+                            "DistributionPackages",
+                            "Packages/Application",
+                            "Packages/Framework",
+                            "Packages/Plugins",
+                            "Packages/Sites",
+                            "Packages/Neos",
+                            "Packages/Carbon"
+                        ],
+                        "description": "Folders with packages"
+                    },
+                    "neosFusionLsp.folders.workspaceAsPackageFallback": {
+                        "order": 2,
+                        "scope": "window",
+                        "type": "boolean",
+                        "default": true,
+                        "description": "If no packages folders can be found, treat the workspace as a package"
+                    },
+                    "neosFusionLsp.folders.fusion": {
+                        "order": 3,
+                        "scope": "window",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "title": "Folder path inside Package"
+                        },
+                        "default": [
+                            "Resources/Private/Fusion",
+                            "Resources/Private/FusionModule",
+                            "Resources/Private/FusionModules",
+                            "Resources/Private/FusionPlugins",
+                            "NodeTypes"
+                        ],
+                        "description": "Fusion Folder inside Package"
+                    },
+                    "neosFusionLsp.folders.ignore": {
+                        "order": 4,
+                        "scope": "window",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "title": "Folder path"
+                        },
+                        "default": [
+                            "Packages/Libraries"
+                        ],
+                        "description": "Folders to ignore"
+                    },
+                    "neosFusionLsp.folders.followSymbolicLinks": {
+                        "order": 5,
+                        "scope": "window",
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Should a symbolic link be followed while searching for packages?"
+                    },
+                    "neosFusionLsp.folders.includeHiddenDirectories": {
+                        "order": 6,
+                        "scope": "window",
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Should hidden directories be included while searching for packages?"
+                    }
+                }
             },
-            "default": [
-              "DistributionPackages",
-              "Packages/Application",
-              "Packages/Framework",
-              "Packages/Plugins",
-              "Packages/Sites",
-              "Packages/Neos",
-              "Packages/Carbon"
-            ],
-            "description": "Folders with packages"
-          },
-          "neosFusionLsp.folders.workspaceAsPackageFallback": {
-            "order": 2,
-            "scope": "window",
-            "type": "boolean",
-            "default": true,
-            "description": "If no packages folders can be found, treat the workspace as a package"
-          },
-          "neosFusionLsp.folders.fusion": {
-            "order": 3,
-            "scope": "window",
-            "type": "array",
-            "items": {
-              "type": "string",
-              "title": "Folder path inside Package"
+            {
+                "title": "Diagnostics",
+                "order": 2,
+                "properties": {
+                    "neosFusionLsp.diagnostics.enabled": {
+                        "type": "boolean",
+                        "order": 0,
+                        "default": true,
+                        "description": "Enable diagnostics feature."
+                    },
+                    "neosFusionLsp.diagnostics.levels.deprecations": {
+                        "type": "string",
+                        "order": 1,
+                        "default": "hint",
+                        "enum": [
+                            "hint",
+                            "info",
+                            "warning",
+                            "error"
+                        ],
+                        "enumDescriptions": [
+                            "Just show the strike through",
+                            "Provide some infos about the deprecation",
+                            "Show a ignorable warning",
+                            "Mark the deprecation as error"
+                        ],
+                        "description": "Set the diagnostics level of deprecations."
+                    },
+                    "neosFusionLsp.diagnostics.ignore.folders": {
+                        "scope": "window",
+                        "type": "array",
+                        "order": 2,
+                        "items": {
+                            "type": "string",
+                            "title": "Folder path"
+                        },
+                        "default": [
+                            "Packages/"
+                        ],
+                        "description": "Folders to ignore automatic diagnostics in"
+                    },
+                    "neosFusionLsp.diagnostics.alwaysDiagnoseChangedFile": {
+                        "scope": "window",
+                        "type": "boolean",
+                        "order": 3,
+                        "default": false,
+                        "description": "Always diagnose changed files even if they are in ignored folders."
+                    }
+                }
             },
-            "default": [
-              "Resources/Private/Fusion",
-              "Resources/Private/FusionModule",
-              "Resources/Private/FusionModules",
-              "Resources/Private/FusionPlugins",
-              "NodeTypes"
-            ],
-            "description": "Fusion Folder inside Package"
-          },
-          "neosFusionLsp.folders.ignore": {
-            "order": 4,
-            "scope": "window",
-            "type": "array",
-            "items": {
-              "type": "string",
-              "title": "Folder path"
+            {
+                "title": "Hints",
+                "order": 3,
+                "properties": {
+                    "neosFusionLsp.inlayHint.depth": {
+                        "type": "string",
+                        "default": "literal",
+                        "description": "Set if or when inlay hints should be shown",
+                        "enum": [
+                            "disabled",
+                            "literal",
+                            "always"
+                        ],
+                        "enumDescriptions": [
+                            "Disable Inlay Hints",
+                            "Only show Inlay Hints on literals",
+                            "Always show Inlay Hints"
+                        ]
+                    }
+                }
             },
-            "default": [
-              "Packages/Libraries"
-            ],
-            "description": "Folders to ignore"
-          },
-          "neosFusionLsp.folders.followSymbolicLinks": {
-            "order": 5,
-            "scope": "window",
-            "type": "boolean",
-            "default": false,
-            "description": "Should a symbolic link be followed while searching for packages?"
-          },
-          "neosFusionLsp.folders.includeHiddenDirectories": {
-            "order": 6,
-            "scope": "window",
-            "type": "boolean",
-            "default": false,
-            "description": "Should hidden directories be included while searching for packages?"
-          }
-        }
-      },
-      {
-        "title": "Diagnostics",
-        "order": 2,
-        "properties": {
-          "neosFusionLsp.diagnostics.enabled": {
-            "type": "boolean",
-            "order": 0,
-            "default": true,
-            "description": "Enable diagnostics feature."
-          },
-          "neosFusionLsp.diagnostics.levels.deprecations": {
-            "type": "string",
-            "order": 1,
-            "default": "hint",
-            "enum": [
-              "hint",
-              "info",
-              "warning",
-              "error"
-            ],
-            "enumDescriptions": [
-              "Just show the strike through",
-              "Provide some infos about the deprecation",
-              "Show a ignorable warning",
-              "Mark the deprecation as error"
-            ],
-            "description": "Set the diagnostics level of deprecations."
-          },
-          "neosFusionLsp.diagnostics.ignore.folders": {
-            "scope": "window",
-            "type": "array",
-            "order": 2,
-            "items": {
-              "type": "string",
-              "title": "Folder path"
+            {
+                "title": "Extensions",
+                "order": 4,
+                "properties": {
+                    "neosFusionLsp.extensions.modify": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Allow modification of a few settings of other extensions to improve the experience."
+                    }
+                }
             },
-            "default": [
-              "Packages/"
-            ],
-            "description": "Folders to ignore automatic diagnostics in"
-          },
-          "neosFusionLsp.diagnostics.alwaysDiagnoseChangedFile": {
-            "scope": "window",
-            "type": "boolean",
-            "order": 3,
-            "default": false,
-            "description": "Always diagnose changed files even if they are in ignored folders."
-          }
-        }
-      },
-      {
-        "title": "Hints",
-        "order": 3,
-        "properties": {
-          "neosFusionLsp.inlayHint.depth": {
-            "type": "string",
-            "default": "literal",
-            "description": "Set if or when inlay hints should be shown",
-            "enum": [
-              "disabled",
-              "literal",
-              "always"
-            ],
-            "enumDescriptions": [
-              "Disable Inlay Hints",
-              "Only show Inlay Hints on literals",
-              "Always show Inlay Hints"
-            ]
-          }
-        }
-      },
-      {
-        "title": "Extensions",
-        "order": 4,
-        "properties": {
-          "neosFusionLsp.extensions.modify": {
-            "type": "boolean",
-            "default": true,
-            "description": "Allow modification of a few settings of other extensions to improve the experience."
-          }
-        }
-      },
-      {
-        "title": "Code",
-        "order": 5,
-        "properties": {
-          "neosFusionLsp.code.deprecations.fusion.prototypes": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
+            {
+                "title": "Code",
+                "order": 5,
+                "properties": {
+                    "neosFusionLsp.code.deprecations.fusion.prototypes": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "description": "An object of deprecated fusion-prototypes. [OldPrototype](Item): NewPrototype(Value). \nIf it should be ignored use '{ignore}' as the value",
+                        "default": {
+                            "Neos.Fusion:Array": "Neos.Fusion:Join",
+                            "Neos.Fusion:Collection": "Neos.Fusion:Loop",
+                            "Neos.Fusion:RawCollection": "Neos.Fusion:Map",
+                            "Neos.Fusion:RawArray": "Neos.Fusion:DataStructure",
+                            "Neos.Fusion:UriBuilder": "Neos.Fusion:ActionUri"
+                        }
+                    }
+                }
             },
-            "description": "An object of deprecated fusion-prototypes. [OldPrototype](Item): NewPrototype(Value). \nIf it should be ignored use '{ignore}' as the value",
-            "default": {
-              "Neos.Fusion:Array": "Neos.Fusion:Join",
-              "Neos.Fusion:Collection": "Neos.Fusion:Loop",
-              "Neos.Fusion:RawCollection": "Neos.Fusion:Map",
-              "Neos.Fusion:RawArray": "Neos.Fusion:DataStructure",
-              "Neos.Fusion:UriBuilder": "Neos.Fusion:ActionUri"
+            {
+                "title": "Logging",
+                "order": 10,
+                "properties": {
+                    "neosFusionLsp.logging.level": {
+                        "type": "string",
+                        "default": "info",
+                        "enum": [
+                            "info",
+                            "verbose",
+                            "debug"
+                        ],
+                        "enumDescriptions": [
+                            "Just some general information",
+                            "A bit more explaining and additional information",
+                            "Shows everything it can"
+                        ]
+                    },
+                    "neosFusionLsp.logging.inspect": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "When starting the LSP wait for an inspector to connect."
+                    }
+                }
             }
-          }
-        }
-      },
-      {
-        "title": "Logging",
-        "order": 10,
-        "properties": {
-          "neosFusionLsp.logging.level": {
-            "type": "string",
-            "default": "info",
-            "enum": [
-              "info",
-              "verbose",
-              "debug"
-            ],
-            "enumDescriptions": [
-              "Just some general information",
-              "A bit more explaining and additional information",
-              "Shows everything it can"
-            ]
-          },
-          "neosFusionLsp.logging.inspect": {
-            "type": "boolean",
-            "default": false,
-            "description": "When starting the LSP wait for an inspector to connect."
-          }
-        }
-      }
-    ],
-    "commands": [
-      {
-        "command": "neos-fusion-lsp.inspect",
-        "title": "Fusion: Inspect Neos Fusion LSP "
-      },
-      {
-        "command": "neos-fusion-lsp.reload",
-        "title": "Fusion: Reload Neos Fusion LSP "
-      }
-    ],
-    "languages": [
-      {
-        "id": "fusion",
-        "extensions": [
-          ".fusion"
         ],
-        "aliases": [
-          "Fusion"
+        "commands": [
+            {
+                "command": "neos-fusion-lsp.inspect",
+                "title": "Fusion: Inspect Neos Fusion LSP "
+            },
+            {
+                "command": "neos-fusion-lsp.reload",
+                "title": "Fusion: Reload Neos Fusion LSP "
+            }
         ],
-        "configuration": "./language-configuration.json",
-        "icon": {
-          "dark": "./icons/filetype_dark_fusion.svg",
-          "light": "./icons/filetype_light_fusion.svg"
-        }
-      }
-    ],
+        "languages": [
+            {
+                "id": "fusion",
+                "extensions": [
+                    ".fusion"
+                ],
+                "aliases": [
+                    "Fusion"
+                ],
+                "configuration": "./language-configuration.json",
+                "icon": {
+                    "dark": "./icons/filetype_dark_fusion.svg",
+                    "light": "./icons/filetype_light_fusion.svg"
+                }
+            }
+        ],
     "walkthroughs": [
       {
         "id": "beta-getting_started",
@@ -296,33 +296,37 @@
         ]
       }
     ]
-  },
-  "scripts": {
-    "vscode:prepublish": "yarn run compile",
-    "compile": "cd client && yarn run esbuild && cd ../server && yarn run esbuild && cd ..",
-    "compile-without-minify": "cd client && yarn run esbuild && cd ../server && yarn run esbuild-without-minify && cd ..",
-    "watch-client": "cd client && yarn run esbuild-watch",
-    "watch-server": "cd server && yarn run esbuild-watch",
-    "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
-    "lint-fix": "eslint --fix ./client/src ./server/src --ext .ts,.tsx",
-    "postinstall": "cd client && yarn install && cd ../server && yarn install && cd .."
-  },
-  "devDependencies": {
-    "@types/mocha": "^5.2.0",
-    "@types/node": "^16.11.7",
-    "@typescript-eslint/eslint-plugin": "^5.30.0",
-    "@typescript-eslint/parser": "^5.30.0",
-    "esbuild": "^0.15.15",
-    "eslint": "^8.13.0",
-    "typescript": "^4.7.2"
-  },
-  "dependencies": {},
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/sjsone/vscode-neos-fusion-lsp.git"
-  },
-  "bugs": {
-    "url": "https://github.com/sjsone/vscode-neos-fusion-lsp/issues"
-  },
-  "homepage": "https://github.com/sjsone/vscode-neos-fusion-lsp#readme"
+    },
+    "scripts": {
+        "vscode:prepublish": "yarn run compile",
+        "compile": "cd client && yarn run esbuild && cd ../server && yarn run esbuild && cd ..",
+        "compile-without-minify": "cd client && yarn run esbuild && cd ../server && yarn run esbuild-without-minify && cd ..",
+        "watch-client": "cd client && yarn run esbuild-watch",
+        "watch-server": "cd server && yarn run esbuild-watch",
+        "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
+        "lint-fix": "eslint --fix ./client/src ./server/src --ext .ts,.tsx",
+        "postinstall": "cd client && yarn install && cd ../server && yarn install && cd ..",
+        "create-pre-release": "VERSION=\"$(node utility.js --pre)\"; git tag -a \"v${VERSION}-pre\" -m \"Pre-Release Version ${VERSION}\"; git push origin \"v${VERSION}-pre\"; git commit -a -m \" Version ${VERSION}\"; git push origin; ",
+        "create-patch-release": "VERSION=\"$(node utility.js --patch)\"; git tag -a \"v${VERSION}\" -m \"Version ${VERSION}\"; git push origin \"v${VERSION}\"; git commit -a -m \" Version ${VERSION}\"; git push origin; ",
+        "create-minor-release": "VERSION=\"$(node utility.js --minor)\"; git tag -a \"v${VERSION}\" -m \"Version ${VERSION}\"; git push origin \"v${VERSION}\"; git commit -a -m \" Version ${VERSION}\"; git push origin; ",
+        "create-major-release": "VERSION=\"$(node utility.js --major)\"; git tag -a \"v${VERSION}\" -m \"Version ${VERSION}\"; git push origin \"v${VERSION}\"; git commit -a -m \" Version ${VERSION}\"; git push origin; "
+    },
+    "devDependencies": {
+        "@types/mocha": "^5.2.0",
+        "@types/node": "^16.11.7",
+        "@typescript-eslint/eslint-plugin": "^5.55.0",
+        "@typescript-eslint/parser": "^5.55.0",
+        "esbuild": "^0.17.12",
+        "eslint": "^8.36.0",
+        "typescript": "^5.0.2"
+    },
+    "dependencies": {},
+    "repository": {
+        "type": "git",
+        "url": "git+ssh://git@github.com/sjsone/vscode-neos-fusion-lsp.git"
+    },
+    "bugs": {
+        "url": "https://github.com/sjsone/vscode-neos-fusion-lsp/issues"
+    },
+    "homepage": "https://github.com/sjsone/vscode-neos-fusion-lsp#readme"
 }

@@ -14,6 +14,7 @@ import { AfxParserOptions } from 'ts-fusion-parser/out/dsl/afx/parser'
 import { FusionFileProcessor } from './FusionFileProcessor'
 import { NeosPackage } from '../neos/NeosPackage'
 import { AbstractPathSegment } from 'ts-fusion-parser/out/fusion/nodes/AbstractPathSegment'
+import { Position } from 'vscode-languageserver'
 
 
 const eelParserOptions: EelParserOptions = {
@@ -61,11 +62,13 @@ export class ParsedFusionFile extends Logger {
 	constructor(uri: string, workspace: FusionWorkspace, neosPackage: NeosPackage) {
 		const loggerPrefix = NodePath.basename(uriToPath(uri))
 		super(loggerPrefix)
-		this.fusionFileProcessor = new FusionFileProcessor(this, loggerPrefix)
 		this.uri = uri
 		this.workspace = workspace
 		this.neosPackage = neosPackage
 		this.debug = this.uri.endsWith("FusionModule/Routing.fusion")
+		this.fusionFileProcessor = new FusionFileProcessor(this, loggerPrefix)
+
+		this.logVerbose("Created", uri)
 	}
 
 	init(text: string = undefined) {
@@ -96,6 +99,10 @@ export class ParsedFusionFile extends Logger {
 
 			return false
 		}
+	}
+
+	runPostProcessing() {
+		this.fusionFileProcessor.runPostProcessing()
 	}
 
 	clearCaches() {
@@ -200,6 +207,12 @@ export class ParsedFusionFile extends Logger {
 
 		if (this.routeDefinitions[routeIdentifier].actions[actionName] === undefined) this.routeDefinitions[routeIdentifier].actions[actionName] = []
 		if (!this.routeDefinitions[routeIdentifier].actions[actionName].includes(prototypeName)) this.routeDefinitions[routeIdentifier].actions[actionName].push(prototypeName)
+	}
+
+	getNodesByPosition(position: Position) {
+		const line = position.line
+		const column = position.character
+		return this.getNodesByLineAndColumn(line, column)
 	}
 
 	getNodesByLineAndColumn(line: number, column: number) {

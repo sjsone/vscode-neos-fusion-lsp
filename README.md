@@ -1,5 +1,10 @@
 # 🚀 NEOS Fusion & AFX
 
+![Version](https://vsmarketplacebadges.dev/version-short/SimonSchmidt.vscode-neos-fusion-lsp.jpeg?label=version)
+![Installs](https://vsmarketplacebadges.dev/installs-short/SimonSchmidt.vscode-neos-fusion-lsp.jpeg)
+![Downloads](https://vsmarketplacebadges.dev/downloads-short/SimonSchmidt.vscode-neos-fusion-lsp.jpeg)
+![Rating](https://vsmarketplacebadges.dev/rating-star/SimonSchmidt.vscode-neos-fusion-lsp.jpeg)
+
 🚧 This package is **WIP**. 🚧
 
 📦 [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=SimonSchmidt.vscode-neos-fusion-lsp)

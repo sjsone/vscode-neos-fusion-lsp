@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-ts-fusion-parser@^0.1.10:
-  version "0.1.11"
-  resolved "https://registry.yarnpkg.com/ts-fusion-parser/-/ts-fusion-parser-0.1.11.tgz#3129c686aef49ff5bb1a85afe53ce78ca75dbe01"
-  integrity sha512-gZE2tbovJiAqYSrigprnJGfrUgeUNTxNjN3VfvdCbuSdiuACdIY1/74ZAiYugkwWZOvdQDBrzkSFsqb4Rh5nVw==
+ts-fusion-parser@^0.1.14:
+  version "0.1.14"
+  resolved "https://registry.yarnpkg.com/ts-fusion-parser/-/ts-fusion-parser-0.1.14.tgz#4b161c08a7b13be66ca53a1d11365962e0925eb1"
+  integrity sha512-tpHPcLfbqnUkvPJ8qsaGl008b4H/oipZkjZmZnErumRVn6MhC4iwDI7GE2r47izHBqkiyuKlRTuL/P0qqoy4Jg==
 
 vscode-jsonrpc@8.1.0:
   version "8.1.0"
@@ -36,6 +36,11 @@ vscode-languageserver@^8.0.0:
   integrity sha512-eUt8f1z2N2IEUDBsKaNapkz7jl5QpskN2Y0G01T/ItMxBxw1fJwvtySGB9QMecatne8jFIWJGWI61dWjyTLQsw==
   dependencies:
     vscode-languageserver-protocol "3.17.3"
+
+vscode-uri@^3.0.7:
+  version "3.0.7"
+  resolved "https://registry.yarnpkg.com/vscode-uri/-/vscode-uri-3.0.7.tgz#6d19fef387ee6b46c479e5fb00870e15e58c1eb8"
+  integrity sha512-eOpPHogvorZRobNqJGhapa0JdwaxpjVvyBp0QIUMRMSf8ZAlqOdEquKuRmw9Qwu0qXtJIWqFtMkmvJjUZmMjVA==
 
 yaml@^2.2.1:
   version "2.2.1"

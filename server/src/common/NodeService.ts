@@ -107,7 +107,14 @@ class NodeService {
 		let statementList = findParent(objectNode, StatementList)
 
 		// TODO: get object identifier and match it runtime-like against the property definition to check if it resolves 
-		const isObjectStatementRenderer = getObjectIdentifier(objectStatement).startsWith("renderer.") && !getObjectIdentifier(objectStatement).startsWith("renderer.@process")
+		const isObjectStatementRenderer = (
+			getObjectIdentifier(objectStatement).startsWith("renderer.") 
+			&& !getObjectIdentifier(objectStatement).startsWith("renderer.@process")
+		) || (
+			getObjectIdentifier(objectStatement).startsWith("@private.") 
+			&& !getObjectIdentifier(objectStatement).startsWith("@private.@process")
+		)
+
 		if (isObjectStatementRenderer) {
 			const parentObjectStatement = findParent(statementList, ObjectStatement)
 
@@ -144,6 +151,7 @@ class NodeService {
 
 			const parentObjectNode = findParent(statementList, ObjectStatement)
 			const parentObjectIdentifier = parentObjectNode ? parentObjectNode.path.segments[0]["identifier"] : ""
+			const isParentObjectMeta = parentObjectNode ? parentObjectNode.path.segments[0] instanceof MetaPathSegment : false
 			let foundApplyProps = false
 
 			const statements: Array<ObjectStatement | ExternalObjectStatement> = [...<ObjectStatement[]>statementList.statements]
@@ -194,7 +202,7 @@ class NodeService {
 			}
 
 			let parentIdentifiersRenderer = false
-			if (parentObjectIdentifier === "renderer") {
+			if (parentObjectIdentifier === "renderer" || (parentObjectIdentifier === "private" && isParentObjectMeta)) {
 				const rendererPrototype = findUntil<ObjectStatement>(parentObjectNode, (node) => {
 					if (!(node instanceof ObjectStatement)) return false
 					if (!(node.operation instanceof ValueAssignment)) return false

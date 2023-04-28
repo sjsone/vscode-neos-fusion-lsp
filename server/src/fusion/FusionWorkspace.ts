@@ -94,6 +94,10 @@ export class FusionWorkspace extends Logger {
             })
         }
 
+        for (const parsedFile of this.parsedFiles) {
+            parsedFile.runPostProcessing()
+        }
+
         this.logInfo(`Successfully parsed ${this.parsedFiles.length} fusion files. `)
         if (this.filesWithErrors.length > 0) {
             this.logInfo(`  Could not parse ${this.filesWithErrors.length} files due to errors`)
@@ -159,6 +163,7 @@ export class FusionWorkspace extends Logger {
         const file = this.getParsedFileByUri(change.document.uri)
         if (file === undefined) return
         this.initParsedFile(file, change.document.getText())
+        file.runPostProcessing()
 
         if (this.configuration.diagnostics.alwaysDiagnoseChangedFile && !this.filesToDiagnose.includes(file)) {
             this.filesToDiagnose.push(file)

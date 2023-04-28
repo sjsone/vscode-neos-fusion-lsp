@@ -9,7 +9,7 @@ import { PhpClassNode } from '../fusion/PhpClassNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
-import { findParent, findUntil, getObjectIdentifier, getPrototypeNameFromNode } from '../common/util'
+import { findParent, getObjectIdentifier, getPrototypeNameFromNode, pathToUri } from '../common/util'
 import { AbstractCapability } from './AbstractCapability'
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
@@ -29,6 +29,9 @@ import { ActionUriControllerNode } from '../fusion/ActionUriControllerNode'
 import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
 import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue'
+import { NeosFusionFormActionNode } from '../fusion/NeosFusionFormActionNode'
+import { NeosFusionFormControllerNode } from '../fusion/NeosFusionFormControllerNode'
+import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService'
 
 export interface ActionUriDefinition {
 	package: string
@@ -71,7 +74,10 @@ export class DefinitionCapability extends AbstractCapability {
 
 	getPrototypeDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<AbstractNode>) {
 		const goToPrototypeName = getPrototypeNameFromNode(foundNodeByLine.getNode())
-		if (goToPrototypeName === "") return null
+		if (goToPrototypeName === "") {
+			this.logDebug("No PrototypeName found for this node")
+			return null
+		}
 
 		const locations: DefinitionLink[] = []
 
@@ -192,13 +198,23 @@ export class DefinitionCapability extends AbstractCapability {
 
 	getResourceUriPathNodeDefinition(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<ResourceUriNode>) {
 		const node = foundNodeByLine.getNode()
-		if (!node.canBeFound()) return null
-		const uri = workspace.neosWorkspace.getResourceUriPath(node.getNamespace(), node.getRelativePath())
-		if (!uri || !NodeFs.existsSync(uri)) return null
+		if (!node.canBeFound()) {
+			this.logDebug("ResourceURI cannot be found")
+			return null
+		}
+		const path = workspace.neosWorkspace.getResourceUriPath(node.getNamespace(), node.getRelativePath())
+		if (!path || !NodeFs.existsSync(path)) {
+			this.logDebug(`Resource path path is "${path}" with node.namespace "${node.getNamespace()}" and node.relativePath "${node.getRelativePath()}"`)
+			return null
+		}
+
 		const targetRange = {
 			start: { line: 0, character: 0 },
 			end: { line: 0, character: 0 },
 		}
+
+		const uri = pathToUri(path)
+		this.logDebug(`Resource path path is "${path}" and uri is "${uri}"`)
 
 		return [{
 			targetUri: uri,
@@ -209,155 +225,19 @@ export class DefinitionCapability extends AbstractCapability {
 	}
 
 	getControllerActionDefinition(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<ObjectStatement>, context: ParsedFileCapabilityContext<AbstractNode>) {
-		const node = foundNodeByLine.getNode()
-
 		// TODO: Account for multiple action definitions as resolving cannot be a 100% certain
-
+		const node = foundNodeByLine.getNode()
 		if (!(node.operation instanceof ValueAssignment)) return null
 
-		const line = context.params.position.line
-		const column = context.params.position.character
-
-		const foundNodes = parsedFile.getNodesByLineAndColumn(line, column)
-
-		const actionUriPartNode = foundNodes.find(positionedNode => (positionedNode.getNode() instanceof ActionUriActionNode || positionedNode.getNode() instanceof ActionUriControllerNode))
+		const foundNodes = parsedFile.getNodesByPosition(context.params.position)
+		const actionUriPartNode = <LinePositionedNode<ActionUriActionNode | ActionUriControllerNode>>foundNodes.find(positionedNode => (positionedNode.getNode() instanceof ActionUriActionNode || positionedNode.getNode() instanceof ActionUriControllerNode))
 		if (actionUriPartNode === undefined) return null
 
-		const actionUriDefinitionNode = <ActionUriDefinitionNode>actionUriPartNode.getNode()["parent"]
-
-		let actionUriDefinition = this.buildBaseActionUriDefinitionFromActionUriDefinitionNode(actionUriDefinitionNode)
-		actionUriDefinition = this.tryToCompleteActionUriDefinitionPackage(node, workspace, parsedFile, actionUriDefinition)
-
-		this.logDebug("Found Action URI Definition: ", actionUriDefinition)
-
-		if (!actionUriDefinition.package || !actionUriDefinition.controller || !actionUriDefinition.action) return null
-
-		const neosPackage = workspace.neosWorkspace.getPackage(actionUriDefinition.package)
-		if (!neosPackage) {
-			this.logDebug(`  Could not resolve defined Package "${actionUriDefinition.package}"`)
-			return null
-		}
-
-		const definitionTargetName = actionUriPartNode.getNode() instanceof ActionUriControllerNode ? 'controller' : 'action'
-		const className = actionUriDefinition.controller.replace("/", "\\") + 'Controller'
-
-		for (const namespace of neosPackage["namespaces"].values()) {
-			const definition = this.searchInNamespaceForControllerActionDefinition(node.operation, definitionTargetName, namespace, className, actionUriDefinition.action)
-			if (definition) return definition
-		}
+		const actionUriDefinitionNode = actionUriPartNode.getNode()["parent"]
+		const definitionTargetName = actionUriPartNode.getNode() instanceof ActionUriControllerNode ? ActionUriPartTypes.Controller : ActionUriPartTypes.Action
+		return ActionUriService.resolveActionUriDefinitionNode(node, actionUriDefinitionNode, definitionTargetName, workspace, parsedFile)
 	}
 
-	protected searchInNamespaceForControllerActionDefinition(operation: ValueAssignment, definitionTargetName: string, namespace: NeosPackageNamespace, className: string, actionName: string) {
-		const fqcnParts = namespace["name"].split("\\").filter(Boolean)
-		fqcnParts.push('Controller')
-		fqcnParts.push(className)
-		const fqcn = fqcnParts.join('\\')
-
-		const classDefinition = namespace.getClassDefinitionFromFullyQualifiedClassName(fqcn)
-		if (classDefinition === undefined) {
-			this.logDebug(`Could not get class for built FQCN: "${fqcn}"`)
-			return undefined
-		}
-
-		if (definitionTargetName === "controller") return [{
-			targetUri: classDefinition.uri,
-			targetRange: classDefinition.position,
-			targetSelectionRange: classDefinition.position,
-			originSelectionRange: operation.pathValue.linePositionedNode.getPositionAsRange()
-		}]
-
-		if (definitionTargetName === "action") {
-			const fullActionName = actionName + "Action"
-			for (const method of classDefinition.methods) {
-				if (method.name !== fullActionName) continue
-				return [{
-					targetUri: classDefinition.uri,
-					targetRange: method.position,
-					targetSelectionRange: method.position,
-					originSelectionRange: operation.pathValue.linePositionedNode.getPositionAsRange()
-				}]
-			}
-
-			this.logDebug(`Could not find action: "${fullActionName}"`)
-		}
-
-		return undefined
-	}
-
-	protected buildBaseActionUriDefinitionFromActionUriDefinitionNode(actionUriDefinitionNode: ActionUriDefinitionNode) {
-		let actionUriDefinition = {
-			package: null as string,
-			controller: actionUriDefinitionNode.controller?.name.value ?? null as string,
-			action: actionUriDefinitionNode.action?.name.value ?? null as string
-		}
-
-		for (const statement of actionUriDefinitionNode.statement.block.statementList.statements) {
-			if (!(statement instanceof ObjectStatement)) continue
-			if (!(statement.operation instanceof ValueAssignment)) continue
-			if (!(statement.operation.pathValue instanceof StringValue)) continue
-			if (getObjectIdentifier(statement) !== "package") continue
-
-			actionUriDefinition.package = statement.operation.pathValue.value
-		}
-
-		return actionUriDefinition
-	}
-
-	protected tryToCompleteActionUriDefinitionPackage(node: AbstractNode, workspace: FusionWorkspace, parsedFile: ParsedFusionFile, actionUriDefinition: ActionUriDefinition) {
-		if (!actionUriDefinition.package) {
-			actionUriDefinition = this.tryToCompleteActionUriDefinitionWithWorkspace(node, workspace, actionUriDefinition)
-		}
-
-		if (!actionUriDefinition.package) {
-			this.log("No package in Action URI definition")
-			const neosPackage = workspace.neosWorkspace.getPackageByUri(parsedFile.uri)
-			if (!neosPackage) {
-				this.log("  Could not resolve Package for current file")
-				return actionUriDefinition
-			}
-			actionUriDefinition.package = neosPackage.getPackageName()
-		}
-		return actionUriDefinition
-	}
-
-	protected tryToCompleteActionUriDefinitionWithWorkspace(node: AbstractNode, workspace: FusionWorkspace, actionUriDefinition: ActionUriDefinition): ActionUriDefinition {
-		const foundPrototypeObjectStatement = findUntil<ObjectStatement>(node, (foundNode) => {
-			if (!(foundNode instanceof ObjectStatement)) return false
-			if (!(foundNode.path.segments[0] instanceof PrototypePathSegment)) return false
-			if (!(foundNode.operation instanceof ValueCopy)) return false
-
-			return true
-		})
-
-		if (!foundPrototypeObjectStatement) return actionUriDefinition
-
-		const currentPrototypeName = (<PrototypePathSegment>foundPrototypeObjectStatement.path.segments[0]).identifier
-		if (!currentPrototypeName) return actionUriDefinition
-
-		for (const otherParsedFile of workspace.parsedFiles) {
-			const completedActionUriDefinition = this.tryToCompleteActionUriDefinitionWithParsedFile(currentPrototypeName, otherParsedFile, actionUriDefinition)
-			if (completedActionUriDefinition) return completedActionUriDefinition
-		}
-
-		this.logVerbose("could not find in routes")
-		return actionUriDefinition
-	}
-
-	protected tryToCompleteActionUriDefinitionWithParsedFile(currentPrototypeName: string, parsedFile: ParsedFusionFile, actionUriDefinition: ActionUriDefinition) {
-		for (const routeDefinition of parsedFile.getRouteDefinitionsForPrototypeName(currentPrototypeName)) {
-			if (actionUriDefinition.controller) {
-				if (routeDefinition.controllerName !== actionUriDefinition.controller) continue
-				actionUriDefinition.package = routeDefinition.packageName
-				return actionUriDefinition
-			}
-
-			actionUriDefinition.controller = routeDefinition.controllerName
-			actionUriDefinition.package = routeDefinition.packageName
-			return actionUriDefinition
-		}
-
-		return undefined
-	}
 
 	getTagAttributeDefinition(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<TagAttributeNode>, context: ParsedFileCapabilityContext<TagAttributeNode>): null | LocationLink[] {
 		const node = foundNodeByLine.getNode()
@@ -381,6 +261,19 @@ export class DefinitionCapability extends AbstractCapability {
 				originSelectionRange
 			})
 		}
+
+		const foundNodes = parsedFile.getNodesByPosition(context.params.position)
+
+		const neosFusionFormPartNode = <LinePositionedNode<NeosFusionFormActionNode | NeosFusionFormControllerNode>>foundNodes.find(positionedNode => (positionedNode.getNode() instanceof NeosFusionFormActionNode || positionedNode.getNode() instanceof NeosFusionFormControllerNode))
+		if (neosFusionFormPartNode !== undefined) {
+			const neosFusionFormDefinitionNode = neosFusionFormPartNode.getNode()["parent"]
+
+			const definitionTargetName = neosFusionFormPartNode.getNode() instanceof NeosFusionFormActionNode ? ActionUriPartTypes.Action : ActionUriPartTypes.Controller
+
+			const resolvedDefinition = ActionUriService.resolveFusionFormDefinitionNode(node, neosFusionFormDefinitionNode, definitionTargetName, workspace, parsedFile)
+			if (resolvedDefinition) locationLinks.push(...resolvedDefinition)
+		}
+
 
 		return locationLinks
 	}

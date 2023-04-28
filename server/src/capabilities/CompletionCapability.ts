@@ -20,6 +20,7 @@ import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttribut
 import { findParent, getObjectIdentifier } from '../common/util'
 import { Comment } from 'ts-fusion-parser/out/common/Comment'
 
+// TODO: eel helper arguments
 export class CompletionCapability extends AbstractCapability {
 
 	static SuggestCommand: Command = {

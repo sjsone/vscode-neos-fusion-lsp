@@ -19,6 +19,9 @@ import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { OperationNode } from 'ts-fusion-parser/out/dsl/eel/nodes/OperationNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { DeprecationConfigurationSpecialType } from '../ExtensionConfiguration'
+import { URI } from 'vscode-uri'
+import { uriToFsPath } from 'vscode-uri/lib/umd/uri'
 
 export interface LineDataCacheEntry {
     lineLengths: number[]
@@ -94,16 +97,17 @@ export function* getFiles(dir: string, withExtension = ".fusion") {
 }
 
 export function uriToPath(uri: string) {
-    return uri.replace("file://", "")
+    return uriToFsPath(URI.parse(uri), false)
 }
 
 export function pathToUri(path: string) {
-    return "file://" + path
+    return URI.file(path).toString()
 }
 
 export function getPrototypeNameFromNode(node: AbstractNode) {
     if (node instanceof FusionObjectValue) return node.value
-    else if (node instanceof PrototypePathSegment) return node.identifier
+    if (node instanceof PrototypePathSegment) return node.identifier
+    if (node instanceof FusionObjectValue) return node["value"]
     return null
 }
 
@@ -112,7 +116,7 @@ export function isPrototypeDeprecated(workspace: FusionWorkspace, prototypeName:
     const deprecations = configuration.code.deprecations.fusion.prototypes ?? {}
 
     const deprecated = deprecations[prototypeName] ?? false
-    if(deprecated === "{ignore}") return false
+    if (deprecated === DeprecationConfigurationSpecialType.Ignore) return false
     return deprecated
 }
 

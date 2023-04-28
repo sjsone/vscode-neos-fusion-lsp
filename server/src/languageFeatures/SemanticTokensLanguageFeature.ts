@@ -14,12 +14,15 @@ import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/Prototyp
 import { StatementList } from 'ts-fusion-parser/out/fusion/nodes/StatementList'
 import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
+import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService'
 import { LinePosition, LinePositionedNode } from '../common/LinePositionedNode'
 import { NodeService } from '../common/NodeService'
 import { findParent, getObjectIdentifier, parseSemanticComment } from '../common/util'
 import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
 import { AbstractLanguageFeature } from './AbstractLanguageFeature'
 import { LanguageFeatureContext } from './LanguageFeatureContext'
+import { NeosFusionFormDefinitionNode } from '../fusion/NeosFusionFormDefinitionNode'
+import { ActionUriDefinitionNode } from '../fusion/ActionUriDefinitionNode'
 
 export interface SemanticTokenConstruct {
 	position: LinePosition
@@ -90,6 +93,38 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 		}
 	}
 
+	protected generateActionUriTokens(languageFeatureContext: LanguageFeatureContext) {
+		const semanticTokenConstructs: SemanticTokenConstruct[] = []
+
+		const actionUriDefinitionNodes = languageFeatureContext.parsedFile.getNodesByType(ActionUriDefinitionNode)
+		if (actionUriDefinitionNodes) for (const actionUriDefinitionNode of actionUriDefinitionNodes) {
+			const node = actionUriDefinitionNode.getNode()
+
+			for (const semanticTokenConstruct of this.getSemanticTokenConstructsFromObjectStatement(node.statement)) {
+				semanticTokenConstructs.push(semanticTokenConstruct)
+			}
+		}
+
+		const neosFusionFormDefinitionNodes = languageFeatureContext.parsedFile.getNodesByType(NeosFusionFormDefinitionNode)
+		if (neosFusionFormDefinitionNodes) for (const neosFusionFormDefinitionNode of neosFusionFormDefinitionNodes) {
+			const node = neosFusionFormDefinitionNode.getNode()
+
+			for (const definition of [node.action, node.controller].filter(Boolean)) {
+				const begin = definition.tagAttribute.linePositionedNode.getBegin()
+				semanticTokenConstructs.push({
+					position: {
+						character: begin.character + definition.tagAttribute.name.length + 2, // offset for quote and `=`
+						line: begin.line
+					},
+					length: definition.tagAttribute.value.replace(/\\/g, "\\\\").length - 2,
+					...this.getTypesAndModifier(definition.tagAttribute.name.replace('form.target.', ''))
+				})
+			}
+		}
+
+		return semanticTokenConstructs
+	}
+
 	protected * getSemanticTokenConstructsFromObjectStatement(objectStatement: ObjectStatement) {
 		for (const statement of objectStatement.block.statementList.statements) {
 			if (!(statement instanceof ObjectStatement)) continue
@@ -97,8 +132,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 			if (!(statement.operation.pathValue instanceof StringValue)) continue
 
 			const identifier = getObjectIdentifier(statement)
-
-			if (identifier !== "controller" && identifier !== "action" && identifier !== "package") continue
+			if (identifier !== ActionUriPartTypes.Action && identifier !== ActionUriPartTypes.Controller && identifier !== ActionUriPartTypes.Package) continue
 
 			const begin = statement.operation.pathValue.linePositionedNode.getBegin()
 			yield {
@@ -110,28 +144,6 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 				...this.getTypesAndModifier(identifier)
 			}
 		}
-	}
-
-	protected generateActionUriTokens(languageFeatureContext: LanguageFeatureContext) {
-		const fusionObjectValues = languageFeatureContext.parsedFile.getNodesByType(FusionObjectValue)
-		if (!fusionObjectValues) return []
-
-		const semanticTokenConstructs: SemanticTokenConstruct[] = []
-
-		for (const fusionObjectValue of fusionObjectValues) {
-			const node = fusionObjectValue.getNode()
-			if (!["Neos.Fusion:ActionUri", "Neos.Fusion:UriBuilder"].includes(node.value)) continue
-
-			const objectStatement = findParent(node, ObjectStatement)
-			if (!(objectStatement.operation instanceof ValueAssignment)) continue
-			if (objectStatement.block === undefined) continue
-
-			for (const semanticTokenConstruct of this.getSemanticTokenConstructsFromObjectStatement(objectStatement)) {
-				semanticTokenConstructs.push(semanticTokenConstruct)
-			}
-		}
-
-		return semanticTokenConstructs
 	}
 
 	protected generateLiteralStringTokens(languageFeatureContext: LanguageFeatureContext) {
@@ -336,9 +348,9 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 	}
 
 	protected getTypesAndModifier(identifier: string): { type: TokenTypes, modifier: TokenModifiers } {
-		if (identifier === "action") return { type: 'method', modifier: 'declaration' }
-		if (identifier === "controller") return { type: 'class', modifier: 'declaration' }
-		if (identifier === "package") return { type: 'namespace', modifier: 'declaration' }
+		if (identifier === ActionUriPartTypes.Action) return { type: 'method', modifier: 'declaration' }
+		if (identifier === ActionUriPartTypes.Controller) return { type: 'class', modifier: 'declaration' }
+		if (identifier === ActionUriPartTypes.Package) return { type: 'namespace', modifier: 'declaration' }
 		return { type: 'variable', modifier: 'declaration' }
 	}
 
