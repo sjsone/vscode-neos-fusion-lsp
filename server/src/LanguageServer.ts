@@ -114,6 +114,7 @@ export class LanguageServer extends Logger {
 					triggerCharacters: [`"`, `'`, `/`, `.`, `:`, `@`]
 				},
 				textDocumentSync: {
+					// TODO: Make `params.initializationOptions` optional by defining some kind of default
 					openClose: params.initializationOptions.textDocumentSync.openClose,
 					change: TextDocumentSyncKind.Full
 				},
