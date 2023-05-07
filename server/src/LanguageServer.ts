@@ -31,6 +31,7 @@ import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokens
 import { AbstractFunctionality } from './common/AbstractFunctionality'
 import { addFusionIgnoreSemanticCommentAction } from './actions/AddFusionIgnoreSemanticCommentAction'
 import { CodeLensCapability } from './capabilities/CodeLensCapability'
+import { openNeosDocumentationAction } from './actions/OpenNeosDocumentationAction'
 
 
 export class LanguageServer extends Logger {
@@ -98,6 +99,8 @@ export class LanguageServer extends Logger {
 
 	public onInitialize(params: InitializeParams): InitializeResult {
 		this.logVerbose("onInitialize")
+
+		this.logInfo("params", JSON.stringify(params))
 
 		for (const workspaceFolder of params.workspaceFolders) {
 			const fusionWorkspace = new FusionWorkspace(workspaceFolder.name, workspaceFolder.uri, this)
@@ -254,7 +257,8 @@ export class LanguageServer extends Logger {
 	public async onCodeAction(params: CodeActionParams) {
 		return [
 			...await addFusionIgnoreSemanticCommentAction(params),
-			...replaceDeprecatedQuickFixAction(params)
+			...replaceDeprecatedQuickFixAction(params),
+			...openNeosDocumentationAction(params)
 		]
 	}
 

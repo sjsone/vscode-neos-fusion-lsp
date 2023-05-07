@@ -15,6 +15,9 @@ import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStr
 import { LiteralNullNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNullNode';
 import { LiteralObjectEntryNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralObjectEntryNode';
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
+import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue';
+import { uriToPath } from '../common/util';
+import { pathToFileURL } from 'url';
 
 export class InlayHintLanguageFeature extends AbstractLanguageFeature {
 
@@ -22,7 +25,8 @@ export class InlayHintLanguageFeature extends AbstractLanguageFeature {
 		if (workspace.getConfiguration().inlayHint.depth === InlayHintDepth.Disabled) return null
 
 		return [
-			...this.buildInlineHintForPhpClassMethodNodes(parsedFile, workspace)
+			...this.buildInlineHintForPhpClassMethodNodes(parsedFile, workspace),
+			...this.buildInlineHintForDocumentation(parsedFile, workspace)
 		]
 	}
 
@@ -70,7 +74,7 @@ export class InlayHintLanguageFeature extends AbstractLanguageFeature {
 			const spreadOffset = isSpread ? parseInt(index) - spreadParameterIndex : 0
 			const showParameterName = !isSpread || spreadOffset < 1
 			const parameterName = parameter.name.replace("$", "")
-			
+
 			yield {
 				label: `${isSpread ? '...' : ''}${showParameterName ? parameterName : ''}${isSpread ? `[${spreadOffset}]` : ''}:`,
 				kind: InlayHintKind.Parameter,
@@ -101,5 +105,33 @@ export class InlayHintLanguageFeature extends AbstractLanguageFeature {
 			|| argumentNode instanceof LiteralStringNode
 			|| argumentNode instanceof LiteralNullNode
 			|| argumentNode instanceof LiteralObjectEntryNode
+	}
+
+	protected buildInlineHintForDocumentation(parsedFile: ParsedFusionFile, workspace: FusionWorkspace) {
+		const inlayHints: InlayHint[] = []
+
+		const fusionObjectValues = parsedFile.getNodesByType(FusionObjectValue)
+		if (!fusionObjectValues) return inlayHints
+
+		for (const fusionObjectValue of fusionObjectValues) {
+			inlayHints.push({
+				position: fusionObjectValue.getEnd(),
+				label: [
+					{
+						value: "i",
+						command: {
+							title: "NodeType Definition",
+							command: 'neos-fusion-lsp.showNeosDocumentationView',
+							arguments: [
+
+							]
+						}
+					}
+				],
+				paddingLeft: true
+			})
+		}
+
+		return inlayHints
 	}
 }

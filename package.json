@@ -25,7 +25,6 @@
         "vscode": "^1.70.0"
     },
     "activationEvents": [
-        "onLanguage:fusion",
         "workspaceContains:**/*.fusion"
     ],
     "extensionKind": [
@@ -255,8 +254,21 @@
             {
                 "command": "neos-fusion-lsp.reload",
                 "title": "Fusion: Reload Neos Fusion LSP "
-            }
+            },
+            {
+				"command": "neos-fusion-lsp.showNeosDocumentationView",
+				"title": "Show NEOS Documentation"
+			}
         ],
+        "views": {
+            "explorer": [
+                {
+                    "type": "webview",
+                    "id": "neosFusionLsp.documentationView",
+                    "name": "NEOS Docs"
+                }
+            ]
+        },
         "languages": [
             {
                 "id": "fusion",
@@ -273,29 +285,37 @@
                 }
             }
         ],
-    "walkthroughs": [
-      {
-        "id": "beta-getting_started",
-        "title": "(Beta) Getting Started",
-        "description": "A sample walkthrough",
-        "steps": [
-          {
-            "id": "run_command-reload",
-            "title": "Reload Language Server",
-            "description": "If you encounter an Error or are sure something did work a second ago you might want to restart the Fusion Language Server .\n[Run Command](command:neos-fusion-lsp.reload)",
-            "media": {"markdown": "walkthroughs/run_command-reload.md"},
-            "completionEvents": ["onCommand:neos-fusion-lsp.reload"]
-          },
-          {
-            "id": "change_setting-code_deprecations_fusion_prototypes",
-            "title": "Change Fusion Deprecations",
-            "description": "Update the deprecated Fusion Prototypes.",
-            "media": {"markdown": "walkthroughs/change_setting-code_deprecations_fusion_prototypes.md"},
-            "completionEvents": ["onSettingChanged:neosFusionLsp.code.deprecations.fusion.prototypes"]
-          }
+        "walkthroughs": [
+            {
+                "id": "beta-getting_started",
+                "title": "(Beta) Getting Started",
+                "description": "A sample walkthrough",
+                "steps": [
+                    {
+                        "id": "run_command-reload",
+                        "title": "Reload Language Server",
+                        "description": "If you encounter an Error or are sure something did work a second ago you might want to restart the Fusion Language Server .\n[Run Command](command:neos-fusion-lsp.reload)",
+                        "media": {
+                            "markdown": "walkthroughs/run_command-reload.md"
+                        },
+                        "completionEvents": [
+                            "onCommand:neos-fusion-lsp.reload"
+                        ]
+                    },
+                    {
+                        "id": "change_setting-code_deprecations_fusion_prototypes",
+                        "title": "Change Fusion Deprecations",
+                        "description": "Update the deprecated Fusion Prototypes.",
+                        "media": {
+                            "markdown": "walkthroughs/change_setting-code_deprecations_fusion_prototypes.md"
+                        },
+                        "completionEvents": [
+                            "onSettingChanged:neosFusionLsp.code.deprecations.fusion.prototypes"
+                        ]
+                    }
+                ]
+            }
         ]
-      }
-    ]
     },
     "scripts": {
         "vscode:prepublish": "yarn run compile",

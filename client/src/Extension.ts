@@ -1,6 +1,6 @@
 import * as path from 'path'
 import {
-	workspace as Workspace, window as Window, ExtensionContext, TextDocument, OutputChannel, WorkspaceFolder, Uri, workspace, commands
+	workspace as Workspace, window as Window, ExtensionContext, TextDocument, OutputChannel, WorkspaceFolder, Uri, workspace, commands, WebviewPanel, Position
 } from 'vscode'
 
 import {
@@ -12,7 +12,7 @@ import { ReloadCommand } from './commands/ReloadCommand'
 import { PreferenceService } from './PreferenceService'
 import { ProgressNotificationService } from './ProgressNotificationService'
 import { StatusItemService } from './StatusItemService'
-
+import { NeosDocumentationViewProvider } from './views/NeosDocumentationViewProvider'
 
 
 export class Extension {
@@ -57,6 +57,17 @@ export class Extension {
 
 		this.registerCommand(InspectCommand)
 		this.registerCommand(ReloadCommand)
+
+		const thisProvider = new NeosDocumentationViewProvider(this.outputChannel)
+		context.subscriptions.push(
+			Window.registerWebviewViewProvider("neosFusionLsp.documentationView", thisProvider)
+		);
+
+		this.context.subscriptions.push(
+			commands.registerCommand("neos-fusion-lsp.showNeosDocumentationView", (...args: any[]) => {
+				thisProvider.showCurrentView()
+			})
+		);
 	}
 
 	protected onDidOpenTextDocument(document: TextDocument) {
