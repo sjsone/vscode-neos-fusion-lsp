@@ -106,6 +106,8 @@ export class LanguageServer extends Logger {
 			this.logInfo(`Added FusionWorkspace ${workspaceFolder.name} with path ${uriToPath(workspaceFolder.uri)}`)
 		}
 
+		// TODO: Create some kind of Service to correctly handle capability negotiation 
+
 		return {
 			capabilities: {
 				inlayHintProvider: true,
