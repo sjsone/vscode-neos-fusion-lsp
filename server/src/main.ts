@@ -17,6 +17,8 @@ import { CodeLensCapability } from './capabilities/CodeLensCapability'
 
 export interface FusionDocument extends TextDocument { }
 
+// TODO: define and handle some arguments like [`showDefaultConfiguration`, `showDefaultInitialization`, `--logFile`, ...] to improve usability as a standalone server
+
 // INFO: https://github.com/microsoft/vscode/issues/135453
 
 const connection = createConnection(ProposedFeatures.all)
