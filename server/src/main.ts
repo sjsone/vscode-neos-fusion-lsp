@@ -19,8 +19,6 @@ export interface FusionDocument extends TextDocument { }
 
 // INFO: https://github.com/microsoft/vscode/issues/135453
 
-// TODO: implement `const document = documents.get(textDocumentPosition.textDocument.uri);` throughout the project
-
 const connection = createConnection(ProposedFeatures.all)
 const documents: TextDocuments<FusionDocument> = new TextDocuments(TextDocument)
 
