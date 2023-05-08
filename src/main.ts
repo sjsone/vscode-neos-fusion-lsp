@@ -17,9 +17,9 @@ import { CodeLensCapability } from './capabilities/CodeLensCapability'
 
 export interface FusionDocument extends TextDocument { }
 
-// INFO: https://github.com/microsoft/vscode/issues/135453
+// TODO: define and handle some arguments like [`showDefaultConfiguration`, `showDefaultInitialization`, `--logFile`, ...] to improve usability as a standalone server
 
-// TODO: implement `const document = documents.get(textDocumentPosition.textDocument.uri);` throughout the project
+// INFO: https://github.com/microsoft/vscode/issues/135453
 
 const connection = createConnection(ProposedFeatures.all)
 const documents: TextDocuments<FusionDocument> = new TextDocuments(TextDocument)
