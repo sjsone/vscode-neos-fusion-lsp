@@ -37,7 +37,13 @@ export function diagnoseNodeTypeDefinitions(parsedFusionFile: ParsedFusionFile) 
 				severity: DiagnosticSeverity.Error,
 				range: creation.getPositionAsRange(),
 				message: `Could not find NodeType Definition for \`${prototypeName}\``,
-				source: CommonDiagnosticHelper.Source
+				source: CommonDiagnosticHelper.Source,
+				data: {
+					documentation: {
+						openInBrowser: true,
+						uri: "https://docs.neos.io/guide/manual/content-repository/nodetype-definition"
+					}
+				}
 			})
 		}
 	}
