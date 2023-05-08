@@ -1,4 +1,6 @@
 import { LoggingLevel } from '../ExtensionConfiguration'
+import * as NodeFs from "fs"
+import * as NodeUtil from "util"
 
 class LogService {
 	protected logLevel: LoggingLevel = LoggingLevel.Info
@@ -22,8 +24,9 @@ export class Logger {
 	private loggerLogName: string
 	private loggingEnabled: boolean = true
 
-	static LogNameAndLevel = (level: string, name: string, ...things: any) => {
+	static LogNameAndLevel = (level: string, name: string, ...things: any[]) => {
 		console.log(`[${level.padStart(7, " ")}] <${(new Date()).toISOString()}> [${name}]`, ...things)
+		// TODO: Added log-to-file capability (NodeUtil.inspect(thing))
 	}
 
 	constructor(suffix: string | undefined = undefined) {
