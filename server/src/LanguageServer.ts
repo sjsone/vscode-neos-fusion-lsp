@@ -106,6 +106,8 @@ export class LanguageServer extends Logger {
 			this.logInfo(`Added FusionWorkspace ${workspaceFolder.name} with path ${uriToPath(workspaceFolder.uri)}`)
 		}
 
+		// TODO: Create some kind of Service to correctly handle capability negotiation 
+
 		this.connection.onNotification("custom/flowContext/set", ({ selectedContextName }) => {
 			this.logInfo(`Setting FusionContext to "${selectedContextName}"`)
 			for (const fusionWorkspace of this.fusionWorkspaces) {
@@ -127,6 +129,7 @@ export class LanguageServer extends Logger {
 					triggerCharacters: [`"`, `'`, `/`, `.`, `:`, `@`]
 				},
 				textDocumentSync: {
+					// TODO: Make `params.initializationOptions` optional by defining some kind of default
 					openClose: params.initializationOptions.textDocumentSync.openClose,
 					change: TextDocumentSyncKind.Full
 				},
