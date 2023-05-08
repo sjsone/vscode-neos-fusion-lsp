@@ -31,13 +31,21 @@ export function diagnoseNodeTypeDefinitions(parsedFusionFile: ParsedFusionFile) 
 		if(contentPrototypeNames.includes(prototypeName)) continue
 		if (!isPrototypeOneOf(prototypeName, contentPrototypeNames, workspace)) continue
 
+		// TODO: implement action to create NodeTypeDefinition (NodeType vs. Configuration Folder...)
+
 		const nodeTypeDefinition = nodeTypeDefinitions.find(nodeType => nodeType.nodeType === prototypeName)
 		if (!nodeTypeDefinition) {
 			diagnostics.push({
 				severity: DiagnosticSeverity.Error,
 				range: creation.getPositionAsRange(),
 				message: `Could not find NodeType Definition for \`${prototypeName}\``,
-				source: CommonDiagnosticHelper.Source
+				source: CommonDiagnosticHelper.Source,
+				data: {
+					documentation: {
+						openInBrowser: true,
+						uri: "https://docs.neos.io/guide/manual/content-repository/nodetype-definition"
+					}
+				}
 			})
 		}
 	}

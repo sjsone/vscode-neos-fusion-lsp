@@ -31,6 +31,7 @@ import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokens
 import { AbstractFunctionality } from './common/AbstractFunctionality'
 import { addFusionIgnoreSemanticCommentAction } from './actions/AddFusionIgnoreSemanticCommentAction'
 import { CodeLensCapability } from './capabilities/CodeLensCapability'
+import { openDocumentationAction } from './actions/OpenDocumentationAction'
 
 
 export class LanguageServer extends Logger {
@@ -284,7 +285,8 @@ export class LanguageServer extends Logger {
 	public async onCodeAction(params: CodeActionParams) {
 		return [
 			...await addFusionIgnoreSemanticCommentAction(params),
-			...replaceDeprecatedQuickFixAction(params)
+			...replaceDeprecatedQuickFixAction(params),
+			...openDocumentationAction(params)
 		]
 	}
 
