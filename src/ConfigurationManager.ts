@@ -31,8 +31,17 @@ export class ConfigurationManager extends Logger {
 		// this.logInfo(`Adding package ${path}`)
 		this.packagePaths.push(path)
 		try {
-			const mergedConfiguration = <ParsedYaml>mergeObjects(neosPackage["configuration"]["settingsConfiguration"], this.configurationTest)
-			this.configurationTest = mergedConfiguration ? mergedConfiguration : this.configurationTest
+			const mergedConfiguration = <ParsedYaml>mergeObjects(neosPackage["configuration"]["settingsConfiguration"], this.mergedConfiguration)
+			this.mergedConfiguration = mergedConfiguration ? mergedConfiguration : this.mergedConfiguration
+		} catch (error) {
+			console.log(error)
+		}
+	}
+
+	addToMergedConfiguration(newConfiguration: ParsedYaml) {
+		try {
+			const mergedConfiguration = <ParsedYaml>mergeObjects(newConfiguration, this.mergedConfiguration)
+			this.mergedConfiguration = mergedConfiguration ? mergedConfiguration : this.mergedConfiguration
 		} catch (error) {
 			console.log(error)
 		}
@@ -102,5 +111,15 @@ export class ConfigurationManager extends Logger {
 			results.push(...configuration.search(searchPath))
 		}
 		return results
+	}
+
+	getMerged<T extends ParsedYaml>(path: string | string[], settingsConfiguration = this.mergedConfiguration): T {
+		if (settingsConfiguration === undefined || settingsConfiguration === null) return undefined
+		if (!Array.isArray(path)) path = path.split(".")
+		const key = path.shift()
+		const value = settingsConfiguration[key]
+		if (path.length === 0) return value
+		if (value === undefined || value === null) return undefined
+		return (typeof value === 'object' && typeof value !== 'function') ? this.getMerged(path, value) : undefined
 	}
 }
