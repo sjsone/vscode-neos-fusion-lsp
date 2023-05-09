@@ -122,6 +122,7 @@ export function isPrototypeDeprecated(workspace: FusionWorkspace, prototypeName:
     return deprecated
 }
 
+// TODO: use generics
 export function mergeObjects(source: unknown, target: unknown) {
     // https://gist.github.com/ahtcx/0cd94e62691f539160b32ecda18af3d6?permalink_comment_id=3889214#gistcomment-3889214
     for (const [key, val] of Object.entries(source)) {
