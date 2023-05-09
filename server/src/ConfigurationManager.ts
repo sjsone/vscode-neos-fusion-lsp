@@ -14,6 +14,9 @@ export interface ConfigurationContext {
 	contexts: { [key: string]: ConfigurationContext }
 }
 
+// CONTINUE: here
+// TODO: Consolidate ConfigurationManager with Configurations 
+
 export class ConfigurationManager extends Logger {
 	protected workspace: NeosWorkspace
 	protected packagePaths: string[] = []
