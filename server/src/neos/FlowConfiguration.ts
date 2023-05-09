@@ -122,7 +122,7 @@ export class FlowConfiguration extends Logger {
 	static ForPath(neosWorkspace: NeosWorkspace, folderPath: string) {
 		const configuration = new FlowConfiguration(neosWorkspace, folderPath);
 		configuration.readConfigurationsFromConfigurationFolder()
-		neosWorkspace["configurationManager"]["configurations"].push(configuration)
+		neosWorkspace.configurationManager["configurations"].push(configuration)
 		return configuration
 	}
 
