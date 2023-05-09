@@ -297,13 +297,10 @@ export class DefinitionCapability extends AbstractCapability {
 			end: foundNodeByLine.getEnd()
 		}
 
-		// TODO: test
-		const test = workspace["neosWorkspace"]["configurationManager"]["configurationTest"]
-		// CONTINUE: Check why flow context is ""
-		console.log("test", test["Neos"]["Flow"])
+		// console.log("test", workspace.neosWorkspace.configurationManager.getMerged("Neos.Flow.core"))
 
 		const locationLinks: LocationLink[] = []
-		for (const result of workspace["neosWorkspace"]["configurationManager"].search(searchPath)) {
+		for (const result of workspace.neosWorkspace.configurationManager.search(searchPath)) {
 			locationLinks.push({
 				targetUri: result.file["uri"],
 				targetRange: result.range,

@@ -20,7 +20,7 @@ export class ConfigurationManager extends Logger {
 	protected allContexts?: ConfigurationContext
 	protected selectedContextPath?: string = "Development"
 	protected configurations: FlowConfiguration[] = []
-	protected configurationTest: ParsedYaml = {}
+	protected mergedConfiguration: ParsedYaml = {}
 
 	constructor(workspace: NeosWorkspace) {
 		super()
