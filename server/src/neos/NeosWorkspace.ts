@@ -36,7 +36,9 @@ export class NeosWorkspace extends Logger {
 		this.configurationManager.buildConfiguration(selectedFlowContextName)
 		const fusionWorkspacePath = uriToPath(this.fusionWorkspace.uri)
 		if (NodeFs.existsSync(NodePath.join(fusionWorkspacePath, 'Configuration'))) {
-			FlowConfiguration.ForPath(this, fusionWorkspacePath)
+			const configuration = FlowConfiguration.ForPath(this, fusionWorkspacePath)
+			const settings = configuration["settingsConfiguration"]
+			if (settings) this.configurationManager.addToMergedConfiguration(settings)
 		}
 	}
 
