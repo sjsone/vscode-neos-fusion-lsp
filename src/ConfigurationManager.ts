@@ -15,7 +15,7 @@ export interface ConfigurationContext {
 }
 
 // CONTINUE: here
-// TODO: Consolidate ConfigurationManager with Configurations 
+// TODO: Check if ConfigurationManager has to be consolidated with FlowConfigurations 
 
 export class ConfigurationManager extends Logger {
 	protected workspace: NeosWorkspace
