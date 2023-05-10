@@ -47,8 +47,6 @@ export class FlowConfiguration extends Logger {
 
 			if (value != undefined) {
 				const resolvedRange = configurationFile.resolvePositionRangeForPath(path)
-				// console.log("Found resolvedRange ", resolvedRange, configurationFile["uri"])
-
 				results.push({
 					range: resolvedRange ?? Range.create(Position.create(0, 0), Position.create(0, 0)),
 					value: <any>value,
@@ -89,12 +87,8 @@ export class FlowConfiguration extends Logger {
 
 				try {
 					const mergedConfiguration = <ParsedYaml>mergeObjects(parsedYaml, this.settingsConfiguration)
-
-					
 					this.settingsConfiguration = mergedConfiguration ? mergedConfiguration : this.settingsConfiguration
 					if (LogService.isLogLevel(LoggingLevel.Debug)) Logger.LogNameAndLevel(LoggingLevel.Debug.toUpperCase(), 'FlowConfiguration:FromFolder', 'Read configuration from: ' + configurationFilePath)
-					// const testContext = this.settingsConfiguration?.["Neos"]?.["Flow"]?.["core"]?.["context"]
-					// console.log("testContext", testContext)
 				} catch (e) {
 					if (e instanceof Error) {
 						console.log("ERROR: configuration", this.settingsConfiguration)
