@@ -1,8 +1,13 @@
 # Changelog
 
-Normal Release: 🚀
+## 🧪 0.2.5
 
-Pre-Release: 🧪
+- improved handling of *ActionUri* in `Neos.Neos:Plugin`
+- Handling of Node Fusion Prototypes
+  - Diagnose Prototypes without a NodeType-File as **Error**
+  - QuickAction to create a NodeType-File
+- Diagnostic Hint for `<script>` Tags in AFX as a reminder that no Fusion is parsed in them
+- Handling of `.props` in `@private`
 
 ## 🧪 0.2.3
 
