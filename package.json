@@ -210,7 +210,7 @@
                         "additionalProperties": {
                             "type": "string"
                         },
-                        "description": "An object of deprecated fusion-prototypes. [OldPrototype](Item): NewPrototype(Value). \nIf it should be ignored use '{ignore}' as the value",
+                        "markdownDescription": "An object of deprecated fusion-prototypes. \n\nStructure: \n| Item | Value |\n| ------------ | ------------ |\n| OldPrototype | NewPrototype | \n\n\nIf it should be ignored use `{ignore}` as the value",
                         "default": {
                             "Neos.Fusion:Array": "Neos.Fusion:Join",
                             "Neos.Fusion:Collection": "Neos.Fusion:Loop",
