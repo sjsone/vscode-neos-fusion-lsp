@@ -48,6 +48,10 @@ export class NeosPackage extends Logger {
 		this.debug = this.getName() === "neos/fusion"
 
 		this.initNamespaceLoading()
+		this.readConfiguration()
+	}
+
+	public readConfiguration() {
 		this.configuration = FlowConfiguration.FromFolder(this.path)
 	}
 
