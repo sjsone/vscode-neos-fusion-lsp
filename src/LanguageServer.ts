@@ -32,6 +32,7 @@ import { AbstractFunctionality } from './common/AbstractFunctionality'
 import { addFusionIgnoreSemanticCommentAction } from './actions/AddFusionIgnoreSemanticCommentAction'
 import { CodeLensCapability } from './capabilities/CodeLensCapability'
 import { openDocumentationAction } from './actions/OpenDocumentationAction'
+import { createNodeTypeFileAction } from './actions/CreateNodeTypeFileAction'
 import { ClientCapabilityService } from './common/ClientCapabilityService'
 
 
@@ -285,6 +286,7 @@ export class LanguageServer extends Logger {
 			...await addFusionIgnoreSemanticCommentAction(this, params),
 			...replaceDeprecatedQuickFixAction(this, params),
 			...openDocumentationAction(this, params),
+			...createNodeTypeFileAction(this, params)
 		]
 	}
 
