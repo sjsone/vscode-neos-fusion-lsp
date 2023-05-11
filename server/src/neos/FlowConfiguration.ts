@@ -60,7 +60,8 @@ export class FlowConfiguration extends Logger {
 		const nodeTypeDefinitions: NodeTypeDefinition[] = []
 		let configuration: ParsedYaml = {}
 
-		for (const configurationFilePath of <string[]>getFiles(folderPath, ".yaml")) {
+		const yamlFiles: string[] = [...getFiles(folderPath, ".yaml"), ...getFiles(folderPath, ".yml")]
+		for (const configurationFilePath of yamlFiles) {
 			if (NodePath.basename(configurationFilePath).startsWith("Settings")) {
 				const configurationFileYaml = NodeFs.readFileSync(configurationFilePath).toString()
 				const parsedYaml = parseYaml(configurationFileYaml)

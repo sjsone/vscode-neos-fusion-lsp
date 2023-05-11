@@ -220,7 +220,7 @@ export class LanguageServer extends Logger {
 	}
 
 	protected handleFileChanged(change: FileEvent) {
-		if (change.uri.endsWith(".yaml") && change.uri.includes("NodeTypes")) {
+		if ((change.uri.endsWith(".yaml") || change.uri.endsWith(".yml")) && change.uri.includes("NodeTypes")) {
 			this.handleNodeTypeFileChanged()
 		}
 
@@ -247,7 +247,7 @@ export class LanguageServer extends Logger {
 	}
 
 	protected handleFileCreated(change: FileEvent) {
-		if (change.uri.endsWith(".yaml") && change.uri.includes("NodeTypes")) {
+		if ((change.uri.endsWith(".yaml") || change.uri.endsWith(".yml")) && change.uri.includes("NodeTypes")) {
 			this.handleNodeTypeFileChanged()
 		}
 
@@ -267,7 +267,7 @@ export class LanguageServer extends Logger {
 	protected handleFileDeleted(change: FileEvent) {
 		clearLineDataCacheForFile(change.uri)
 
-		if (change.uri.endsWith(".yaml") && change.uri.includes("NodeTypes")) {
+		if ((change.uri.endsWith(".yaml") || change.uri.endsWith(".yml")) && change.uri.includes("NodeTypes")) {
 			this.handleNodeTypeFileChanged()
 		}
 

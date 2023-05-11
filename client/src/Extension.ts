@@ -134,7 +134,7 @@ export class Extension {
 				fileEvents: [
 					workspace.createFileSystemWatcher('**/*.php'),
 					workspace.createFileSystemWatcher('**/*.fusion'),
-					workspace.createFileSystemWatcher('**/*.yaml')
+					workspace.createFileSystemWatcher('**/*.y?(a)ml')
 				]
 			},
 			initializationOptions: {
