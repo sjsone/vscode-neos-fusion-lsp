@@ -32,6 +32,7 @@ import { AbstractFunctionality } from './common/AbstractFunctionality'
 import { addFusionIgnoreSemanticCommentAction } from './actions/AddFusionIgnoreSemanticCommentAction'
 import { CodeLensCapability } from './capabilities/CodeLensCapability'
 import { openDocumentationAction } from './actions/OpenDocumentationAction'
+import { ClientCapabilityService } from './common/ClientCapabilityService'
 
 
 export class LanguageServer extends Logger {
@@ -39,6 +40,7 @@ export class LanguageServer extends Logger {
 	protected connection: _Connection
 	protected documents: TextDocuments<FusionDocument>
 	protected fusionWorkspaces: FusionWorkspace[] = []
+	protected clientCapabilityService: ClientCapabilityService
 
 	protected functionalityInstances: Map<new (...args: unknown[]) => AbstractFunctionality, AbstractFunctionality> = new Map()
 
@@ -107,7 +109,7 @@ export class LanguageServer extends Logger {
 			this.logInfo(`Added FusionWorkspace ${workspaceFolder.name} with path ${uriToPath(workspaceFolder.uri)}`)
 		}
 
-		// TODO: Create some kind of Service to correctly handle capability negotiation 
+		this.clientCapabilityService = new ClientCapabilityService(params.capabilities)
 
 		return {
 			capabilities: {
