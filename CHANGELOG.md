@@ -1,5 +1,17 @@
 # Changelog
 
+| Release | Icon |
+|---------|------|
+| Normal  |  🚀  |
+| Preview |  🧪  |
+
+## 🪐🔭 *Upcoming*
+
+- Flow Context & Configuration
+  - Select which `FLOW_CONTEXT` the LanguageServer should use to read in the configuration  
+  - Autocompletion and Hover for the `Configuration.setting()` EEL-Helper
+- Integration of the WIP [`ts-fusion-runtime`](https://www.npmjs.com/package/ts-fusion-runtime) to correctly resolve Fusion properties
+
 ## 🧪 0.2.5
 
 - improved handling of *ActionUri* in `Neos.Neos:Plugin`
