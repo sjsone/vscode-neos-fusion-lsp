@@ -2,6 +2,7 @@ import * as NodeFs from 'fs'
 
 import { CodeAction, CodeActionKind, CodeActionParams, Range, TextEdit } from 'vscode-languageserver';
 import { getLinesFromLineDataCacheForFile, hasLineDataCacheFile, setLinesFromLineDataCacheForFile, uriToPath } from '../common/util';
+import { LanguageServer } from '../LanguageServer';
 
 async function getLinesFromUri(uri: string) {
 	const document = (await NodeFs.promises.readFile(uriToPath(uri))).toString()
@@ -9,8 +10,7 @@ async function getLinesFromUri(uri: string) {
 }
 
 // TODO: implement central SemanticComment handling (Service etc.)
-
-export async function addFusionIgnoreSemanticCommentAction(params: CodeActionParams) {
+export const addFusionIgnoreSemanticCommentAction = async (languageServer: LanguageServer, params: CodeActionParams) => {
 	const uri = params.textDocument.uri
 	const codeActions: CodeAction[] = [];
 

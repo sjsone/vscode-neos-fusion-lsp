@@ -282,9 +282,9 @@ export class LanguageServer extends Logger {
 
 	public async onCodeAction(params: CodeActionParams) {
 		return [
-			...await addFusionIgnoreSemanticCommentAction(params),
-			...replaceDeprecatedQuickFixAction(params),
-			...openDocumentationAction(params)
+			...await addFusionIgnoreSemanticCommentAction(this, params),
+			...replaceDeprecatedQuickFixAction(this, params),
+			...openDocumentationAction(this, params),
 		]
 	}
 
