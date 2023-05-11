@@ -218,6 +218,12 @@
                             "Neos.Fusion:RawArray": "Neos.Fusion:DataStructure",
                             "Neos.Fusion:UriBuilder": "Neos.Fusion:ActionUri"
                         }
+                    },
+                    "neosFusionLsp.code.actions.createNodeTypeConfiguration.template": {
+                        "type": "string",
+                        "editPresentation": "multilineText",
+                        "markdownDescription": "Template which is used to generate NodeType configuration files\n\nUsable variables are:\n- `{nodeTypeName}` ",
+                        "default": "{nodeTypeName}:\n  properties:"
                     }
                 }
             },
