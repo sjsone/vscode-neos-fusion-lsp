@@ -5,14 +5,19 @@ import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
 import { EELHelperToken } from '../neos/NeosPackage'
 import { CommonDiagnosticHelper } from './CommonDiagnosticHelper'
+import { NodeService } from '../common/NodeService'
+import { findParent } from '../common/util'
+import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 
 // TODO: Watch for php changes and re-diagnose all relevant FusionFiles
 
-function* getDiagnosticFromEelHelper(positionedNode: LinePositionedNode<PhpClassMethodNode>, pathNode: ObjectFunctionPathNode, eelHelper: EELHelperToken) {
+function* getDiagnosticFromEelHelper(positionedNode: LinePositionedNode<PhpClassMethodNode>, pathNode: ObjectFunctionPathNode, eelHelper: EELHelperToken, parsedFusionFile: ParsedFusionFile) {
 	const node = positionedNode.getNode()
 	if (eelHelper.name !== node.eelHelper.identifier) return
 	const method = eelHelper.methods.find(method => method.valid(node.identifier))
 	if (!method) return
+
+	if (NodeService.isNodeAffectedByIgnoreComment(findParent(node, ObjectNode), parsedFusionFile)) return
 
 	for (const parameterIndex in method.parameters) {
 		const parameter = method.parameters[parameterIndex]
@@ -52,10 +57,8 @@ export function diagnoseEelHelperArguments(parsedFusionFile: ParsedFusionFile) {
 		const pathNode = node.pathNode
 		if (!(pathNode instanceof ObjectFunctionPathNode)) continue
 
-		// console.log(pathNode)
-
 		for (const eelHelper of parsedFusionFile.workspace.neosWorkspace.getEelHelperTokens()) {
-			for (const diagnostic of getDiagnosticFromEelHelper(positionedNode, pathNode, eelHelper)) {
+			for (const diagnostic of getDiagnosticFromEelHelper(positionedNode, pathNode, eelHelper, parsedFusionFile)) {
 				diagnostics.push(diagnostic)
 			}
 		}

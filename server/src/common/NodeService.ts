@@ -348,6 +348,11 @@ class NodeService {
 		return checkSemanticCommentIgnoreArguments(propertyName, parsedSemanticComment.arguments)
 	}
 
+	public isNodeAffectedByIgnoreComment(node: ObjectNode, parsedFusionFile: ParsedFusionFile) {
+		const { foundIgnoreComment, foundIgnoreBlockComment } = this.getSemanticCommentsNodeIsAffectedBy(node, parsedFusionFile)
+		return foundIgnoreComment || foundIgnoreBlockComment
+	}
+
 	public getSemanticCommentsNodeIsAffectedBy(node: ObjectNode, parsedFusionFile: ParsedFusionFile) {
 		const objectStatementText = abstractNodeToString(node)
 		const affectedNodeBySemanticComment = this.getAffectedNodeBySemanticComment(node)
