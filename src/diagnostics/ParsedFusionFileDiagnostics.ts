@@ -9,19 +9,33 @@ import { diagnoseResourceUris } from './DiagnoseResourceUris';
 import { diagnoseTagNames } from './DiagnoseTagNames';
 import { diagnoseNodeTypeDefinitions } from './DiagnoseNodeTypeDefinitions';
 import { diagnoseNonParsedFusion } from './DiagnoseNonParsedFusion';
+import { LogService, Logger } from '../common/Logging';
+import { LoggingLevel } from '../ExtensionConfiguration';
 
 export async function diagnose(parsedFusionFile: ParsedFusionFile) {
 	const diagnostics: Diagnostic[] = []
 
-	diagnostics.push(...diagnoseFusionProperties(parsedFusionFile))
-	diagnostics.push(...diagnoseResourceUris(parsedFusionFile))
-	diagnostics.push(...diagnoseTagNames(parsedFusionFile))
-	diagnostics.push(...diagnoseEelHelperArguments(parsedFusionFile))
-	diagnostics.push(...diagnosePrototypeNames(parsedFusionFile))
-	diagnostics.push(...diagnoseEmptyEel(parsedFusionFile))
-	diagnostics.push(...diagnoseActionUri(parsedFusionFile))
-	diagnostics.push(...diagnoseNodeTypeDefinitions(parsedFusionFile))
-	diagnostics.push(...diagnoseNonParsedFusion(parsedFusionFile))
+	const diagnoseFunctions = [
+		diagnoseFusionProperties,
+		diagnoseResourceUris,
+		diagnoseTagNames,
+		diagnoseEelHelperArguments,
+		diagnosePrototypeNames,
+		diagnoseEmptyEel,
+		diagnoseActionUri,
+		diagnoseNodeTypeDefinitions,
+		diagnoseNonParsedFusion,
+	]
+
+	for (const diagnoseFunction of diagnoseFunctions) {
+		try {
+			diagnostics.push(...diagnoseFunction(parsedFusionFile))
+		} catch (error) {
+			if (LogService.isLogLevel(LoggingLevel.Verbose)) {
+				Logger.LogNameAndLevel(LoggingLevel.Verbose.toUpperCase(), `ParsedFusionFileDiagnostics:${diagnoseFunction.name}`, 'ERROR:', error)
+			}
+		}
+	}
 
 	return diagnostics
 }
