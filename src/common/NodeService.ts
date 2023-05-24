@@ -108,12 +108,12 @@ class NodeService {
 
 		// TODO: get object identifier and match it runtime-like against the property definition to check if it resolves 
 		const isObjectStatementRenderer = (
-			getObjectIdentifier(objectStatement).startsWith("renderer.") 
+			getObjectIdentifier(objectStatement).startsWith("renderer.")
 			&& !getObjectIdentifier(objectStatement).startsWith("renderer.@process")
 		) || (
-			getObjectIdentifier(objectStatement).startsWith("@private.") 
-			&& !getObjectIdentifier(objectStatement).startsWith("@private.@process")
-		)
+				getObjectIdentifier(objectStatement).startsWith("@private.")
+				&& !getObjectIdentifier(objectStatement).startsWith("@private.@process")
+			)
 
 		if (isObjectStatementRenderer) {
 			const parentObjectStatement = findParent(statementList, ObjectStatement)
