@@ -13,8 +13,10 @@ export class PhpClassNode extends AbstractNode {
 		this.identifier = identifier
 		this.method = method
 		this.objectNode = objectNode
+		this.parent = objectNode
 
 		if (this.method) this.method.eelHelper = this
+		if (this.method) this.method["parent"] = this
 	}
 
 }
