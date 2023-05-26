@@ -7,7 +7,7 @@ import { getFiles, mergeObjects, pathToUri } from '../common/util'
 import { Position } from 'vscode-languageserver'
 import { YamlLexer } from '../yaml/YamlLexer'
 
-export type ParsedYaml = string | null | number | { [key: string]: ParsedYaml }
+export type ParsedYaml = string | null | number | boolean | { [key: string]: ParsedYaml }
 
 export interface NodeTypeDefinition {
 	uri: string
