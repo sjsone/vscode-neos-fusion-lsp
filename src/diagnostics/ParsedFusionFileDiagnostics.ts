@@ -11,6 +11,7 @@ import { diagnoseNodeTypeDefinitions } from './DiagnoseNodeTypeDefinitions';
 import { diagnoseNonParsedFusion } from './DiagnoseNonParsedFusion';
 import { LogService, Logger } from '../common/Logging';
 import { LoggingLevel } from '../ExtensionConfiguration';
+import { diagnoseRootFusionConfiguration } from './DiagnoseRootFusionConfiguration';
 
 export async function diagnose(parsedFusionFile: ParsedFusionFile) {
 	const diagnostics: Diagnostic[] = []
@@ -25,6 +26,7 @@ export async function diagnose(parsedFusionFile: ParsedFusionFile) {
 		diagnoseActionUri,
 		diagnoseNodeTypeDefinitions,
 		diagnoseNonParsedFusion,
+		diagnoseRootFusionConfiguration,
 	]
 
 	for (const diagnoseFunction of diagnoseFunctions) {
