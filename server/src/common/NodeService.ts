@@ -108,12 +108,12 @@ class NodeService {
 
 		// TODO: get object identifier and match it runtime-like against the property definition to check if it resolves 
 		const isObjectStatementRenderer = (
-			getObjectIdentifier(objectStatement).startsWith("renderer.") 
+			getObjectIdentifier(objectStatement).startsWith("renderer.")
 			&& !getObjectIdentifier(objectStatement).startsWith("renderer.@process")
 		) || (
-			getObjectIdentifier(objectStatement).startsWith("@private.") 
-			&& !getObjectIdentifier(objectStatement).startsWith("@private.@process")
-		)
+				getObjectIdentifier(objectStatement).startsWith("@private.")
+				&& !getObjectIdentifier(objectStatement).startsWith("@private.@process")
+			)
 
 		if (isObjectStatementRenderer) {
 			const parentObjectStatement = findParent(statementList, ObjectStatement)
@@ -346,6 +346,11 @@ class NodeService {
 		if (parsedSemanticComment.type !== type) return false
 
 		return checkSemanticCommentIgnoreArguments(propertyName, parsedSemanticComment.arguments)
+	}
+
+	public isNodeAffectedByIgnoreComment(node: ObjectNode, parsedFusionFile: ParsedFusionFile) {
+		const { foundIgnoreComment, foundIgnoreBlockComment } = this.getSemanticCommentsNodeIsAffectedBy(node, parsedFusionFile)
+		return foundIgnoreComment || foundIgnoreBlockComment
 	}
 
 	public getSemanticCommentsNodeIsAffectedBy(node: ObjectNode, parsedFusionFile: ParsedFusionFile) {

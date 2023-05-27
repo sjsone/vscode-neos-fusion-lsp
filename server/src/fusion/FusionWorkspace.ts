@@ -202,7 +202,15 @@ export class FusionWorkspace extends Logger {
         return nodes
     }
 
+    public async diagnoseAllFusionFiles() {
+        // TODO: Create Diagnose class with concurrency (no need to diagnose the same files at the same time)
+        this.filesToDiagnose = Array.from(this.parsedFiles)
+        return this.processFilesToDiagnose()
+    }
+
     protected async processFilesToDiagnose() {
+        const randomDiagnoseRun = Math.round(Math.random() * 100)
+        this.logDebug(`<${randomDiagnoseRun}> Will diagnose ${this.filesToDiagnose.length} files`)
         await Promise.all(this.filesToDiagnose.map(async parsedFile => {
             const diagnostics = await diagnose(parsedFile)
             if (diagnostics) {
@@ -212,6 +220,8 @@ export class FusionWorkspace extends Logger {
                 })
             }
         }))
+        this.logDebug(`<${randomDiagnoseRun}>...finished`)
+
         this.filesToDiagnose = []
     }
 

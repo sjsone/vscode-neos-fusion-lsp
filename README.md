@@ -116,7 +116,9 @@ Some comments have optional parameters which is a simple comma separated list:
 
 ### `@fusion-ignore`
 
-With this comment the next line will be ignored from fusion property diagnostics, so no error, warning or info reporting. 
+With this comment the next line will be ignored from fusion property diagnostics, so no error, warning or info reporting.
+
+It also works on EEL-Helper-Argument Diagnostics. 
 
 If placed above a Tag in AFX the attributes will be affected as well. Even if they are in the lines below. 
 

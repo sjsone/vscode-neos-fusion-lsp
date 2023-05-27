@@ -32,6 +32,8 @@ import { AbstractFunctionality } from './common/AbstractFunctionality'
 import { addFusionIgnoreSemanticCommentAction } from './actions/AddFusionIgnoreSemanticCommentAction'
 import { CodeLensCapability } from './capabilities/CodeLensCapability'
 import { openDocumentationAction } from './actions/OpenDocumentationAction'
+import { createNodeTypeFileAction } from './actions/CreateNodeTypeFileAction'
+import { ClientCapabilityService } from './common/ClientCapabilityService'
 
 
 export class LanguageServer extends Logger {
@@ -39,6 +41,7 @@ export class LanguageServer extends Logger {
 	protected connection: _Connection
 	protected documents: TextDocuments<FusionDocument>
 	protected fusionWorkspaces: FusionWorkspace[] = []
+	protected clientCapabilityService: ClientCapabilityService
 
 	protected functionalityInstances: Map<new (...args: unknown[]) => AbstractFunctionality, AbstractFunctionality> = new Map()
 
@@ -107,7 +110,20 @@ export class LanguageServer extends Logger {
 			this.logInfo(`Added FusionWorkspace ${workspaceFolder.name} with path ${uriToPath(workspaceFolder.uri)}`)
 		}
 
-		// TODO: Create some kind of Service to correctly handle capability negotiation 
+		this.clientCapabilityService = new ClientCapabilityService(params.capabilities)
+		
+		this.connection.onNotification("custom/flowContext/set", ({ selectedContextName }) => {
+			this.logInfo(`Setting FusionContext to "${selectedContextName}"`)
+			for (const fusionWorkspace of this.fusionWorkspaces) {
+				fusionWorkspace.setSelectedFlowContextName(selectedContextName)
+			}
+		})
+
+		this.connection.onRequest("custom/neosContexts/get", () => {
+			const contexts = this.fusionWorkspaces[0].neosWorkspace.configurationManager.getContexts()
+			const selectedContext = this.fusionWorkspaces[0].neosWorkspace.configurationManager.getContextPath()
+			return contexts.map(context => ({ context, selected: selectedContext === context }))
+		})
 
 		this.connection.onNotification("custom/flowContext/set", ({ selectedContextName }) => {
 			this.logInfo(`Setting FusionContext to "${selectedContextName}"`)
@@ -221,6 +237,15 @@ export class LanguageServer extends Logger {
 		}
 	}
 
+	protected handleNodeTypeFileChanged() {
+		for (const workspace of this.fusionWorkspaces) {
+			for (const neosPackage of workspace.neosWorkspace.getPackages().values()) {
+				neosPackage.readConfiguration()
+			}
+		}
+		for (const workspace of this.fusionWorkspaces) workspace.diagnoseAllFusionFiles()
+	}
+
 	protected handleFileChanged(change: FileEvent) {
 		if (change.uri.endsWith(".yaml")) {
 			for (const fusionWorkspace of this.fusionWorkspaces) {
@@ -236,57 +261,72 @@ export class LanguageServer extends Logger {
 			}
 		}
 
-		if (!change.uri.endsWith(".php")) return
-		clearLineDataCacheForFile(change.uri)
+		if ((change.uri.endsWith(".yaml") || change.uri.endsWith(".yml")) && change.uri.includes("NodeTypes")) {
+			this.handleNodeTypeFileChanged()
+		}
+		if (change.uri.endsWith(".php")) {
+			clearLineDataCacheForFile(change.uri)
 
-		for (const workspace of this.fusionWorkspaces) {
-			for (const [_, neosPackage] of workspace.neosWorkspace.getPackages().entries()) {
-				const helper = neosPackage.getEelHelpers().find(helper => helper.uri === change.uri)
-				if (!helper) continue
+			for (const workspace of this.fusionWorkspaces) {
+				for (const [_, neosPackage] of workspace.neosWorkspace.getPackages().entries()) {
+					const helper = neosPackage.getEelHelpers().find(helper => helper.uri === change.uri)
+					if (!helper) continue
 
-				this.logVerbose(`  File was EEL-Helper ${helper.name}`)
+					this.logVerbose(`  File was EEL-Helper ${helper.name}`)
 
-				const namespace = helper.namespace
-				const classDefinition = namespace.getClassDefinitionFromFilePathAndClassName(uriToPath(helper.uri), helper.className, helper.pathParts)
+					const namespace = helper.namespace
+					const classDefinition = namespace.getClassDefinitionFromFilePathAndClassName(uriToPath(helper.uri), helper.className, helper.pathParts)
 
-				this.logVerbose(`  Methods: then ${helper.methods.length} now ${classDefinition.methods.length}`)
+					this.logVerbose(`  Methods: then ${helper.methods.length} now ${classDefinition.methods.length}`)
 
-				helper.methods = classDefinition.methods
-				helper.position = classDefinition.position
+					helper.methods = classDefinition.methods
+					helper.position = classDefinition.position
+				}
 			}
 		}
 	}
 
 	protected handleFileCreated(change: FileEvent) {
-		if (!change.uri.endsWith(".fusion")) return
-		const workspace = this.getWorkspaceForFileUri(change.uri)
-		if (!workspace) {
-			this.logInfo(`Created Fusion file corresponds to no workspace. ${change.uri}`)
-			return
+		if ((change.uri.endsWith(".yaml") || change.uri.endsWith(".yml")) && change.uri.includes("NodeTypes")) {
+			this.handleNodeTypeFileChanged()
 		}
 
-		const neosPackage = workspace.neosWorkspace.getPackageByUri(change.uri)
-		workspace.addParsedFileFromPath(uriToPath(change.uri), neosPackage)
-		this.logDebug(`Added new ParsedFusionFile ${change.uri}`)
+		if (change.uri.endsWith(".fusion")) {
+			const workspace = this.getWorkspaceForFileUri(change.uri)
+			if (!workspace) {
+				this.logInfo(`Created Fusion file corresponds to no workspace. ${change.uri}`)
+				return
+			}
+
+			const neosPackage = workspace.neosWorkspace.getPackageByUri(change.uri)
+			workspace.addParsedFileFromPath(uriToPath(change.uri), neosPackage)
+			this.logDebug(`Added new ParsedFusionFile ${change.uri}`)
+		}
 	}
 
 	protected handleFileDeleted(change: FileEvent) {
 		clearLineDataCacheForFile(change.uri)
 
-		if (!change.uri.endsWith(".fusion")) return
-		const workspace = this.getWorkspaceForFileUri(change.uri)
-		if (!workspace) {
-			this.logInfo(`Deleted Fusion file corresponds to no workspace. ${change.uri}`)
-			return
+		if ((change.uri.endsWith(".yaml") || change.uri.endsWith(".yml")) && change.uri.includes("NodeTypes")) {
+			this.handleNodeTypeFileChanged()
 		}
-		workspace.removeParsedFile(change.uri)
+
+		if (change.uri.endsWith(".fusion")) {
+			const workspace = this.getWorkspaceForFileUri(change.uri)
+			if (!workspace) {
+				this.logInfo(`Deleted Fusion file corresponds to no workspace. ${change.uri}`)
+				return
+			}
+			workspace.removeParsedFile(change.uri)
+		}
 	}
 
 	public async onCodeAction(params: CodeActionParams) {
 		return [
-			...await addFusionIgnoreSemanticCommentAction(params),
-			...replaceDeprecatedQuickFixAction(params),
-			...openDocumentationAction(params)
+			...await addFusionIgnoreSemanticCommentAction(this, params),
+			...replaceDeprecatedQuickFixAction(this, params),
+			...openDocumentationAction(this, params),
+			...createNodeTypeFileAction(this, params)
 		]
 	}
 

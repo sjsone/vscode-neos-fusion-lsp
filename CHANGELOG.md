@@ -1,8 +1,25 @@
 # Changelog
 
-Normal Release: 🚀
+| Release | Icon |
+|---------|------|
+| Normal  |  🚀  |
+| Preview |  🧪  |
 
-Pre-Release: 🧪
+## 🪐🔭 *Upcoming*
+
+- Flow Context & Configuration
+  - Select which `FLOW_CONTEXT` the LanguageServer should use to read in the configuration  
+  - Autocompletion and Hover for the `Configuration.setting()` EEL-Helper
+- Integration of the WIP [`ts-fusion-runtime`](https://www.npmjs.com/package/ts-fusion-runtime) to correctly resolve Fusion properties
+
+## 🧪 0.2.5
+
+- improved handling of *ActionUri* in `Neos.Neos:Plugin`
+- Handling of Node Fusion Prototypes
+  - Diagnose Prototypes without a NodeType-File as **Error**
+  - QuickAction to create a NodeType-File
+- Diagnostic Hint for `<script>` Tags in AFX as a reminder that no Fusion is parsed in them
+- Handling of `.props` in `@private`
 
 ## 🧪 0.2.3
 

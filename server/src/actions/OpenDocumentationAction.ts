@@ -1,6 +1,7 @@
-import { CodeActionParams, CodeAction, CodeActionKind } from 'vscode-languageserver';
+import { CodeActionParams, CodeAction, CodeActionKind, Command } from 'vscode-languageserver';
+import { LanguageServer } from '../LanguageServer';
 
-export function openDocumentationAction(params: CodeActionParams) {
+export const openDocumentationAction = (languageServer: LanguageServer, params: CodeActionParams) => {
 	const codeActions: CodeAction[] = [];
 
 	for (const diagnostic of params.context.diagnostics) {
@@ -9,11 +10,7 @@ export function openDocumentationAction(params: CodeActionParams) {
 		if (diagnostic.data.documentation.openInBrowser) codeActions.push({
 			title: "Open Documentation in Browser",
 			kind: CodeActionKind.QuickFix,
-			command: {
-				title: "Open",
-				command: "vscode.open",
-				arguments: [diagnostic.data.documentation.uri],
-			}
+			command: Command.create("Open", "vscode.open", diagnostic.data.documentation.uri),
 		})
 	}
 

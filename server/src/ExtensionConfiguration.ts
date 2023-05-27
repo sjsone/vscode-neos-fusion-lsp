@@ -49,6 +49,11 @@ export interface ExtensionConfiguration {
             fusion: {
                 prototypes: { [key: string]: (string | DeprecationConfigurationSpecialType) }
             }
+        },
+        actions: {
+            createNodeTypeConfiguration: {
+                template: string
+            }
         }
     },
     inlayHint: {

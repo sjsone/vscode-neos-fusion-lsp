@@ -9,7 +9,7 @@
         "theme": "dark"
     },
     "license": "AGPL-3.0-or-later",
-    "version": "0.2.3",
+    "version": "0.2.5",
     "categories": [
         "Programming Languages"
     ],
@@ -25,7 +25,6 @@
         "vscode": "^1.70.0"
     },
     "activationEvents": [
-        "onLanguage:fusion",
         "workspaceContains:**/*.fusion"
     ],
     "extensionKind": [
@@ -217,7 +216,7 @@
                         "additionalProperties": {
                             "type": "string"
                         },
-                        "description": "An object of deprecated fusion-prototypes. [OldPrototype](Item): NewPrototype(Value). \nIf it should be ignored use '{ignore}' as the value",
+                        "markdownDescription": "An object of deprecated fusion-prototypes. \n\nStructure: \n| Item | Value |\n| ------------ | ------------ |\n| OldPrototype | NewPrototype | \n\n\nIf it should be ignored use `{ignore}` as the value",
                         "default": {
                             "Neos.Fusion:Array": "Neos.Fusion:Join",
                             "Neos.Fusion:Collection": "Neos.Fusion:Loop",
@@ -225,6 +224,12 @@
                             "Neos.Fusion:RawArray": "Neos.Fusion:DataStructure",
                             "Neos.Fusion:UriBuilder": "Neos.Fusion:ActionUri"
                         }
+                    },
+                    "neosFusionLsp.code.actions.createNodeTypeConfiguration.template": {
+                        "type": "string",
+                        "editPresentation": "multilineText",
+                        "markdownDescription": "Template which is used to generate NodeType configuration files\n\nUsable variables are:\n- `{nodeTypeName}` ",
+                        "default": "{nodeTypeName}:\n  properties:"
                     }
                 }
             },

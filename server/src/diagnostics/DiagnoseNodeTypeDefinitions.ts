@@ -1,4 +1,4 @@
-import { Diagnostic, DiagnosticSeverity, DiagnosticTag } from 'vscode-languageserver'
+import { Diagnostic, DiagnosticRelatedInformation, DiagnosticSeverity, Location } from 'vscode-languageserver'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { NodeService } from '../common/NodeService'
 import { getPrototypeNameFromNode } from '../common/util'
@@ -28,19 +28,23 @@ export function diagnoseNodeTypeDefinitions(parsedFusionFile: ParsedFusionFile) 
 	for (const creation of parsedFusionFile.prototypeCreations) {
 		const prototypeName = getPrototypeNameFromNode(creation.getNode())
 
-		if(contentPrototypeNames.includes(prototypeName)) continue
+		if (contentPrototypeNames.includes(prototypeName)) continue
 		if (!isPrototypeOneOf(prototypeName, contentPrototypeNames, workspace)) continue
 
 		// TODO: implement action to create NodeTypeDefinition (NodeType vs. Configuration Folder...)
 
 		const nodeTypeDefinition = nodeTypeDefinitions.find(nodeType => nodeType.nodeType === prototypeName)
 		if (!nodeTypeDefinition) {
+			const range = creation.getPositionAsRange()
+			const location = Location.create(parsedFusionFile.uri, range)
 			diagnostics.push({
 				severity: DiagnosticSeverity.Error,
-				range: creation.getPositionAsRange(),
+				range: range,
 				message: `Could not find NodeType Definition for \`${prototypeName}\``,
 				source: CommonDiagnosticHelper.Source,
+				relatedInformation: [DiagnosticRelatedInformation.create(location, "test")],
 				data: {
+					nodeTypeName: prototypeName,
 					documentation: {
 						openInBrowser: true,
 						uri: "https://docs.neos.io/guide/manual/content-repository/nodetype-definition"
