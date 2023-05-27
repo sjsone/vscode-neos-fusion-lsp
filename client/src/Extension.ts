@@ -15,7 +15,7 @@ import {
 import {
 	LanguageClient, LanguageClientOptions, ServerOptions, TransportKind
 } from 'vscode-languageclient/node'
-import { NeosContextStatusBarItem, NeosContextStatusBarItemClass } from './neosContextStatusBarItem'
+import { NeosStatusBarItem, NeosStatusBarItemClass } from './NeosStatusBarItem'
 import { PreferenceService } from './PreferenceService'
 import { ProgressNotificationService } from './ProgressNotificationService'
 import { AbstractCommandConstructor } from './commands/AbstractCommand'
@@ -98,9 +98,8 @@ export class Extension {
 		const startClientInInspectMode = workspace.getConfiguration().get("neosFusionLsp.logging.inspect", false)
 		const startedClient = this.startClient(outerMostWorkspaceFolder, startClientInInspectMode)
 
-		NeosContextStatusBarItem.init(this.context, startedClient, this.outputChannel)
-
-		NeosContextStatusBarItem.addListener(NeosContextStatusBarItemClass.ChangedContextEvent, (selectedContextName) => {
+		NeosStatusBarItem.init(this.context, startedClient, this.outputChannel)
+		NeosStatusBarItem.addListener(NeosStatusBarItemClass.ChangedContextEvent, (selectedContextName) => {
 			startedClient.sendNotification('custom/flowContext/set', { selectedContextName })
 		})
 	}
