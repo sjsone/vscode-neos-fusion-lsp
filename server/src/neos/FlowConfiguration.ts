@@ -62,6 +62,15 @@ export class FlowConfiguration extends Logger {
 		return this.configurationFiles.find(file => file["uri"] === uri)
 	}
 
+	update() {
+		this.nodeTypeDefinitions = []
+		this.settingsConfiguration = {}
+
+		for (const configurationFile of this.configurationFiles) {
+			this.updateConfigurationsFromFlowConfigurationFile(configurationFile)
+		}
+	}
+
 	protected readNodeTypeDefinitionsFromNodeTypesFolder() {
 		this.nodeTypeDefinitions = []
 		const nodeTypeDefinitionsFolderPath = NodePath.join(this.folderPath, 'NodeTypes')
@@ -82,26 +91,30 @@ export class FlowConfiguration extends Logger {
 		for (const configurationFilePath of getFiles(settingsFolderPath, ".yaml")) {
 			const configurationFile = new FlowConfigurationFile(configurationFilePath)
 
-			if (configurationFile.isOfType(FlowConfigurationFileType.Settings)) {
-				const parsedYaml = configurationFile.parseYaml()
-
-				try {
-					const mergedConfiguration = <ParsedYaml>mergeObjects(parsedYaml, this.settingsConfiguration)
-					this.settingsConfiguration = mergedConfiguration ? mergedConfiguration : this.settingsConfiguration
-					if (LogService.isLogLevel(LoggingLevel.Debug)) Logger.LogNameAndLevel(LoggingLevel.Debug.toUpperCase(), 'FlowConfiguration:FromFolder', 'Read configuration from: ' + configurationFilePath)
-				} catch (e) {
-					if (e instanceof Error) {
-						console.log("ERROR: configuration", this.settingsConfiguration)
-						console.log("    ", e.message, e.stack)
-					}
-				}
-			}
-
-			if (configurationFile.isOfType(FlowConfigurationFileType.NodeTypes)) {
-				this.nodeTypeDefinitions.push(...configurationFile.parseNodeTypeDefinitions())
-			}
+			this.updateConfigurationsFromFlowConfigurationFile(configurationFile)
 
 			this.configurationFiles.push(configurationFile)
+		}
+	}
+
+	protected updateConfigurationsFromFlowConfigurationFile(configurationFile: FlowConfigurationFile) {
+		if (configurationFile.isOfType(FlowConfigurationFileType.Settings)) {
+			const parsedYaml = configurationFile.parseYaml()
+
+			try {
+				const mergedConfiguration = <ParsedYaml>mergeObjects(parsedYaml, this.settingsConfiguration)
+				this.settingsConfiguration = mergedConfiguration ? mergedConfiguration : this.settingsConfiguration
+				if (LogService.isLogLevel(LoggingLevel.Debug)) Logger.LogNameAndLevel(LoggingLevel.Debug.toUpperCase(), 'FlowConfiguration:FromFolder', 'Read configuration from: ' + configurationFile["path"])
+			} catch (e) {
+				if (e instanceof Error) {
+					console.log("ERROR: configuration", this.settingsConfiguration)
+					console.log("    ", e.message, e.stack)
+				}
+			}
+		}
+
+		if (configurationFile.isOfType(FlowConfigurationFileType.NodeTypes)) {
+			this.nodeTypeDefinitions.push(...configurationFile.parseNodeTypeDefinitions())
 		}
 	}
 
