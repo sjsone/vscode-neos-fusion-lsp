@@ -1,39 +1,39 @@
+import { CodeActionParams, FileEvent } from 'vscode-languageserver'
 import {
-	TextDocuments,
-	TextDocumentSyncKind,
 	DidChangeConfigurationParams,
+	DidChangeWatchedFilesParams,
+	FileChangeType,
 	InitializeParams,
-	TextDocumentChangeEvent,
-	_Connection,
 	InitializeResult,
 	MessageType,
 	PublishDiagnosticsParams,
-	DidChangeWatchedFilesParams,
-	FileChangeType
+	TextDocumentChangeEvent,
+	TextDocumentSyncKind,
+	TextDocuments,
+	_Connection
 } from "vscode-languageserver/node"
-import { FusionWorkspace } from './fusion/FusionWorkspace'
 import { type ExtensionConfiguration } from './ExtensionConfiguration'
-import { FusionDocument } from './main'
+import { addFusionIgnoreSemanticCommentAction } from './actions/AddFusionIgnoreSemanticCommentAction'
+import { createNodeTypeFileAction } from './actions/CreateNodeTypeFileAction'
+import { openDocumentationAction } from './actions/OpenDocumentationAction'
+import { replaceDeprecatedQuickFixAction } from './actions/ReplaceDeprecatedQuickFixAction'
 import { AbstractCapability } from './capabilities/AbstractCapability'
-import { DefinitionCapability } from './capabilities/DefinitionCapability'
+import { CodeLensCapability } from './capabilities/CodeLensCapability'
 import { CompletionCapability } from './capabilities/CompletionCapability'
+import { DefinitionCapability } from './capabilities/DefinitionCapability'
+import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
 import { HoverCapability } from './capabilities/HoverCapability'
 import { ReferenceCapability } from './capabilities/ReferenceCapability'
-import { Logger, LogService } from './common/Logging'
+import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
+import { AbstractFunctionality } from './common/AbstractFunctionality'
+import { ClientCapabilityService } from './common/ClientCapabilityService'
+import { LogService, Logger } from './common/Logging'
 import { clearLineDataCache, clearLineDataCacheForFile, uriToPath } from './common/util'
+import { FusionWorkspace } from './fusion/FusionWorkspace'
 import { AbstractLanguageFeature } from './languageFeatures/AbstractLanguageFeature'
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
-import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
-import { CodeActionParams, FileEvent } from 'vscode-languageserver';
-import { replaceDeprecatedQuickFixAction } from './actions/ReplaceDeprecatedQuickFixAction'
-import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
-import { AbstractFunctionality } from './common/AbstractFunctionality'
-import { addFusionIgnoreSemanticCommentAction } from './actions/AddFusionIgnoreSemanticCommentAction'
-import { CodeLensCapability } from './capabilities/CodeLensCapability'
-import { openDocumentationAction } from './actions/OpenDocumentationAction'
-import { createNodeTypeFileAction } from './actions/CreateNodeTypeFileAction'
-import { ClientCapabilityService } from './common/ClientCapabilityService'
+import { FusionDocument } from './main'
 
 
 export class LanguageServer extends Logger {
@@ -248,17 +248,21 @@ export class LanguageServer extends Logger {
 
 	protected handleFileChanged(change: FileEvent) {
 		if (change.uri.endsWith(".yaml")) {
-			for (const fusionWorkspace of this.fusionWorkspaces) {
-				for (const configuration of fusionWorkspace.neosWorkspace.configurationManager["configurations"]) {
-					const configurationFile = configuration.getConfigurationFileByUri(change.uri)
-					if (!configurationFile) continue
+			const fusionWorkspace = this.fusionWorkspaces.find(workspace => workspace.isResponsibleForUri(change.uri))
+			if (!fusionWorkspace) return
 
-					clearLineDataCacheForFile(change.uri)
-					configurationFile.reset()
-					configurationFile.parseYaml()
-					return
-				}
+			for (const configuration of fusionWorkspace.neosWorkspace.configurationManager["configurations"]) {
+				const configurationFile = configuration.getConfigurationFileByUri(change.uri)
+				if (!configurationFile) continue
+
+				clearLineDataCacheForFile(change.uri)
+				configurationFile.reset()
+				configurationFile.parseYaml()
+				configuration.update()
+				break
 			}
+
+			fusionWorkspace.diagnoseAllFusionFiles()
 		}
 
 		if (change.uri.endsWith(".yaml") && change.uri.includes("NodeTypes")) {
