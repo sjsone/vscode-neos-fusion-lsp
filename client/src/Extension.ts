@@ -1,18 +1,25 @@
 import * as path from 'path'
 import {
-	workspace as Workspace, window as Window, ExtensionContext, TextDocument, OutputChannel, WorkspaceFolder, Uri, workspace, commands
+	ExtensionContext,
+	LanguageStatusItem,
+	OutputChannel,
+	TextDocument,
+	Uri,
+	window as Window,
+	workspace as Workspace,
+	WorkspaceFolder,
+	commands, languages,
+	workspace
 } from 'vscode'
 
 import {
 	LanguageClient, LanguageClientOptions, ServerOptions, TransportKind
 } from 'vscode-languageclient/node'
+import { PreferenceService } from './PreferenceService'
+import { ProgressNotificationService } from './ProgressNotificationService'
 import { AbstractCommandConstructor } from './commands/AbstractCommand'
 import { InspectCommand } from './commands/InspectCommand'
 import { ReloadCommand } from './commands/ReloadCommand'
-import { PreferenceService } from './PreferenceService'
-import { ProgressNotificationService } from './ProgressNotificationService'
-import { StatusItemService } from './StatusItemService'
-
 
 
 export class Extension {
@@ -21,10 +28,28 @@ export class Extension {
 	protected sortedWorkspaceFolders: string[] | undefined = undefined
 	protected context: ExtensionContext | undefined = undefined
 
+	protected languageStatusBarItems: {
+		reload: LanguageStatusItem
+	} = { reload: undefined }
+
 	constructor() {
 		this.outputChannel = Window.createOutputChannel('Neos Fusion LSP')
 
 		Workspace.onDidChangeWorkspaceFolders(() => this.sortedWorkspaceFolders = undefined)
+
+		this.createLanguageStatusItems()
+	}
+
+	protected createLanguageStatusItems() {
+		const documentSelector = { scheme: 'file', language: 'fusion' }
+		this.languageStatusBarItems.reload = languages.createLanguageStatusItem("fusion.reload", documentSelector)
+		this.languageStatusBarItems.reload.name = "reload"
+		this.languageStatusBarItems.reload.text = "Reload Fusion language server"
+		this.languageStatusBarItems.reload.command = {
+			title: "reload",
+			command: "neos-fusion-lsp.reload",
+			tooltip: "Reload the Fusion Language Server"
+		}
 	}
 
 	public getClients() {
@@ -69,9 +94,8 @@ export class Extension {
 		const outerMostWorkspaceFolder = this.getOuterMostWorkspaceFolder(folder)
 		if (this.clients.has(outerMostWorkspaceFolder.uri.toString())) return
 
-		const inspect = workspace.getConfiguration().get("neosFusionLsp.logging.inspect", false)
-
-		this.startClient(outerMostWorkspaceFolder, inspect)
+		const startClientInInspectMode = workspace.getConfiguration().get("neosFusionLsp.logging.inspect", false)
+		this.startClient(outerMostWorkspaceFolder, startClientInInspectMode)
 	}
 
 	protected registerCommand(command: AbstractCommandConstructor) {
@@ -145,23 +169,24 @@ export class Extension {
 			}
 		}
 
-		const statusItemService = new StatusItemService(documentSelector)
 		const progressNotificationService = new ProgressNotificationService()
 		const client = new LanguageClient('vscode-neos-fusion-lsp', 'LSP For Neos Fusion (and AFX)', serverOptions, clientOptions)
 
-		client.onNotification('custom/busy/create', ({ id, configuration }) => statusItemService.createStatusItem(id, configuration))
+		client.onNotification('custom/busy/create', () => this.languageStatusBarItems.reload.busy = true)
 		client.onNotification('custom/progressNotification/create', ({ id, title }) => progressNotificationService.create(id, title))
 
 		client.onNotification('custom/progressNotification/update', ({ id, payload }) => progressNotificationService.update(id, payload))
 
-		client.onNotification('custom/busy/dispose', ({ id }) => statusItemService.disposeStatusItem(id))
+		client.onNotification('custom/busy/dispose', () => this.languageStatusBarItems.reload.busy = false)
 		client.onNotification('custom/progressNotification/finish', ({ id }) => progressNotificationService.finish(id))
 
 		client.start()
 		this.clients.set(folder.uri.toString(), client)
+
+		return client
 	}
 
-	public stopClients() {
+	public async stopClients() {
 		const promises: Thenable<void>[] = []
 
 		for (const client of this.clients.values()) {
