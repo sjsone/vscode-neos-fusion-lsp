@@ -4,3 +4,5 @@ client/server
 .DS_Store
 *.vsix
 *.cpuprofile
+
+yarn-error.log
