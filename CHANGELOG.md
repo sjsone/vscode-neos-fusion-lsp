@@ -12,6 +12,13 @@
   - Autocompletion and Hover for the `Configuration.setting()` EEL-Helper
 - Integration of the WIP [`ts-fusion-runtime`](https://www.npmjs.com/package/ts-fusion-runtime) to correctly resolve Fusion properties
 
+## 🚀 0.2.6
+
+- EEL-Helper argument diagnostics can now be ignored with `@fusion-ignore`
+- Diagnostic added to check if `Root.fusion` files get included based on the configuration
+- the language server now starts correctly if any `.fusion` file is present in the workspace
+- first preparations to merge `neos_context` branch ("Upcoming / Flow Context & Configuration")
+
 ## 🧪 0.2.5
 
 - improved handling of *ActionUri* in `Neos.Neos:Plugin`
