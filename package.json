@@ -25,7 +25,6 @@
         "vscode": "^1.70.0"
     },
     "activationEvents": [
-        "onLanguage:fusion",
         "workspaceContains:**/*.fusion"
     ],
     "extensionKind": [
