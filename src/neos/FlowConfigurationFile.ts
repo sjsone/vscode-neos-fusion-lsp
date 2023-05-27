@@ -82,7 +82,6 @@ export class FlowConfigurationFile extends Logger {
 	}
 
 	public isOfContext(context: string) {
-		return true
 		if (this.context === "") return true
 		return context.startsWith(this.context)
 	}
