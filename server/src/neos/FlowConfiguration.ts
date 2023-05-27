@@ -1,24 +1,12 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { Position, Range } from 'vscode-languageserver'
-import { Logger, LogService } from '../common/Logging'
-import { getFiles, mergeObjects } from '../common/util'
 import { LoggingLevel } from '../ExtensionConfiguration'
+import { LogService, Logger } from '../common/Logging'
+import { getFiles, mergeObjects } from '../common/util'
 import { FlowConfigurationFile, FlowConfigurationFileType, NodeTypeDefinition, ParsedYaml } from './FlowConfigurationFile'
 import { NeosPackage } from './NeosPackage'
 import { NeosWorkspace } from './NeosWorkspace'
-import { Logger, LogService } from '../common/Logging'
-import { getFiles, mergeObjects, pathToUri } from '../common/util'
-import { Position } from 'vscode-languageserver'
-import { YamlLexer } from '../yaml/YamlLexer'
-
-export type ParsedYaml = string | null | number | boolean | { [key: string]: ParsedYaml }
-
-export interface NodeTypeDefinition {
-	uri: string
-	nodeType: string
-	position: Position
-}
 
 export class FlowConfiguration extends Logger {
 	protected settingsConfiguration: ParsedYaml
@@ -96,11 +84,6 @@ export class FlowConfiguration extends Logger {
 
 			if (configurationFile.isOfType(FlowConfigurationFileType.Settings)) {
 				const parsedYaml = configurationFile.parseYaml()
-		const yamlFiles: string[] = [...getFiles(folderPath, ".yaml"), ...getFiles(folderPath, ".yml")]
-		for (const configurationFilePath of yamlFiles) {
-			if (NodePath.basename(configurationFilePath).startsWith("Settings")) {
-				const configurationFileYaml = NodeFs.readFileSync(configurationFilePath).toString()
-				const parsedYaml = parseYaml(configurationFileYaml)
 
 				try {
 					const mergedConfiguration = <ParsedYaml>mergeObjects(parsedYaml, this.settingsConfiguration)

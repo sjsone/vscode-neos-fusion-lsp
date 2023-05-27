@@ -5,11 +5,10 @@ import { parse as parseYaml } from 'yaml'
 import { Logger } from '../common/Logging'
 import { pathToUri } from '../common/util'
 import { YamlLexer } from '../yaml/YamlLexer'
-import { YamlToken } from '../yaml/YamlToken'
 import { AbstractListYamlNode, AbstractYamlNode, DocumentNode } from '../yaml/YamlNodes'
 import { YamlParser } from '../yaml/YamlParser'
 
-export type ParsedYaml = string | null | number | { [key: string]: ParsedYaml }
+export type ParsedYaml = string | null | number | boolean | { [key: string]: ParsedYaml }
 
 export enum FlowConfigurationFileType {
 	Settings = 'settings',
@@ -83,6 +82,7 @@ export class FlowConfigurationFile extends Logger {
 	}
 
 	public isOfContext(context: string) {
+		return true
 		if (this.context === "") return true
 		return context.startsWith(this.context)
 	}
