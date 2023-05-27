@@ -100,6 +100,7 @@ export class HoverCapability extends AbstractCapability {
 			results.push(`# [${packageName}] ${NodePath.basename(fileUri)}`)
 			results.push(YAML.stringify(result.value, undefined, 3))
 		}
+		if(results.length === 0) return `_no value found_`
 
 		return [
 			"```yaml",
