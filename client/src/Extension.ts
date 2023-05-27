@@ -60,7 +60,7 @@ export class Extension {
 	}
 
 	protected onDidOpenTextDocument(document: TextDocument) {
-		if (document.languageId !== 'fusion' || (document.uri.scheme !== 'file' && document.uri.scheme !== 'untitled')) return
+		if (document.uri.scheme !== 'file' && document.uri.scheme !== 'untitled') return
 
 		const uri = document.uri
 		const folder = Workspace.getWorkspaceFolder(uri)
