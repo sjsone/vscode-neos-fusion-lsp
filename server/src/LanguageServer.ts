@@ -246,24 +246,27 @@ export class LanguageServer extends Logger {
 		for (const workspace of this.fusionWorkspaces) workspace.diagnoseAllFusionFiles()
 	}
 
-	protected handleFileChanged(change: FileEvent) {
-		if (change.uri.endsWith(".yaml")) {
-			const fusionWorkspace = this.fusionWorkspaces.find(workspace => workspace.isResponsibleForUri(change.uri))
-			if (!fusionWorkspace) return
+	protected handleConfigurationFileChanged(change: FileEvent) {
+		clearLineDataCacheForFile(change.uri)
 
-			for (const configuration of fusionWorkspace.neosWorkspace.configurationManager["configurations"]) {
-				const configurationFile = configuration.getConfigurationFileByUri(change.uri)
-				if (!configurationFile) continue
+		const fusionWorkspace = this.fusionWorkspaces.find(workspace => workspace.isResponsibleForUri(change.uri))
+		if (!fusionWorkspace) return
 
-				clearLineDataCacheForFile(change.uri)
-				configurationFile.reset()
-				configurationFile.parseYaml()
-				configuration.update()
-				break
-			}
+		for (const configuration of fusionWorkspace.neosWorkspace.configurationManager["configurations"]) {
+			const configurationFile = configuration.getConfigurationFileByUri(change.uri)
+			if (!configurationFile) continue
 
-			fusionWorkspace.diagnoseAllFusionFiles()
+			configurationFile.reset()
+			configurationFile.parseYaml()
+			configuration.update()
+			break
 		}
+
+		fusionWorkspace.diagnoseAllFusionFiles()
+	}
+
+	protected handleFileChanged(change: FileEvent) {
+		if (change.uri.endsWith(".yaml")) this.handleConfigurationFileChanged(change)
 
 		if (change.uri.endsWith(".yaml") && change.uri.includes("NodeTypes")) {
 			this.handleNodeTypeFileChanged()
@@ -292,6 +295,8 @@ export class LanguageServer extends Logger {
 	}
 
 	protected handleFileCreated(change: FileEvent) {
+		if (change.uri.endsWith(".yaml")) this.handleConfigurationFileChanged(change)
+
 		if (change.uri.endsWith(".yaml") && change.uri.includes("NodeTypes")) {
 			this.handleNodeTypeFileChanged()
 		}
@@ -311,6 +316,8 @@ export class LanguageServer extends Logger {
 
 	protected handleFileDeleted(change: FileEvent) {
 		clearLineDataCacheForFile(change.uri)
+
+		if (change.uri.endsWith(".yaml")) this.handleConfigurationFileChanged(change)
 
 		if (change.uri.endsWith(".yaml") && change.uri.includes("NodeTypes")) {
 			this.handleNodeTypeFileChanged()
