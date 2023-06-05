@@ -1,13 +1,13 @@
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
+import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver'
 import { LinePositionedNode } from '../common/LinePositionedNode'
+import { NodeService } from '../common/NodeService'
+import { findParent } from '../common/util'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
 import { EELHelperToken } from '../neos/NeosPackage'
 import { CommonDiagnosticHelper } from './CommonDiagnosticHelper'
-import { NodeService } from '../common/NodeService'
-import { findParent } from '../common/util'
-import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 
 // TODO: Watch for php changes and re-diagnose all relevant FusionFiles
 

@@ -1,6 +1,4 @@
 import { LoggingLevel } from '../ExtensionConfiguration'
-import * as NodeFs from "fs"
-import * as NodeUtil from "util"
 
 class LogService {
 	protected logLevel: LoggingLevel = LoggingLevel.Info

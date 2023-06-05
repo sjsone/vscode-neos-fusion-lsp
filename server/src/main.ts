@@ -1,19 +1,19 @@
-import {
-    createConnection,
-    TextDocuments,
-    ProposedFeatures
-} from "vscode-languageserver/node"
 import { TextDocument } from "vscode-languageserver-textdocument"
+import {
+    ProposedFeatures,
+    TextDocuments,
+    createConnection
+} from "vscode-languageserver/node"
 import { LanguageServer } from './LanguageServer'
+import { CodeLensCapability } from './capabilities/CodeLensCapability'
 import { CompletionCapability } from './capabilities/CompletionCapability'
 import { DefinitionCapability } from './capabilities/DefinitionCapability'
 import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
 import { HoverCapability } from './capabilities/HoverCapability'
 import { ReferenceCapability } from './capabilities/ReferenceCapability'
 import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
-import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
-import { CodeLensCapability } from './capabilities/CodeLensCapability'
+import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 
 export interface FusionDocument extends TextDocument { }
 

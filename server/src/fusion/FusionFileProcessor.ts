@@ -19,19 +19,19 @@ import { ValueCopy } from 'ts-fusion-parser/out/fusion/nodes/ValueCopy';
 import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService';
 import { LinePositionedNode } from '../common/LinePositionedNode';
 import { Logger } from '../common/Logging';
+import { NodeService } from '../common/NodeService';
 import { findParent, getObjectIdentifier } from '../common/util';
 import { ActionUriActionNode } from './ActionUriActionNode';
 import { ActionUriControllerNode } from './ActionUriControllerNode';
 import { ActionUriDefinitionNode } from './ActionUriDefinitionNode';
 import { FqcnNode } from './FqcnNode';
+import { NeosFusionFormActionNode } from './NeosFusionFormActionNode';
+import { NeosFusionFormControllerNode } from './NeosFusionFormControllerNode';
+import { NeosFusionFormDefinitionNode } from './NeosFusionFormDefinitionNode';
 import { ParsedFusionFile } from './ParsedFusionFile';
 import { PhpClassMethodNode } from './PhpClassMethodNode';
 import { PhpClassNode } from './PhpClassNode';
 import { ResourceUriNode } from './ResourceUriNode';
-import { NeosFusionFormDefinitionNode } from './NeosFusionFormDefinitionNode';
-import { NeosFusionFormActionNode } from './NeosFusionFormActionNode';
-import { NeosFusionFormControllerNode } from './NeosFusionFormControllerNode';
-import { NodeService } from '../common/NodeService';
 
 type PostProcess = () => void
 export class FusionFileProcessor extends Logger {

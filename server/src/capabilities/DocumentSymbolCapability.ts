@@ -17,9 +17,9 @@ import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue';
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment';
 import { ValueUnset } from 'ts-fusion-parser/out/fusion/nodes/ValueUnset';
 import { DocumentSymbol, SymbolKind } from 'vscode-languageserver';
-import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
 import { LinePositionedNode } from '../common/LinePositionedNode';
 import { findParent, getObjectIdentifier } from '../common/util';
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
 import { AbstractCapability } from './AbstractCapability';
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext';
 
@@ -91,7 +91,7 @@ export class DocumentSymbolCapability extends AbstractCapability {
 		const range = node.linePositionedNode.getPositionAsRange()
 		const symbols: DocumentSymbol[] = []
 		const objectStatement = findParent(node, ObjectStatement)
-		if (objectStatement && objectStatement.block) {
+		if (objectStatement?.block) {
 			for (const statement of objectStatement.block.statementList.statements) {
 				const symbol = this.createDocumentSymbolFromPositionedNode(statement.linePositionedNode, undefined, SymbolKind.Interface)
 				if (symbol) symbols.push(symbol)

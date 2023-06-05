@@ -1,11 +1,11 @@
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { Location } from 'vscode-languageserver/node'
 import { getPrototypeNameFromNode } from '../common/util'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
-import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
 
 export class ReferenceCapability extends AbstractCapability {
 

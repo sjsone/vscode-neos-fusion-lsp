@@ -1,4 +1,4 @@
-import { CodeAction, DiagnosticTag, CodeActionKind, CodeActionParams } from 'vscode-languageserver';
+import { CodeAction, CodeActionKind, CodeActionParams, DiagnosticTag } from 'vscode-languageserver';
 import { LanguageServer } from '../LanguageServer';
 
 export const replaceDeprecatedQuickFixAction = (languageServer: LanguageServer, params: CodeActionParams) => {

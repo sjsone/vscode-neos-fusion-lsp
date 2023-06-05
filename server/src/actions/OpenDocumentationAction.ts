@@ -1,4 +1,4 @@
-import { CodeActionParams, CodeAction, CodeActionKind, Command } from 'vscode-languageserver';
+import { CodeAction, CodeActionKind, CodeActionParams, Command } from 'vscode-languageserver';
 import { LanguageServer } from '../LanguageServer';
 
 export const openDocumentationAction = (languageServer: LanguageServer, params: CodeActionParams) => {

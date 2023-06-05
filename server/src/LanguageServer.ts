@@ -1,4 +1,4 @@
-import { CodeActionParams, FileEvent } from 'vscode-languageserver'
+import { CodeAction, CodeActionParams, FileEvent } from 'vscode-languageserver'
 import {
 	DidChangeConfigurationParams,
 	DidChangeWatchedFilesParams,
@@ -289,13 +289,15 @@ export class LanguageServer extends Logger {
 	}
 
 	public async onCodeAction(params: CodeActionParams) {
-		return Promise.all(CodeActions.map(action => {
+		const actions: CodeAction[] = []
+		for (const codeAction of CodeActions) {
 			try {
-				return action(this, params)
+				actions.push(...await codeAction(this, params))
 			} catch (error) {
-				this.logError(`onCodeAction -> ${action.name}():`, error)
+				this.logError(`onCodeAction -> ${codeAction.name}():`, error)
 			}
-		}))
+		}
+		return actions
 	}
 
 }
