@@ -1,40 +1,47 @@
+import { CodeActionParams, FileEvent } from 'vscode-languageserver'
 import {
-	TextDocuments,
-	TextDocumentSyncKind,
 	DidChangeConfigurationParams,
+	DidChangeWatchedFilesParams,
+	FileChangeType,
 	InitializeParams,
-	TextDocumentChangeEvent,
-	_Connection,
 	InitializeResult,
 	MessageType,
 	PublishDiagnosticsParams,
-	DidChangeWatchedFilesParams,
-	FileChangeType
+	TextDocumentChangeEvent,
+	TextDocumentSyncKind,
+	TextDocuments,
+	_Connection
 } from "vscode-languageserver/node"
-import { FusionWorkspace } from './fusion/FusionWorkspace'
 import { type ExtensionConfiguration } from './ExtensionConfiguration'
-import { FusionDocument } from './main'
+import { addFusionIgnoreSemanticCommentAction } from './actions/AddFusionIgnoreSemanticCommentAction'
+import { createNodeTypeFileAction } from './actions/CreateNodeTypeFileAction'
+import { openDocumentationAction } from './actions/OpenDocumentationAction'
+import { replaceDeprecatedQuickFixAction } from './actions/ReplaceDeprecatedQuickFixAction'
 import { AbstractCapability } from './capabilities/AbstractCapability'
-import { DefinitionCapability } from './capabilities/DefinitionCapability'
+import { CodeLensCapability } from './capabilities/CodeLensCapability'
 import { CompletionCapability } from './capabilities/CompletionCapability'
+import { DefinitionCapability } from './capabilities/DefinitionCapability'
+import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
 import { HoverCapability } from './capabilities/HoverCapability'
 import { ReferenceCapability } from './capabilities/ReferenceCapability'
-import { Logger, LogService } from './common/Logging'
+import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
+import { AbstractFunctionality } from './common/AbstractFunctionality'
+import { ClientCapabilityService } from './common/ClientCapabilityService'
+import { LogService, Logger } from './common/Logging'
 import { clearLineDataCache, clearLineDataCacheForFile, uriToPath } from './common/util'
+import { FusionWorkspace } from './fusion/FusionWorkspace'
 import { AbstractLanguageFeature } from './languageFeatures/AbstractLanguageFeature'
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
-import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
-import { CodeActionParams, FileEvent } from 'vscode-languageserver';
-import { replaceDeprecatedQuickFixAction } from './actions/ReplaceDeprecatedQuickFixAction'
-import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
-import { AbstractFunctionality } from './common/AbstractFunctionality'
-import { addFusionIgnoreSemanticCommentAction } from './actions/AddFusionIgnoreSemanticCommentAction'
-import { CodeLensCapability } from './capabilities/CodeLensCapability'
-import { openDocumentationAction } from './actions/OpenDocumentationAction'
-import { createNodeTypeFileAction } from './actions/CreateNodeTypeFileAction'
-import { ClientCapabilityService } from './common/ClientCapabilityService'
+import { FusionDocument } from './main'
 
+
+const CodeActions = [
+	addFusionIgnoreSemanticCommentAction,
+	replaceDeprecatedQuickFixAction,
+	openDocumentationAction,
+	createNodeTypeFileAction,
+]
 
 export class LanguageServer extends Logger {
 
@@ -175,11 +182,11 @@ export class LanguageServer extends Logger {
 		return this.connection.sendDiagnostics(params)
 	}
 
-	public onDidChangeConfiguration(params: DidChangeConfigurationParams) {
+	public async onDidChangeConfiguration(params: DidChangeConfigurationParams) {
 		const configuration: ExtensionConfiguration = params.settings.neosFusionLsp
 		Object.freeze(configuration)
 
-		this.sendBusyCreate('configuration', {
+		await this.sendBusyCreate('configuration', {
 			busy: true,
 			text: "$(rocket)",
 			detail: "initializing language server",
@@ -195,33 +202,33 @@ export class LanguageServer extends Logger {
 
 		clearLineDataCache()
 
-		this.sendBusyDispose('configuration')
+		await this.sendBusyDispose('configuration')
 	}
 
-	public onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams) {
+	public async onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams) {
 		// TODO: Create separate Watchers (like capabilities)
 		// TODO: Update relevant ParsedFusionFiles but check if it was not a change the LSP does know of
 		for (const change of params.changes) {
 			// console.log(`CHANGE: ${change.type} ${change.uri}`)
 			this.logVerbose(`Watched: (${Object.keys(FileChangeType)[Object.values(FileChangeType).indexOf(change.type)]}) ${change.uri}`)
-			if (change.type === FileChangeType.Changed) this.handleFileChanged(change)
-			if (change.type === FileChangeType.Created) this.handleFileCreated(change)
-			if (change.type === FileChangeType.Deleted) this.handleFileDeleted(change)
+			if (change.type === FileChangeType.Changed) await this.handleFileChanged(change)
+			if (change.type === FileChangeType.Created) await this.handleFileCreated(change)
+			if (change.type === FileChangeType.Deleted) await this.handleFileDeleted(change)
 		}
 	}
 
-	protected handleNodeTypeFileChanged() {
+	protected async handleNodeTypeFileChanged() {
 		for (const workspace of this.fusionWorkspaces) {
 			for (const neosPackage of workspace.neosWorkspace.getPackages().values()) {
 				neosPackage.readConfiguration()
 			}
 		}
-		for (const workspace of this.fusionWorkspaces) workspace.diagnoseAllFusionFiles()
+		await Promise.all(this.fusionWorkspaces.map(workspace => workspace.diagnoseAllFusionFiles()))
 	}
 
-	protected handleFileChanged(change: FileEvent) {
+	protected async handleFileChanged(change: FileEvent) {
 		if ((change.uri.endsWith(".yaml") || change.uri.endsWith(".yml")) && change.uri.includes("NodeTypes")) {
-			this.handleNodeTypeFileChanged()
+			await this.handleNodeTypeFileChanged()
 		}
 
 		if (change.uri.endsWith(".php")) {
@@ -246,9 +253,9 @@ export class LanguageServer extends Logger {
 		}
 	}
 
-	protected handleFileCreated(change: FileEvent) {
+	protected async handleFileCreated(change: FileEvent) {
 		if ((change.uri.endsWith(".yaml") || change.uri.endsWith(".yml")) && change.uri.includes("NodeTypes")) {
-			this.handleNodeTypeFileChanged()
+			await this.handleNodeTypeFileChanged()
 		}
 
 		if (change.uri.endsWith(".fusion")) {
@@ -264,11 +271,11 @@ export class LanguageServer extends Logger {
 		}
 	}
 
-	protected handleFileDeleted(change: FileEvent) {
+	protected async handleFileDeleted(change: FileEvent) {
 		clearLineDataCacheForFile(change.uri)
 
 		if ((change.uri.endsWith(".yaml") || change.uri.endsWith(".yml")) && change.uri.includes("NodeTypes")) {
-			this.handleNodeTypeFileChanged()
+			await this.handleNodeTypeFileChanged()
 		}
 
 		if (change.uri.endsWith(".fusion")) {
@@ -282,12 +289,13 @@ export class LanguageServer extends Logger {
 	}
 
 	public async onCodeAction(params: CodeActionParams) {
-		return [
-			...await addFusionIgnoreSemanticCommentAction(this, params),
-			...replaceDeprecatedQuickFixAction(this, params),
-			...openDocumentationAction(this, params),
-			...createNodeTypeFileAction(this, params)
-		]
+		return Promise.all(CodeActions.map(action => {
+			try {
+				return action(this, params)
+			} catch (error) {
+				this.logError(`onCodeAction -> ${action.name}():`, error)
+			}
+		}))
 	}
 
 }
