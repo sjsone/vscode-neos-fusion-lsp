@@ -1,20 +1,20 @@
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
+import { AbstractLiteralNode } from 'ts-fusion-parser/out/dsl/eel/nodes/AbstractLiteralNode';
+import { LiteralArrayNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralArrayNode';
+import { LiteralNullNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNullNode';
+import { LiteralNumberNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNumberNode';
+import { LiteralObjectEntryNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralObjectEntryNode';
+import { LiteralObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralObjectNode';
+import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode';
+import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode';
 import { InlayHint, InlayHintKind, MarkupKind } from 'vscode-languageserver/node';
+import { InlayHintDepth } from '../ExtensionConfiguration';
+import { EelHelperMethod } from '../eel/EelHelperMethod';
+import { FusionWorkspace } from '../fusion/FusionWorkspace';
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
 import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode';
 import { AbstractLanguageFeature } from './AbstractLanguageFeature';
 import { LanguageFeatureContext } from './LanguageFeatureContext';
-import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode';
-import { LiteralObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralObjectNode';
-import { LiteralArrayNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralArrayNode';
-import { AbstractLiteralNode } from 'ts-fusion-parser/out/dsl/eel/nodes/AbstractLiteralNode';
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { InlayHintDepth } from '../ExtensionConfiguration';
-import { FusionWorkspace } from '../fusion/FusionWorkspace';
-import { EelHelperMethod } from '../eel/EelHelperMethod';
-import { LiteralNumberNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNumberNode';
-import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode';
-import { LiteralNullNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNullNode';
-import { LiteralObjectEntryNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralObjectEntryNode';
-import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
 
 export class InlayHintLanguageFeature extends AbstractLanguageFeature {
 

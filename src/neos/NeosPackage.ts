@@ -1,8 +1,8 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
-import { EelHelperMethod } from '../eel/EelHelperMethod'
 import { LinePosition } from '../common/LinePositionedNode'
 import { Logger } from '../common/Logging'
+import { EelHelperMethod } from '../eel/EelHelperMethod'
 import { FlowConfiguration } from './FlowConfiguration'
 import { NeosPackageNamespace } from './NeosPackageNamespace'
 import { NeosWorkspace } from './NeosWorkspace'
@@ -148,6 +148,6 @@ export class NeosPackage extends Logger {
 	}
 
 	trimLeadingBackslash(fqcn: string) {
-		return fqcn[0] === "\\" ? fqcn.substring(1) : fqcn
+		return fqcn.startsWith("\\") ? fqcn.substring(1) : fqcn
 	}
 }

@@ -1,6 +1,6 @@
-import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { NodePosition } from 'ts-fusion-parser/out/common/NodePosition'
+import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { PhpClassMethodNode } from './PhpClassMethodNode'
 
 export class PhpClassNode extends AbstractNode {

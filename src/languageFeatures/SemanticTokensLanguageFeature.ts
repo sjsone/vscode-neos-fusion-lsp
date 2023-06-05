@@ -14,15 +14,15 @@ import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/Prototyp
 import { StatementList } from 'ts-fusion-parser/out/fusion/nodes/StatementList'
 import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
-import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService'
+import { ActionUriPartTypes } from '../common/ActionUriService'
 import { LinePosition, LinePositionedNode } from '../common/LinePositionedNode'
 import { NodeService } from '../common/NodeService'
 import { findParent, getObjectIdentifier, parseSemanticComment } from '../common/util'
+import { ActionUriDefinitionNode } from '../fusion/ActionUriDefinitionNode'
+import { NeosFusionFormDefinitionNode } from '../fusion/NeosFusionFormDefinitionNode'
 import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
 import { AbstractLanguageFeature } from './AbstractLanguageFeature'
 import { LanguageFeatureContext } from './LanguageFeatureContext'
-import { NeosFusionFormDefinitionNode } from '../fusion/NeosFusionFormDefinitionNode'
-import { ActionUriDefinitionNode } from '../fusion/ActionUriDefinitionNode'
 
 export interface SemanticTokenConstruct {
 	position: LinePosition

@@ -1,17 +1,17 @@
 import { Diagnostic } from 'vscode-languageserver';
+import { LoggingLevel } from '../ExtensionConfiguration';
+import { LogService, Logger } from '../common/Logging';
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
-import { diagnoseFusionProperties } from './DiagnoseFusionProperties';
 import { diagnoseActionUri } from './DiagnoseActionUri';
 import { diagnoseEelHelperArguments } from './DiagnoseEelHelperArguments';
 import { diagnoseEmptyEel } from './DiagnoseEmptyEel';
-import { diagnosePrototypeNames } from './DiagnosePrototypeNames';
-import { diagnoseResourceUris } from './DiagnoseResourceUris';
-import { diagnoseTagNames } from './DiagnoseTagNames';
+import { diagnoseFusionProperties } from './DiagnoseFusionProperties';
 import { diagnoseNodeTypeDefinitions } from './DiagnoseNodeTypeDefinitions';
 import { diagnoseNonParsedFusion } from './DiagnoseNonParsedFusion';
-import { LogService, Logger } from '../common/Logging';
-import { LoggingLevel } from '../ExtensionConfiguration';
+import { diagnosePrototypeNames } from './DiagnosePrototypeNames';
+import { diagnoseResourceUris } from './DiagnoseResourceUris';
 import { diagnoseRootFusionConfiguration } from './DiagnoseRootFusionConfiguration';
+import { diagnoseTagNames } from './DiagnoseTagNames';
 
 export async function diagnose(parsedFusionFile: ParsedFusionFile) {
 	const diagnostics: Diagnostic[] = []

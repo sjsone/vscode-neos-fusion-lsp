@@ -1,27 +1,27 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { AbstractNode as AbstractEelNode, AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
-import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode'
 import { LiteralNumberNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNumberNode'
-import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
-import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
-import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
+import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode'
+import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
+import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
+import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
+import { OperationNode } from 'ts-fusion-parser/out/dsl/eel/nodes/OperationNode'
 import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue'
+import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
+import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/nodes/MetaPathSegment'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
-import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
+import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
+import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
+import { URI } from 'vscode-uri'
+import { uriToFsPath } from 'vscode-uri/lib/umd/uri'
+import { DeprecationConfigurationSpecialType } from '../ExtensionConfiguration'
 import { FqcnNode } from '../fusion/FqcnNode'
+import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
 import { PhpClassNode } from '../fusion/PhpClassNode'
 import { ResourceUriNode } from '../fusion/ResourceUriNode'
-import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/nodes/MetaPathSegment'
-import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
-import { OperationNode } from 'ts-fusion-parser/out/dsl/eel/nodes/OperationNode'
-import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
-import { FusionWorkspace } from '../fusion/FusionWorkspace'
-import { DeprecationConfigurationSpecialType } from '../ExtensionConfiguration'
-import { URI } from 'vscode-uri'
-import { uriToFsPath } from 'vscode-uri/lib/umd/uri'
 
 export interface LineDataCacheEntry {
     lineLengths: number[]
@@ -54,7 +54,7 @@ export function buildEntryForLineDataCache(lines: string[]): LineDataCacheEntry 
     const lineIndents = []
 
     for (const line of lines) {
-        const match = line.match(whitespaceRegex);
+        const match = RegExp(whitespaceRegex).exec(line);
         lineIndents.push(match ? match[0] : '')
         lineLengths.push(line.length)
     }

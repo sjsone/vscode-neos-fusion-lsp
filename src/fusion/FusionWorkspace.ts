@@ -1,17 +1,17 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { TextDocumentChangeEvent } from 'vscode-languageserver'
 import { TextDocument } from "vscode-languageserver-textdocument"
 import { LoggingLevel, type ExtensionConfiguration } from '../ExtensionConfiguration'
-import { LinePositionedNode } from '../common/LinePositionedNode'
-import { NeosWorkspace } from '../neos/NeosWorkspace'
-import { ParsedFusionFile } from './ParsedFusionFile'
-import { getFiles, pathToUri, uriToPath } from '../common/util'
-import { Logger, LogService } from '../common/Logging'
 import { LanguageServer } from '../LanguageServer'
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { LinePositionedNode } from '../common/LinePositionedNode'
+import { LogService, Logger } from '../common/Logging'
+import { getFiles, pathToUri, uriToPath } from '../common/util'
 import { diagnose } from '../diagnostics/ParsedFusionFileDiagnostics'
 import { NeosPackage } from '../neos/NeosPackage'
+import { NeosWorkspace } from '../neos/NeosWorkspace'
+import { ParsedFusionFile } from './ParsedFusionFile'
 
 export class FusionWorkspace extends Logger {
     public uri: string
@@ -205,12 +205,10 @@ export class FusionWorkspace extends Logger {
         this.logDebug(`<${randomDiagnoseRun}> Will diagnose ${this.filesToDiagnose.length} files`)
         await Promise.all(this.filesToDiagnose.map(async parsedFile => {
             const diagnostics = await diagnose(parsedFile)
-            if (diagnostics) {
-                this.languageServer.sendDiagnostics({
-                    uri: parsedFile.uri,
-                    diagnostics
-                })
-            }
+            if (diagnostics) await this.languageServer.sendDiagnostics({
+                uri: parsedFile.uri,
+                diagnostics
+            })
         }))
         this.logDebug(`<${randomDiagnoseRun}>...finished`)
 
