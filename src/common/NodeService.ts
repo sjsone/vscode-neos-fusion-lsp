@@ -21,13 +21,10 @@ import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 import { LinePositionedNode } from './LinePositionedNode'
 
 export class ExternalObjectStatement {
-	statement: ObjectStatement
-	uri?: string
-
-	constructor(statement: ObjectStatement, uri: string) {
-		this.statement = statement
-		this.uri = uri
-	}
+	constructor(
+		public statement: ObjectStatement,
+		public uri?: string
+	) { }
 }
 
 export interface FoundApplyPropsResult {
