@@ -1,5 +1,6 @@
 export enum LoggingLevel {
     Info = "info",
+    Error = "error",
     Verbose = "verbose",
     Debug = "debug"
 }

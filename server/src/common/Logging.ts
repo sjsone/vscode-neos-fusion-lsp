@@ -46,6 +46,10 @@ export class Logger {
 		this.logLevel(LoggingLevel.Info, ...things)
 	}
 
+	logError(...things: any) {
+		this.logLevel(LoggingLevel.Error, ...things)
+	}
+
 	logVerbose(...things: any) {
 		const currentLogLevel = logServiceInstance.getLogLevel()
 		if (currentLogLevel === LoggingLevel.Verbose || currentLogLevel === LoggingLevel.Debug) {
