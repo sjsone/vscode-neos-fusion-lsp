@@ -345,12 +345,12 @@ class NodeService {
 		return checkSemanticCommentIgnoreArguments(propertyName, parsedSemanticComment.arguments)
 	}
 
-	public isNodeAffectedByIgnoreComment(node: ObjectNode, parsedFusionFile: ParsedFusionFile) {
+	public isNodeAffectedByIgnoreComment(node: AbstractNode, parsedFusionFile: ParsedFusionFile) {
 		const { foundIgnoreComment, foundIgnoreBlockComment } = this.getSemanticCommentsNodeIsAffectedBy(node, parsedFusionFile)
 		return foundIgnoreComment || foundIgnoreBlockComment
 	}
 
-	public getSemanticCommentsNodeIsAffectedBy(node: ObjectNode, parsedFusionFile: ParsedFusionFile) {
+	public getSemanticCommentsNodeIsAffectedBy(node: AbstractNode, parsedFusionFile: ParsedFusionFile) {
 		const objectStatementText = abstractNodeToString(node)
 		const affectedNodeBySemanticComment = this.getAffectedNodeBySemanticComment(node)
 		const affectedLine = affectedNodeBySemanticComment.linePositionedNode.getBegin().line - 1
@@ -385,7 +385,7 @@ class NodeService {
 		}
 	}
 
-	public getAffectedNodeBySemanticComment(node: ObjectNode) {
+	public getAffectedNodeBySemanticComment(node: AbstractNode) {
 		return node["parent"] instanceof TagAttributeNode ? findParent(node, TagNode) : node
 	}
 }
