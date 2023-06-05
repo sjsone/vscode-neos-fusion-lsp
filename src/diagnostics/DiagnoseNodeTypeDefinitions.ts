@@ -1,9 +1,11 @@
 import { Diagnostic, DiagnosticRelatedInformation, DiagnosticSeverity, Location } from 'vscode-languageserver'
 import { NodeService } from '../common/NodeService'
-import { getPrototypeNameFromNode } from '../common/util'
+import { findParent, getPrototypeNameFromNode } from '../common/util'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { CommonDiagnosticHelper } from './CommonDiagnosticHelper'
+import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
+import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 
 const isPrototypeOneOf = (prototypeName: string, oneOf: string[], workspace: FusionWorkspace) => {
 	for (const name of oneOf) {
@@ -30,6 +32,8 @@ export function diagnoseNodeTypeDefinitions(parsedFusionFile: ParsedFusionFile) 
 
 		if (contentPrototypeNames.includes(prototypeName)) continue
 		if (!isPrototypeOneOf(prototypeName, contentPrototypeNames, workspace)) continue
+
+		if (NodeService.isNodeAffectedByIgnoreComment(creation.getNode(), parsedFusionFile)) continue
 
 		const nodeTypeDefinition = nodeTypeDefinitions.find(nodeType => nodeType.nodeType === prototypeName)
 		if (!nodeTypeDefinition) {
