@@ -42,7 +42,8 @@ export interface ExtensionConfiguration {
         alwaysDiagnoseChangedFile: boolean,
         levels: {
             deprecations: DeprecationsDiagnosticLevels
-        }
+        },
+        ignoreNodeTypes: string[]
     },
     code: {
         deprecations: {

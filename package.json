@@ -128,9 +128,21 @@
                         "default": true,
                         "description": "Enable diagnostics feature."
                     },
+                    "neosFusionLsp.diagnostics.ignoreNodeTypes": {
+                        "type": "array",
+                        "order": 1,
+                        "items": {
+                            "type": "string",
+                            "title": "NodeType name"
+                        },
+                        "default": [
+                            "Neos.Neos:Plugin"
+                        ],
+                        "description": "List of Prototypes which do not need a NodeType YAML file"
+                    },
                     "neosFusionLsp.diagnostics.levels.deprecations": {
                         "type": "string",
-                        "order": 1,
+                        "order": 2,
                         "default": "hint",
                         "enum": [
                             "hint",
@@ -149,7 +161,7 @@
                     "neosFusionLsp.diagnostics.ignore.folders": {
                         "scope": "window",
                         "type": "array",
-                        "order": 2,
+                        "order": 3,
                         "items": {
                             "type": "string",
                             "title": "Folder path"
@@ -162,7 +174,7 @@
                     "neosFusionLsp.diagnostics.alwaysDiagnoseChangedFile": {
                         "scope": "window",
                         "type": "boolean",
-                        "order": 3,
+                        "order": 4,
                         "default": false,
                         "description": "Always diagnose changed files even if they are in ignored folders."
                     }
