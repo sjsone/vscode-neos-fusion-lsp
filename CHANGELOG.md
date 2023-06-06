@@ -13,7 +13,7 @@
   - Autocompletion and Hover for the `Configuration.setting()` EEL-Helper
 - Integration of the WIP [`ts-fusion-runtime`](https://www.npmjs.com/package/ts-fusion-runtime) to correctly resolve Fusion properties
 
-## 🚀 0.2.8
+## 🚀 0.2.10
 
 - AFX now supports escaped tag attributes `<div '@meta.test'="test"></div>`
 - fix: Error when hovering over some Fusion properties in EEL
