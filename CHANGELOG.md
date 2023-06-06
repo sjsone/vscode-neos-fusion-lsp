@@ -12,6 +12,13 @@
   - Autocompletion and Hover for the `Configuration.setting()` EEL-Helper
 - Integration of the WIP [`ts-fusion-runtime`](https://www.npmjs.com/package/ts-fusion-runtime) to correctly resolve Fusion properties
 
+## 🚀 0.2.8
+
+- AFX now supports escaped tag attributes `<div '@meta.test'="test"></div>`
+- fix: Error when hovering over some Fusion properties in EEL
+- WorkspaceSymbols for NodeTypes now have a `NodeType:` prefix
+- Settings: Specific NodeTypes can now be ignored in the diagnostics  
+
 ## 🚀 0.2.6
 
 - EEL-Helper argument diagnostics can now be ignored with `@fusion-ignore`
