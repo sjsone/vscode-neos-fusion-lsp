@@ -7,6 +7,7 @@
 
 ## 🪐🔭 *Upcoming*
 
+- Improved StatusBar interface
 - Flow Context & Configuration
   - Select which `FLOW_CONTEXT` the LanguageServer should use to read in the configuration  
   - Autocompletion and Hover for the `Configuration.setting()` EEL-Helper
