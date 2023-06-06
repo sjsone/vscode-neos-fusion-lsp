@@ -158,7 +158,8 @@ export function findUntil<T extends AbstractNode>(node: any, condition: (parent:
 export function abstractNodeToString(node: AbstractEelNode | AbstractNode): string | undefined {
     // TODO: This should be node.toString() but for now...
     if (node instanceof StringValue) return `"${node["value"]}"`
-    if (node instanceof LiteralNumberNode || node instanceof LiteralStringNode || node instanceof FusionObjectValue) return node["value"]
+    if (node instanceof LiteralStringNode) return node["quotationType"] + node["value"] + node["quotationType"]
+    if (node instanceof LiteralNumberNode || node instanceof FusionObjectValue) return node["value"]
     if (node instanceof EelExpressionValue) {
         if (Array.isArray(node.nodes)) return undefined
         return `\${${abstractNodeToString(<AbstractEelNode>node.nodes)}}`
