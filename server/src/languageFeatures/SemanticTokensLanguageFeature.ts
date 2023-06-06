@@ -286,6 +286,9 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 			})
 		}
 
+		// CONTINUE: check why comment in statement list has wrong position (line)
+		// console.log("semanticTokenConstructs", semanticTokenConstructs)
+
 		return semanticTokenConstructs
 	}
 
