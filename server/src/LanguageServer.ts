@@ -34,6 +34,7 @@ import { AbstractLanguageFeature } from './languageFeatures/AbstractLanguageFeat
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { FusionDocument } from './main'
+import { extractAfxToOwnComponentAction } from './actions/ExtractAfxToOwnComponentAction'
 
 
 const CodeActions = [
@@ -41,6 +42,7 @@ const CodeActions = [
 	replaceDeprecatedQuickFixAction,
 	openDocumentationAction,
 	createNodeTypeFileAction,
+	extractAfxToOwnComponentAction
 ]
 
 export class LanguageServer extends Logger {
@@ -290,6 +292,7 @@ export class LanguageServer extends Logger {
 
 	public async onCodeAction(params: CodeActionParams) {
 		const actions: CodeAction[] = []
+		// console.log("params: CodeActionParams", params)
 		for (const codeAction of CodeActions) {
 			try {
 				actions.push(...await codeAction(this, params))

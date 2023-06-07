@@ -272,6 +272,10 @@
             {
                 "command": "neos-fusion-lsp.reload",
                 "title": "Fusion: Reload Neos Fusion LSP "
+            },
+            {
+                "command": "neos-fusion-lsp.code.extractAfxToOwnComponent",
+                "title": "Afx: Extract selection into Component"
             }
         ],
         "languages": [
@@ -289,7 +293,16 @@
                     "light": "./icons/filetype_light_fusion.svg"
                 }
             }
-        ]
+        ],
+        "menus": {
+            "editor/context": [
+                {
+                    "when": "editorTextFocus && editorHasSelection && !editorReadonly && resourceLangId == fusion",
+                    "command": "neos-fusion-lsp.code.extractAfxToOwnComponent",
+                    "group": "1_modification"
+                }
+            ]
+        }
     },
     "scripts": {
         "vscode:prepublish": "yarn run compile",

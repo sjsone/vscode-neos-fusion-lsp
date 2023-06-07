@@ -20,6 +20,7 @@ import { ProgressNotificationService } from './ProgressNotificationService'
 import { AbstractCommandConstructor } from './commands/AbstractCommand'
 import { InspectCommand } from './commands/InspectCommand'
 import { ReloadCommand } from './commands/ReloadCommand'
+import { ExtractAfxToOwnComponentCommand } from './commands/ExtractAfxToOwnComponentCommand'
 
 
 export class Extension {
@@ -82,6 +83,7 @@ export class Extension {
 
 		this.registerCommand(InspectCommand)
 		this.registerCommand(ReloadCommand)
+		this.registerCommand(ExtractAfxToOwnComponentCommand)
 	}
 
 	protected onDidOpenTextDocument(document: TextDocument) {

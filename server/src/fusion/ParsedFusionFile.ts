@@ -209,6 +209,43 @@ export class ParsedFusionFile extends Logger {
 		if (!this.routeDefinitions[routeIdentifier].actions[actionName].includes(prototypeName)) this.routeDefinitions[routeIdentifier].actions[actionName].push(prototypeName)
 	}
 
+	getNodesByRange(begin: Position, end: Position) {
+		const beginLine = begin.line;
+		const beginColumn = begin.character;
+		const endLine = end.line;
+		const endColumn = end.character;
+
+		const nodesByRange: AbstractNode[] = [];
+
+		if (beginLine === endLine) {
+			return this.getNodesByPosition(begin).map(node => node.getNode())
+		} else {
+			const firstLineNodes = this.getNodesByLineAndColumn(beginLine, beginColumn);
+			if (firstLineNodes) {
+				for (const ln of firstLineNodes) if (!nodesByRange.includes(ln.getNode()) && !nodesByRange.includes(ln.getNode()["parent"])) nodesByRange.push(ln.getNode())
+			}
+
+			for (let line = beginLine + 1; line < endLine; line++) {
+				const lineNodes = this.nodesByLine[line];
+				if (lineNodes) {
+					const filtered = lineNodes.filter(lineNode => {
+						return lineNode.getEnd().character <= endColumn && lineNode.getEnd().line === endLine
+					})
+					for (const ln of filtered) if (!nodesByRange.includes(ln.getNode()) && !nodesByRange.includes(ln.getNode()["parent"])) nodesByRange.push(ln.getNode())
+				}
+			}
+
+			const lastLineNodes = this.getNodesByLineAndColumn(endLine, endColumn);
+			if (lastLineNodes) {
+				const filtered = lastLineNodes.filter(lineNode => lineNode.getEnd().character <= endColumn)
+				for (const ln of filtered) if (!nodesByRange.includes(ln.getNode()) && !nodesByRange.includes(ln.getNode()["parent"])) nodesByRange.push(ln.getNode())
+
+			}
+		}
+
+		return nodesByRange;
+	}
+
 	getNodesByPosition(position: Position) {
 		const line = position.line
 		const column = position.character
