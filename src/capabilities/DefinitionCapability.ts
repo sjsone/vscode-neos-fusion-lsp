@@ -11,7 +11,7 @@ import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStateme
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
-import { DefinitionLink, Location, LocationLink } from 'vscode-languageserver/node'
+import { DefinitionLink, Location, LocationLink, Position, Range } from 'vscode-languageserver/node'
 import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { NodeService } from '../common/NodeService'
@@ -29,6 +29,8 @@ import { ResourceUriNode } from '../fusion/ResourceUriNode'
 import { ClassDefinition } from '../neos/NeosPackageNamespace'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
+import { TranslationShortHandNode } from '../fusion/TranslationShortHandNode'
+import { XLIFFService } from '../common/XLIFFService'
 
 export interface ActionUriDefinition {
 	package: string
@@ -46,6 +48,8 @@ export class DefinitionCapability extends AbstractCapability {
 
 		this.logVerbose(`node type "${foundNodeByLine.getNode().constructor.name}"`)
 		switch (true) {
+			case node instanceof TranslationShortHandNode:
+				return this.getTranslationShortHandNodeDefinitions(workspace, <LinePositionedNode<TranslationShortHandNode>>foundNodeByLine)
 			case node instanceof FusionObjectValue:
 			case node instanceof PrototypePathSegment:
 				return this.getPrototypeDefinitions(workspace, foundNodeByLine)
@@ -67,6 +71,27 @@ export class DefinitionCapability extends AbstractCapability {
 		}
 
 		return null
+	}
+
+	getTranslationShortHandNodeDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<TranslationShortHandNode>) {
+		const shortHandIdentifier = XLIFFService.readShortHandIdentifier(foundNodeByLine.getNode().getValue())
+		const translationFiles = workspace.translationFiles.filter(translationFile => translationFile.matches(shortHandIdentifier))
+
+		const locations: DefinitionLink[] = []
+		const range = Range.create(
+			Position.create(0, 0),
+			Position.create(0, 1)
+		)
+
+		for (const translationFile of translationFiles) {
+			locations.push({
+				targetUri: pathToUri(translationFile["filePath"]),
+				targetRange: range,
+				targetSelectionRange: range,
+				originSelectionRange: foundNodeByLine.getPositionAsRange()
+			})
+		}
+		return locations
 	}
 
 	getPrototypeDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<AbstractNode>) {

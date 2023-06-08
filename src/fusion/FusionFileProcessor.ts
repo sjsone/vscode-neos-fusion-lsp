@@ -32,6 +32,7 @@ import { ParsedFusionFile } from './ParsedFusionFile';
 import { PhpClassMethodNode } from './PhpClassMethodNode';
 import { PhpClassNode } from './PhpClassNode';
 import { ResourceUriNode } from './ResourceUriNode';
+import { TranslationShortHandNode } from './TranslationShortHandNode';
 
 type PostProcess = () => void
 export class FusionFileProcessor extends Logger {
@@ -89,8 +90,22 @@ export class FusionFileProcessor extends Logger {
 				this.parsedFusionFile.addNode(eelHelperMethodNode, text)
 				const eelHelperNode = new PhpClassNode(eelHelperIdentifier, eelHelperMethodNode, node, position)
 				this.parsedFusionFile.addNode(eelHelperNode, text)
+
+				this.processTranslations(eelHelperIdentifier, eelHelperMethodNode, text)
 			}
 		}
+	}
+
+	protected processTranslations(identifier: string, methodNode: PhpClassMethodNode, text: string) {
+		if (!(identifier === "I18n" || identifier === "Translation") || methodNode.identifier !== "translate") return
+		if (!(methodNode.pathNode instanceof ObjectFunctionPathNode)) return
+		if (methodNode.pathNode.args.length !== 1) return
+
+		const firstArgument = methodNode.pathNode.args[0]
+		if (!(firstArgument instanceof LiteralStringNode)) return
+
+		const translationShortHandNode = new TranslationShortHandNode(firstArgument)
+		this.parsedFusionFile.addNode(translationShortHandNode, text)
 	}
 
 	protected createEelHelperIdentifierAndPositionFromPath(path: ObjectPathNode[]) {

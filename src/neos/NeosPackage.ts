@@ -123,10 +123,15 @@ export class NeosPackage extends Logger {
 		return undefined
 	}
 
+	// TODO: refactor method. No "packageName" needed
 	getResourceUriPath(packageName: string, relativePath: string) {
 		if (this.getPackageName() === packageName) {
 			return NodePath.join(this.path, "Resources", relativePath)
 		}
+	}
+
+	getTranslationsBasePath() {
+		return NodePath.join(this.path, "Resources", "Private", "Translations")
 	}
 
 	getEelHelpers() {
