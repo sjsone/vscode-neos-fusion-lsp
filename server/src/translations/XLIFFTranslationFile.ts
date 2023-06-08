@@ -1,12 +1,11 @@
+import { XMLParser } from "fast-xml-parser"
 import * as NodeFsPromises from 'fs/promises'
 import * as NodePath from 'path'
-import { Logger } from '../common/Logging'
-import { NeosPackage } from '../neos/NeosPackage'
-import { type ShortHandIdentifier } from '../common/XLIFFService'
-import { XMLParser, XMLBuilder, XMLValidator } from "fast-xml-parser";
-import { getLineNumberOfChar, pathToUri, setLinesFromLineDataCacheForFile } from '../common/util'
 import { LinePosition } from '../common/LinePositionedNode'
-import { off } from 'process'
+import { Logger } from '../common/Logging'
+import { type ShortHandIdentifier } from '../common/XLIFFService'
+import { getLineNumberOfChar, pathToUri, setLinesFromLineDataCacheForFile } from '../common/util'
+import { NeosPackage } from '../neos/NeosPackage'
 
 export interface XLIFFTransUnit {
 	source: string

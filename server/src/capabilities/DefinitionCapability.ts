@@ -15,6 +15,7 @@ import { DefinitionLink, Location, LocationLink, Position, Range } from 'vscode-
 import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { NodeService } from '../common/NodeService'
+import { XLIFFService } from '../common/XLIFFService'
 import { findParent, getObjectIdentifier, getPrototypeNameFromNode, pathToUri } from '../common/util'
 import { ActionUriActionNode } from '../fusion/ActionUriActionNode'
 import { ActionUriControllerNode } from '../fusion/ActionUriControllerNode'
@@ -26,11 +27,10 @@ import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
 import { PhpClassNode } from '../fusion/PhpClassNode'
 import { ResourceUriNode } from '../fusion/ResourceUriNode'
+import { TranslationShortHandNode } from '../fusion/TranslationShortHandNode'
 import { ClassDefinition } from '../neos/NeosPackageNamespace'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
-import { TranslationShortHandNode } from '../fusion/TranslationShortHandNode'
-import { XLIFFService } from '../common/XLIFFService'
 
 export interface ActionUriDefinition {
 	package: string
