@@ -1,3 +1,6 @@
+import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { XLIFFTransUnit, XLIFFTranslationFile } from '../translations/XLIFFTranslationFile'
+
 export interface ShortHandIdentifier {
 	packageName: string
 	sourceName: string
@@ -12,6 +15,22 @@ class XLIFFService {
 			sourceName,
 			translationIdentifier
 		}
+	}
+
+	public async getMatchingTranslations(workspace: FusionWorkspace, shortHandIdentifier: ShortHandIdentifier) {
+		const matching: XLIFFTransUnit[] = []
+		for (const translationFile of workspace.translationFiles) {
+			if (await translationFile.matches(shortHandIdentifier)) matching.push(await translationFile.getId(shortHandIdentifier.translationIdentifier))
+		}
+		return matching
+	}
+
+	public async getMatchingTranslationFiles(workspace: FusionWorkspace, shortHandIdentifier: ShortHandIdentifier) {
+		const matching: XLIFFTranslationFile[] = []
+		for (const translationFile of workspace.translationFiles) {
+			if (await translationFile.matches(shortHandIdentifier)) matching.push(translationFile)
+		}
+		return matching
 	}
 }
 
