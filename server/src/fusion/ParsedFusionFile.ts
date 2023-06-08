@@ -76,7 +76,7 @@ export class ParsedFusionFile extends Logger {
 			this.clearCaches()
 			this.logVerbose("init")
 			if (text === undefined) {
-				text = NodeFs.readFileSync(uriToPath(this.uri)).toString()
+				text = this.readTextFromFile()
 				this.logVerbose("    read text from file")
 			}
 
@@ -99,6 +99,10 @@ export class ParsedFusionFile extends Logger {
 
 			return false
 		}
+	}
+
+	readTextFromFile() {
+		return NodeFs.readFileSync(uriToPath(this.uri)).toString()
 	}
 
 	runPostProcessing() {
