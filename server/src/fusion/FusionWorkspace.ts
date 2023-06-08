@@ -12,6 +12,8 @@ import { diagnose } from '../diagnostics/ParsedFusionFileDiagnostics'
 import { NeosPackage } from '../neos/NeosPackage'
 import { NeosWorkspace } from '../neos/NeosWorkspace'
 import { ParsedFusionFile } from './ParsedFusionFile'
+import { TranslationService } from '../common/TranslationService'
+import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile'
 
 export class FusionWorkspace extends Logger {
     public uri: string
@@ -23,6 +25,8 @@ export class FusionWorkspace extends Logger {
 
     public parsedFiles: ParsedFusionFile[] = []
     public filesWithErrors: string[] = []
+
+    public translationFiles: XLIFFTranslationFile[] = []
 
     protected filesToDiagnose: ParsedFusionFile[] = []
 
@@ -81,6 +85,7 @@ export class FusionWorkspace extends Logger {
             this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
                 message: `Package: ${packagePath}`
             })
+
             for (const packageFusionFolderPath of configuration.folders.fusion) {
                 const fusionFolderPath = NodePath.join(packagePath, packageFusionFolderPath)
                 if (!NodeFs.existsSync(fusionFolderPath)) continue
@@ -89,6 +94,9 @@ export class FusionWorkspace extends Logger {
                     this.addParsedFileFromPath(fusionFilePath, neosPackage)
                 }
             }
+
+            this.translationFiles.push(...TranslationService.readTranslationsFromPackage(neosPackage))
+
             this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
                 increment: incrementPerPackage
             })
@@ -218,5 +226,6 @@ export class FusionWorkspace extends Logger {
     protected clear() {
         this.parsedFiles = []
         this.filesWithErrors = []
+        this.translationFiles = []
     }
 }

@@ -12,12 +12,14 @@ import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/Prototyp
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { ExternalObjectStatement, NodeService } from '../common/NodeService'
+import { XLIFFService } from '../common/XLIFFService'
 import { abstractNodeToString, findParent, getPrototypeNameFromNode } from '../common/util'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
 import { PhpClassNode } from '../fusion/PhpClassNode'
 import { ResourceUriNode } from '../fusion/ResourceUriNode'
+import { TranslationShortHandNode } from '../fusion/TranslationShortHandNode'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 
@@ -41,6 +43,8 @@ export class HoverCapability extends AbstractCapability {
 		this.logVerbose(`FoundNode: ` + node.constructor.name)
 
 		switch (true) {
+			case node instanceof TranslationShortHandNode:
+				return this.getMarkdownForTranslationShortHandNode(workspace, <LinePositionedNode<TranslationShortHandNode>>foundNodeByLine)
 			case node instanceof FusionObjectValue:
 			case node instanceof PrototypePathSegment:
 				return this.getMarkdownForPrototypeName(workspace, <FusionObjectValue | PrototypePathSegment>node)
@@ -75,6 +79,18 @@ export class HoverCapability extends AbstractCapability {
 			}
 			yield statementName
 		}
+	}
+
+	getMarkdownForTranslationShortHandNode(workspace: FusionWorkspace, linePositionedNode: LinePositionedNode<TranslationShortHandNode>) {
+		const shortHandIdentifier = XLIFFService.readShortHandIdentifier(linePositionedNode.getNode().getValue())
+
+		const translationFiles = workspace.translationFiles.filter(translationFile => translationFile.matches(shortHandIdentifier))
+
+		return [
+			"```",
+			``,
+			"```"
+		].join("\n")
 	}
 
 	getMarkdownForPrototypeName(workspace: FusionWorkspace, node: FusionObjectValue | PrototypePathSegment) {

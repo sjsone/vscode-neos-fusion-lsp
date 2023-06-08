@@ -22,6 +22,7 @@ import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
 import { PhpClassNode } from '../fusion/PhpClassNode'
 import { ResourceUriNode } from '../fusion/ResourceUriNode'
+import { TranslationShortHandNode } from '../fusion/TranslationShortHandNode'
 
 export interface LineDataCacheEntry {
     lineLengths: number[]
@@ -83,7 +84,7 @@ export function getLineNumberOfChar(data: string, index: number, textUri: string
     return { line: i, character: column }
 }
 
-export function* getFiles(dir: string, withExtension = ".fusion") {
+export function* getFiles(dir: string, withExtension = ".fusion"): Generator<string> {
     const directoryEntries = NodeFs.readdirSync(dir, { withFileTypes: true })
     for (const dirent of directoryEntries) {
         if (dirent.isSymbolicLink()) continue
@@ -188,6 +189,7 @@ export function getObjectIdentifier(objectStatement: ObjectStatement): string {
 
 export function getNodeWeight(node: any) {
     switch (true) {
+        case node instanceof TranslationShortHandNode: return 60
         case node instanceof FusionObjectValue: return 50
         case node instanceof PhpClassMethodNode: return 40
         case node instanceof PhpClassNode: return 30
