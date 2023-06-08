@@ -73,25 +73,30 @@ export class DefinitionCapability extends AbstractCapability {
 		return null
 	}
 
-	getTranslationShortHandNodeDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<TranslationShortHandNode>) {
+	async getTranslationShortHandNodeDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<TranslationShortHandNode>) {
 		const shortHandIdentifier = XLIFFService.readShortHandIdentifier(foundNodeByLine.getNode().getValue())
-		const translationFiles = workspace.translationFiles.filter(translationFile => translationFile.matches(shortHandIdentifier))
+		const translationFiles = await XLIFFService.getMatchingTranslationFiles(workspace, shortHandIdentifier)
 
 		const locations: DefinitionLink[] = []
-		const range = Range.create(
-			Position.create(0, 0),
-			Position.create(0, 1)
-		)
 
 		for (const translationFile of translationFiles) {
+			const transUnit = await translationFile.getId(shortHandIdentifier.translationIdentifier)
+			const position = transUnit.position
+			const range = Range.create(
+				position,
+				Position.create(position.line, position.character + transUnit.id.length + 5)
+			)
+
 			locations.push({
-				targetUri: pathToUri(translationFile["filePath"]),
+				targetUri: translationFile.uri,
 				targetRange: range,
 				targetSelectionRange: range,
 				originSelectionRange: foundNodeByLine.getPositionAsRange()
 			})
+
 		}
 		return locations
+
 	}
 
 	getPrototypeDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<AbstractNode>) {

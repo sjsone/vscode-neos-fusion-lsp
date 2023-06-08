@@ -25,10 +25,10 @@ import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityCont
 
 export class HoverCapability extends AbstractCapability {
 
-	public run(context: CapabilityContext<AbstractNode>) {
+	public async run(context: CapabilityContext<AbstractNode>) {
 		const { workspace, parsedFile, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
 
-		const markdown = this.getMarkdownByNode(foundNodeByLine, parsedFile, workspace)
+		const markdown = await this.getMarkdownByNode(foundNodeByLine, parsedFile, workspace)
 		if (markdown === null) return null
 
 		return {
@@ -81,16 +81,30 @@ export class HoverCapability extends AbstractCapability {
 		}
 	}
 
-	getMarkdownForTranslationShortHandNode(workspace: FusionWorkspace, linePositionedNode: LinePositionedNode<TranslationShortHandNode>) {
+	async getMarkdownForTranslationShortHandNode(workspace: FusionWorkspace, linePositionedNode: LinePositionedNode<TranslationShortHandNode>) {
 		const shortHandIdentifier = XLIFFService.readShortHandIdentifier(linePositionedNode.getNode().getValue())
+		const translationFiles = await XLIFFService.getMatchingTranslationFiles(workspace, shortHandIdentifier)
 
-		const translationFiles = workspace.translationFiles.filter(translationFile => translationFile.matches(shortHandIdentifier))
+		const translationMarkdowns: { isSource: boolean, markdown: string }[] = []
+		for (const translationFile of translationFiles) {
+			const transUnit = await translationFile.getId(shortHandIdentifier.translationIdentifier)
+			const isSource = transUnit.target === undefined
+			translationMarkdowns.push({
+				isSource,
+				markdown: [
+					`**${translationFile.language}** ${isSource ? "Source" : ""}`,
+					"```\n" + (isSource ? transUnit.source : transUnit.target) + "\n```\n"
+				].join("\n")
+			})
+		}
 
-		return [
-			"```",
-			``,
-			"```"
-		].join("\n")
+		translationMarkdowns.sort((a, b) => {
+			if (a.isSource && !b.isSource) return -1
+			if (!a.isSource && b.isSource) return 1
+			return 0
+		});
+
+		return translationMarkdowns.map(translationMarkdowns => translationMarkdowns.markdown).join("\n")
 	}
 
 	getMarkdownForPrototypeName(workspace: FusionWorkspace, node: FusionObjectValue | PrototypePathSegment) {
