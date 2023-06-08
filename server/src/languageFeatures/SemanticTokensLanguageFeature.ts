@@ -23,6 +23,7 @@ import { NeosFusionFormDefinitionNode } from '../fusion/NeosFusionFormDefinition
 import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
 import { AbstractLanguageFeature } from './AbstractLanguageFeature'
 import { LanguageFeatureContext } from './LanguageFeatureContext'
+import { TranslationShortHandNode } from '../fusion/TranslationShortHandNode'
 
 export interface SemanticTokenConstruct {
 	position: LinePosition
@@ -87,6 +88,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 		semanticTokenConstructs.push(...this.generateTagAttributeTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generateSemanticCommentTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generateComponentRendererTokens(languageFeatureContext))
+		semanticTokenConstructs.push(...this.generateTranslationShortHandTokens(languageFeatureContext))
 
 		return {
 			data: this.generateTokenArray(semanticTokenConstructs)
@@ -149,6 +151,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 	protected generateLiteralStringTokens(languageFeatureContext: LanguageFeatureContext) {
 		return this.generateForType(LiteralStringNode, languageFeatureContext, node => {
 			if (findParent(node.getNode(), EelExpressionValue)) return undefined
+			if (node.getNode().translationShortHandNode !== undefined) return undefined
 			return {
 				position: node.getBegin(),
 				length: node.getNode()["value"].length + 2, // offset for quotes
@@ -337,6 +340,15 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 		}
 
 		return semanticTokenConstructs
+	}
+
+	protected generateTranslationShortHandTokens(languageFeatureContext: LanguageFeatureContext) {
+		return this.generateForType(TranslationShortHandNode, languageFeatureContext, node => ({
+			position: node.getBegin(),
+			length: node.getNode().getValue().length,
+			type: 'variable',
+			modifier: 'declaration'
+		}))
 	}
 
 	protected generateForType<T extends AbstractNode>(type: new (...args: any) => T, languageFeatureContext: LanguageFeatureContext, createConstructCallback: (node: LinePositionedNode<T>) => SemanticTokenConstruct) {
