@@ -7,9 +7,12 @@ class TranslationService {
 	readTranslationsFromPackage(neosPackage: NeosPackage) {
 		const basePath = neosPackage.getTranslationsBasePath()
 		if (!NodeFs.existsSync(basePath)) return []
-		const test = Array.from(getFiles(basePath, ".xlf"))
-		const res = test.map(filePath => XLIFFTranslationFile.FromFilePath(neosPackage, filePath, basePath))
-		return res
+		const translationFilePaths = Array.from(getFiles(basePath, ".xlf"))
+		return translationFilePaths.map(filePath => {
+			const translationFile = XLIFFTranslationFile.FromFilePath(neosPackage, filePath, basePath)
+			translationFile.parse().catch(error => { })
+			return translationFile
+		})
 	}
 }
 
