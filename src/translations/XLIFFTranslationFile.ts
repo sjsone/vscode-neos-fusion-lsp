@@ -42,12 +42,14 @@ export class XLIFFTranslationFile extends Logger {
 	}
 
 	async parse() {
+		this.transUnits.clear()
 		const xmlTextBuffer = await NodeFsPromises.readFile(this.filePath)
 		this.data = XLIFFTranslationFile.XMLParser.parse(xmlTextBuffer)
 		const xmlText = xmlTextBuffer.toString()
 		setLinesFromLineDataCacheForFile(this.uri, xmlText.split("\n"))
-
-		for (const transUnit of <XLIFFTransUnit[]>this.data?.xliff.file.body["trans-unit"]) {
+		const XLIFFTransUnits: XLIFFTransUnit[] = this.data?.xliff.file.body["trans-unit"] ?? []
+		this.logVerbose(`Found ${XLIFFTransUnits.length} TransUnits`)
+		for (const transUnit of XLIFFTransUnits) {
 			const offset = xmlText.indexOf(`id="${transUnit["@_id"]}"`)
 			const position = getLineNumberOfChar(xmlText, offset, this.uri)
 
@@ -58,6 +60,8 @@ export class XLIFFTranslationFile extends Logger {
 				position,
 				language: this.language
 			})
+
+			this.logDebug(` \\- ${transUnit["@_id"]}`)
 		}
 	}
 
@@ -68,7 +72,7 @@ export class XLIFFTranslationFile extends Logger {
 
 	async matches(shortHandIdentifier: ShortHandIdentifier) {
 		if (this.sourcePath !== `${shortHandIdentifier.packageName}:${shortHandIdentifier.sourceName}`) return false
-		return this.getId(shortHandIdentifier.translationIdentifier) !== undefined
+		return await this.getId(shortHandIdentifier.translationIdentifier) !== undefined
 	}
 
 	static FromFilePath(neosPackage: NeosPackage, filePath: string, basePath: string) {
