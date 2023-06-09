@@ -12,6 +12,7 @@ import { diagnosePrototypeNames } from './DiagnosePrototypeNames';
 import { diagnoseResourceUris } from './DiagnoseResourceUris';
 import { diagnoseRootFusionConfiguration } from './DiagnoseRootFusionConfiguration';
 import { diagnoseTagNames } from './DiagnoseTagNames';
+import { diagnoseTranslationShortHand } from './DiagnoseTranslationShortHand';
 
 export async function diagnose(parsedFusionFile: ParsedFusionFile) {
 	const diagnostics: Diagnostic[] = []
@@ -27,11 +28,12 @@ export async function diagnose(parsedFusionFile: ParsedFusionFile) {
 		diagnoseNodeTypeDefinitions,
 		diagnoseNonParsedFusion,
 		diagnoseRootFusionConfiguration,
+		diagnoseTranslationShortHand
 	]
 
 	for (const diagnoseFunction of diagnoseFunctions) {
 		try {
-			diagnostics.push(...diagnoseFunction(parsedFusionFile))
+			diagnostics.push(...await diagnoseFunction(parsedFusionFile))
 		} catch (error) {
 			if (LogService.isLogLevel(LoggingLevel.Verbose)) {
 				Logger.LogNameAndLevel(LoggingLevel.Verbose.toUpperCase(), `ParsedFusionFileDiagnostics:${diagnoseFunction.name}`, 'ERROR:', error)
