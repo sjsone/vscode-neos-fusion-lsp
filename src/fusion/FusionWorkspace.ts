@@ -7,13 +7,13 @@ import { LoggingLevel, type ExtensionConfiguration } from '../ExtensionConfigura
 import { LanguageServer } from '../LanguageServer'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { LogService, Logger } from '../common/Logging'
+import { TranslationService } from '../common/TranslationService'
 import { getFiles, pathToUri, uriToPath } from '../common/util'
 import { diagnose } from '../diagnostics/ParsedFusionFileDiagnostics'
 import { NeosPackage } from '../neos/NeosPackage'
 import { NeosWorkspace } from '../neos/NeosWorkspace'
-import { ParsedFusionFile } from './ParsedFusionFile'
-import { TranslationService } from '../common/TranslationService'
 import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile'
+import { ParsedFusionFile } from './ParsedFusionFile'
 
 export class FusionWorkspace extends Logger {
     public uri: string
@@ -71,7 +71,7 @@ export class FusionWorkspace extends Logger {
             packagesPaths.push(workspacePath)
         }
 
-        this.neosWorkspace = new NeosWorkspace(workspacePath, this.name)
+        this.neosWorkspace = new NeosWorkspace(this, workspacePath, this.name)
         for (const packagePath of packagesPaths) {
             this.neosWorkspace.addPackage(packagePath)
         }
@@ -84,7 +84,7 @@ export class FusionWorkspace extends Logger {
             const packagePath = neosPackage["path"]
             this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
                 message: `Package: ${packagePath}`
-            })
+            }).catch(error => this.logError("init", error))
 
             for (const packageFusionFolderPath of configuration.folders.fusion) {
                 const fusionFolderPath = NodePath.join(packagePath, packageFusionFolderPath)
@@ -99,7 +99,7 @@ export class FusionWorkspace extends Logger {
 
             this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
                 increment: incrementPerPackage
-            })
+            }).catch(error => this.logError("init", error))
         }
 
         for (const parsedFile of this.parsedFiles) {
@@ -118,9 +118,9 @@ export class FusionWorkspace extends Logger {
             }
         }
 
-        this.languageServer.sendProgressNotificationFinish("fusion_workspace_init")
+        this.languageServer.sendProgressNotificationFinish("fusion_workspace_init").catch(error => this.logError("init", error))
 
-        this.processFilesToDiagnose()
+        this.processFilesToDiagnose().catch(error => this.logError("init", error))
     }
 
     addParsedFileFromPath(fusionFilePath: string, neosPackage: NeosPackage) {
@@ -200,6 +200,10 @@ export class FusionWorkspace extends Logger {
             }
         }
         return nodes
+    }
+
+    getTranslationFileByUri(uri: string) {
+        return this.translationFiles.find(file => file.uri === uri)
     }
 
     public async diagnoseAllFusionFiles() {
