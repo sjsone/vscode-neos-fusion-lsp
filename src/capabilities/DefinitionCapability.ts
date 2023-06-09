@@ -81,6 +81,8 @@ export class DefinitionCapability extends AbstractCapability {
 
 		for (const translationFile of translationFiles) {
 			const transUnit = await translationFile.getId(shortHandIdentifier.translationIdentifier)
+			if (!transUnit) continue
+
 			const position = transUnit.position
 			const range = Range.create(
 				position,

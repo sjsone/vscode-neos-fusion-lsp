@@ -88,6 +88,8 @@ export class HoverCapability extends AbstractCapability {
 		const translationMarkdowns: { isSource: boolean, markdown: string }[] = []
 		for (const translationFile of translationFiles) {
 			const transUnit = await translationFile.getId(shortHandIdentifier.translationIdentifier)
+			if (!transUnit) continue
+
 			const isSource = transUnit.target === undefined
 			const position = transUnit.position
 			const uri = translationFile.uri + '#L' + (position.line + 1) + ',' + (position.character + 1)
