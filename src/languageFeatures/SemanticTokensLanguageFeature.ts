@@ -21,9 +21,9 @@ import { findParent, getObjectIdentifier, parseSemanticComment } from '../common
 import { ActionUriDefinitionNode } from '../fusion/ActionUriDefinitionNode'
 import { NeosFusionFormDefinitionNode } from '../fusion/NeosFusionFormDefinitionNode'
 import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
+import { TranslationShortHandNode } from '../fusion/TranslationShortHandNode'
 import { AbstractLanguageFeature } from './AbstractLanguageFeature'
 import { LanguageFeatureContext } from './LanguageFeatureContext'
-import { TranslationShortHandNode } from '../fusion/TranslationShortHandNode'
 
 export interface SemanticTokenConstruct {
 	position: LinePosition
@@ -345,7 +345,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 	protected generateTranslationShortHandTokens(languageFeatureContext: LanguageFeatureContext) {
 		return this.generateForType(TranslationShortHandNode, languageFeatureContext, node => ({
 			position: node.getBegin(),
-			length: node.getNode().getValue().length,
+			length: node.getNode().getValue().length + 2, // quotes
 			type: 'variable',
 			modifier: 'declaration'
 		}))
