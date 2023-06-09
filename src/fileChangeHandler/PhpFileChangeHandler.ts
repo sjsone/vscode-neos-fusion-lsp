@@ -16,12 +16,12 @@ export class PhpFileChangeHandler extends AbstractFileChangeHandler {
 				const helper = neosPackage.getEelHelpers().find(helper => helper.uri === fileEvent.uri)
 				if (!helper) continue
 
-				this.logInfo(`  File was EEL-Helper ${helper.name}`)
+				this.logVerbose(`  File was EEL-Helper ${helper.name}`)
 
 				const namespace = helper.namespace
 				const classDefinition = namespace.getClassDefinitionFromFilePathAndClassName(uriToPath(helper.uri), helper.className, helper.pathParts)
 
-				this.logInfo(`  Methods: then ${helper.methods.length} now ${classDefinition.methods.length}`)
+				this.logVerbose(`  Methods: then ${helper.methods.length} now ${classDefinition.methods.length}`)
 
 				helper.methods = classDefinition.methods
 				helper.position = classDefinition.position
