@@ -34,6 +34,7 @@ import { AbstractLanguageFeature } from './languageFeatures/AbstractLanguageFeat
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { FusionDocument } from './main'
+import { XLIFFTranslationFile } from './translations/XLIFFTranslationFile'
 
 
 const CodeActions = [
@@ -231,11 +232,20 @@ export class LanguageServer extends Logger {
 			await this.handleNodeTypeFileChanged()
 		}
 
+		if (change.uri.endsWith(".xlf")) {
+			clearLineDataCacheForFile(change.uri)
+			for (const workspace of this.fusionWorkspaces) {
+				const translationFile = workspace.getTranslationFileByUri(change.uri)
+				if (!translationFile) continue
+				translationFile.parse().catch(error => this.logError("handleFileChanged", error))
+			}
+		}
+
 		if (change.uri.endsWith(".php")) {
 			clearLineDataCacheForFile(change.uri)
 
 			for (const workspace of this.fusionWorkspaces) {
-				for (const [_, neosPackage] of workspace.neosWorkspace.getPackages().entries()) {
+				for (const neosPackage of workspace.neosWorkspace.getPackages().values()) {
 					const helper = neosPackage.getEelHelpers().find(helper => helper.uri === change.uri)
 					if (!helper) continue
 
@@ -256,6 +266,21 @@ export class LanguageServer extends Logger {
 	protected async handleFileCreated(change: FileEvent) {
 		if ((change.uri.endsWith(".yaml") || change.uri.endsWith(".yml")) && change.uri.includes("NodeTypes")) {
 			await this.handleNodeTypeFileChanged()
+		}
+
+		if (change.uri.endsWith(".xlf")) {
+			const workspace = this.getWorkspaceForFileUri(change.uri)
+			if (!workspace) return
+
+			const neosPackage = workspace.neosWorkspace.getPackageByUri(change.uri)
+			if (!neosPackage) return
+
+			const basePath = neosPackage.getTranslationsBasePath()
+			const filePath = uriToPath(change.uri)
+
+			const translationFile = XLIFFTranslationFile.FromFilePath(neosPackage, filePath, basePath)
+			await translationFile.parse()
+			workspace.translationFiles.push(translationFile)
 		}
 
 		if (change.uri.endsWith(".fusion")) {
