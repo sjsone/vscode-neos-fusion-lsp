@@ -19,6 +19,7 @@ import { ResourceUriNode } from '../fusion/ResourceUriNode'
 import { NeosPackage } from '../neos/NeosPackage'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
+import { TranslationShortHandNode } from '../fusion/TranslationShortHandNode'
 
 // TODO: eel helper arguments
 export class CompletionCapability extends AbstractCapability {
@@ -57,6 +58,9 @@ export class CompletionCapability extends AbstractCapability {
 					break
 				case foundNode instanceof ResourceUriNode:
 					completions.push(...this.getResourceUriCompletions(workspace, <LinePositionedNode<ResourceUriNode>>foundNodeByLine))
+					break
+				case foundNode instanceof TranslationShortHandNode:
+					completions.push(...this.getTranslationShortHandCompletions(workspace, <LinePositionedNode<TranslationShortHandNode>>foundNodeByLine))
 					break
 				case foundNode instanceof Comment:
 					completions.push(...this.getSemanticCommentCompletions(<LinePositionedNode<Comment>>foundNodeByLine))
@@ -285,6 +289,55 @@ export class CompletionCapability extends AbstractCapability {
 		}
 
 		return completions
+	}
+
+	protected getTranslationShortHandCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<TranslationShortHandNode>): Iterable<CompletionItem> {
+		const node = foundNode.getNode()
+
+		const shortHandIdentifier = node.getShortHandIdentifier()
+		if (!shortHandIdentifier.packageName && !shortHandIdentifier.sourceName && !shortHandIdentifier.translationIdentifier) {
+			return Array.from(workspace.neosWorkspace.getPackages().values()).map((neosPackage: NeosPackage) => ({
+				label: neosPackage.getPackageName(),
+				kind: CompletionItemKind.Module,
+				insertText: neosPackage.getPackageName() + ':',
+				command: CompletionCapability.SuggestCommand
+			}))
+		}
+
+		const neosPackage = workspace.neosWorkspace.getPackage(shortHandIdentifier.packageName)
+		if (!neosPackage) return []
+
+		if (!shortHandIdentifier.sourceName) {
+			const completions = new Map<string, CompletionItem>()
+			for (const translationFile of workspace.translationFiles) {
+				const source = translationFile["sourceParts"].join('.')
+				if (!completions.has(source)) completions.set(source, {
+					label: source,
+					kind: CompletionItemKind.Class,
+					insertText: source + ':',
+					command: CompletionCapability.SuggestCommand
+				})
+			}
+			return completions.values()
+		}
+
+		if (!shortHandIdentifier.translationIdentifier) {
+			const completions = new Map<string, CompletionItem>()
+			for (const translationFile of workspace.translationFiles) {
+				if (translationFile["neosPackage"].getPackageName() !== shortHandIdentifier.packageName) continue
+				if (translationFile["sourceParts"].join('.') !== shortHandIdentifier.sourceName) continue
+				for (const transUnit of translationFile["transUnits"].values()) {
+					if (!completions.has(transUnit.id)) completions.set(transUnit.id, {
+						label: transUnit.id,
+						kind: CompletionItemKind.Class,
+						insertText: transUnit.id,
+					})
+				}
+			}
+			return completions.values()
+		}
+
+		return []
 	}
 
 	protected getSemanticCommentCompletions(foundNode: LinePositionedNode<Comment>): CompletionItem[] {
