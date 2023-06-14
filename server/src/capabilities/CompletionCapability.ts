@@ -295,13 +295,18 @@ export class CompletionCapability extends AbstractCapability {
 		const node = foundNode.getNode()
 
 		const shortHandIdentifier = node.getShortHandIdentifier()
-		if (!shortHandIdentifier.packageName && !shortHandIdentifier.sourceName && !shortHandIdentifier.translationIdentifier) {
-			return Array.from(workspace.neosWorkspace.getPackages().values()).map((neosPackage: NeosPackage) => ({
-				label: neosPackage.getPackageName(),
-				kind: CompletionItemKind.Module,
-				insertText: neosPackage.getPackageName() + ':',
-				command: CompletionCapability.SuggestCommand
-			}))
+		if (!shortHandIdentifier.packageName) {
+			const completions = new Map<string, CompletionItem>()
+			for (const translationFile of workspace.translationFiles) {
+				const packageName = translationFile["neosPackage"].getPackageName()
+				if (!completions.has(packageName)) completions.set(packageName, {
+					label: packageName,
+					kind: CompletionItemKind.Module,
+					insertText: packageName + ':',
+					command: CompletionCapability.SuggestCommand
+				})
+			}
+			return completions.values()
 		}
 
 		const neosPackage = workspace.neosWorkspace.getPackage(shortHandIdentifier.packageName)
@@ -310,6 +315,7 @@ export class CompletionCapability extends AbstractCapability {
 		if (!shortHandIdentifier.sourceName) {
 			const completions = new Map<string, CompletionItem>()
 			for (const translationFile of workspace.translationFiles) {
+				if (translationFile["neosPackage"].getPackageName() !== shortHandIdentifier.packageName) continue
 				const source = translationFile["sourceParts"].join('.')
 				if (!completions.has(source)) completions.set(source, {
 					label: source,
