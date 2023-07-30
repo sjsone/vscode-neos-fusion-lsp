@@ -148,6 +148,13 @@ export class NeosPackage extends Logger {
 		return packageKey ?? name.split("/").map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('.')
 	}
 
+	hasName(name: string) {
+		if (this.getName() === name) return true
+		if (this.getPackageName() === name) return true
+		if (this.path.split(NodePath.sep).pop() === name) return true
+		return false
+	}
+
 	log(...text: any) {
 		if (this.debug) console.log("[NeosPackage]", ...text)
 	}
