@@ -98,7 +98,7 @@ export class HoverCapability extends AbstractCapability {
 				isSource,
 				markdown: [
 					`**[${translationFile.language}](${uri})** ${isSource ? "Source" : ""}`,
-					"```\n" + (isSource ? transUnit.source : transUnit.target) + "\n```\n"
+					"```\n" + (isSource ? transUnit.source : transUnit.target) + "\n```\n---\n"
 				].join("\n")
 			})
 		}
