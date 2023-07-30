@@ -1,7 +1,9 @@
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver'
+import { XLIFFService } from '../common/XLIFFService'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { TranslationShortHandNode } from '../fusion/TranslationShortHandNode'
-import { XLIFFService } from '../common/XLIFFService'
+import { IgnorableDiagnostic } from './IgnorableDiagnostic'
+import { NodeService } from '../common/NodeService'
 
 export async function diagnoseTranslationShortHand(parsedFusionFile: ParsedFusionFile) {
 	const diagnostics: Diagnostic[] = []
@@ -10,15 +12,14 @@ export async function diagnoseTranslationShortHand(parsedFusionFile: ParsedFusio
 	if (translationShortHandNodes === undefined) return diagnostics
 
 	for (const translationShortHandNode of translationShortHandNodes) {
-		const identifier = XLIFFService.readShortHandIdentifier(translationShortHandNode.getNode().getValue())
+		const node = translationShortHandNode.getNode()
+		const identifier = XLIFFService.readShortHandIdentifier(node.getValue())
 		const translationFiles = await XLIFFService.getMatchingTranslationFiles(workspace, identifier)
-		if(translationFiles.length > 0) continue
+		if (translationFiles.length > 0) continue
 
-		diagnostics.push({
-			range: translationShortHandNode.getPositionAsRange(),
-			severity: DiagnosticSeverity.Error,
-			message: `Unknown ID ${translationShortHandNode.getNode().getValue()}`
-		})
+		if (NodeService.isNodeAffectedByIgnoreComment(node, parsedFusionFile)) continue
+
+		diagnostics.push(IgnorableDiagnostic.create(translationShortHandNode.getPositionAsRange(), `Unknown Translation ID ${node.getValue()}`, DiagnosticSeverity.Error))
 	}
 
 	return diagnostics
