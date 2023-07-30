@@ -77,7 +77,8 @@ export class XLIFFTranslationFile extends Logger {
 	}
 
 	async matches(shortHandIdentifier: ShortHandIdentifier) {
-		if (this.sourcePath !== `${shortHandIdentifier.packageName}:${shortHandIdentifier.sourceName}`) return false
+		if (!this.neosPackage.hasName(shortHandIdentifier.packageName)) return false
+		if (this.sourceParts.join('.') !== shortHandIdentifier.sourceName) return false
 		return await this.getId(shortHandIdentifier.translationIdentifier) !== undefined
 	}
 
