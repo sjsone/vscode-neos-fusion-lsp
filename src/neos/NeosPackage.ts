@@ -149,6 +149,7 @@ export class NeosPackage extends Logger {
 	}
 
 	hasName(name: string) {
+		// TODO: improve or further implement the concept of "file path based package name"
 		if (this.getName() === name) return true
 		if (this.getPackageName() === name) return true
 		if (this.path.split(NodePath.sep).pop() === name) return true
