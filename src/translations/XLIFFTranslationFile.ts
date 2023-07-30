@@ -54,8 +54,8 @@ export class XLIFFTranslationFile extends Logger {
 			const position = getLineNumberOfChar(xmlText, offset, this.uri)
 
 			this.transUnits.set(transUnit["@_id"], {
-				source: transUnit.source,
-				target: transUnit.target,
+				source: this.getTextFromSourceOrTarget(transUnit.source),
+				target: this.getTextFromSourceOrTarget(transUnit.target),
 				id: transUnit["@_id"],
 				position,
 				language: this.language
@@ -63,6 +63,12 @@ export class XLIFFTranslationFile extends Logger {
 
 			this.logDebug(` \\- ${transUnit["@_id"]}`)
 		}
+	}
+
+	protected getTextFromSourceOrTarget(sourceOrTarget: string | { '#text': string, '@_state': string } | undefined) {
+		if (sourceOrTarget === undefined) return undefined
+		if (typeof sourceOrTarget === "string") return sourceOrTarget
+		return sourceOrTarget['#text']
 	}
 
 	async getId(identifier: string): Promise<undefined | TransUnit> {
