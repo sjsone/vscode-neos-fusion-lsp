@@ -13,6 +13,13 @@
   - Autocompletion and Hover for the `Configuration.setting()` EEL-Helper
 - Integration of the WIP [`ts-fusion-runtime`](https://www.npmjs.com/package/ts-fusion-runtime) to correctly resolve Fusion properties
 
+## 🚀 0.3.1
+
+- XLIFF Support when using shorthand id `I18n.translate("Neos.Redirect...")` or `Translation.translate("Neos.Redirect...")`
+  - All translations on hover
+  - Definitions on CMD-Click
+  - Diagnostics when no translation can be found for the given id
+
 ## 🚀 0.2.10
 
 - AFX now supports escaped tag attributes `<div '@meta.test'="test"></div>`
