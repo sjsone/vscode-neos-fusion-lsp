@@ -1,8 +1,6 @@
 import * as NodeFs from 'fs'
-import * as NodeFs from 'fs'
 import * as NodePath from 'path'
 
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
@@ -12,6 +10,7 @@ import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStateme
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
+import * as YAML from 'yaml'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { ExternalObjectStatement, NodeService } from '../common/NodeService'
 import { XLIFFService } from '../common/XLIFFService'
@@ -22,15 +21,9 @@ import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
 import { PhpClassNode } from '../fusion/PhpClassNode'
 import { ResourceUriNode } from '../fusion/ResourceUriNode'
-import { FusionWorkspace } from '../fusion/FusionWorkspace'
-import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
-import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
-import { PhpClassNode } from '../fusion/PhpClassNode'
-import { ResourceUriNode } from '../fusion/ResourceUriNode'
 import { TranslationShortHandNode } from '../fusion/TranslationShortHandNode'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
-import * as YAML from 'yaml'
 
 
 export class HoverCapability extends AbstractCapability {

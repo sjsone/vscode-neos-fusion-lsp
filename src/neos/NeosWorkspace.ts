@@ -1,13 +1,11 @@
-import * as NodePath from "path"
 import * as NodeFs from "fs"
+import * as NodePath from "path"
 import { ConfigurationManager } from '../ConfigurationManager'
 import { Logger } from '../common/Logging'
 import { uriToPath } from '../common/util'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
-import { EELHelperToken, NeosPackage } from './NeosPackage'
-import { FusionWorkspace } from '../fusion/FusionWorkspace'
-import { getFiles } from '../common/util'
 import { FlowConfiguration } from './FlowConfiguration'
+import { EELHelperToken, NeosPackage } from './NeosPackage'
 
 export class NeosWorkspace extends Logger {
 	protected fusionWorkspace: FusionWorkspace
