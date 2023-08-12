@@ -3,10 +3,7 @@ import { Logger } from './Logging';
 
 
 export class AbstractFunctionality extends Logger {
-	protected languageServer: LanguageServer
-
-	constructor(languageServer: LanguageServer) {
+	constructor(protected languageServer: LanguageServer) {
 		super()
-		this.languageServer = languageServer
 	}
 }

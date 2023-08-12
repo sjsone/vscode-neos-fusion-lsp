@@ -1,6 +1,6 @@
 import { InlayHintParams } from 'vscode-languageserver/node'
-import { LanguageFeatureContext } from './LanguageFeatureContext'
 import { AbstractFunctionality } from '../common/AbstractFunctionality'
+import { LanguageFeatureContext } from './LanguageFeatureContext'
 
 export abstract class AbstractLanguageFeature extends AbstractFunctionality {
 

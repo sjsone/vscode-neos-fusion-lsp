@@ -1,8 +1,8 @@
 import { Diagnostic, DiagnosticRelatedInformation, DiagnosticSeverity, Location } from 'vscode-languageserver'
-import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { NodeService } from '../common/NodeService'
 import { getPrototypeNameFromNode } from '../common/util'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { CommonDiagnosticHelper } from './CommonDiagnosticHelper'
 
 const isPrototypeOneOf = (prototypeName: string, oneOf: string[], workspace: FusionWorkspace) => {
@@ -30,8 +30,8 @@ export function diagnoseNodeTypeDefinitions(parsedFusionFile: ParsedFusionFile) 
 
 		if (contentPrototypeNames.includes(prototypeName)) continue
 		if (!isPrototypeOneOf(prototypeName, contentPrototypeNames, workspace)) continue
-
-		// TODO: implement action to create NodeTypeDefinition (NodeType vs. Configuration Folder...)
+		if (isPrototypeOneOf(prototypeName, workspace.getConfiguration().diagnostics.ignoreNodeTypes, workspace)) continue
+		if (NodeService.isNodeAffectedByIgnoreComment(creation.getNode(), parsedFusionFile)) continue
 
 		const nodeTypeDefinition = nodeTypeDefinitions.find(nodeType => nodeType.nodeType === prototypeName)
 		if (!nodeTypeDefinition) {

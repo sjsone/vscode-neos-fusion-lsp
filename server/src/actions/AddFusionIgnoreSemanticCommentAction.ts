@@ -1,8 +1,7 @@
-import * as NodeFs from 'fs'
-
+import * as NodeFs from 'fs';
 import { CodeAction, CodeActionKind, CodeActionParams, Range, TextEdit } from 'vscode-languageserver';
-import { getLinesFromLineDataCacheForFile, hasLineDataCacheFile, setLinesFromLineDataCacheForFile, uriToPath } from '../common/util';
 import { LanguageServer } from '../LanguageServer';
+import { getLinesFromLineDataCacheForFile, hasLineDataCacheFile, setLinesFromLineDataCacheForFile, uriToPath } from '../common/util';
 
 async function getLinesFromUri(uri: string) {
 	const document = (await NodeFs.promises.readFile(uriToPath(uri))).toString()

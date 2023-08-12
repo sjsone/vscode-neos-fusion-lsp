@@ -1,5 +1,6 @@
 export enum LoggingLevel {
     Info = "info",
+    Error = "error",
     Verbose = "verbose",
     Debug = "debug"
 }
@@ -42,7 +43,8 @@ export interface ExtensionConfiguration {
         alwaysDiagnoseChangedFile: boolean,
         levels: {
             deprecations: DeprecationsDiagnosticLevels
-        }
+        },
+        ignoreNodeTypes: string[]
     },
     code: {
         deprecations: {

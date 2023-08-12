@@ -1,10 +1,10 @@
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
 import { CodeLens } from 'vscode-languageserver';
-import { AbstractCapability } from './AbstractCapability';
-import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext';
+import { NodeTypeService } from '../common/NodeTypeService';
 import { FusionWorkspace } from '../fusion/FusionWorkspace';
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
-import { NodeTypeService } from '../common/NodeTypeService';
+import { AbstractCapability } from './AbstractCapability';
+import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext';
 
 export class CodeLensCapability extends AbstractCapability {
 	protected noPositionedNode: boolean = true
