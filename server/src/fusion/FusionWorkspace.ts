@@ -5,13 +5,13 @@ import { TextDocumentChangeEvent } from 'vscode-languageserver'
 import { TextDocument } from "vscode-languageserver-textdocument"
 import { LoggingLevel, type ExtensionConfiguration } from '../ExtensionConfiguration'
 import { LanguageServer } from '../LanguageServer'
+import { ComposerService } from '../common/ComposerService'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { LogService, Logger } from '../common/Logging'
 import { TranslationService } from '../common/TranslationService'
 import { getFiles, pathToUri, uriToPath } from '../common/util'
 import { diagnose } from '../diagnostics/ParsedFusionFileDiagnostics'
 import { NeosPackage } from '../neos/NeosPackage'
-import { ComposerService } from '../common/ComposerService'
 import { NeosWorkspace } from '../neos/NeosWorkspace'
 import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile'
 import { ParsedFusionFile } from './ParsedFusionFile'
@@ -80,8 +80,9 @@ export class FusionWorkspace extends Logger {
 
         this.neosWorkspace = new NeosWorkspace(this)
 
-        this.neosWorkspace = new NeosWorkspace(this, workspacePath, this.name)
-        for (const packagePath of packagesPaths) {
+        // this.neosWorkspace = new NeosWorkspace(this, workspacePath, this.name)
+        this.neosWorkspace = new NeosWorkspace(this)
+        // for (const packagePath of packagesPaths) {
         for (const packagePath of ComposerService.getSortedPackagePaths(packagesPaths)) {
             this.neosWorkspace.addPackage(packagePath)
         }

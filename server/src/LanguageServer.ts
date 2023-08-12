@@ -1,9 +1,6 @@
-import { CodeAction, CodeActionParams } from 'vscode-languageserver'
-import { CodeActionParams, FileEvent } from 'vscode-languageserver'
+import { CodeAction, CodeActionParams, FileEvent } from 'vscode-languageserver'
 import {
 	DidChangeConfigurationParams,
-	DidChangeWatchedFilesParams,
-	FileChangeType,
 	DidChangeWatchedFilesParams,
 	FileChangeType,
 	InitializeParams,
@@ -14,16 +11,8 @@ import {
 	TextDocumentSyncKind,
 	TextDocuments,
 	_Connection
-	TextDocumentChangeEvent,
-	TextDocumentSyncKind,
-	TextDocuments,
-	_Connection
 } from "vscode-languageserver/node"
 import { type ExtensionConfiguration } from './ExtensionConfiguration'
-import { addFusionIgnoreSemanticCommentAction } from './actions/AddFusionIgnoreSemanticCommentAction'
-import { createNodeTypeFileAction } from './actions/CreateNodeTypeFileAction'
-import { openDocumentationAction } from './actions/OpenDocumentationAction'
-import { replaceDeprecatedQuickFixAction } from './actions/ReplaceDeprecatedQuickFixAction'
 import { addFusionIgnoreSemanticCommentAction } from './actions/AddFusionIgnoreSemanticCommentAction'
 import { createNodeTypeFileAction } from './actions/CreateNodeTypeFileAction'
 import { openDocumentationAction } from './actions/OpenDocumentationAction'
@@ -31,10 +20,7 @@ import { replaceDeprecatedQuickFixAction } from './actions/ReplaceDeprecatedQuic
 import { AbstractCapability } from './capabilities/AbstractCapability'
 import { CodeLensCapability } from './capabilities/CodeLensCapability'
 import { CompletionCapability } from './capabilities/CompletionCapability'
-import { CodeLensCapability } from './capabilities/CodeLensCapability'
-import { CompletionCapability } from './capabilities/CompletionCapability'
 import { DefinitionCapability } from './capabilities/DefinitionCapability'
-import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
 import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
 import { HoverCapability } from './capabilities/HoverCapability'
 import { ReferenceCapability } from './capabilities/ReferenceCapability'
@@ -42,7 +28,7 @@ import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapabil
 import { AbstractFunctionality } from './common/AbstractFunctionality'
 import { ClientCapabilityService } from './common/ClientCapabilityService'
 import { LogService, Logger } from './common/Logging'
-import { clearLineDataCache, uriToPath } from './common/util'
+import { clearLineDataCache, clearLineDataCacheForFile, uriToPath } from './common/util'
 import { AbstractFileChangeHandler } from './fileChangeHandler/AbstractFileChangeHandler'
 import { FusionFileChangeHandler } from './fileChangeHandler/FusionFileChangeHandler'
 import { PhpFileChangeHandler } from './fileChangeHandler/PhpFileChangeHandler'
@@ -52,7 +38,6 @@ import { FusionWorkspace } from './fusion/FusionWorkspace'
 import { AbstractLanguageFeature } from './languageFeatures/AbstractLanguageFeature'
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
-import { FusionDocument } from './main'
 import { FusionDocument } from './main'
 
 
@@ -276,45 +261,6 @@ export class LanguageServer extends Logger {
 		}
 	}
 
-	protected handleFileCreated(change: FileEvent) {
-		if (change.uri.endsWith(".yaml")) this.handleConfigurationFileChanged(change)
-
-		if (change.uri.endsWith(".yaml") && change.uri.includes("NodeTypes")) {
-			this.handleNodeTypeFileChanged()
-		}
-
-		if (change.uri.endsWith(".fusion")) {
-			const workspace = this.getWorkspaceForFileUri(change.uri)
-			if (!workspace) {
-				this.logInfo(`Created Fusion file corresponds to no workspace. ${change.uri}`)
-				return
-			}
-
-			const neosPackage = workspace.neosWorkspace.getPackageByUri(change.uri)
-			workspace.addParsedFileFromPath(uriToPath(change.uri), neosPackage)
-			this.logDebug(`Added new ParsedFusionFile ${change.uri}`)
-		}
-	}
-
-	protected handleFileDeleted(change: FileEvent) {
-		clearLineDataCacheForFile(change.uri)
-
-		if (change.uri.endsWith(".yaml")) this.handleConfigurationFileChanged(change)
-
-		if (change.uri.endsWith(".yaml") && change.uri.includes("NodeTypes")) {
-			this.handleNodeTypeFileChanged()
-		}
-
-		if (change.uri.endsWith(".fusion")) {
-			const workspace = this.getWorkspaceForFileUri(change.uri)
-			if (!workspace) {
-				this.logInfo(`Deleted Fusion file corresponds to no workspace. ${change.uri}`)
-				return
-			}
-			workspace.removeParsedFile(change.uri)
-		}
-	}
-
 	public async onCodeAction(params: CodeActionParams) {
 		const actions: CodeAction[] = []
 		for (const codeAction of CodeActions) {
@@ -326,6 +272,5 @@ export class LanguageServer extends Logger {
 		}
 		return actions
 	}
-
 }
 
