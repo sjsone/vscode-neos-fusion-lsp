@@ -11,24 +11,20 @@ function* getDiagnosticsFromPathSegments(pathSegments: LinePositionedNode<Protot
 		const node = positionedPathSegment.getNode()
 		const range = positionedPathSegment.getPositionAsRange()
 
-		if (!node.identifier.includes(":")) {
-			yield {
-				severity,
-				range,
-				tags: [DiagnosticTag.Deprecated],
-				message: `A prototype without a namespace is deprecated`,
-				source: CommonDiagnosticHelper.Source
-			}
+		if (!node.identifier.includes(":")) yield {
+			severity,
+			range,
+			tags: [DiagnosticTag.Deprecated],
+			message: `A prototype without a namespace is deprecated`,
+			source: CommonDiagnosticHelper.Source
 		}
 
-		if (isPrototypeDeprecated(parsedFusionFile.workspace, node.identifier)) {
-			yield {
-				severity,
-				range,
-				tags: [DiagnosticTag.Deprecated],
-				message: `Prototype ${node.identifier} is deprecated`,
-				source: CommonDiagnosticHelper.Source
-			}
+		if (isPrototypeDeprecated(parsedFusionFile.workspace, node.identifier)) yield {
+			severity,
+			range,
+			tags: [DiagnosticTag.Deprecated],
+			message: `Prototype ${node.identifier} is deprecated`,
+			source: CommonDiagnosticHelper.Source
 		}
 	}
 }
@@ -38,13 +34,11 @@ function* getDiagnosticsFromFusionObjectValues(fusionObjectValues: LinePositione
 		const node = fusionObjectValue.getNode()
 		const range = fusionObjectValue.getPositionAsRange()
 
-		if (!node.value.includes(":")) {
-			yield {
-				severity,
-				range,
-				message: `Using a prototype without a namespace should be avoided`,
-				source: CommonDiagnosticHelper.Source
-			}
+		if (!node.value.includes(":")) yield {
+			severity,
+			range,
+			message: `Using a prototype without a namespace should be avoided`,
+			source: CommonDiagnosticHelper.Source
 		}
 
 		const deprecated = isPrototypeDeprecated(parsedFusionFile.workspace, node.value)
