@@ -1,7 +1,7 @@
 import * as NodePath from "path"
-import { EelHelperMethod } from '../eel/EelHelperMethod'
 import { LinePosition } from '../common/LinePositionedNode'
 import { Logger } from '../common/Logging'
+import { EelHelperMethod } from '../eel/EelHelperMethod'
 import { FlowConfiguration } from './FlowConfiguration'
 import { NeosPackageNamespace } from './NeosPackageNamespace'
 import { NeosWorkspace } from './NeosWorkspace'
@@ -124,10 +124,15 @@ export class NeosPackage extends Logger {
 		return undefined
 	}
 
+	// TODO: refactor method. No "packageName" needed
 	getResourceUriPath(packageName: string, relativePath: string) {
 		if (this.getPackageName() === packageName) {
 			return NodePath.join(this.path, "Resources", relativePath)
 		}
+	}
+
+	getTranslationsBasePath() {
+		return NodePath.join(this.path, "Resources", "Private", "Translations")
 	}
 
 	getEelHelpers() {
@@ -144,11 +149,19 @@ export class NeosPackage extends Logger {
 		return packageKey ?? name.split("/").map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('.')
 	}
 
+	hasName(name: string) {
+		// TODO: improve or further implement the concept of "file path based package name"
+		if (this.getName() === name) return true
+		if (this.getPackageName() === name) return true
+		if (this.path.split(NodePath.sep).pop() === name) return true
+		return false
+	}
+
 	log(...text: any) {
 		if (this.debug) console.log("[NeosPackage]", ...text)
 	}
 
 	trimLeadingBackslash(fqcn: string) {
-		return fqcn[0] === "\\" ? fqcn.substring(1) : fqcn
+		return fqcn.startsWith("\\") ? fqcn.substring(1) : fqcn
 	}
 }

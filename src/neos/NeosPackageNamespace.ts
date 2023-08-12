@@ -1,7 +1,7 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
-import { EelHelperMethod } from '../eel/EelHelperMethod'
 import { getLineNumberOfChar, pathToUri } from '../common/util'
+import { EelHelperMethod } from '../eel/EelHelperMethod'
 import { PhpMethodParameter } from '../eel/PhpMethod'
 
 export interface ClassDefinition {

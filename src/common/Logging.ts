@@ -1,6 +1,4 @@
 import { LoggingLevel } from '../ExtensionConfiguration'
-import * as NodeFs from "fs"
-import * as NodeUtil from "util"
 
 class LogService {
 	protected logLevel: LoggingLevel = LoggingLevel.Info
@@ -44,6 +42,10 @@ export class Logger {
 
 	logInfo(...things: any) {
 		this.logLevel(LoggingLevel.Info, ...things)
+	}
+
+	logError(...things: any) {
+		this.logLevel(LoggingLevel.Error, ...things)
 	}
 
 	logVerbose(...things: any) {

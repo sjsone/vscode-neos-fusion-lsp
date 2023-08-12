@@ -1,4 +1,20 @@
-import { AliasToken, AnchorToken, ColonToken, CommentToken, ComplexStringToken, DashToken, NewlineToken, NumberToken, SpaceToken, StringBlockToken, StringToken, SymbolToken, TagToken, TildeToken, YamlToken } from "./YamlToken"
+import {
+    AliasToken,
+    AnchorToken,
+    ColonToken,
+    CommentToken,
+    ComplexStringToken,
+    DashToken,
+    NewlineToken,
+    NumberToken,
+    SpaceToken,
+    StringBlockToken,
+    StringToken,
+    SymbolToken,
+    TagToken,
+    TildeToken,
+    YamlToken
+} from "./YamlToken"
 
 
 export class YamlLexer {
@@ -189,14 +205,14 @@ export class YamlLexer {
                 yield this.tokenizeNewline(char)
                 this.inLine = false
             } else if (char === " " || char === "\t") {
-                
+
                 const token = this.tokenizeSpace(char)
                 if (token) yield token
             } else {
                 // console.log(`random: "${char}"`)
                 this.currentPos++
             }
-            
+
 
         }
     }

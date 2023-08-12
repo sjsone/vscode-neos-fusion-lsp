@@ -14,15 +14,16 @@ import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/Prototyp
 import { StatementList } from 'ts-fusion-parser/out/fusion/nodes/StatementList'
 import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
-import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService'
+import { ActionUriPartTypes } from '../common/ActionUriService'
 import { LinePosition, LinePositionedNode } from '../common/LinePositionedNode'
 import { NodeService } from '../common/NodeService'
 import { findParent, getObjectIdentifier, parseSemanticComment } from '../common/util'
+import { ActionUriDefinitionNode } from '../fusion/ActionUriDefinitionNode'
+import { NeosFusionFormDefinitionNode } from '../fusion/NeosFusionFormDefinitionNode'
 import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
+import { TranslationShortHandNode } from '../fusion/TranslationShortHandNode'
 import { AbstractLanguageFeature } from './AbstractLanguageFeature'
 import { LanguageFeatureContext } from './LanguageFeatureContext'
-import { NeosFusionFormDefinitionNode } from '../fusion/NeosFusionFormDefinitionNode'
-import { ActionUriDefinitionNode } from '../fusion/ActionUriDefinitionNode'
 
 export interface SemanticTokenConstruct {
 	position: LinePosition
@@ -87,6 +88,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 		semanticTokenConstructs.push(...this.generateTagAttributeTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generateSemanticCommentTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generateComponentRendererTokens(languageFeatureContext))
+		semanticTokenConstructs.push(...this.generateTranslationShortHandTokens(languageFeatureContext))
 
 		return {
 			data: this.generateTokenArray(semanticTokenConstructs)
@@ -149,6 +151,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 	protected generateLiteralStringTokens(languageFeatureContext: LanguageFeatureContext) {
 		return this.generateForType(LiteralStringNode, languageFeatureContext, node => {
 			if (findParent(node.getNode(), EelExpressionValue)) return undefined
+			if (node.getNode().translationShortHandNode !== undefined) return undefined
 			return {
 				position: node.getBegin(),
 				length: node.getNode()["value"].length + 2, // offset for quotes
@@ -286,6 +289,9 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 			})
 		}
 
+		// FIXME: check why comment in statement list has wrong position (line)
+		// console.log("semanticTokenConstructs", semanticTokenConstructs)
+
 		return semanticTokenConstructs
 	}
 
@@ -334,6 +340,15 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 		}
 
 		return semanticTokenConstructs
+	}
+
+	protected generateTranslationShortHandTokens(languageFeatureContext: LanguageFeatureContext) {
+		return this.generateForType(TranslationShortHandNode, languageFeatureContext, node => ({
+			position: node.getBegin(),
+			length: node.getNode().getValue().length + 2, // quotes
+			type: 'variable',
+			modifier: 'declaration'
+		}))
 	}
 
 	protected generateForType<T extends AbstractNode>(type: new (...args: any) => T, languageFeatureContext: LanguageFeatureContext, createConstructCallback: (node: LinePositionedNode<T>) => SemanticTokenConstruct) {

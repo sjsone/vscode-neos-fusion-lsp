@@ -7,6 +7,21 @@ import { getFiles, mergeObjects } from '../common/util'
 import { FlowConfigurationFile, FlowConfigurationFileType, NodeTypeDefinition, ParsedYaml } from './FlowConfigurationFile'
 import { NeosPackage } from './NeosPackage'
 import { NeosWorkspace } from './NeosWorkspace'
+import { Position } from 'vscode-languageserver'
+import { parse as parseYaml } from 'yaml'
+import { Logger, LogService } from '../common/Logging'
+import { getFiles, mergeObjects, pathToUri } from '../common/util'
+import { LoggingLevel } from '../ExtensionConfiguration'
+import { YamlLexer } from '../yaml/YamlLexer'
+import { error } from 'console'
+
+export type ParsedYaml = string | null | number | boolean | { [key: string]: ParsedYaml }
+
+export interface NodeTypeDefinition {
+	uri: string
+	nodeType: string
+	position: Position
+}
 
 export class FlowConfiguration extends Logger {
 	protected settingsConfiguration: ParsedYaml

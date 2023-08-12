@@ -6,7 +6,14 @@ import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
 import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue'
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
+import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
+import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
+import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
+import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
+import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
@@ -16,11 +23,15 @@ import { DefinitionLink, Location, LocationLink } from 'vscode-languageserver/no
 import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { NodeService } from '../common/NodeService'
+import { XLIFFService } from '../common/XLIFFService'
 import { findParent, getObjectIdentifier, getPrototypeNameFromNode, pathToUri } from '../common/util'
 import { ActionUriActionNode } from '../fusion/ActionUriActionNode'
 import { ActionUriControllerNode } from '../fusion/ActionUriControllerNode'
 import { ActionUriDefinitionNode } from '../fusion/ActionUriDefinitionNode'
 import { FlowConfigurationPathPartNode } from '../fusion/FlowConfigurationPathPartNode'
+import { FqcnNode } from '../fusion/FqcnNode'
+import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { ActionUriControllerNode } from '../fusion/ActionUriControllerNode'
 import { FqcnNode } from '../fusion/FqcnNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { NeosFusionFormActionNode } from '../fusion/NeosFusionFormActionNode'
@@ -29,6 +40,14 @@ import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
 import { PhpClassNode } from '../fusion/PhpClassNode'
 import { ResourceUriNode } from '../fusion/ResourceUriNode'
+import { ClassDefinition } from '../neos/NeosPackageNamespace'
+import { AbstractCapability } from './AbstractCapability'
+import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
+import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
+import { PhpClassNode } from '../fusion/PhpClassNode'
+import { ResourceUriNode } from '../fusion/ResourceUriNode'
+import { TranslationShortHandNode } from '../fusion/TranslationShortHandNode'
 import { ClassDefinition } from '../neos/NeosPackageNamespace'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
@@ -51,6 +70,8 @@ export class DefinitionCapability extends AbstractCapability {
 		switch (true) {
 			case node instanceof FlowConfigurationPathPartNode:
 				return this.getConfigurationSettingsDefinitions(workspace, <LinePositionedNode<FlowConfigurationPathPartNode>>foundNodeByLine)
+			case node instanceof TranslationShortHandNode:
+				return this.getTranslationShortHandNodeDefinitions(workspace, <LinePositionedNode<TranslationShortHandNode>>foundNodeByLine)
 			case node instanceof FusionObjectValue:
 			case node instanceof PrototypePathSegment:
 				return this.getPrototypeDefinitions(workspace, foundNodeByLine)
@@ -72,6 +93,34 @@ export class DefinitionCapability extends AbstractCapability {
 		}
 
 		return null
+	}
+
+	async getTranslationShortHandNodeDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<TranslationShortHandNode>) {
+		const shortHandIdentifier = XLIFFService.readShortHandIdentifier(foundNodeByLine.getNode().getValue())
+		const translationFiles = await XLIFFService.getMatchingTranslationFiles(workspace, shortHandIdentifier)
+
+		const locations: DefinitionLink[] = []
+
+		for (const translationFile of translationFiles) {
+			const transUnit = await translationFile.getId(shortHandIdentifier.translationIdentifier)
+			if (!transUnit) continue
+
+			const position = transUnit.position
+			const range = Range.create(
+				position,
+				Position.create(position.line, position.character + transUnit.id.length + 5)
+			)
+
+			locations.push({
+				targetUri: translationFile.uri,
+				targetRange: range,
+				targetSelectionRange: range,
+				originSelectionRange: foundNodeByLine.getPositionAsRange()
+			})
+
+		}
+		return locations
+
 	}
 
 	getPrototypeDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<AbstractNode>) {

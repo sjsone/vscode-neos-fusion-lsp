@@ -1,18 +1,20 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { TextDocumentChangeEvent } from 'vscode-languageserver'
 import { TextDocument } from "vscode-languageserver-textdocument"
 import { LoggingLevel, type ExtensionConfiguration } from '../ExtensionConfiguration'
-import { LinePositionedNode } from '../common/LinePositionedNode'
-import { NeosWorkspace } from '../neos/NeosWorkspace'
-import { ParsedFusionFile } from './ParsedFusionFile'
-import { getFiles, pathToUri, uriToPath } from '../common/util'
-import { Logger, LogService } from '../common/Logging'
 import { LanguageServer } from '../LanguageServer'
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { LinePositionedNode } from '../common/LinePositionedNode'
+import { LogService, Logger } from '../common/Logging'
+import { TranslationService } from '../common/TranslationService'
+import { getFiles, pathToUri, uriToPath } from '../common/util'
 import { diagnose } from '../diagnostics/ParsedFusionFileDiagnostics'
 import { NeosPackage } from '../neos/NeosPackage'
 import { ComposerService } from '../common/ComposerService'
+import { NeosWorkspace } from '../neos/NeosWorkspace'
+import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile'
+import { ParsedFusionFile } from './ParsedFusionFile'
 
 export class FusionWorkspace extends Logger {
     public uri: string
@@ -24,6 +26,8 @@ export class FusionWorkspace extends Logger {
 
     public parsedFiles: ParsedFusionFile[] = []
     public filesWithErrors: string[] = []
+
+    public translationFiles: XLIFFTranslationFile[] = []
 
     protected filesToDiagnose: ParsedFusionFile[] = []
 
@@ -76,6 +80,8 @@ export class FusionWorkspace extends Logger {
 
         this.neosWorkspace = new NeosWorkspace(this)
 
+        this.neosWorkspace = new NeosWorkspace(this, workspacePath, this.name)
+        for (const packagePath of packagesPaths) {
         for (const packagePath of ComposerService.getSortedPackagePaths(packagesPaths)) {
             this.neosWorkspace.addPackage(packagePath)
         }
@@ -88,7 +94,8 @@ export class FusionWorkspace extends Logger {
             const packagePath = neosPackage["path"]
             this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
                 message: `Package: ${packagePath}`
-            })
+            }).catch(error => this.logError("init", error))
+
             for (const packageFusionFolderPath of configuration.folders.fusion) {
                 const fusionFolderPath = NodePath.join(packagePath, packageFusionFolderPath)
                 if (!NodeFs.existsSync(fusionFolderPath)) continue
@@ -97,9 +104,12 @@ export class FusionWorkspace extends Logger {
                     this.addParsedFileFromPath(fusionFilePath, neosPackage)
                 }
             }
+
+            this.translationFiles.push(...TranslationService.readTranslationsFromPackage(neosPackage))
+
             this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
                 increment: incrementPerPackage
-            })
+            }).catch(error => this.logError("init", error))
         }
 
         for (const parsedFile of this.parsedFiles) {
@@ -118,9 +128,9 @@ export class FusionWorkspace extends Logger {
             }
         }
 
-        this.languageServer.sendProgressNotificationFinish("fusion_workspace_init")
+        this.languageServer.sendProgressNotificationFinish("fusion_workspace_init").catch(error => this.logError("init", error))
 
-        this.processFilesToDiagnose()
+        this.processFilesToDiagnose().catch(error => this.logError("init", error))
     }
 
     addParsedFileFromPath(fusionFilePath: string, neosPackage: NeosPackage) {
@@ -202,6 +212,10 @@ export class FusionWorkspace extends Logger {
         return nodes
     }
 
+    getTranslationFileByUri(uri: string) {
+        return this.translationFiles.find(file => file.uri === uri)
+    }
+
     public async diagnoseAllFusionFiles() {
         // TODO: Create Diagnose class with concurrency (no need to diagnose the same files at the same time)
         this.filesToDiagnose = Array.from(this.parsedFiles)
@@ -213,12 +227,10 @@ export class FusionWorkspace extends Logger {
         this.logDebug(`<${randomDiagnoseRun}> Will diagnose ${this.filesToDiagnose.length} files`)
         await Promise.all(this.filesToDiagnose.map(async parsedFile => {
             const diagnostics = await diagnose(parsedFile)
-            if (diagnostics) {
-                this.languageServer.sendDiagnostics({
-                    uri: parsedFile.uri,
-                    diagnostics
-                })
-            }
+            if (diagnostics) await this.languageServer.sendDiagnostics({
+                uri: parsedFile.uri,
+                diagnostics
+            })
         }))
         this.logDebug(`<${randomDiagnoseRun}>...finished`)
 
@@ -228,5 +240,6 @@ export class FusionWorkspace extends Logger {
     protected clear() {
         this.parsedFiles = []
         this.filesWithErrors = []
+        this.translationFiles = []
     }
 }

@@ -3,10 +3,12 @@ import * as NodeFs from "fs"
 import { ConfigurationManager } from '../ConfigurationManager'
 import { Logger } from '../common/Logging'
 import { uriToPath } from '../common/util'
+import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { EELHelperToken, NeosPackage } from './NeosPackage'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { getFiles } from '../common/util'
 import { FlowConfiguration } from './FlowConfiguration'
+
 export class NeosWorkspace extends Logger {
 	protected fusionWorkspace: FusionWorkspace
 	protected workspacePath: string

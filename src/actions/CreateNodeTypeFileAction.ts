@@ -1,7 +1,7 @@
-import { CodeActionParams, CodeAction, CodeActionKind, Command, WorkspaceEdit, TextEdit, Position, TextDocumentEdit, CreateFile } from 'vscode-languageserver';
+import * as NodeFs from "fs";
+import * as NodePath from "path";
+import { CodeAction, CodeActionKind, CodeActionParams, CreateFile, Position, TextDocumentEdit, TextEdit } from 'vscode-languageserver';
 import { LanguageServer } from '../LanguageServer';
-import * as NodeFs from "fs"
-import * as NodePath from "path"
 import { pathToUri } from '../common/util';
 
 

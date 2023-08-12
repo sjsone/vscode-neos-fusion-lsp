@@ -1,6 +1,9 @@
+import { CodeAction, CodeActionParams } from 'vscode-languageserver'
 import { CodeActionParams, FileEvent } from 'vscode-languageserver'
 import {
 	DidChangeConfigurationParams,
+	DidChangeWatchedFilesParams,
+	FileChangeType,
 	DidChangeWatchedFilesParams,
 	FileChangeType,
 	InitializeParams,
@@ -11,8 +14,16 @@ import {
 	TextDocumentSyncKind,
 	TextDocuments,
 	_Connection
+	TextDocumentChangeEvent,
+	TextDocumentSyncKind,
+	TextDocuments,
+	_Connection
 } from "vscode-languageserver/node"
 import { type ExtensionConfiguration } from './ExtensionConfiguration'
+import { addFusionIgnoreSemanticCommentAction } from './actions/AddFusionIgnoreSemanticCommentAction'
+import { createNodeTypeFileAction } from './actions/CreateNodeTypeFileAction'
+import { openDocumentationAction } from './actions/OpenDocumentationAction'
+import { replaceDeprecatedQuickFixAction } from './actions/ReplaceDeprecatedQuickFixAction'
 import { addFusionIgnoreSemanticCommentAction } from './actions/AddFusionIgnoreSemanticCommentAction'
 import { createNodeTypeFileAction } from './actions/CreateNodeTypeFileAction'
 import { openDocumentationAction } from './actions/OpenDocumentationAction'
@@ -20,7 +31,10 @@ import { replaceDeprecatedQuickFixAction } from './actions/ReplaceDeprecatedQuic
 import { AbstractCapability } from './capabilities/AbstractCapability'
 import { CodeLensCapability } from './capabilities/CodeLensCapability'
 import { CompletionCapability } from './capabilities/CompletionCapability'
+import { CodeLensCapability } from './capabilities/CodeLensCapability'
+import { CompletionCapability } from './capabilities/CompletionCapability'
 import { DefinitionCapability } from './capabilities/DefinitionCapability'
+import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
 import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
 import { HoverCapability } from './capabilities/HoverCapability'
 import { ReferenceCapability } from './capabilities/ReferenceCapability'
@@ -28,13 +42,33 @@ import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapabil
 import { AbstractFunctionality } from './common/AbstractFunctionality'
 import { ClientCapabilityService } from './common/ClientCapabilityService'
 import { LogService, Logger } from './common/Logging'
-import { clearLineDataCache, clearLineDataCacheForFile, uriToPath } from './common/util'
+import { clearLineDataCache, uriToPath } from './common/util'
+import { AbstractFileChangeHandler } from './fileChangeHandler/AbstractFileChangeHandler'
+import { FusionFileChangeHandler } from './fileChangeHandler/FusionFileChangeHandler'
+import { PhpFileChangeHandler } from './fileChangeHandler/PhpFileChangeHandler'
+import { XlfFileChangeHandler } from './fileChangeHandler/XlfFileChangeHandler'
+import { YamlFileChangeHandler } from './fileChangeHandler/YamlFileChangeHandler'
 import { FusionWorkspace } from './fusion/FusionWorkspace'
 import { AbstractLanguageFeature } from './languageFeatures/AbstractLanguageFeature'
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { FusionDocument } from './main'
+import { FusionDocument } from './main'
 
+
+const CodeActions = [
+	addFusionIgnoreSemanticCommentAction,
+	replaceDeprecatedQuickFixAction,
+	openDocumentationAction,
+	createNodeTypeFileAction,
+]
+
+const FileChangeHandlerTypes: Array<new (...any) => AbstractFileChangeHandler> = [
+	FusionFileChangeHandler,
+	PhpFileChangeHandler,
+	XlfFileChangeHandler,
+	YamlFileChangeHandler
+]
 
 export class LanguageServer extends Logger {
 
@@ -44,6 +78,7 @@ export class LanguageServer extends Logger {
 	protected clientCapabilityService: ClientCapabilityService
 
 	protected functionalityInstances: Map<new (...args: unknown[]) => AbstractFunctionality, AbstractFunctionality> = new Map()
+	protected fileChangeHandlerInstances: Map<new (...args: unknown[]) => AbstractFileChangeHandler, AbstractFileChangeHandler> = new Map()
 
 	constructor(connection: _Connection, documents: TextDocuments<FusionDocument>) {
 		super()
@@ -60,22 +95,27 @@ export class LanguageServer extends Logger {
 
 		this.addFunctionalityInstance(InlayHintLanguageFeature)
 		this.addFunctionalityInstance(SemanticTokensLanguageFeature)
+
+		this.addFunctionalityInstance(FusionFileChangeHandler)
+		this.addFunctionalityInstance(PhpFileChangeHandler)
+		this.addFunctionalityInstance(XlfFileChangeHandler)
+		this.addFunctionalityInstance(YamlFileChangeHandler)
 	}
 
 	protected addFunctionalityInstance(type: new (...args: unknown[]) => AbstractFunctionality) {
 		this.functionalityInstances.set(type, new type(this))
 	}
 
-	public getFunctionalityInstance<T extends AbstractFunctionality>(type: new (...args: unknown[]) => AbstractFunctionality): T | undefined {
+	public getFunctionalityInstance<T extends AbstractFunctionality>(type: new (...args: unknown[]) => T): T | undefined {
 		return <T | undefined>this.functionalityInstances.get(type)
 	}
 
-	public runCapability<T extends AbstractCapability>(type: new (...args: unknown[]) => AbstractCapability, params: any) {
+	public runCapability<T extends AbstractCapability>(type: new (...args: unknown[]) => T, params: any) {
 		const capability = this.getFunctionalityInstance<T>(type)
 		return capability ? capability.execute(params) : undefined
 	}
 
-	public runLanguageFeature<T extends AbstractLanguageFeature>(type: new (...args: unknown[]) => AbstractLanguageFeature, params: any) {
+	public runLanguageFeature<T extends AbstractLanguageFeature>(type: new (...args: unknown[]) => T, params: any) {
 		const languageFeature = this.getFunctionalityInstance<T>(type)
 		return languageFeature ? languageFeature.execute(params) : undefined
 	}
@@ -201,11 +241,11 @@ export class LanguageServer extends Logger {
 		return this.connection.sendDiagnostics(params)
 	}
 
-	public onDidChangeConfiguration(params: DidChangeConfigurationParams) {
+	public async onDidChangeConfiguration(params: DidChangeConfigurationParams) {
 		const configuration: ExtensionConfiguration = params.settings.neosFusionLsp
 		Object.freeze(configuration)
 
-		this.sendBusyCreate('configuration', {
+		await this.sendBusyCreate('configuration', {
 			busy: true,
 			text: "$(rocket)",
 			detail: "initializing language server",
@@ -222,74 +262,16 @@ export class LanguageServer extends Logger {
 
 		clearLineDataCache()
 
-		this.sendBusyDispose('configuration')
+		await this.sendBusyDispose('configuration')
 	}
 
-	public onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams) {
-		// TODO: Create separate Watchers (like capabilities)
+	public async onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams) {
 		// TODO: Update relevant ParsedFusionFiles but check if it was not a change the LSP does know of
 		for (const change of params.changes) {
-			// console.log(`CHANGE: ${change.type} ${change.uri}`)
 			this.logVerbose(`Watched: (${Object.keys(FileChangeType)[Object.values(FileChangeType).indexOf(change.type)]}) ${change.uri}`)
-			if (change.type === FileChangeType.Changed) this.handleFileChanged(change)
-			if (change.type === FileChangeType.Created) this.handleFileCreated(change)
-			if (change.type === FileChangeType.Deleted) this.handleFileDeleted(change)
-		}
-	}
-
-	protected handleNodeTypeFileChanged() {
-		for (const workspace of this.fusionWorkspaces) {
-			for (const neosPackage of workspace.neosWorkspace.getPackages().values()) {
-				neosPackage.readConfiguration()
-			}
-		}
-		for (const workspace of this.fusionWorkspaces) workspace.diagnoseAllFusionFiles()
-	}
-
-	protected handleConfigurationFileChanged(change: FileEvent) {
-		clearLineDataCacheForFile(change.uri)
-
-		const fusionWorkspace = this.fusionWorkspaces.find(workspace => workspace.isResponsibleForUri(change.uri))
-		if (!fusionWorkspace) return
-
-		for (const configuration of fusionWorkspace.neosWorkspace.configurationManager["configurations"]) {
-			const configurationFile = configuration.getConfigurationFileByUri(change.uri)
-			if (!configurationFile) continue
-
-			configurationFile.reset()
-			configurationFile.parseYaml()
-			configuration.update()
-			break
-		}
-
-		fusionWorkspace.diagnoseAllFusionFiles()
-	}
-
-	protected handleFileChanged(change: FileEvent) {
-		if (change.uri.endsWith(".yaml")) this.handleConfigurationFileChanged(change)
-
-		if (change.uri.endsWith(".yaml") && change.uri.includes("NodeTypes")) {
-			this.handleNodeTypeFileChanged()
-		}
-
-		if (change.uri.endsWith(".php")) {
-			clearLineDataCacheForFile(change.uri)
-
-			for (const workspace of this.fusionWorkspaces) {
-				for (const [_, neosPackage] of workspace.neosWorkspace.getPackages().entries()) {
-					const helper = neosPackage.getEelHelpers().find(helper => helper.uri === change.uri)
-					if (!helper) continue
-
-					this.logVerbose(`  File was EEL-Helper ${helper.name}`)
-
-					const namespace = helper.namespace
-					const classDefinition = namespace.getClassDefinitionFromFilePathAndClassName(uriToPath(helper.uri), helper.className, helper.pathParts)
-
-					this.logVerbose(`  Methods: then ${helper.methods.length} now ${classDefinition.methods.length}`)
-
-					helper.methods = classDefinition.methods
-					helper.position = classDefinition.position
-				}
+			for (const fileChangeHandlerType of FileChangeHandlerTypes) {
+				const fileChangeHandler = this.getFunctionalityInstance(fileChangeHandlerType)
+				await fileChangeHandler.tryToHandle(change)
 			}
 		}
 	}
@@ -334,12 +316,15 @@ export class LanguageServer extends Logger {
 	}
 
 	public async onCodeAction(params: CodeActionParams) {
-		return [
-			...await addFusionIgnoreSemanticCommentAction(this, params),
-			...replaceDeprecatedQuickFixAction(this, params),
-			...openDocumentationAction(this, params),
-			...createNodeTypeFileAction(this, params)
-		]
+		const actions: CodeAction[] = []
+		for (const codeAction of CodeActions) {
+			try {
+				actions.push(...await codeAction(this, params))
+			} catch (error) {
+				this.logError(`onCodeAction -> ${codeAction.name}():`, error)
+			}
+		}
+		return actions
 	}
 
 }
