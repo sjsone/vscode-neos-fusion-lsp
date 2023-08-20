@@ -1,7 +1,7 @@
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver'
 import { XLIFFService } from '../common/XLIFFService'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
-import { TranslationShortHandNode } from '../fusion/TranslationShortHandNode'
+import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
 import { IgnorableDiagnostic } from './IgnorableDiagnostic'
 import { NodeService } from '../common/NodeService'
 
