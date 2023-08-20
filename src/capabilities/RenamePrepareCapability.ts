@@ -9,8 +9,11 @@ export class RenamePrepareCapability extends AbstractCapability {
 		const node = capabilityContext.foundNodeByLine.getNode();
 		if (!node) return undefined
 
-		if (!RenamePrepareCapability.canNodeBeRenamed(node)) return undefined
-
+		if (!RenamePrepareCapability.canNodeBeRenamed(node)) {
+			this.logInfo(`Node of type "${node.constructor.name}" cannot be renamed`)
+			return undefined
+		}
+		
 		return capabilityContext.foundNodeByLine.getPositionAsRange()
 	}
 
