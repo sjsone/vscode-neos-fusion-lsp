@@ -1,6 +1,8 @@
 import { TextDocument } from "vscode-languageserver-textdocument"
 import {
+    Position,
     ProposedFeatures,
+    Range,
     TextDocuments,
     createConnection
 } from "vscode-languageserver/node"
@@ -14,6 +16,8 @@ import { ReferenceCapability } from './capabilities/ReferenceCapability'
 import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
+import { RenameCapability } from './capabilities/RenameCapability'
+import { RenamePrepareCapability } from './capabilities/RenamePrepareCapability'
 
 export interface FusionDocument extends TextDocument { }
 
@@ -43,6 +47,8 @@ connection.onHover(params => languageserver.runCapability(HoverCapability, param
 connection.onDocumentSymbol(params => languageserver.runCapability(DocumentSymbolCapability, params))
 connection.onWorkspaceSymbol(params => languageserver.runCapability(WorkspaceSymbolCapability, params))
 connection.onCodeLens(params => languageserver.runCapability(CodeLensCapability, params))
+connection.onPrepareRename(params => languageserver.runCapability(RenamePrepareCapability, params))
+connection.onRenameRequest(params => languageserver.runCapability(RenameCapability, params))
 
 connection.languages.semanticTokens.on(params => languageserver.runLanguageFeature(SemanticTokensLanguageFeature, params))
 connection.languages.inlayHint.on(params => languageserver.runLanguageFeature(InlayHintLanguageFeature, params))
