@@ -21,18 +21,18 @@ import { LinePositionedNode } from '../common/LinePositionedNode';
 import { Logger } from '../common/Logging';
 import { NodeService } from '../common/NodeService';
 import { findParent, getObjectIdentifier } from '../common/util';
-import { ActionUriActionNode } from './ActionUriActionNode';
-import { ActionUriControllerNode } from './ActionUriControllerNode';
-import { ActionUriDefinitionNode } from './ActionUriDefinitionNode';
-import { FqcnNode } from './FqcnNode';
-import { NeosFusionFormActionNode } from './NeosFusionFormActionNode';
-import { NeosFusionFormControllerNode } from './NeosFusionFormControllerNode';
-import { NeosFusionFormDefinitionNode } from './NeosFusionFormDefinitionNode';
+import { ActionUriActionNode } from './node/ActionUriActionNode';
+import { ActionUriControllerNode } from './node/ActionUriControllerNode';
+import { ActionUriDefinitionNode } from './node/ActionUriDefinitionNode';
+import { FqcnNode } from './node/FqcnNode';
+import { NeosFusionFormActionNode } from './node/NeosFusionFormActionNode';
+import { NeosFusionFormControllerNode } from './node/NeosFusionFormControllerNode';
+import { NeosFusionFormDefinitionNode } from './node/NeosFusionFormDefinitionNode';
 import { ParsedFusionFile } from './ParsedFusionFile';
-import { PhpClassMethodNode } from './PhpClassMethodNode';
-import { PhpClassNode } from './PhpClassNode';
-import { ResourceUriNode } from './ResourceUriNode';
-import { TranslationShortHandNode } from './TranslationShortHandNode';
+import { PhpClassMethodNode } from './node/PhpClassMethodNode';
+import { PhpClassNode } from './node/PhpClassNode';
+import { ResourceUriNode } from './node/ResourceUriNode';
+import { TranslationShortHandNode } from './node/TranslationShortHandNode';
 
 type PostProcess = () => void
 export class FusionFileProcessor extends Logger {

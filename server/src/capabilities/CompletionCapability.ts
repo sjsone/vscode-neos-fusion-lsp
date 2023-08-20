@@ -15,11 +15,11 @@ import { LinePositionedNode } from '../common/LinePositionedNode'
 import { ExternalObjectStatement, NodeService } from '../common/NodeService'
 import { findParent, getObjectIdentifier } from '../common/util'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
-import { ResourceUriNode } from '../fusion/ResourceUriNode'
+import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
 import { NeosPackage } from '../neos/NeosPackage'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
-import { TranslationShortHandNode } from '../fusion/TranslationShortHandNode'
+import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
 
 // TODO: eel helper arguments
 export class CompletionCapability extends AbstractCapability {

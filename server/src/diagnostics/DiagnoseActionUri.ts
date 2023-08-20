@@ -1,6 +1,6 @@
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver'
-import { ActionUriActionNode } from '../fusion/ActionUriActionNode'
-import { ActionUriControllerNode } from '../fusion/ActionUriControllerNode'
+import { ActionUriActionNode } from '../fusion/node/ActionUriActionNode'
+import { ActionUriControllerNode } from '../fusion/node/ActionUriControllerNode'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { CommonDiagnosticHelper } from './CommonDiagnosticHelper'
 

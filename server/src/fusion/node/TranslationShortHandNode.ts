@@ -1,6 +1,6 @@
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
 import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode';
-import { ShortHandIdentifier, XLIFFService } from '../common/XLIFFService';
+import { ShortHandIdentifier, XLIFFService } from '../../common/XLIFFService';
 
 declare module 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode' {
 	interface LiteralStringNode {

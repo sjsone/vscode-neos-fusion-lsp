@@ -17,12 +17,12 @@ import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
 import { URI } from 'vscode-uri'
 import { uriToFsPath } from 'vscode-uri/lib/umd/uri'
 import { DeprecationConfigurationSpecialType } from '../ExtensionConfiguration'
-import { FqcnNode } from '../fusion/FqcnNode'
+import { FqcnNode } from '../fusion/node/FqcnNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
-import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
-import { PhpClassNode } from '../fusion/PhpClassNode'
-import { ResourceUriNode } from '../fusion/ResourceUriNode'
-import { TranslationShortHandNode } from '../fusion/TranslationShortHandNode'
+import { PhpClassMethodNode } from '../fusion/node/PhpClassMethodNode'
+import { PhpClassNode } from '../fusion/node/PhpClassNode'
+import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
+import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
 
 export interface LineDataCacheEntry {
     lineLengths: number[]

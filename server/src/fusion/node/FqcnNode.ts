@@ -1,6 +1,6 @@
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { NodePosition, NodePositionStub } from 'ts-fusion-parser/out/common/NodePosition'
-import { ClassDefinition } from '../neos/NeosPackageNamespace'
+import { ClassDefinition } from '../../neos/NeosPackageNamespace'
 
 export class FqcnNode extends AbstractNode {
 	protected identifier: string

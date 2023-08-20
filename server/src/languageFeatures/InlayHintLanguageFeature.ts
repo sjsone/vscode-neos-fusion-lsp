@@ -12,7 +12,7 @@ import { InlayHintDepth } from '../ExtensionConfiguration';
 import { EelHelperMethod } from '../eel/EelHelperMethod';
 import { FusionWorkspace } from '../fusion/FusionWorkspace';
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
-import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode';
+import { PhpClassMethodNode } from '../fusion/node/PhpClassMethodNode';
 import { AbstractLanguageFeature } from './AbstractLanguageFeature';
 import { LanguageFeatureContext } from './LanguageFeatureContext';
 
