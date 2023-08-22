@@ -33,6 +33,7 @@ import { PhpClassMethodNode } from './node/PhpClassMethodNode';
 import { PhpClassNode } from './node/PhpClassNode';
 import { ResourceUriNode } from './node/ResourceUriNode';
 import { TranslationShortHandNode } from './node/TranslationShortHandNode';
+import { EelHelperMethod } from '../eel/EelHelperMethod';
 
 type PostProcess = () => void
 export class FusionFileProcessor extends Logger {
@@ -92,6 +93,7 @@ export class FusionFileProcessor extends Logger {
 				this.parsedFusionFile.addNode(eelHelperNode, text)
 
 				this.processTranslations(eelHelperIdentifier, eelHelperMethodNode, text)
+				this.processPropTypesFqcn(eelHelperIdentifier, eelHelperMethodNode, text)
 			}
 		}
 	}
@@ -106,6 +108,22 @@ export class FusionFileProcessor extends Logger {
 
 		const translationShortHandNode = new TranslationShortHandNode(firstArgument)
 		this.parsedFusionFile.addNode(translationShortHandNode, text)
+	}
+
+	protected processPropTypesFqcn(identifier: string, methodNode: PhpClassMethodNode, text: string) {
+		if (identifier !== "PropTypes" || methodNode.identifier.toLowerCase() !== "instanceof") return
+
+		const firstArgument = methodNode.pathNode["args"][0]
+		if (!(firstArgument instanceof LiteralStringNode)) return
+
+		let fqcn = firstArgument["value"].split("\\\\").join("\\")
+		if (fqcn.startsWith("\\")) fqcn = fqcn.replace("\\", "")
+
+		const classDefinition = this.parsedFusionFile.workspace.neosWorkspace.getClassDefinitionFromFullyQualifiedClassName(fqcn)
+		if (classDefinition === undefined) return
+
+		const fqcnNode = new FqcnNode(firstArgument["value"], classDefinition, firstArgument["position"])
+		this.parsedFusionFile.addNode(fqcnNode, text)
 	}
 
 	protected createEelHelperIdentifierAndPositionFromPath(path: ObjectPathNode[]) {
