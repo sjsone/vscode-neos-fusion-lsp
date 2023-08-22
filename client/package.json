@@ -3,7 +3,7 @@
     "description": "Neos Fusion Language Server Client for VSCode",
     "author": "Simon J. Schmidt",
     "license": "MIT",
-    "version": "0.3.3",
+    "version": "0.3.5",
     "publisher": "SimonSchmidt",
     "engines": {
         "vscode": "^1.52.0"
