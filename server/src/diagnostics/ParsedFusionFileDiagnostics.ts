@@ -8,6 +8,7 @@ import { diagnoseEmptyEel } from './DiagnoseEmptyEel';
 import { diagnoseFusionProperties } from './DiagnoseFusionProperties';
 import { diagnoseNodeTypeDefinitions } from './DiagnoseNodeTypeDefinitions';
 import { diagnoseNonParsedFusion } from './DiagnoseNonParsedFusion';
+import { diagnoseParserError } from './DiagnoseParserError';
 import { diagnosePrototypeNames } from './DiagnosePrototypeNames';
 import { diagnoseResourceUris } from './DiagnoseResourceUris';
 import { diagnoseRootFusionConfiguration } from './DiagnoseRootFusionConfiguration';
@@ -28,7 +29,8 @@ export async function diagnose(parsedFusionFile: ParsedFusionFile) {
 		diagnoseNodeTypeDefinitions,
 		diagnoseNonParsedFusion,
 		diagnoseRootFusionConfiguration,
-		diagnoseTranslationShortHand
+		diagnoseTranslationShortHand,
+		diagnoseParserError
 	]
 
 	for (const diagnoseFunction of diagnoseFunctions) {
