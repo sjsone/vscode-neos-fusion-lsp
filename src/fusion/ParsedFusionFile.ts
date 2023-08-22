@@ -2,6 +2,7 @@ import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { FusionParserOptions, ObjectTreeParser } from 'ts-fusion-parser'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { ParserError } from 'ts-fusion-parser/out/common/ParserError'
 import { AfxParserOptions } from 'ts-fusion-parser/out/dsl/afx/parser'
 import { EelParserOptions } from 'ts-fusion-parser/out/dsl/eel/parser'
 import { AbstractPathSegment } from 'ts-fusion-parser/out/fusion/nodes/AbstractPathSegment'
@@ -11,7 +12,7 @@ import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/Prototyp
 import { Position } from 'vscode-languageserver'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { Logger } from '../common/Logging'
-import { clearLineDataCacheForFile, findParent, getNodeWeight, getObjectIdentifier, getPrototypeNameFromNode, uriToPath } from '../common/util'
+import { clearLineDataCacheForFile, findParent, getLineNumberOfChar, getNodeWeight, getObjectIdentifier, getPrototypeNameFromNode, uriToPath } from '../common/util'
 import { NeosPackage } from '../neos/NeosPackage'
 import { FusionFileProcessor } from './FusionFileProcessor'
 import { FusionWorkspace } from './FusionWorkspace'
@@ -82,6 +83,11 @@ export class ParsedFusionFile extends Logger {
 
 			const objectTree = ObjectTreeParser.parse(text, undefined, fusionParserOptions)
 			this.ignoredErrorsByParser = objectTree.errors
+			for(const ignoredError of this.ignoredErrorsByParser) {
+				if(!(ignoredError instanceof ParserError)) continue
+
+				ignoredError['linePosition'] = getLineNumberOfChar(text, ignoredError.getPosition(), this.uri)
+			}
 			this.fusionFileProcessor.readStatementList(objectTree.statementList, text)
 
 			for (const nodeType of objectTree.nodesByType.keys()) {
