@@ -68,6 +68,7 @@ export class FusionWorkspace extends Logger {
         }
 
         if (packagesPaths.length === 0 && configuration.folders.workspaceAsPackageFallback) {
+            this.logDebug("fallback to using workspace as package")
             packagesPaths.push(workspacePath)
         }
 
@@ -125,6 +126,7 @@ export class FusionWorkspace extends Logger {
 
     addParsedFileFromPath(fusionFilePath: string, neosPackage: NeosPackage) {
         try {
+            this.logDebug("Trying to add parsed file from path", fusionFilePath, pathToUri(fusionFilePath))
             const parsedFile = new ParsedFusionFile(pathToUri(fusionFilePath), this, neosPackage)
             this.initParsedFile(parsedFile)
             this.parsedFiles.push(parsedFile)
@@ -156,11 +158,11 @@ export class FusionWorkspace extends Logger {
 
             if (this.configuration.diagnostics.enabled && inIgnoredFolder === undefined) {
                 this.filesToDiagnose.push(parsedFile)
-
             }
 
             return true
-        } catch (e) {
+        } catch (error) {
+            this.logError("While initializing parsed file: ", error)
             this.filesWithErrors.push(parsedFile.uri)
         }
 

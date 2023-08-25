@@ -99,8 +99,8 @@ export class ParsedFusionFile extends Logger {
 			return true
 		} catch (e) {
 			if (e instanceof Error) {
-				this.logVerbose("    Error: ", e.message)
-				console.log("Caught: ", e.message, e.stack)
+				// this.logError("Caught: ", e.message, e.stack)
+				this.logError("    Error: ", e.message)
 			}
 
 			return false
