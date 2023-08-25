@@ -13,7 +13,12 @@
   - Autocompletion and Hover for the `Configuration.setting()` EEL-Helper
 - Integration of the WIP [`ts-fusion-runtime`](https://www.npmjs.com/package/ts-fusion-runtime) to correctly resolve Fusion properties
 
-## 🚀 0.3.1
+## 🧪 0.3.5
+
+- Diagnostics now show where the fusion parser stopped on an error
+- Definition of classes now work in `PropTypes.instanceof` 
+
+## 🧪 0.3.1
 
 - XLIFF Support when using shorthand id `I18n.translate("Neos.Redirect...")` or `Translation.translate("Neos.Redirect...")`
   - All translations on hover
