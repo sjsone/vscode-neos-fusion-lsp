@@ -55,7 +55,8 @@ export interface ExtensionConfiguration {
         actions: {
             createNodeTypeConfiguration: {
                 template: string
-            }
+                detectAbstractRegEx: string
+            },
         }
     },
     inlayHint: {

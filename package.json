@@ -235,6 +235,12 @@
                         "editPresentation": "multilineText",
                         "markdownDescription": "Template which is used to generate NodeType configuration files\n\nUsable variables are:\n- `{nodeTypeName}` ",
                         "default": "{nodeTypeName}:\n  properties:"
+                    },
+                    "neosFusionLsp.code.actions.createNodeTypeConfiguration.detectAbstractRegEx": {
+                        "type": "string",
+                        "editPresentation": "singlelineText",
+                        "markdownDescription": "RegEx which detects if NodeType is abstract.\nThis enables the 'Create Abstract NodeType File'",
+                        "default": "(?:A|a)bstract"
                     }
                 }
             },
