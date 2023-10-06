@@ -67,7 +67,8 @@ export class FusionWorkspace extends Logger {
             }
         }
 
-        if (packagesPaths.length === 0 && configuration.folders.workspaceAsPackageFallback) {
+        const usingWorkspaceAsPackageFallback = packagesPaths.length === 0 && configuration.folders.workspaceAsPackageFallback
+        if (usingWorkspaceAsPackageFallback) {
             this.logDebug("fallback to using workspace as package")
             packagesPaths.push(workspacePath)
         }
@@ -107,7 +108,15 @@ export class FusionWorkspace extends Logger {
             parsedFile.runPostProcessing()
         }
 
+
         this.logInfo(`Successfully parsed ${this.parsedFiles.length} fusion files. `)
+
+        if(usingWorkspaceAsPackageFallback && this.parsedFiles.length === 0) {
+            
+        }
+
+        // TODO: if this.parsedFiles.length === 0 show error message with link to TBD-setting "workspace root"
+        // TODO: if no package has a composer.json show error message with link to TBD-setting "workspace root"
         if (this.filesWithErrors.length > 0) {
             this.logInfo(`  Could not parse ${this.filesWithErrors.length} files due to errors`)
 
