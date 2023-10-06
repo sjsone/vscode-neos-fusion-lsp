@@ -23,6 +23,7 @@ export enum DeprecationConfigurationSpecialType {
 }
 export interface ExtensionConfiguration {
     folders: {
+        // TODO: workspace root / maybe multiple roots to support multi-workspaces 
         packages: string[],
         fusion: string[],
         ignore: string[],
