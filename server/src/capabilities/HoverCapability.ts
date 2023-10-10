@@ -133,10 +133,10 @@ export class HoverCapability extends AbstractCapability {
 					})
 
 
-					if (foundIgnoreComment && foundIgnoreComment.getNode().multiline && foundIgnoreComment.getNode().value.startsWith("*\n")) {
+					if (foundIgnoreComment?.getNode().multiline && foundIgnoreComment?.getNode().value.startsWith("*\n")) {
 						const lines = foundIgnoreComment.getNode().value.split("\n")
 						const commentLines = lines.splice(1, lines.length - 2).map(line => {
-							return line.replace("*", "").trim()
+							return line.replace("*", "")
 						})
 						commentLines.push("---", "&nbsp;")
 						docBlock = commentLines.join("  \n")
