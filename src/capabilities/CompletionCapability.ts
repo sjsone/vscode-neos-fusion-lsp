@@ -35,6 +35,7 @@ export class CompletionCapability extends AbstractCapability {
 		const completions = []
 		if (foundNodeByLine) {
 			const foundNode = foundNodeByLine.getNode()
+			console.log(`Type: ${foundNode.constructor.name}`)
 			switch (true) {
 				case foundNode instanceof TagNode:
 					completions.push(...this.getTagNodeCompletions(workspace, <LinePositionedNode<TagNode>>foundNodeByLine))
@@ -118,12 +119,13 @@ export class CompletionCapability extends AbstractCapability {
 
 		const tagNode = findParent(attributeNode, TagNode)
 		if (tagNode !== undefined) {
+			const labels = []
 			for (const statement of NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace)) {
-				completions.push({
-					label: getObjectIdentifier(statement.statement),
-					kind: CompletionItemKind.Property
-				})
+				const label = getObjectIdentifier(statement.statement)
+				if (!labels.includes(label)) labels.push(label)
 			}
+
+			for (const label of labels) completions.push({ label, kind: CompletionItemKind.Property })
 		}
 
 		return completions
