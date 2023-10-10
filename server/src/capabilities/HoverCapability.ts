@@ -22,6 +22,7 @@ import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
 import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
+import { Comment } from 'ts-fusion-parser/out/common/Comment'
 
 export class HoverCapability extends AbstractCapability {
 
@@ -47,7 +48,7 @@ export class HoverCapability extends AbstractCapability {
 				return this.getMarkdownForTranslationShortHandNode(workspace, <LinePositionedNode<TranslationShortHandNode>>foundNodeByLine)
 			case node instanceof FusionObjectValue:
 			case node instanceof PrototypePathSegment:
-				return this.getMarkdownForPrototypeName(workspace, <FusionObjectValue | PrototypePathSegment>node)
+				return this.getMarkdownForPrototypeName(workspace, <FusionObjectValue | PrototypePathSegment>node, parsedFile)
 			case node instanceof PathSegment:
 				return `property **${node["identifier"]}**`
 			case node instanceof PhpClassNode:
@@ -112,14 +113,36 @@ export class HoverCapability extends AbstractCapability {
 		return translationMarkdowns.map(translationMarkdowns => translationMarkdowns.markdown).join("\n")
 	}
 
-	getMarkdownForPrototypeName(workspace: FusionWorkspace, node: FusionObjectValue | PrototypePathSegment) {
+	getMarkdownForPrototypeName(workspace: FusionWorkspace, node: FusionObjectValue | PrototypePathSegment, parsedFile: ParsedFusionFile) {
 		const prototypeName = getPrototypeNameFromNode(node)
 		if (prototypeName === null) return null
+
+		let docBlock = ""
 
 		const statementsNames: string[] = []
 		for (const otherParsedFile of workspace.parsedFiles) {
 			const statementsNamesFromFile: string[] = []
 			for (const otherPositionedNode of [...otherParsedFile.prototypeCreations, ...otherParsedFile.prototypeOverwrites]) {
+				const prototypeNode = otherPositionedNode.getNode()
+				if (prototypeNode["identifier"] === prototypeName) {
+					const affectedLine = otherPositionedNode.getBegin().line - 1
+
+					const nodesByLine = parsedFile.nodesByLine[affectedLine] ?? []
+					const foundIgnoreComment = <LinePositionedNode<Comment>>nodesByLine.find(nodeByLine => {
+						return nodeByLine.getNode() instanceof Comment
+					})
+
+
+					if (foundIgnoreComment && foundIgnoreComment.getNode().multiline && foundIgnoreComment.getNode().value.startsWith("*\n")) {
+						const lines = foundIgnoreComment.getNode().value.split("\n")
+						const commentLines = lines.splice(1, lines.length - 2).map(line => {
+							return line.replace("*", "").trim()
+						})
+						commentLines.push("---", "&nbsp;")
+						docBlock = commentLines.join("  \n")
+					}
+				}
+
 				for (const statementName of this.createStatementNamesFromPrototypeNode(prototypeName, otherPositionedNode)) {
 					statementsNamesFromFile.push(statementName)
 				}
@@ -133,7 +156,8 @@ export class HoverCapability extends AbstractCapability {
 
 		const statementsNamesMarkdown = statementsNames.length > 0 ? "\n" + statementsNames.map(name => `  ${name}`).join("\n") + "\n" : " "
 		return [
-			"```",
+			docBlock,
+			"```fusion",
 			`prototype(${prototypeName}) {${statementsNamesMarkdown}}`,
 			"```"
 		].join("\n")
