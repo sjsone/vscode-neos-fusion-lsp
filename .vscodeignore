@@ -25,4 +25,5 @@ client/package.json
 server/package.json
 
 *.vsix
+*.zip
 *.cpuprofile

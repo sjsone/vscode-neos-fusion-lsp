@@ -1,6 +1,7 @@
-import { CodeAction, DiagnosticTag, CodeActionKind, CodeActionParams } from 'vscode-languageserver';
+import { CodeAction, CodeActionKind, CodeActionParams, DiagnosticTag } from 'vscode-languageserver';
+import { LanguageServer } from '../LanguageServer';
 
-export function replaceDeprecatedQuickFixAction(params: CodeActionParams) {
+export const replaceDeprecatedQuickFixAction = (languageServer: LanguageServer, params: CodeActionParams) => {
 	const codeActions: CodeAction[] = [];
 
 	for (const diagnostic of params.context.diagnostics) {

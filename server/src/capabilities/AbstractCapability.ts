@@ -2,6 +2,9 @@ import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { TextDocumentPositionParams, WorkspaceSymbolParams } from 'vscode-languageserver/node'
 import { CapabilityContext, WorkspacesCapabilityContext } from './CapabilityContext'
 import { AbstractFunctionality } from '../common/AbstractFunctionality'
+import { LogService } from '../common/Logging'
+import { LoggingLevel } from '../ExtensionConfiguration'
+import { uriToPath } from '../common/util'
 
 export abstract class AbstractCapability extends AbstractFunctionality {
 	protected noPositionedNode: boolean = false
@@ -37,7 +40,7 @@ export abstract class AbstractCapability extends AbstractFunctionality {
 
 		const parsedFile = workspace.getParsedFileByUri(uri)
 		if (parsedFile === undefined) {
-			this.logDebug(`Could not find File for URI: ${uri}`)
+			this.logError(`Could not find File for URI: ${uri}`)
 			return null
 		}
 

@@ -60,7 +60,7 @@ export class WorkspaceSymbolCapability extends AbstractCapability {
 			if (!nodeTypeDefinitions) continue
 			for (const nodeTypeDefinition of nodeTypeDefinitions) {
 				symbols.push({
-					name: `${nodeTypeDefinition.nodeType} [${neosPackage?.getPackageName()}]`,
+					name: `NodeType: ${nodeTypeDefinition.nodeType} [${neosPackage?.getPackageName()}]`,
 					location: { uri: nodeTypeDefinition.uri, range: Range.create(Position.create(0, 0), Position.create(0, 0)) },
 					kind: SymbolKind.Struct,
 				})

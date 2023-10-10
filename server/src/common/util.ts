@@ -1,27 +1,28 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { AbstractNode as AbstractEelNode, AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
-import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode'
 import { LiteralNumberNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNumberNode'
-import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
-import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
-import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
+import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode'
+import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
+import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
+import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
+import { OperationNode } from 'ts-fusion-parser/out/dsl/eel/nodes/OperationNode'
 import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue'
+import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
+import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/nodes/MetaPathSegment'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
-import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
-import { FqcnNode } from '../fusion/FqcnNode'
-import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
-import { PhpClassNode } from '../fusion/PhpClassNode'
-import { ResourceUriNode } from '../fusion/ResourceUriNode'
-import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/nodes/MetaPathSegment'
-import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
-import { OperationNode } from 'ts-fusion-parser/out/dsl/eel/nodes/OperationNode'
-import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
-import { FusionWorkspace } from '../fusion/FusionWorkspace'
-import { DeprecationConfigurationSpecialType } from '../ExtensionConfiguration'
+import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
+import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
 import { URI } from 'vscode-uri'
 import { uriToFsPath } from 'vscode-uri/lib/umd/uri'
+import { DeprecationConfigurationSpecialType } from '../ExtensionConfiguration'
+import { FqcnNode } from '../fusion/node/FqcnNode'
+import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { PhpClassMethodNode } from '../fusion/node/PhpClassMethodNode'
+import { PhpClassNode } from '../fusion/node/PhpClassNode'
+import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
+import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
 
 export interface LineDataCacheEntry {
     lineLengths: number[]
@@ -54,7 +55,7 @@ export function buildEntryForLineDataCache(lines: string[]): LineDataCacheEntry 
     const lineIndents = []
 
     for (const line of lines) {
-        const match = line.match(whitespaceRegex);
+        const match = RegExp(whitespaceRegex).exec(line);
         lineIndents.push(match ? match[0] : '')
         lineLengths.push(line.length)
     }
@@ -83,7 +84,7 @@ export function getLineNumberOfChar(data: string, index: number, textUri: string
     return { line: i, character: column }
 }
 
-export function* getFiles(dir: string, withExtension = ".fusion") {
+export function* getFiles(dir: string, withExtension = ".fusion"): Generator<string> {
     const directoryEntries = NodeFs.readdirSync(dir, { withFileTypes: true })
     for (const dirent of directoryEntries) {
         if (dirent.isSymbolicLink()) continue
@@ -135,12 +136,10 @@ export function mergeObjects(source: unknown, target: unknown) {
     return target // we're replacing in-situ, so this is more for chaining than anything else
 }
 
-export function findParent<T extends new (...args: any) => AbstractNode>(node: AbstractNode, parentType: T): InstanceType<T> | undefined {
+export function findParent<T extends new (...args: any) => AbstractNode>(node: AbstractNode, parentType: T) {
     let parent = node["parent"]
     while (parent) {
-        if (parent instanceof parentType) {
-            return <InstanceType<T>>parent
-        }
+        if (parent instanceof parentType) return <InstanceType<T>>parent
         parent = parent["parent"]
     }
     return undefined
@@ -160,7 +159,8 @@ export function findUntil<T extends AbstractNode>(node: any, condition: (parent:
 export function abstractNodeToString(node: AbstractEelNode | AbstractNode): string | undefined {
     // TODO: This should be node.toString() but for now...
     if (node instanceof StringValue) return `"${node["value"]}"`
-    if (node instanceof LiteralNumberNode || node instanceof LiteralStringNode || node instanceof FusionObjectValue) return node["value"]
+    if (node instanceof LiteralStringNode) return node["quotationType"] + node["value"] + node["quotationType"]
+    if (node instanceof LiteralNumberNode || node instanceof FusionObjectValue) return node["value"]
     if (node instanceof EelExpressionValue) {
         if (Array.isArray(node.nodes)) return undefined
         return `\${${abstractNodeToString(<AbstractEelNode>node.nodes)}}`
@@ -189,6 +189,7 @@ export function getObjectIdentifier(objectStatement: ObjectStatement): string {
 
 export function getNodeWeight(node: any) {
     switch (true) {
+        case node instanceof TranslationShortHandNode: return 60
         case node instanceof FusionObjectValue: return 50
         case node instanceof PhpClassMethodNode: return 40
         case node instanceof PhpClassNode: return 30

@@ -1,13 +1,14 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
+import { Position } from 'vscode-languageserver'
 import { parse as parseYaml } from 'yaml'
-import { LoggingLevel } from '../ExtensionConfiguration'
 import { Logger, LogService } from '../common/Logging'
 import { getFiles, mergeObjects, pathToUri } from '../common/util'
-import { Position } from 'vscode-languageserver'
+import { LoggingLevel } from '../ExtensionConfiguration'
 import { YamlLexer } from '../yaml/YamlLexer'
+import { error } from 'console'
 
-export type ParsedYaml = string | null | number | { [key: string]: ParsedYaml }
+export type ParsedYaml = string | null | number | boolean | { [key: string]: ParsedYaml }
 
 export interface NodeTypeDefinition {
 	uri: string
@@ -60,7 +61,8 @@ export class FlowConfiguration extends Logger {
 		const nodeTypeDefinitions: NodeTypeDefinition[] = []
 		let configuration: ParsedYaml = {}
 
-		for (const configurationFilePath of <string[]>getFiles(folderPath, ".yaml")) {
+		const yamlFiles: string[] = [...getFiles(folderPath, ".yaml"), ...getFiles(folderPath, ".yml")]
+		for (const configurationFilePath of yamlFiles) {
 			if (NodePath.basename(configurationFilePath).startsWith("Settings")) {
 				const configurationFileYaml = NodeFs.readFileSync(configurationFilePath).toString()
 				const parsedYaml = parseYaml(configurationFileYaml)
@@ -73,8 +75,7 @@ export class FlowConfiguration extends Logger {
 					}
 				} catch (e) {
 					if (e instanceof Error) {
-						console.log("ERROR: configuration", configuration)
-						console.log("ERROR: ", e.message, e.stack)
+						Logger.LogNameAndLevel(LoggingLevel.Error.toUpperCase(), 'FlowConfiguration:FromFolder', "trying to read configuration: ", configuration, error)
 					}
 				}
 			}

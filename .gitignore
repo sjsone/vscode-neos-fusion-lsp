@@ -3,4 +3,7 @@ node_modules
 client/server
 .DS_Store
 *.vsix
+*.zip
 *.cpuprofile
+
+yarn-error.log

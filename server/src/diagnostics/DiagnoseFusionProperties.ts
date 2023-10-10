@@ -44,8 +44,7 @@ export function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 		const definition = definitionCapability.getPropertyDefinitions(this, parsedFusionFile.workspace, node.path[0].linePositionedNode)
 		if (definition) continue
 
-		const { foundIgnoreComment, foundIgnoreBlockComment } = NodeService.getSemanticCommentsNodeIsAffectedBy(node, parsedFusionFile)
-		if (foundIgnoreComment || foundIgnoreBlockComment) continue
+		if (NodeService.isNodeAffectedByIgnoreComment(node, parsedFusionFile)) continue
 
 		const diagnostic: Diagnostic = {
 			severity: DiagnosticSeverity.Warning,

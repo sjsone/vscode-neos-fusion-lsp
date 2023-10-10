@@ -1,6 +1,7 @@
-import * as NodePath from 'path'
 import * as NodeFs from 'fs'
+import * as NodePath from 'path'
 
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
@@ -9,24 +10,25 @@ import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStateme
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
-import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
-import { PhpClassNode } from '../fusion/PhpClassNode'
-import { FusionWorkspace } from '../fusion/FusionWorkspace'
-import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { ExternalObjectStatement, NodeService } from '../common/NodeService'
+import { XLIFFService } from '../common/XLIFFService'
 import { abstractNodeToString, findParent, getPrototypeNameFromNode } from '../common/util'
+import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
+import { PhpClassMethodNode } from '../fusion/node/PhpClassMethodNode'
+import { PhpClassNode } from '../fusion/node/PhpClassNode'
+import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
+import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
-import { ResourceUriNode } from '../fusion/ResourceUriNode'
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 
 export class HoverCapability extends AbstractCapability {
 
-	public run(context: CapabilityContext<AbstractNode>) {
+	public async run(context: CapabilityContext<AbstractNode>) {
 		const { workspace, parsedFile, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
 
-		const markdown = this.getMarkdownByNode(foundNodeByLine, parsedFile, workspace)
+		const markdown = await this.getMarkdownByNode(foundNodeByLine, parsedFile, workspace)
 		if (markdown === null) return null
 
 		return {
@@ -41,6 +43,8 @@ export class HoverCapability extends AbstractCapability {
 		this.logVerbose(`FoundNode: ` + node.constructor.name)
 
 		switch (true) {
+			case node instanceof TranslationShortHandNode:
+				return this.getMarkdownForTranslationShortHandNode(workspace, <LinePositionedNode<TranslationShortHandNode>>foundNodeByLine)
 			case node instanceof FusionObjectValue:
 			case node instanceof PrototypePathSegment:
 				return this.getMarkdownForPrototypeName(workspace, <FusionObjectValue | PrototypePathSegment>node)
@@ -75,6 +79,37 @@ export class HoverCapability extends AbstractCapability {
 			}
 			yield statementName
 		}
+	}
+
+	async getMarkdownForTranslationShortHandNode(workspace: FusionWorkspace, linePositionedNode: LinePositionedNode<TranslationShortHandNode>) {
+		const shortHandIdentifier = XLIFFService.readShortHandIdentifier(linePositionedNode.getNode().getValue())
+		const translationFiles = await XLIFFService.getMatchingTranslationFiles(workspace, shortHandIdentifier)
+
+		const translationMarkdowns: { isSource: boolean, markdown: string }[] = []
+		for (const translationFile of translationFiles) {
+			const transUnit = await translationFile.getId(shortHandIdentifier.translationIdentifier)
+			if (!transUnit) continue
+
+			const isSource = transUnit.target === undefined
+			const position = transUnit.position
+			const uri = translationFile.uri + '#L' + (position.line + 1) + ',' + (position.character + 1)
+
+			translationMarkdowns.push({
+				isSource,
+				markdown: [
+					`**[${translationFile.language}](${uri})** ${isSource ? "Source" : ""}`,
+					"```\n" + (isSource ? transUnit.source : transUnit.target) + "\n```\n---\n"
+				].join("\n")
+			})
+		}
+
+		translationMarkdowns.sort((a, b) => {
+			if (a.isSource && !b.isSource) return -1
+			if (!a.isSource && b.isSource) return 1
+			return 0
+		});
+
+		return translationMarkdowns.map(translationMarkdowns => translationMarkdowns.markdown).join("\n")
 	}
 
 	getMarkdownForPrototypeName(workspace: FusionWorkspace, node: FusionObjectValue | PrototypePathSegment) {

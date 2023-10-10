@@ -1,8 +1,8 @@
-import { Diagnostic, DiagnosticSeverity, DiagnosticTag } from 'vscode-languageserver'
-import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
+import { Diagnostic, DiagnosticRelatedInformation, DiagnosticSeverity, Location } from 'vscode-languageserver'
 import { NodeService } from '../common/NodeService'
 import { getPrototypeNameFromNode } from '../common/util'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { CommonDiagnosticHelper } from './CommonDiagnosticHelper'
 
 const isPrototypeOneOf = (prototypeName: string, oneOf: string[], workspace: FusionWorkspace) => {
@@ -28,16 +28,28 @@ export function diagnoseNodeTypeDefinitions(parsedFusionFile: ParsedFusionFile) 
 	for (const creation of parsedFusionFile.prototypeCreations) {
 		const prototypeName = getPrototypeNameFromNode(creation.getNode())
 
-		if(contentPrototypeNames.includes(prototypeName)) continue
+		if (contentPrototypeNames.includes(prototypeName)) continue
 		if (!isPrototypeOneOf(prototypeName, contentPrototypeNames, workspace)) continue
+		if (isPrototypeOneOf(prototypeName, workspace.getConfiguration().diagnostics.ignoreNodeTypes, workspace)) continue
+		if (NodeService.isNodeAffectedByIgnoreComment(creation.getNode(), parsedFusionFile)) continue
 
 		const nodeTypeDefinition = nodeTypeDefinitions.find(nodeType => nodeType.nodeType === prototypeName)
 		if (!nodeTypeDefinition) {
+			const range = creation.getPositionAsRange()
+			const location = Location.create(parsedFusionFile.uri, range)
 			diagnostics.push({
 				severity: DiagnosticSeverity.Error,
-				range: creation.getPositionAsRange(),
+				range: range,
 				message: `Could not find NodeType Definition for \`${prototypeName}\``,
-				source: CommonDiagnosticHelper.Source
+				source: CommonDiagnosticHelper.Source,
+				relatedInformation: [DiagnosticRelatedInformation.create(location, "test")],
+				data: {
+					nodeTypeName: prototypeName,
+					documentation: {
+						openInBrowser: true,
+						uri: "https://docs.neos.io/guide/manual/content-repository/nodetype-definition"
+					}
+				}
 			})
 		}
 	}

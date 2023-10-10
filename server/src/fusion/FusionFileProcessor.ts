@@ -19,19 +19,21 @@ import { ValueCopy } from 'ts-fusion-parser/out/fusion/nodes/ValueCopy';
 import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService';
 import { LinePositionedNode } from '../common/LinePositionedNode';
 import { Logger } from '../common/Logging';
-import { findParent, getObjectIdentifier } from '../common/util';
-import { ActionUriActionNode } from './ActionUriActionNode';
-import { ActionUriControllerNode } from './ActionUriControllerNode';
-import { ActionUriDefinitionNode } from './ActionUriDefinitionNode';
-import { FqcnNode } from './FqcnNode';
-import { ParsedFusionFile } from './ParsedFusionFile';
-import { PhpClassMethodNode } from './PhpClassMethodNode';
-import { PhpClassNode } from './PhpClassNode';
-import { ResourceUriNode } from './ResourceUriNode';
-import { NeosFusionFormDefinitionNode } from './NeosFusionFormDefinitionNode';
-import { NeosFusionFormActionNode } from './NeosFusionFormActionNode';
-import { NeosFusionFormControllerNode } from './NeosFusionFormControllerNode';
 import { NodeService } from '../common/NodeService';
+import { findParent, getObjectIdentifier } from '../common/util';
+import { ActionUriActionNode } from './node/ActionUriActionNode';
+import { ActionUriControllerNode } from './node/ActionUriControllerNode';
+import { ActionUriDefinitionNode } from './node/ActionUriDefinitionNode';
+import { FqcnNode } from './node/FqcnNode';
+import { NeosFusionFormActionNode } from './node/NeosFusionFormActionNode';
+import { NeosFusionFormControllerNode } from './node/NeosFusionFormControllerNode';
+import { NeosFusionFormDefinitionNode } from './node/NeosFusionFormDefinitionNode';
+import { ParsedFusionFile } from './ParsedFusionFile';
+import { PhpClassMethodNode } from './node/PhpClassMethodNode';
+import { PhpClassNode } from './node/PhpClassNode';
+import { ResourceUriNode } from './node/ResourceUriNode';
+import { TranslationShortHandNode } from './node/TranslationShortHandNode';
+import { EelHelperMethod } from '../eel/EelHelperMethod';
 
 type PostProcess = () => void
 export class FusionFileProcessor extends Logger {
@@ -89,8 +91,39 @@ export class FusionFileProcessor extends Logger {
 				this.parsedFusionFile.addNode(eelHelperMethodNode, text)
 				const eelHelperNode = new PhpClassNode(eelHelperIdentifier, eelHelperMethodNode, node, position)
 				this.parsedFusionFile.addNode(eelHelperNode, text)
+
+				this.processTranslations(eelHelperIdentifier, eelHelperMethodNode, text)
+				this.processPropTypesFqcn(eelHelperIdentifier, eelHelperMethodNode, text)
 			}
 		}
+	}
+
+	protected processTranslations(identifier: string, methodNode: PhpClassMethodNode, text: string) {
+		if (!(identifier === "I18n" || identifier === "Translation") || methodNode.identifier !== "translate") return
+		if (!(methodNode.pathNode instanceof ObjectFunctionPathNode)) return
+		if (methodNode.pathNode.args.length !== 1) return
+
+		const firstArgument = methodNode.pathNode.args[0]
+		if (!(firstArgument instanceof LiteralStringNode)) return
+
+		const translationShortHandNode = new TranslationShortHandNode(firstArgument)
+		this.parsedFusionFile.addNode(translationShortHandNode, text)
+	}
+
+	protected processPropTypesFqcn(identifier: string, methodNode: PhpClassMethodNode, text: string) {
+		if (identifier !== "PropTypes" || methodNode.identifier.toLowerCase() !== "instanceof") return
+
+		const firstArgument = methodNode.pathNode["args"][0]
+		if (!(firstArgument instanceof LiteralStringNode)) return
+
+		let fqcn = firstArgument["value"].split("\\\\").join("\\")
+		if (fqcn.startsWith("\\")) fqcn = fqcn.replace("\\", "")
+
+		const classDefinition = this.parsedFusionFile.workspace.neosWorkspace.getClassDefinitionFromFullyQualifiedClassName(fqcn)
+		if (classDefinition === undefined) return
+
+		const fqcnNode = new FqcnNode(firstArgument["value"], classDefinition, firstArgument["position"])
+		this.parsedFusionFile.addNode(fqcnNode, text)
 	}
 
 	protected createEelHelperIdentifierAndPositionFromPath(path: ObjectPathNode[]) {

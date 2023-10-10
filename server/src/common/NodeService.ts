@@ -21,13 +21,10 @@ import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 import { LinePositionedNode } from './LinePositionedNode'
 
 export class ExternalObjectStatement {
-	statement: ObjectStatement
-	uri?: string
-
-	constructor(statement: ObjectStatement, uri: string) {
-		this.statement = statement
-		this.uri = uri
-	}
+	constructor(
+		public statement: ObjectStatement,
+		public uri?: string
+	) { }
 }
 
 export interface FoundApplyPropsResult {
@@ -108,12 +105,12 @@ class NodeService {
 
 		// TODO: get object identifier and match it runtime-like against the property definition to check if it resolves 
 		const isObjectStatementRenderer = (
-			getObjectIdentifier(objectStatement).startsWith("renderer.") 
+			getObjectIdentifier(objectStatement).startsWith("renderer.")
 			&& !getObjectIdentifier(objectStatement).startsWith("renderer.@process")
 		) || (
-			getObjectIdentifier(objectStatement).startsWith("@private.") 
-			&& !getObjectIdentifier(objectStatement).startsWith("@private.@process")
-		)
+				getObjectIdentifier(objectStatement).startsWith("@private.")
+				&& !getObjectIdentifier(objectStatement).startsWith("@private.@process")
+			)
 
 		if (isObjectStatementRenderer) {
 			const parentObjectStatement = findParent(statementList, ObjectStatement)
@@ -348,7 +345,12 @@ class NodeService {
 		return checkSemanticCommentIgnoreArguments(propertyName, parsedSemanticComment.arguments)
 	}
 
-	public getSemanticCommentsNodeIsAffectedBy(node: ObjectNode, parsedFusionFile: ParsedFusionFile) {
+	public isNodeAffectedByIgnoreComment(node: AbstractNode, parsedFusionFile: ParsedFusionFile) {
+		const { foundIgnoreComment, foundIgnoreBlockComment } = this.getSemanticCommentsNodeIsAffectedBy(node, parsedFusionFile)
+		return foundIgnoreComment || foundIgnoreBlockComment
+	}
+
+	public getSemanticCommentsNodeIsAffectedBy(node: AbstractNode, parsedFusionFile: ParsedFusionFile) {
 		const objectStatementText = abstractNodeToString(node)
 		const affectedNodeBySemanticComment = this.getAffectedNodeBySemanticComment(node)
 		const affectedLine = affectedNodeBySemanticComment.linePositionedNode.getBegin().line - 1
@@ -383,7 +385,7 @@ class NodeService {
 		}
 	}
 
-	public getAffectedNodeBySemanticComment(node: ObjectNode) {
+	public getAffectedNodeBySemanticComment(node: AbstractNode) {
 		return node["parent"] instanceof TagAttributeNode ? findParent(node, TagNode) : node
 	}
 }

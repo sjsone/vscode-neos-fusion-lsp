@@ -2,19 +2,20 @@ import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { FusionParserOptions, ObjectTreeParser } from 'ts-fusion-parser'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { ParserError } from 'ts-fusion-parser/out/common/ParserError'
+import { AfxParserOptions } from 'ts-fusion-parser/out/dsl/afx/parser'
+import { EelParserOptions } from 'ts-fusion-parser/out/dsl/eel/parser'
+import { AbstractPathSegment } from 'ts-fusion-parser/out/fusion/nodes/AbstractPathSegment'
+import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
-import { FusionWorkspace } from './FusionWorkspace'
-import { LinePositionedNode } from '../common/LinePositionedNode'
-import { clearLineDataCacheForFile, findParent, getNodeWeight, getObjectIdentifier, getPrototypeNameFromNode, uriToPath } from '../common/util'
-import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
-import { Logger } from '../common/Logging'
-import { EelParserOptions } from 'ts-fusion-parser/out/dsl/eel/parser'
-import { AfxParserOptions } from 'ts-fusion-parser/out/dsl/afx/parser'
-import { FusionFileProcessor } from './FusionFileProcessor'
-import { NeosPackage } from '../neos/NeosPackage'
-import { AbstractPathSegment } from 'ts-fusion-parser/out/fusion/nodes/AbstractPathSegment'
 import { Position } from 'vscode-languageserver'
+import { LinePositionedNode } from '../common/LinePositionedNode'
+import { Logger } from '../common/Logging'
+import { clearLineDataCacheForFile, findParent, getLineNumberOfChar, getNodeWeight, getObjectIdentifier, getPrototypeNameFromNode, uriToPath } from '../common/util'
+import { NeosPackage } from '../neos/NeosPackage'
+import { FusionFileProcessor } from './FusionFileProcessor'
+import { FusionWorkspace } from './FusionWorkspace'
 
 
 const eelParserOptions: EelParserOptions = {
@@ -82,6 +83,11 @@ export class ParsedFusionFile extends Logger {
 
 			const objectTree = ObjectTreeParser.parse(text, undefined, fusionParserOptions)
 			this.ignoredErrorsByParser = objectTree.errors
+			for(const ignoredError of this.ignoredErrorsByParser) {
+				if(!(ignoredError instanceof ParserError)) continue
+
+				ignoredError['linePosition'] = getLineNumberOfChar(text, ignoredError.getPosition(), this.uri)
+			}
 			this.fusionFileProcessor.readStatementList(objectTree.statementList, text)
 
 			for (const nodeType of objectTree.nodesByType.keys()) {
@@ -93,8 +99,8 @@ export class ParsedFusionFile extends Logger {
 			return true
 		} catch (e) {
 			if (e instanceof Error) {
-				this.logVerbose("    Error: ", e.message)
-				console.log("Caught: ", e.message, e.stack)
+				// this.logError("Caught: ", e.message, e.stack)
+				this.logError("    Error: ", e.message)
 			}
 
 			return false

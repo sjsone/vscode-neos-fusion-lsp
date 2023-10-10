@@ -1,8 +1,52 @@
 # Changelog
 
-Normal Release: 🚀
+| Release | Icon |
+|---------|------|
+| Normal  |  🚀  |
+| Preview |  🧪  |
 
-Pre-Release: 🧪
+## 🪐🔭 *Upcoming*
+
+- Improved StatusBar interface
+- Flow Context & Configuration
+  - Select which `FLOW_CONTEXT` the LanguageServer should use to read in the configuration  
+  - Autocompletion and Hover for the `Configuration.setting()` EEL-Helper
+- Integration of the WIP [`ts-fusion-runtime`](https://www.npmjs.com/package/ts-fusion-runtime) to correctly resolve Fusion properties
+
+## 🧪 0.3.5
+
+- Diagnostics now show where the fusion parser stopped on an error
+- Definition of classes now work in `PropTypes.instanceof` 
+
+## 🧪 0.3.1
+
+- XLIFF Support when using shorthand id `I18n.translate("Neos.Redirect...")` or `Translation.translate("Neos.Redirect...")`
+  - All translations on hover
+  - Definitions on CMD-Click
+  - Diagnostics when no translation can be found for the given id
+
+## 🚀 0.2.10
+
+- AFX now supports escaped tag attributes `<div '@meta.test'="test"></div>`
+- fix: Error when hovering over some Fusion properties in EEL
+- WorkspaceSymbols for NodeTypes now have a `NodeType:` prefix
+- Settings: Specific NodeTypes can now be ignored in the diagnostics  
+
+## 🚀 0.2.6
+
+- EEL-Helper argument diagnostics can now be ignored with `@fusion-ignore`
+- Diagnostic added to check if `Root.fusion` files get included based on the configuration
+- the language server now starts correctly if any `.fusion` file is present in the workspace
+- first preparations to merge `neos_context` branch ("Upcoming / Flow Context & Configuration")
+
+## 🧪 0.2.5
+
+- improved handling of *ActionUri* in `Neos.Neos:Plugin`
+- Handling of Node Fusion Prototypes
+  - Diagnose Prototypes without a NodeType-File as **Error**
+  - QuickAction to create a NodeType-File
+- Diagnostic Hint for `<script>` Tags in AFX as a reminder that no Fusion is parsed in them
+- Handling of `.props` in `@private`
 
 ## 🧪 0.2.3
 

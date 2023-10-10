@@ -1,10 +1,5 @@
 # 🚀 NEOS Fusion & AFX
 
-![Version](https://vsmarketplacebadges.dev/version-short/SimonSchmidt.vscode-neos-fusion-lsp.jpeg?label=version)
-![Installs](https://vsmarketplacebadges.dev/installs-short/SimonSchmidt.vscode-neos-fusion-lsp.jpeg)
-![Downloads](https://vsmarketplacebadges.dev/downloads-short/SimonSchmidt.vscode-neos-fusion-lsp.jpeg)
-![Rating](https://vsmarketplacebadges.dev/rating-star/SimonSchmidt.vscode-neos-fusion-lsp.jpeg)
-
 🚧 This package is **WIP**. 🚧
 
 📦 [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=SimonSchmidt.vscode-neos-fusion-lsp)
@@ -116,7 +111,9 @@ Some comments have optional parameters which is a simple comma separated list:
 
 ### `@fusion-ignore`
 
-With this comment the next line will be ignored from fusion property diagnostics, so no error, warning or info reporting. 
+With this comment the next line will be ignored from fusion property diagnostics, so no error, warning or info reporting.
+
+It also works on EEL-Helper-Argument Diagnostics. 
 
 If placed above a Tag in AFX the attributes will be affected as well. Even if they are in the lines below. 
 

@@ -2,10 +2,22 @@
 # yarn lockfile v1
 
 
-ts-fusion-parser@^0.1.14:
-  version "0.1.14"
-  resolved "https://registry.yarnpkg.com/ts-fusion-parser/-/ts-fusion-parser-0.1.14.tgz#4b161c08a7b13be66ca53a1d11365962e0925eb1"
-  integrity sha512-tpHPcLfbqnUkvPJ8qsaGl008b4H/oipZkjZmZnErumRVn6MhC4iwDI7GE2r47izHBqkiyuKlRTuL/P0qqoy4Jg==
+fast-xml-parser@^4.2.4:
+  version "4.2.4"
+  resolved "https://registry.yarnpkg.com/fast-xml-parser/-/fast-xml-parser-4.2.4.tgz#6e846ede1e56ad9e5ef07d8720809edf0ed07e9b"
+  integrity sha512-fbfMDvgBNIdDJLdLOwacjFAPYt67tr31H9ZhWSm45CDAxvd0I6WTlSOUo7K2P/K5sA5JgMKG64PI3DMcaFdWpQ==
+  dependencies:
+    strnum "^1.0.5"
+
+strnum@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/strnum/-/strnum-1.0.5.tgz#5c4e829fe15ad4ff0d20c3db5ac97b73c9b072db"
+  integrity sha512-J8bbNyKKXl5qYcR36TIO8W3mVGVHrmmxsd5PAItGkmyzwJvybiw2IVq5nqd0i4LSNSkB/sx9VHllbfFdr9k1JA==
+
+ts-fusion-parser@^0.1.25:
+  version "0.1.25"
+  resolved "https://registry.yarnpkg.com/ts-fusion-parser/-/ts-fusion-parser-0.1.25.tgz#3a8ad04854b03f13a462c5e8b4b7e416a8cc44f7"
+  integrity sha512-ZWaZK3KbjfMOeZdD8LKzLwO70JkaMiYn1864aYyVWssdiXk2FXi+DeD6P40UbI7SE+WNt8DuH7QJnyMxnZT9/A==
 
 vscode-jsonrpc@8.1.0:
   version "8.1.0"

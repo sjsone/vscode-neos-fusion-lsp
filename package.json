@@ -9,7 +9,7 @@
         "theme": "dark"
     },
     "license": "AGPL-3.0-or-later",
-    "version": "0.2.3",
+    "version": "0.3.5",
     "categories": [
         "Programming Languages"
     ],
@@ -128,9 +128,21 @@
                         "default": true,
                         "description": "Enable diagnostics feature."
                     },
+                    "neosFusionLsp.diagnostics.ignoreNodeTypes": {
+                        "type": "array",
+                        "order": 1,
+                        "items": {
+                            "type": "string",
+                            "title": "NodeType name"
+                        },
+                        "default": [
+                            "Neos.Neos:Plugin"
+                        ],
+                        "description": "List of Prototypes which do not need a NodeType YAML file"
+                    },
                     "neosFusionLsp.diagnostics.levels.deprecations": {
                         "type": "string",
-                        "order": 1,
+                        "order": 2,
                         "default": "hint",
                         "enum": [
                             "hint",
@@ -149,7 +161,7 @@
                     "neosFusionLsp.diagnostics.ignore.folders": {
                         "scope": "window",
                         "type": "array",
-                        "order": 2,
+                        "order": 3,
                         "items": {
                             "type": "string",
                             "title": "Folder path"
@@ -162,7 +174,7 @@
                     "neosFusionLsp.diagnostics.alwaysDiagnoseChangedFile": {
                         "scope": "window",
                         "type": "boolean",
-                        "order": 3,
+                        "order": 4,
                         "default": false,
                         "description": "Always diagnose changed files even if they are in ignored folders."
                     }
@@ -209,7 +221,7 @@
                         "additionalProperties": {
                             "type": "string"
                         },
-                        "description": "An object of deprecated fusion-prototypes. [OldPrototype](Item): NewPrototype(Value). \nIf it should be ignored use '{ignore}' as the value",
+                        "markdownDescription": "An object of deprecated fusion-prototypes. \n\nStructure: \n| Item | Value |\n| ------------ | ------------ |\n| OldPrototype | NewPrototype | \n\n\nIf it should be ignored use `{ignore}` as the value",
                         "default": {
                             "Neos.Fusion:Array": "Neos.Fusion:Join",
                             "Neos.Fusion:Collection": "Neos.Fusion:Loop",
@@ -217,6 +229,18 @@
                             "Neos.Fusion:RawArray": "Neos.Fusion:DataStructure",
                             "Neos.Fusion:UriBuilder": "Neos.Fusion:ActionUri"
                         }
+                    },
+                    "neosFusionLsp.code.actions.createNodeTypeConfiguration.template": {
+                        "type": "string",
+                        "editPresentation": "multilineText",
+                        "markdownDescription": "Template which is used to generate NodeType configuration files\n\nUsable variables are:\n- `{nodeTypeName}` ",
+                        "default": "{nodeTypeName}:\n  properties:"
+                    },
+                    "neosFusionLsp.code.actions.createNodeTypeConfiguration.detectAbstractRegEx": {
+                        "type": "string",
+                        "editPresentation": "singlelineText",
+                        "markdownDescription": "RegEx which detects if NodeType is abstract.\nThis enables the 'Create Abstract NodeType File'",
+                        "default": "(?:A|a)bstract"
                     }
                 }
             },

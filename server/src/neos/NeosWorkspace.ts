@@ -1,13 +1,17 @@
 import * as NodePath from "path"
 import { Logger } from '../common/Logging'
 import { uriToPath } from '../common/util'
+import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { EELHelperToken, NeosPackage } from './NeosPackage'
-export class NeosWorkspace extends Logger {
-	protected workspacePath: string
 
+export class NeosWorkspace extends Logger {
 	protected packages: Map<string, NeosPackage> = new Map()
 
-	constructor(workspacePath: string, name: string) {
+	constructor(
+		protected fusionWorkspace: FusionWorkspace,
+		protected workspacePath: string,
+		name: string
+	) {
 		super(name)
 		this.workspacePath = workspacePath
 	}
@@ -19,7 +23,8 @@ export class NeosWorkspace extends Logger {
 		} catch (error) {
 			if (error instanceof Error) {
 				if (error["code"] === 'ENOENT') {
-					console.log('File not found!', packagePath)
+					this.logError('File not found!', packagePath)
+					this.logError("    Error: ", error)
 				} else {
 					throw error
 				}

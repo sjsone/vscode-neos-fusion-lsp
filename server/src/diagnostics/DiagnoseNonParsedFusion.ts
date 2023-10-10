@@ -1,7 +1,7 @@
+import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { CommonDiagnosticHelper } from './CommonDiagnosticHelper'
-import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 
 export function diagnoseNonParsedFusion(parsedFusionFile: ParsedFusionFile) {
 	const diagnostics: Diagnostic[] = []

@@ -22,8 +22,9 @@ export class Logger {
 	private loggerLogName: string
 	private loggingEnabled: boolean = true
 
-	static LogNameAndLevel = (level: string, name: string, ...things: any) => {
+	static LogNameAndLevel = (level: string, name: string, ...things: any[]) => {
 		console.log(`[${level.padStart(7, " ")}] <${(new Date()).toISOString()}> [${name}]`, ...things)
+		// TODO: Added log-to-file capability (NodeUtil.inspect(thing))
 	}
 
 	constructor(suffix: string | undefined = undefined) {
@@ -41,6 +42,10 @@ export class Logger {
 
 	logInfo(...things: any) {
 		this.logLevel(LoggingLevel.Info, ...things)
+	}
+
+	logError(...things: any) {
+		this.logLevel(LoggingLevel.Error, ...things)
 	}
 
 	logVerbose(...things: any) {
