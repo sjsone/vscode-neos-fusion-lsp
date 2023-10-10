@@ -1,6 +1,7 @@
 import { CodeAction, CodeActionKind, CodeActionParams } from 'vscode-languageserver';
+import { LanguageServer } from '../LanguageServer';
 
-export function openNeosDocumentationAction(params: CodeActionParams) {
+export function openNeosDocumentationAction(languageServer: LanguageServer, params: CodeActionParams) {
 	const codeActions: CodeAction[] = [];
 
 	for (const diagnostic of params.context.diagnostics) {
