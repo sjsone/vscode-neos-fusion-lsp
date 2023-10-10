@@ -47,7 +47,7 @@ export function diagnoseNodeTypeDefinitions(parsedFusionFile: ParsedFusionFile) 
 					nodeTypeName: prototypeName,
 					documentation: {
 						openInBrowser: true,
-						uri: "https://docs.neos.io/guide/manual/content-repository/nodetype-definition"
+						uri: "https://docs.neos.io/guide/manual/content-repository/nodetype/nodetype-definition"
 					}
 				}
 			})
