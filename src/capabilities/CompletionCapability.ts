@@ -10,7 +10,7 @@ import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjec
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
-import { Command, CompletionItem, CompletionItemKind, InsertTextMode } from 'vscode-languageserver/node'
+import { Command, CompletionItem, CompletionItemKind, InsertTextFormat, InsertTextMode } from 'vscode-languageserver/node'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { ExternalObjectStatement, NodeService } from '../common/NodeService'
 import { findParent, getObjectIdentifier } from '../common/util'
@@ -26,7 +26,6 @@ export class CompletionCapability extends AbstractCapability {
 
 	static SuggestCommand: Command = {
 		title: 'Trigger Suggest',
-
 		command: 'editor.action.triggerSuggest'
 	}
 
@@ -134,8 +133,15 @@ export class CompletionCapability extends AbstractCapability {
 	protected getObjectStatementCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectStatement>) {
 		const node = foundNode.getNode()
 		if (node.operation === null || node.operation["position"].begin !== node.operation["position"].end) return []
-
-		return this.getPropertyDefinitionSegments(node, workspace)
+		const builtIn: CompletionItem[] = [
+			{
+				label: 'prototype',
+				insertTextFormat: InsertTextFormat.Snippet,
+				insertText: 'prototype($1)',
+				kind: CompletionItemKind.Keyword,
+			}
+		]
+		return [...builtIn, ...this.getPropertyDefinitionSegments(node, workspace)]
 	}
 
 	protected getFusionPropertyCompletionsForObjectPath(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {
@@ -170,7 +176,7 @@ export class CompletionCapability extends AbstractCapability {
 	}
 
 	protected getPropertyDefinitionSegments(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace) {
-		const completions = []
+		const completions: CompletionItem[] = []
 
 		for (const segmentOrExternalStatement of NodeService.findPropertyDefinitionSegments(objectNode, workspace, true)) {
 			const segment = segmentOrExternalStatement instanceof ExternalObjectStatement ? segmentOrExternalStatement.statement.path.segments[0] : segmentOrExternalStatement
