@@ -21,6 +21,15 @@ import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
 
+const BuiltInCompletions = {
+	prototypeCompletion: {
+		label: 'prototype',
+		insertTextFormat: InsertTextFormat.Snippet,
+		insertText: 'prototype($1)',
+		kind: CompletionItemKind.Keyword,
+	}
+}
+
 // TODO: eel helper arguments
 export class CompletionCapability extends AbstractCapability {
 
@@ -36,6 +45,9 @@ export class CompletionCapability extends AbstractCapability {
 			const foundNode = foundNodeByLine.getNode()
 			console.log(`Type: ${foundNode.constructor.name}`)
 			switch (true) {
+				case foundNode instanceof PathSegment:
+					completions.push(BuiltInCompletions.prototypeCompletion)
+					break;
 				case foundNode instanceof TagNode:
 					completions.push(...this.getTagNodeCompletions(workspace, <LinePositionedNode<TagNode>>foundNodeByLine))
 					break
@@ -133,15 +145,7 @@ export class CompletionCapability extends AbstractCapability {
 	protected getObjectStatementCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectStatement>) {
 		const node = foundNode.getNode()
 		if (node.operation === null || node.operation["position"].begin !== node.operation["position"].end) return []
-		const builtIn: CompletionItem[] = [
-			{
-				label: 'prototype',
-				insertTextFormat: InsertTextFormat.Snippet,
-				insertText: 'prototype($1)',
-				kind: CompletionItemKind.Keyword,
-			}
-		]
-		return [...builtIn, ...this.getPropertyDefinitionSegments(node, workspace)]
+		return [BuiltInCompletions.prototypeCompletion, ...this.getPropertyDefinitionSegments(node, workspace)]
 	}
 
 	protected getFusionPropertyCompletionsForObjectPath(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {
@@ -206,6 +210,8 @@ export class CompletionCapability extends AbstractCapability {
 				}
 			}
 		}
+
+
 
 		return completions
 	}
