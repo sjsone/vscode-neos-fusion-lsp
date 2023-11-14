@@ -22,6 +22,8 @@ import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
 import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
+import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
+import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue'
 
 export class HoverCapability extends AbstractCapability {
 
@@ -65,22 +67,6 @@ export class HoverCapability extends AbstractCapability {
 		}
 	}
 
-	protected * createStatementNamesFromPrototypeNode(prototypeName: string, positionedPrototypeNode: LinePositionedNode<PrototypePathSegment>) {
-		const prototypeNode = positionedPrototypeNode.getNode()
-		if (prototypeNode["identifier"] !== prototypeName) return
-
-		const otherObjectStatement = findParent(prototypeNode, ObjectStatement)
-		if (!otherObjectStatement.block) return
-
-		for (const statement of <ObjectStatement[]>otherObjectStatement.block.statementList.statements) {
-			let statementName = statement["path"].segments.map(abstractNodeToString).filter(Boolean).join(".")
-			if (statement.operation instanceof ValueAssignment) {
-				statementName += ` = ${abstractNodeToString(statement.operation.pathValue)}`
-			}
-			yield statementName
-		}
-	}
-
 	async getMarkdownForTranslationShortHandNode(workspace: FusionWorkspace, linePositionedNode: LinePositionedNode<TranslationShortHandNode>) {
 		const shortHandIdentifier = XLIFFService.readShortHandIdentifier(linePositionedNode.getNode().getValue())
 		const translationFiles = await XLIFFService.getMatchingTranslationFiles(workspace, shortHandIdentifier)
@@ -116,20 +102,92 @@ export class HoverCapability extends AbstractCapability {
 		const prototypeName = getPrototypeNameFromNode(node)
 		if (prototypeName === null) return null
 
+		const doc: { summary?: string, description?: string } = {
+			summary: undefined,
+			description: undefined
+		}
+
+		const propertiesDocs: { [key: string]: { name: string, required?: boolean, type?: string, description?: string } } = {}
+
 		const statementsNames: string[] = []
 		for (const otherParsedFile of workspace.parsedFiles) {
 			const statementsNamesFromFile: string[] = []
-			for (const otherPositionedNode of [...otherParsedFile.prototypeCreations, ...otherParsedFile.prototypeOverwrites]) {
-				for (const statementName of this.createStatementNamesFromPrototypeNode(prototypeName, otherPositionedNode)) {
-					statementsNamesFromFile.push(statementName)
+			for (const otherPositionedNode of [...otherParsedFile.prototypeCreations]) {
+				const otherNode = otherPositionedNode.getNode()
+				if (otherNode["identifier"] !== prototypeName) continue
+				const otherObjectStatement = findParent(otherNode, ObjectStatement)
+				if (!otherObjectStatement.block) continue
+
+				for (const statement of <ObjectStatement[]>otherObjectStatement.block.statementList.statements) {
+					const firstSegment = statement["path"].segments[0]
+					let statementName = abstractNodeToString(firstSegment)
+					console.log("statementName", statementName)
+					if (statementName === "@doc") {
+						if (statement.operation instanceof ValueAssignment) {
+							if (!(statement.operation.pathValue instanceof StringValue)) continue
+							if (abstractNodeToString(statement["path"].segments[1]) === "description") {
+								doc.description = statement.operation.pathValue.value
+							} else if (abstractNodeToString(statement["path"].segments[1]) === "summary") {
+								doc.summary = statement.operation.pathValue.value
+							} else {
+								doc.summary = statement.operation.pathValue.value
+							}
+						} else if (statement.block !== undefined) {
+							for (const docStatement of statement.block.statementList.statements) {
+								if (!(docStatement instanceof ObjectStatement)) continue
+								if (!(docStatement.operation instanceof ValueAssignment)) continue
+								if (!(docStatement.operation.pathValue instanceof StringValue)) continue
+
+								const docStatementName = abstractNodeToString(docStatement.path.segments[0])
+
+								if (docStatementName === "description") doc.description = docStatement.operation.pathValue.value
+								if (docStatementName === "summary") doc.summary = docStatement.operation.pathValue.value
+							}
+						}
+					}
+					if (statementName.toLowerCase() === "@proptypes") {
+						for (const propTypesStatement of statement.block.statementList.statements) {
+							if (!(propTypesStatement instanceof ObjectStatement)) continue
+							if (!(propTypesStatement.operation instanceof ValueAssignment)) continue
+
+							const propTypesStatementName = abstractNodeToString(propTypesStatement.path.segments[0])
+							if (!propertiesDocs[propTypesStatementName]) propertiesDocs[propTypesStatementName] = { name: propTypesStatementName }
+
+
+							console.log("propTypesStatementName", propTypesStatementName)
+							if (propTypesStatement.path.segments.length === 1) {
+								if (!(propTypesStatement.operation.pathValue instanceof EelExpressionValue)) continue
+								const nodes = <ObjectNode><any>propTypesStatement.operation.pathValue.nodes
+								if(!(nodes instanceof ObjectNode)) continue
+
+								propertiesDocs[propTypesStatementName].required = nodes.path[nodes.path.length - 1]?.["value"] === "isRequired"
+
+								// CONTINUE: treat nodes.path as recursive typing definition with this format: [const, type(rec), optional] => [PropTypes, anyOf([...]), isRequired]
+
+								console.log("nodes.path", nodes.path)
+
+							} else if (propTypesStatement.path.segments.length === 2 && abstractNodeToString(propTypesStatement.path.segments[1]) === "@doc") {
+								if (!(propTypesStatement.operation.pathValue instanceof StringValue)) continue
+								propertiesDocs[propTypesStatementName].description = propTypesStatement.operation.pathValue.value
+							}
+						}
+					}
 				}
+
+
+				// for (const statementName of this.createStatementNamesFromPrototypeNode(prototypeName, otherPositionedNode)) {
+				// 	statementsNamesFromFile.push(statementName)
+				// }
 			}
+
 			if (statementsNamesFromFile.length === 0) continue
 
 			const packageName = workspace.neosWorkspace.getPackageByUri(otherParsedFile.uri)?.getPackageName() ?? 'unknown package'
 			statementsNames.push(`// [${packageName}] ${NodePath.basename(otherParsedFile.uri)}`)
 			statementsNames.push(...statementsNamesFromFile)
 		}
+		console.log("doc", doc)
+		console.log("propertiesDocs", propertiesDocs)
 
 		const statementsNamesMarkdown = statementsNames.length > 0 ? "\n" + statementsNames.map(name => `  ${name}`).join("\n") + "\n" : " "
 		return [
@@ -137,6 +195,22 @@ export class HoverCapability extends AbstractCapability {
 			`prototype(${prototypeName}) {${statementsNamesMarkdown}}`,
 			"```"
 		].join("\n")
+	}
+
+	protected * createStatementNamesFromPrototypeNode(prototypeName: string, positionedPrototypeNode: LinePositionedNode<PrototypePathSegment>) {
+		const prototypeNode = positionedPrototypeNode.getNode()
+		if (prototypeNode["identifier"] !== prototypeName) return
+
+		const otherObjectStatement = findParent(prototypeNode, ObjectStatement)
+		if (!otherObjectStatement.block) return
+
+		for (const statement of <ObjectStatement[]>otherObjectStatement.block.statementList.statements) {
+			let statementName = statement["path"].segments.map(abstractNodeToString).filter(Boolean).join(".")
+			if (statement.operation instanceof ValueAssignment) {
+				statementName += ` = ${abstractNodeToString(statement.operation.pathValue)}`
+			}
+			yield statementName
+		}
 	}
 
 	getMarkdownForObjectPath(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<ObjectPathNode>) {
