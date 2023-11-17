@@ -79,7 +79,7 @@ export class NeosPackageNamespace {
 			const fullDefinition = match[1]
 			// const isStatic = !!match[2]
 			const name = match[3]
-			const rawParameters = match[4] + ')'
+			const rawParameters = (match[4] ?? '').trim() + ')'
 
 			const parameters = this.parseMethodParameters(rawParameters)
 
