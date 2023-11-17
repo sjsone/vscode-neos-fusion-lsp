@@ -371,7 +371,7 @@ class NodeService {
 		})
 
 		const fileComments = parsedFusionFile.getNodesByType(Comment) ?? []
-		const foundIgnoreBlockComment = (fileComments ? fileComments : []).find(positionedComment => {
+		const foundIgnoreBlockComment = (fileComments ?? []).find(positionedComment => {
 			const commentNode = positionedComment.getNode()
 			if (!this.affectsCommentTheProperty(objectStatementText, commentNode, SemanticCommentType.IgnoreBlock)) return false
 
