@@ -154,7 +154,8 @@ export class NeosPackageNamespace {
 			const fullDocBlock = reversedDescriptionMatch[1].split('').reverse().join('')
 			const docLineRegex = /^\s*\* *(@\w+)?(.+)?$/gm
 			let docLineMatch = docLineRegex.exec(fullDocBlock)
-			while (docLineMatch && docLineMatch[2]) {
+			let runAwayPrevention = 0
+			while (docLineMatch?.[2] && runAwayPrevention++ < 1000) {
 				descriptionParts.push(docLineMatch[2])
 				// docLineMatch[1] => "@return", "@param", ...
 				docLineMatch = docLineRegex.exec(fullDocBlock)
