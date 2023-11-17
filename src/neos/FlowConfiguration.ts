@@ -66,7 +66,7 @@ export class FlowConfiguration extends Logger {
 				const configurationFileYaml = NodeFs.readFileSync(configurationFilePath).toString()
 				const parsedYaml = parseYaml(configurationFileYaml)
 
-				try {
+				if(parsedYaml) try {
 					const mergedConfiguration = <ParsedYaml>mergeObjects(parsedYaml, configuration)
 					configuration = mergedConfiguration ?? configuration
 					if (LogService.isLogLevel(LoggingLevel.Debug)) {
