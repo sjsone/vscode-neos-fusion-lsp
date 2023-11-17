@@ -227,10 +227,17 @@ export class FusionFileProcessor extends Logger {
 		const operation = <ValueAssignment>objectStatement.operation
 		if (!(operation.pathValue instanceof StringValue)) return
 		const fqcn = operation.pathValue.value.split("\\\\").join("\\")
+
 		const classDefinition = this.parsedFusionFile.workspace.neosWorkspace.getClassDefinitionFromFullyQualifiedClassName(fqcn)
 		if (classDefinition === undefined) return
 
-		const fqcnNode = new FqcnNode(operation.pathValue.value, classDefinition, operation.pathValue["position"])
+		const begin = operation.pathValue["position"].begin + operation.pathValue.value.indexOf(fqcn) + 1
+		const position = {
+			begin,
+			end: begin + fqcn.length + 1
+		}
+
+		const fqcnNode = new FqcnNode(operation.pathValue.value, classDefinition, position)
 		this.parsedFusionFile.addNode(fqcnNode, text)
 	}
 
@@ -292,8 +299,16 @@ export class FusionFileProcessor extends Logger {
 					begin,
 					end: begin + prototypeName.length
 				}
-				const prototypePath = new PrototypePathSegment(prototypeName, position)
-				if (prototypePath) {
+
+				if (prototypeName.startsWith('\\')) {
+					const fqcn = prototypeName.slice(1).split("\\\\").join("\\")
+					const classDefinition = this.parsedFusionFile.workspace.neosWorkspace.getClassDefinitionFromFullyQualifiedClassName(fqcn)
+					if (classDefinition === undefined) continue
+					const fqcnNode = new FqcnNode(prototypeName, classDefinition, position)
+					this.parsedFusionFile.addNode(fqcnNode, text)
+				} else {
+					const prototypePath = new PrototypePathSegment(prototypeName, position)
+					if (!prototypePath) continue
 					prototypePath["parent"] = literalStringNode
 					this.parsedFusionFile.addNode(prototypePath, text)
 				}
