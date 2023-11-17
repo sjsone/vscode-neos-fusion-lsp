@@ -94,7 +94,7 @@ export class FlowConfiguration extends Logger {
 	protected static ReadNodeTypesFolderConfiguration(nodeTypeDefinitionsFolderPath: string): NodeTypeDefinition[] {
 		const nodeTypeDefinitions: NodeTypeDefinition[] = []
 
-		for (const nodeTypeFilePath of <string[]>getFiles(nodeTypeDefinitionsFolderPath, ".yaml")) {
+		for (const nodeTypeFilePath of getFiles(nodeTypeDefinitionsFolderPath, ".yaml")) {
 			nodeTypeDefinitions.push(...FlowConfiguration.ReadNodeTypeConfiguration(nodeTypeFilePath))
 		}
 
