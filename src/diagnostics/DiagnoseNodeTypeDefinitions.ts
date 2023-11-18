@@ -42,7 +42,7 @@ export function diagnoseNodeTypeDefinitions(parsedFusionFile: ParsedFusionFile) 
 				range: range,
 				message: `Could not find NodeType Definition for \`${prototypeName}\``,
 				source: CommonDiagnosticHelper.Source,
-				relatedInformation: [DiagnosticRelatedInformation.create(location, "test")],
+				// relatedInformation: [DiagnosticRelatedInformation.create(location, "test")],
 				data: {
 					nodeTypeName: prototypeName,
 					documentation: {
