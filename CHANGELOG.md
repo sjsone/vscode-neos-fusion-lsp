@@ -13,10 +13,18 @@
   - Autocompletion and Hover for the `Configuration.setting()` EEL-Helper
 - Integration of the WIP [`ts-fusion-runtime`](https://www.npmjs.com/package/ts-fusion-runtime) to correctly resolve Fusion properties
 
+## 🧪 0.3.7
+
+- feature: added builtin `prototype` auto-suggestion
+- feature: New action to create Abstract NodeTypes (thanks to Benjamin-K)
+- improvement: handling of FQCN in FlowQuery `[instanceof ...]`
+- improvement: small improvements to logging errors
+- fix: double completion items in AFX
+
 ## 🧪 0.3.5
 
 - Diagnostics now show where the fusion parser stopped on an error
-- Definition of classes now work in `PropTypes.instanceof` 
+- Definition of classes now work in `PropTypes.instanceof`
 
 ## 🧪 0.3.1
 

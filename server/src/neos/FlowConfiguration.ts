@@ -6,7 +6,6 @@ import { Logger, LogService } from '../common/Logging'
 import { getFiles, mergeObjects, pathToUri } from '../common/util'
 import { LoggingLevel } from '../ExtensionConfiguration'
 import { YamlLexer } from '../yaml/YamlLexer'
-import { error } from 'console'
 
 export type ParsedYaml = string | null | number | boolean | { [key: string]: ParsedYaml }
 
@@ -67,15 +66,19 @@ export class FlowConfiguration extends Logger {
 				const configurationFileYaml = NodeFs.readFileSync(configurationFilePath).toString()
 				const parsedYaml = parseYaml(configurationFileYaml)
 
-				try {
+				if(parsedYaml) try {
 					const mergedConfiguration = <ParsedYaml>mergeObjects(parsedYaml, configuration)
-					configuration = mergedConfiguration ? mergedConfiguration : configuration
+					configuration = mergedConfiguration ?? configuration
 					if (LogService.isLogLevel(LoggingLevel.Debug)) {
 						Logger.LogNameAndLevel(LoggingLevel.Debug.toUpperCase(), 'FlowConfiguration:FromFolder', 'Read configuration from: ' + configurationFilePath)
 					}
-				} catch (e) {
-					if (e instanceof Error) {
-						Logger.LogNameAndLevel(LoggingLevel.Error.toUpperCase(), 'FlowConfiguration:FromFolder', "trying to read configuration: ", configuration, error)
+				} catch (error) {
+					if (error instanceof Error) {
+						Logger.LogNameAndLevel(
+							LoggingLevel.Error.toUpperCase(), 
+							'FlowConfiguration:FromFolder', 
+							"trying to read configuration from: ",configurationFilePath,  configuration, error
+						)
 					}
 				}
 			}
@@ -91,7 +94,7 @@ export class FlowConfiguration extends Logger {
 	protected static ReadNodeTypesFolderConfiguration(nodeTypeDefinitionsFolderPath: string): NodeTypeDefinition[] {
 		const nodeTypeDefinitions: NodeTypeDefinition[] = []
 
-		for (const nodeTypeFilePath of <string[]>getFiles(nodeTypeDefinitionsFolderPath, ".yaml")) {
+		for (const nodeTypeFilePath of getFiles(nodeTypeDefinitionsFolderPath, ".yaml")) {
 			nodeTypeDefinitions.push(...FlowConfiguration.ReadNodeTypeConfiguration(nodeTypeFilePath))
 		}
 

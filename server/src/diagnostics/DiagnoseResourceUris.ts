@@ -20,7 +20,11 @@ export function diagnoseResourceUris(parsedFusionFile: ParsedFusionFile) {
 			message: ``,
 			source: CommonDiagnosticHelper.Source
 		}
-		if (!uri) {
+
+		if (!node.getNamespace()) continue
+
+		if (!uri && node.getNamespace()) {
+			console.log("mode", node)
 			diagnostic.message = `Could not resolve package "${node.getNamespace()}"`
 			diagnostics.push(diagnostic)
 		} else if (!NodeFs.existsSync(uri)) {

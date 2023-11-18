@@ -75,8 +75,7 @@ export class NeosWorkspace extends Logger {
 
 	getResourceUriPath(packageName: string, relativePath: string) {
 		for (const neosPackage of this.packages.values()) {
-			const resourceUriPath = neosPackage.getResourceUriPath(packageName, relativePath)
-			if (resourceUriPath) return resourceUriPath
+			if (neosPackage.hasName(packageName)) return neosPackage.getResourceUriPath(relativePath)
 		}
 		return undefined
 	}
