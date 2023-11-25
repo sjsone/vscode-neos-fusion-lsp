@@ -41,13 +41,24 @@ export class XLIFFTranslationFile extends Logger {
 		this.uri = pathToUri(this.filePath)
 	}
 
+	protected getXLIFFTransUnitsFromParsedXML(data: any): XLIFFTransUnit[] {
+		if(!data) return []
+		if(!this.data?.xliff.file.body["trans-unit"]) return []
+
+		if(Array.isArray(this.data?.xliff.file.body["trans-unit"])) return this.data?.xliff.file.body["trans-unit"]
+		return [this.data?.xliff.file.body["trans-unit"]]
+	}
+
 	async parse() {
 		this.transUnits.clear()
 		const xmlTextBuffer = await NodeFsPromises.readFile(this.filePath)
 		this.data = XLIFFTranslationFile.XMLParser.parse(xmlTextBuffer)
 		const xmlText = xmlTextBuffer.toString()
 		setLinesFromLineDataCacheForFile(this.uri, xmlText.split("\n"))
-		const XLIFFTransUnits: XLIFFTransUnit[] = this.data?.xliff.file.body["trans-unit"] ?? []
+		const debug = this.uri === "file:///Volumes/1TB/misc/hogast-jobportal/source/DistributionPackages/Hogast.Jobportal/Resources/Private/Translations/de/General/Dashboard.xlf"
+		
+		const XLIFFTransUnits: XLIFFTransUnit[] = this.getXLIFFTransUnitsFromParsedXML(this.data)
+		if (debug) console.log("XLIFFTransUnits", XLIFFTransUnits)
 		this.logVerbose(`Found ${XLIFFTransUnits.length} TransUnits`)
 		for (const transUnit of XLIFFTransUnits) {
 			const offset = xmlText.indexOf(`id="${transUnit["@_id"]}"`)
