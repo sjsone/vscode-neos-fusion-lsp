@@ -252,14 +252,15 @@ export class FusionFileProcessor extends Logger {
 	protected processFusionObjectValue(fusionObjectValue: FusionObjectValue, text: string) {
 		if (!ActionUriService.hasPrototypeNameActionUri(fusionObjectValue.value, this.parsedFusionFile.workspace)) return
 		const objectStatement = findParent(fusionObjectValue, ObjectStatement)
-		if (!objectStatement || !objectStatement.block) return
+		if (!objectStatement) return
 
 		this.processActionUriObjectStatement(objectStatement, text)
 	}
 
 	protected processActionUriObjectStatement(objectStatement: ObjectStatement, text: string) {
-		const actionUriDefinitionNode = new ActionUriDefinitionNode(objectStatement)
 		if (objectStatement.block === undefined) return
+
+		const actionUriDefinitionNode = new ActionUriDefinitionNode(objectStatement)
 
 		for (const statement of objectStatement.block.statementList.statements) {
 			if (!(statement instanceof ObjectStatement)) continue
