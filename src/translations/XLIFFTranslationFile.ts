@@ -55,10 +55,8 @@ export class XLIFFTranslationFile extends Logger {
 		this.data = XLIFFTranslationFile.XMLParser.parse(xmlTextBuffer)
 		const xmlText = xmlTextBuffer.toString()
 		setLinesFromLineDataCacheForFile(this.uri, xmlText.split("\n"))
-		const debug = this.uri === "file:///Volumes/1TB/misc/hogast-jobportal/source/DistributionPackages/Hogast.Jobportal/Resources/Private/Translations/de/General/Dashboard.xlf"
 		
 		const XLIFFTransUnits: XLIFFTransUnit[] = this.getXLIFFTransUnitsFromParsedXML(this.data)
-		if (debug) console.log("XLIFFTransUnits", XLIFFTransUnits)
 		this.logVerbose(`Found ${XLIFFTransUnits.length} TransUnits`)
 		for (const transUnit of XLIFFTransUnits) {
 			const offset = xmlText.indexOf(`id="${transUnit["@_id"]}"`)
