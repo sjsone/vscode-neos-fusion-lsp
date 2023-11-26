@@ -13,6 +13,10 @@
   - Autocompletion and Hover for the `Configuration.setting()` EEL-Helper
 - Integration of the WIP [`ts-fusion-runtime`](https://www.npmjs.com/package/ts-fusion-runtime) to correctly resolve Fusion properties
 
+## 0.3.9
+
+- `ts-fusion-parser`: updated to fix issue with closed AFX-Tags
+
 ## 🧪 0.3.7
 
 - feature: added builtin `prototype` auto-suggestion
