@@ -21,23 +21,24 @@ import { LinePositionedNode } from '../common/LinePositionedNode';
 import { Logger } from '../common/Logging';
 import { NodeService } from '../common/NodeService';
 import { findParent, getObjectIdentifier } from '../common/util';
-import { ActionUriActionNode } from './ActionUriActionNode';
-import { ActionUriControllerNode } from './ActionUriControllerNode';
-import { ActionUriDefinitionNode } from './ActionUriDefinitionNode';
-import { FqcnNode } from './FqcnNode';
-import { NeosFusionFormActionNode } from './NeosFusionFormActionNode';
-import { NeosFusionFormControllerNode } from './NeosFusionFormControllerNode';
-import { NeosFusionFormDefinitionNode } from './NeosFusionFormDefinitionNode';
+import { ActionUriActionNode } from './node/ActionUriActionNode';
+import { ActionUriControllerNode } from './node/ActionUriControllerNode';
+import { ActionUriDefinitionNode } from './node/ActionUriDefinitionNode';
+import { FqcnNode } from './node/FqcnNode';
+import { NeosFusionFormActionNode } from './node/NeosFusionFormActionNode';
+import { NeosFusionFormControllerNode } from './node/NeosFusionFormControllerNode';
+import { NeosFusionFormDefinitionNode } from './node/NeosFusionFormDefinitionNode';
 import { ParsedFusionFile } from './ParsedFusionFile';
-import { PhpClassMethodNode } from './PhpClassMethodNode';
-import { PhpClassNode } from './PhpClassNode';
-import { ResourceUriNode } from './ResourceUriNode';
+import { PhpClassMethodNode } from './node/PhpClassMethodNode';
+import { PhpClassNode } from './node/PhpClassNode';
+import { ResourceUriNode } from './node/ResourceUriNode';
 import { NeosFusionFormDefinitionNode } from './NeosFusionFormDefinitionNode';
 import { NeosFusionFormActionNode } from './NeosFusionFormActionNode';
 import { NeosFusionFormControllerNode } from './NeosFusionFormControllerNode';
 import { FlowConfigurationPathNode } from './FlowConfigurationPathNode';
 import { NodeService } from '../common/NodeService';
-import { TranslationShortHandNode } from './TranslationShortHandNode';
+import { TranslationShortHandNode } from './node/TranslationShortHandNode';
+import { EelHelperMethod } from '../eel/EelHelperMethod';
 
 type PostProcess = () => void
 export class FusionFileProcessor extends Logger {
@@ -96,6 +97,15 @@ export class FusionFileProcessor extends Logger {
 				const eelHelperNode = new PhpClassNode(eelHelperIdentifier, eelHelperMethodNode, node, position)
 				this.parsedFusionFile.addNode(eelHelperNode, text)
 				this.processTranslations(eelHelperIdentifier, eelHelperMethodNode, text)
+				this.processPropTypesFqcn(eelHelperIdentifier, eelHelperMethodNode, text)
+			}
+
+			if (eelHelperIdentifier + "." + eelHelperMethodNode.identifier === "Configuration.setting") {
+				this.createFlowConfigurationPathNode(<ObjectFunctionPathNode>methodNode, text)
+			}
+
+			if (eelHelperIdentifier + "." + eelHelperMethodNode.identifier === "Configuration.setting") {
+				this.createFlowConfigurationPathNode(<ObjectFunctionPathNode>methodNode, text)
 			}
 
 			if (eelHelperIdentifier + "." + eelHelperMethodNode.identifier === "Configuration.setting") {
@@ -118,6 +128,22 @@ export class FusionFileProcessor extends Logger {
 
 		const translationShortHandNode = new TranslationShortHandNode(firstArgument)
 		this.parsedFusionFile.addNode(translationShortHandNode, text)
+	}
+
+	protected processPropTypesFqcn(identifier: string, methodNode: PhpClassMethodNode, text: string) {
+		if (identifier !== "PropTypes" || methodNode.identifier.toLowerCase() !== "instanceof") return
+
+		const firstArgument = methodNode.pathNode["args"][0]
+		if (!(firstArgument instanceof LiteralStringNode)) return
+
+		let fqcn = firstArgument["value"].split("\\\\").join("\\")
+		if (fqcn.startsWith("\\")) fqcn = fqcn.replace("\\", "")
+
+		const classDefinition = this.parsedFusionFile.workspace.neosWorkspace.getClassDefinitionFromFullyQualifiedClassName(fqcn)
+		if (classDefinition === undefined) return
+
+		const fqcnNode = new FqcnNode(firstArgument["value"], classDefinition, firstArgument["position"])
+		this.parsedFusionFile.addNode(fqcnNode, text)
 	}
 
 	protected createEelHelperIdentifierAndPositionFromPath(path: ObjectPathNode[]) {
@@ -234,10 +260,17 @@ export class FusionFileProcessor extends Logger {
 		const operation = <ValueAssignment>objectStatement.operation
 		if (!(operation.pathValue instanceof StringValue)) return
 		const fqcn = operation.pathValue.value.split("\\\\").join("\\")
+
 		const classDefinition = this.parsedFusionFile.workspace.neosWorkspace.getClassDefinitionFromFullyQualifiedClassName(fqcn)
 		if (classDefinition === undefined) return
 
-		const fqcnNode = new FqcnNode(operation.pathValue.value, classDefinition, operation.pathValue["position"])
+		const begin = operation.pathValue["position"].begin + operation.pathValue.value.indexOf(fqcn) + 1
+		const position = {
+			begin,
+			end: begin + fqcn.length + 1
+		}
+
+		const fqcnNode = new FqcnNode(operation.pathValue.value, classDefinition, position)
 		this.parsedFusionFile.addNode(fqcnNode, text)
 	}
 
@@ -252,14 +285,15 @@ export class FusionFileProcessor extends Logger {
 	protected processFusionObjectValue(fusionObjectValue: FusionObjectValue, text: string) {
 		if (!ActionUriService.hasPrototypeNameActionUri(fusionObjectValue.value, this.parsedFusionFile.workspace)) return
 		const objectStatement = findParent(fusionObjectValue, ObjectStatement)
-		if (!objectStatement || !objectStatement.block) return
+		if (!objectStatement) return
 
 		this.processActionUriObjectStatement(objectStatement, text)
 	}
 
 	protected processActionUriObjectStatement(objectStatement: ObjectStatement, text: string) {
-		const actionUriDefinitionNode = new ActionUriDefinitionNode(objectStatement)
 		if (objectStatement.block === undefined) return
+
+		const actionUriDefinitionNode = new ActionUriDefinitionNode(objectStatement)
 
 		for (const statement of objectStatement.block.statementList.statements) {
 			if (!(statement instanceof ObjectStatement)) continue
@@ -299,8 +333,16 @@ export class FusionFileProcessor extends Logger {
 					begin,
 					end: begin + prototypeName.length
 				}
-				const prototypePath = new PrototypePathSegment(prototypeName, position)
-				if (prototypePath) {
+
+				if (prototypeName.startsWith('\\')) {
+					const fqcn = prototypeName.slice(1).split("\\\\").join("\\")
+					const classDefinition = this.parsedFusionFile.workspace.neosWorkspace.getClassDefinitionFromFullyQualifiedClassName(fqcn)
+					if (classDefinition === undefined) continue
+					const fqcnNode = new FqcnNode(prototypeName, classDefinition, position)
+					this.parsedFusionFile.addNode(fqcnNode, text)
+				} else {
+					const prototypePath = new PrototypePathSegment(prototypeName, position)
+					if (!prototypePath) continue
 					prototypePath["parent"] = literalStringNode
 					this.parsedFusionFile.addNode(prototypePath, text)
 				}

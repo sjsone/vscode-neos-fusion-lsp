@@ -13,7 +13,6 @@ import { Logger, LogService } from '../common/Logging'
 import { getFiles, mergeObjects, pathToUri } from '../common/util'
 import { LoggingLevel } from '../ExtensionConfiguration'
 import { YamlLexer } from '../yaml/YamlLexer'
-import { error } from 'console'
 
 export type ParsedYaml = string | null | number | boolean | { [key: string]: ParsedYaml }
 

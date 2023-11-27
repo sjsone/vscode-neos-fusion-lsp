@@ -39,6 +39,8 @@ import { AbstractLanguageFeature } from './languageFeatures/AbstractLanguageFeat
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { FusionDocument } from './main'
+import { RenameCapability } from './capabilities/RenameCapability'
+import { RenamePrepareCapability } from './capabilities/RenamePrepareCapability'
 
 
 const CodeActions = [
@@ -77,6 +79,8 @@ export class LanguageServer extends Logger {
 		this.addFunctionalityInstance(DocumentSymbolCapability)
 		this.addFunctionalityInstance(WorkspaceSymbolCapability)
 		this.addFunctionalityInstance(CodeLensCapability)
+		this.addFunctionalityInstance(RenamePrepareCapability)
+		this.addFunctionalityInstance(RenameCapability)
 
 		this.addFunctionalityInstance(InlayHintLanguageFeature)
 		this.addFunctionalityInstance(SemanticTokensLanguageFeature)
@@ -179,6 +183,9 @@ export class LanguageServer extends Logger {
 				definitionProvider: true,
 				codeLensProvider: {
 					resolveProvider: false
+				},
+				renameProvider: {
+					prepareProvider: true
 				},
 				hoverProvider: true,
 				referencesProvider: true,

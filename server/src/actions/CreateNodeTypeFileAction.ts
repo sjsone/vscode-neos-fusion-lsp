@@ -1,9 +1,23 @@
 import * as NodeFs from "fs";
 import * as NodePath from "path";
-import { CodeAction, CodeActionKind, CodeActionParams, CreateFile, Position, TextDocumentEdit, TextEdit } from 'vscode-languageserver';
+import { CodeAction, CodeActionKind, CodeActionParams, CreateFile, Diagnostic, Position, TextDocumentEdit, TextEdit, WorkspaceEdit } from 'vscode-languageserver';
 import { LanguageServer } from '../LanguageServer';
 import { pathToUri } from '../common/util';
 
+const buildDocumentChanges = (fileUri: string, text: string) => [
+	CreateFile.create(fileUri, { ignoreIfExists: true }),
+	TextDocumentEdit.create({ version: null, uri: fileUri }, [TextEdit.insert(Position.create(0, 0), text)])
+]
+
+const buildCodeAction = (title: string, isPreferred: boolean, documentChanges: WorkspaceEdit['documentChanges'], diagnostic: Diagnostic) => ({
+	title,
+	kind: CodeActionKind.QuickFix,
+	isPreferred,
+	edit: {
+		documentChanges
+	},
+	diagnostics: [diagnostic]
+})
 
 export const createNodeTypeFileAction = (languageServer: LanguageServer, params: CodeActionParams) => {
 	const codeActions: CodeAction[] = [];
@@ -35,28 +49,20 @@ export const createNodeTypeFileAction = (languageServer: LanguageServer, params:
 			"{nodeTypeName}": nodeTypeName
 		}
 
-		const newText = Object.keys(variables).reduce((prev, cur) => {
-			return prev.replace(cur, variables[cur])
-		}, template)
+		const newText = Object.keys(variables).reduce((prev, cur) => prev.replace(cur, variables[cur]), template)
+		const detectAbstractRegEx = workspace.getConfiguration().code.actions.createNodeTypeConfiguration.detectAbstractRegEx
+		const nodeTypeCouldBeAbstract = (new RegExp(detectAbstractRegEx)).test(nodeTypeName)
 
-		codeActions.push({
-			title: "Create NodeType File",
-			kind: CodeActionKind.QuickFix,
-			isPreferred: true,
-			edit: {
-				documentChanges: [
-					CreateFile.create(newFileUri, { ignoreIfExists: true }),
-					TextDocumentEdit.create({ version: null, uri: newFileUri }, [TextEdit.insert(Position.create(0, 0), newText)])
-				]
-			},
-			diagnostics: [diagnostic]
-		})
+		codeActions.push(buildCodeAction("Create NodeType File", !nodeTypeCouldBeAbstract, buildDocumentChanges(newFileUri, newText), diagnostic))
+		if (nodeTypeCouldBeAbstract) codeActions.push(
+			buildCodeAction("Create Abstract NodeType File", true, buildDocumentChanges(newFileUri, `${nodeTypeName}:\n  abstract: true`), diagnostic)
+		)
 	}
 
 	return codeActions
 }
 
-function getNewFilePath(packagePath: string, prototypeName: string) {
+const getNewFilePath = (packagePath: string, prototypeName: string) => {
 	// TODO: check PHP Version to better predict the new file path
 	const nodeTypeFolderPath = NodePath.join(packagePath, "NodeTypes")
 	const configurationFolderPath = NodePath.join(packagePath, "Configuration")

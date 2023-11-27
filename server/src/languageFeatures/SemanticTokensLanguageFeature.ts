@@ -18,12 +18,13 @@ import { ActionUriPartTypes } from '../common/ActionUriService'
 import { LinePosition, LinePositionedNode } from '../common/LinePositionedNode'
 import { NodeService } from '../common/NodeService'
 import { findParent, getObjectIdentifier, parseSemanticComment } from '../common/util'
-import { ActionUriDefinitionNode } from '../fusion/ActionUriDefinitionNode'
-import { NeosFusionFormDefinitionNode } from '../fusion/NeosFusionFormDefinitionNode'
-import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
-import { TranslationShortHandNode } from '../fusion/TranslationShortHandNode'
+import { ActionUriDefinitionNode } from '../fusion/node/ActionUriDefinitionNode'
+import { NeosFusionFormDefinitionNode } from '../fusion/node/NeosFusionFormDefinitionNode'
+import { PhpClassMethodNode } from '../fusion/node/PhpClassMethodNode'
+import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
 import { AbstractLanguageFeature } from './AbstractLanguageFeature'
 import { LanguageFeatureContext } from './LanguageFeatureContext'
+import { FqcnNode } from '../fusion/node/FqcnNode'
 
 export interface SemanticTokenConstruct {
 	position: LinePosition
@@ -82,6 +83,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 		semanticTokenConstructs.push(...this.generateLiteralNumberTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generateLiteralNullTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generateObjectPathTokens(languageFeatureContext))
+		semanticTokenConstructs.push(...this.generateFqcnTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generatePhpClassMethodTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generateFlowQueryTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generateTagTokens(languageFeatureContext))
@@ -184,6 +186,15 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 			position: node.getBegin(),
 			length: node.getNode()["value"].length,
 			type: 'property',
+			modifier: 'declaration'
+		}))
+	}
+
+	protected generateFqcnTokens(languageFeatureContext: LanguageFeatureContext) {
+		return this.generateForType(FqcnNode, languageFeatureContext, node => ({
+			position: node.getBegin(),
+			length: node.getNode()['identifier'].length,
+			type: 'class',
 			modifier: 'declaration'
 		}))
 	}

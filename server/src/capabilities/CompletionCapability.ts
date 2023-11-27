@@ -10,17 +10,27 @@ import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjec
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
-import { Command, CompletionItem, CompletionItemKind, InsertTextMode } from 'vscode-languageserver/node'
+import { Command, CompletionItem, CompletionItemKind, InsertTextFormat, InsertTextMode } from 'vscode-languageserver/node'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { ExternalObjectStatement, NodeService } from '../common/NodeService'
 import { findParent, getObjectIdentifier } from '../common/util'
 import { FlowConfigurationPathPartNode } from '../fusion/FlowConfigurationPathPartNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
-import { ResourceUriNode } from '../fusion/ResourceUriNode'
+import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
 import { TranslationShortHandNode } from '../fusion/TranslationShortHandNode'
 import { NeosPackage } from '../neos/NeosPackage'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
+import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
+
+const BuiltInCompletions = {
+	prototypeCompletion: {
+		label: 'prototype',
+		insertTextFormat: InsertTextFormat.Snippet,
+		insertText: 'prototype($1)',
+		kind: CompletionItemKind.Keyword,
+	}
+}
 
 // TODO: eel helper arguments
 export class CompletionCapability extends AbstractCapability {
@@ -35,7 +45,11 @@ export class CompletionCapability extends AbstractCapability {
 		const completions = []
 		if (foundNodeByLine) {
 			const foundNode = foundNodeByLine.getNode()
+			console.log(`Type: ${foundNode.constructor.name}`)
 			switch (true) {
+				case foundNode instanceof PathSegment:
+					completions.push(BuiltInCompletions.prototypeCompletion)
+					break;
 				case foundNode instanceof TagNode:
 					completions.push(...this.getTagNodeCompletions(workspace, <LinePositionedNode<TagNode>>foundNodeByLine))
 					break
@@ -121,12 +135,13 @@ export class CompletionCapability extends AbstractCapability {
 
 		const tagNode = findParent(attributeNode, TagNode)
 		if (tagNode !== undefined) {
+			const labels = []
 			for (const statement of NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace)) {
-				completions.push({
-					label: getObjectIdentifier(statement.statement),
-					kind: CompletionItemKind.Property
-				})
+				const label = getObjectIdentifier(statement.statement)
+				if (!labels.includes(label)) labels.push(label)
 			}
+
+			for (const label of labels) completions.push({ label, kind: CompletionItemKind.Property })
 		}
 
 		return completions
@@ -135,8 +150,7 @@ export class CompletionCapability extends AbstractCapability {
 	protected getObjectStatementCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectStatement>) {
 		const node = foundNode.getNode()
 		if (node.operation === null || node.operation["position"].begin !== node.operation["position"].end) return []
-
-		return this.getPropertyDefinitionSegments(node, workspace)
+		return [BuiltInCompletions.prototypeCompletion, ...this.getPropertyDefinitionSegments(node, workspace)]
 	}
 
 	protected getFusionPropertyCompletionsForObjectPath(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {
@@ -171,7 +185,7 @@ export class CompletionCapability extends AbstractCapability {
 	}
 
 	protected getPropertyDefinitionSegments(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace) {
-		const completions = []
+		const completions: CompletionItem[] = []
 
 		for (const segmentOrExternalStatement of NodeService.findPropertyDefinitionSegments(objectNode, workspace, true)) {
 			const segment = segmentOrExternalStatement instanceof ExternalObjectStatement ? segmentOrExternalStatement.statement.path.segments[0] : segmentOrExternalStatement
@@ -198,6 +212,47 @@ export class CompletionCapability extends AbstractCapability {
 				const label = fileNode.getNode().identifier
 				if (!completions.find(completion => completion.label === label)) {
 					completions.push(this.createCompletionItem(label, foundNode, CompletionItemKind.Class))
+				}
+			}
+		}
+
+
+
+		return completions
+	}
+
+	protected getFlowConfigurationCompletions(fusionWorkspace: FusionWorkspace, partNode: LinePositionedNode<FlowConfigurationPathPartNode>): CompletionItem[] {
+		const completions: CompletionItem[] = []
+		const node = partNode.getNode()["parent"]
+		const partIndex = node["path"].indexOf(partNode.getNode())
+		if (partIndex === -1) return []
+
+		const pathParts = node["path"].slice(0, partIndex + 1)
+		const searchPath = pathParts.map(part => part["value"]).filter(Boolean)
+		this.logDebug("searching for ", searchPath)
+
+		for (const neosPackage of fusionWorkspace.neosWorkspace.getPackages().values()) {
+			for (const result of neosPackage["configuration"].search(searchPath)) {
+				if (typeof result.value === "string") {
+					completions.push(this.createCompletionItem(result.value, partNode, CompletionItemKind.Text))
+				}
+
+				if (typeof result.value === "object") {
+					for (const itemName in result.value) {
+						const value = result.value[itemName]
+						const isObject = typeof value === "object"
+
+						const label = (searchPath.length > 0 ? '.' : '') + itemName + (isObject ? '.' : '')
+						if (completions.find(completion => completion.label === label)) continue
+
+						let type: CompletionItemKind = CompletionItemKind.Value
+						if (typeof value === "string") type = CompletionItemKind.Text
+						if (isObject) type = CompletionItemKind.Class
+
+						const completion = this.createCompletionItem(label, partNode, type)
+						completion.command = CompletionCapability.SuggestCommand
+						completions.push(completion)
+					}
 				}
 			}
 		}
