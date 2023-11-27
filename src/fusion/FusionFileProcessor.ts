@@ -21,6 +21,8 @@ import { LinePositionedNode } from '../common/LinePositionedNode';
 import { Logger } from '../common/Logging';
 import { NodeService } from '../common/NodeService';
 import { findParent, getObjectIdentifier } from '../common/util';
+import { FlowConfigurationPathNode } from './FlowConfigurationPathNode';
+import { ParsedFusionFile } from './ParsedFusionFile';
 import { ActionUriActionNode } from './node/ActionUriActionNode';
 import { ActionUriControllerNode } from './node/ActionUriControllerNode';
 import { ActionUriDefinitionNode } from './node/ActionUriDefinitionNode';
@@ -28,17 +30,10 @@ import { FqcnNode } from './node/FqcnNode';
 import { NeosFusionFormActionNode } from './node/NeosFusionFormActionNode';
 import { NeosFusionFormControllerNode } from './node/NeosFusionFormControllerNode';
 import { NeosFusionFormDefinitionNode } from './node/NeosFusionFormDefinitionNode';
-import { ParsedFusionFile } from './ParsedFusionFile';
 import { PhpClassMethodNode } from './node/PhpClassMethodNode';
 import { PhpClassNode } from './node/PhpClassNode';
 import { ResourceUriNode } from './node/ResourceUriNode';
-import { NeosFusionFormDefinitionNode } from './NeosFusionFormDefinitionNode';
-import { NeosFusionFormActionNode } from './NeosFusionFormActionNode';
-import { NeosFusionFormControllerNode } from './NeosFusionFormControllerNode';
-import { FlowConfigurationPathNode } from './FlowConfigurationPathNode';
-import { NodeService } from '../common/NodeService';
 import { TranslationShortHandNode } from './node/TranslationShortHandNode';
-import { EelHelperMethod } from '../eel/EelHelperMethod';
 
 type PostProcess = () => void
 export class FusionFileProcessor extends Logger {
