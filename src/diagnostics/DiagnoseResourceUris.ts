@@ -2,7 +2,7 @@ import * as NodeFs from "fs"
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
-import { ResourceUriNode } from '../fusion/ResourceUriNode'
+import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
 import { CommonDiagnosticHelper } from './CommonDiagnosticHelper'
 
 export function diagnoseResourceUris(parsedFusionFile: ParsedFusionFile) {
@@ -20,7 +20,11 @@ export function diagnoseResourceUris(parsedFusionFile: ParsedFusionFile) {
 			message: ``,
 			source: CommonDiagnosticHelper.Source
 		}
-		if (!uri) {
+
+		if (!node.getNamespace()) continue
+
+		if (!uri && node.getNamespace()) {
+			console.log("mode", node)
 			diagnostic.message = `Could not resolve package "${node.getNamespace()}"`
 			diagnostics.push(diagnostic)
 		} else if (!NodeFs.existsSync(uri)) {

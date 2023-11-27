@@ -76,6 +76,10 @@ export class FusionWorkspace extends Logger {
         }
 
         const usingWorkspaceAsPackageFallback = packagesPaths.length === 0 && configuration.folders.workspaceAsPackageFallback
+        if (usingWorkspaceAsPackageFallback) {
+            this.logDebug("fallback to using workspace as package")
+            packagesPaths.push(workspacePath)
+        }
         if (usingWorkspaceAsPackageFallback) packagesPaths.push(workspacePath)
 
         this.neosWorkspace = new NeosWorkspace(this)
@@ -117,7 +121,15 @@ export class FusionWorkspace extends Logger {
             parsedFile.runPostProcessing()
         }
 
+
         this.logInfo(`Successfully parsed ${this.parsedFiles.length} fusion files. `)
+
+        if(usingWorkspaceAsPackageFallback && this.parsedFiles.length === 0) {
+            
+        }
+
+        // TODO: if this.parsedFiles.length === 0 show error message with link to TBD-setting "workspace root"
+        // TODO: if no package has a composer.json show error message with link to TBD-setting "workspace root"
         if (this.filesWithErrors.length > 0) {
             this.logInfo(`  Could not parse ${this.filesWithErrors.length} files due to errors`)
 
@@ -136,6 +148,7 @@ export class FusionWorkspace extends Logger {
 
     addParsedFileFromPath(fusionFilePath: string, neosPackage: NeosPackage) {
         try {
+            this.logDebug("Trying to add parsed file from path", fusionFilePath, pathToUri(fusionFilePath))
             const parsedFile = new ParsedFusionFile(pathToUri(fusionFilePath), this, neosPackage)
             this.initParsedFile(parsedFile)
             this.parsedFiles.push(parsedFile)
@@ -167,11 +180,11 @@ export class FusionWorkspace extends Logger {
 
             if (this.configuration.diagnostics.enabled && inIgnoredFolder === undefined) {
                 this.filesToDiagnose.push(parsedFile)
-
             }
 
             return true
-        } catch (e) {
+        } catch (error) {
+            this.logError("While initializing parsed file: ", error)
             this.filesWithErrors.push(parsedFile.uri)
         }
 

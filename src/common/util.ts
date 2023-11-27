@@ -17,12 +17,12 @@ import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
 import { URI } from 'vscode-uri'
 import { uriToFsPath } from 'vscode-uri/lib/umd/uri'
 import { DeprecationConfigurationSpecialType } from '../ExtensionConfiguration'
-import { FqcnNode } from '../fusion/FqcnNode'
+import { FqcnNode } from '../fusion/node/FqcnNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
-import { PhpClassMethodNode } from '../fusion/PhpClassMethodNode'
-import { PhpClassNode } from '../fusion/PhpClassNode'
-import { ResourceUriNode } from '../fusion/ResourceUriNode'
-import { TranslationShortHandNode } from '../fusion/TranslationShortHandNode'
+import { PhpClassMethodNode } from '../fusion/node/PhpClassMethodNode'
+import { PhpClassNode } from '../fusion/node/PhpClassNode'
+import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
+import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
 import { Position } from 'vscode-languageserver'
 import { FlowConfigurationPathPartNode } from '../fusion/FlowConfigurationPathPartNode'
 
@@ -125,6 +125,7 @@ export function isPrototypeDeprecated(workspace: FusionWorkspace, prototypeName:
 
 // TODO: use generics
 export function mergeObjects(source: unknown, target: unknown) {
+    // TODO: rewrite mergeObjects
     // https://gist.github.com/ahtcx/0cd94e62691f539160b32ecda18af3d6?permalink_comment_id=3889214#gistcomment-3889214
     for (const [key, val] of Object.entries(source)) {
         if (val !== null && typeof val === `object`) {

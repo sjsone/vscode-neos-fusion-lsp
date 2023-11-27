@@ -124,11 +124,8 @@ export class NeosPackage extends Logger {
 		return undefined
 	}
 
-	// TODO: refactor method. No "packageName" needed
-	getResourceUriPath(packageName: string, relativePath: string) {
-		if (this.getPackageName() === packageName) {
-			return NodePath.join(this.path, "Resources", relativePath)
-		}
+	getResourceUriPath(relativePath: string) {
+		return NodePath.join(this.path, "Resources", relativePath)
 	}
 
 	getTranslationsBasePath() {
@@ -145,8 +142,7 @@ export class NeosPackage extends Logger {
 
 	getPackageName() {
 		const packageKey = this.composerJson.extra?.neos?.["package-key"]
-		const name = this.getName()
-		return packageKey ?? name.split("/").map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('.')
+		return packageKey ?? this.getName().split("/").map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('.')
 	}
 
 	hasName(name: string) {

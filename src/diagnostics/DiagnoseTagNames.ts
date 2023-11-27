@@ -2,6 +2,8 @@ import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { CommonDiagnosticHelper } from './CommonDiagnosticHelper'
+import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
+import { TagSpreadEelAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagSpreadEelAttributeNode'
 
 export function diagnoseTagNames(parsedFusionFile: ParsedFusionFile) {
 	const diagnostics: Diagnostic[] = []
@@ -13,10 +15,12 @@ export function diagnoseTagNames(parsedFusionFile: ParsedFusionFile) {
 		const node = positionedTagNode.getNode()
 		if (!node["selfClosing"]) continue
 		if (node["end"]["name"] === "/>") continue
+		if (node["attributes"].find(attribute => attribute["name"] === "@children")) continue
+
 		const diagnostic: Diagnostic = {
 			severity: DiagnosticSeverity.Error,
 			range: positionedTagNode.getPositionAsRange(),
-			message: `Tags have to be closed`,
+			message: `Tags have to be closed or the \`@children\` attribute has to be used`,
 			source: CommonDiagnosticHelper.Source
 		}
 		diagnostics.push(diagnostic)
