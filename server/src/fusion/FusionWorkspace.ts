@@ -1,7 +1,8 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
+import { FilePatternResolver } from 'ts-fusion-runtime/out/core/FilePatternResolver'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
-import { TextDocumentChangeEvent } from 'vscode-languageserver'
+import { ExecutionSummary, TextDocumentChangeEvent } from 'vscode-languageserver'
 import { TextDocument } from "vscode-languageserver-textdocument"
 import { LoggingLevel, type ExtensionConfiguration } from '../ExtensionConfiguration'
 import { LanguageServer } from '../LanguageServer'
@@ -14,6 +15,8 @@ import { NeosPackage } from '../neos/NeosPackage'
 import { NeosWorkspace } from '../neos/NeosWorkspace'
 import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile'
 import { ParsedFusionFile } from './ParsedFusionFile'
+import { LanguageServerFusionParser } from './LanguageServerFusionParser'
+import { InternalArrayTreePart } from 'ts-fusion-runtime/out/core/MergedArrayTree'
 
 export class FusionWorkspace extends Logger {
     public uri: string
@@ -23,6 +26,7 @@ export class FusionWorkspace extends Logger {
 
     public neosWorkspace: NeosWorkspace
 
+    public mergedArrayTree: InternalArrayTreePart = {}
     public parsedFiles: ParsedFusionFile[] = []
     public filesWithErrors: string[] = []
 
@@ -104,15 +108,45 @@ export class FusionWorkspace extends Logger {
             }).catch(error => this.logError("init", error))
         }
 
+
+        // TODO: use correct package include order instead of guessing
+        const sortOrder: string[] = ['neos-framework', 'neos-package', 'neos-site', 'library'];
+        const possibleNeosFusionPackages = Array.from(this.neosWorkspace.getPackages().values()).sort((a, b) => sortOrder.indexOf(a["composerJson"]["type"]) - sortOrder.indexOf(b["composerJson"]["type"]))
+
+        const rootFusionPaths = possibleNeosFusionPackages.reduce((acc, neosPackage) => {
+            const rootFusionPath = neosPackage.getResourceUriPath("/Private/Fusion/Root.fusion")
+            if (NodeFs.existsSync(rootFusionPath)) acc.push(rootFusionPath)
+            return acc
+        }, [] as string[])
+
+        this.logDebug("Root Fusion Paths and order for include", rootFusionPaths)
+
+        FilePatternResolver.addUriProtocolStrategy('nodetypes:', (uri, filePattern, contextPathAndFilename) => {
+            if (uri.protocol !== "nodetypes:") return undefined
+            if (!contextPathAndFilename) return undefined
+        
+            const packageName = uri.hostname
+            const relativePath = uri.pathname
+        
+            // TODO: resolve correctly
+            const basePackagePath = NodePath.normalize(contextPathAndFilename).split("/").slice(0, 2).join("/")
+            return NodePath.join(basePackagePath, "NodeTypes", relativePath)
+        })
+
+        const fusionParser = new LanguageServerFusionParser(this)
+        const startTimeFullMergedArrayTree = performance.now();
+        this.mergedArrayTree = fusionParser.parseFiles(rootFusionPaths)
+        console.log(`Elapsed time FULL MAT: ${performance.now() - startTimeFullMergedArrayTree} milliseconds`);
+
+
         for (const parsedFile of this.parsedFiles) {
             parsedFile.runPostProcessing()
         }
 
-
         this.logInfo(`Successfully parsed ${this.parsedFiles.length} fusion files. `)
 
-        if(usingWorkspaceAsPackageFallback && this.parsedFiles.length === 0) {
-            
+        if (usingWorkspaceAsPackageFallback && this.parsedFiles.length === 0) {
+
         }
 
         // TODO: if this.parsedFiles.length === 0 show error message with link to TBD-setting "workspace root"
@@ -197,6 +231,10 @@ export class FusionWorkspace extends Logger {
 
     getParsedFileByUri(uri: string) {
         return this.parsedFiles.find(file => file.uri === uri)
+    }
+
+    getParsedFileByContextPathAndFilename(contextPathAndFilename: string) {
+        return this.parsedFiles.find(file => file.uri.endsWith(contextPathAndFilename))
     }
 
     getNodesByType<T extends new (...args: unknown[]) => AbstractNode>(type: T): Array<{ uri: string, nodes: LinePositionedNode<InstanceType<T>>[] }> {

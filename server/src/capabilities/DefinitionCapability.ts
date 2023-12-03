@@ -31,6 +31,7 @@ import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNod
 import { ClassDefinition } from '../neos/NeosPackageNamespace'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
+import { ObjectPath } from 'ts-fusion-parser/out/fusion/nodes/ObjectPath'
 
 export interface ActionUriDefinition {
 	package: string
@@ -46,7 +47,7 @@ export class DefinitionCapability extends AbstractCapability {
 		const { workspace, parsedFile, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
 		const node = foundNodeByLine.getNode()
 
-		this.logVerbose(`node type "${foundNodeByLine.getNode().constructor.name}"`)
+		console.log(`node type "${foundNodeByLine.getNode().constructor.name}"`)
 		switch (true) {
 			case node instanceof TranslationShortHandNode:
 				return this.getTranslationShortHandNodeDefinitions(workspace, <LinePositionedNode<TranslationShortHandNode>>foundNodeByLine)
@@ -126,7 +127,25 @@ export class DefinitionCapability extends AbstractCapability {
 	}
 
 	getPropertyDefinitions(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<AbstractNode>): null | Location[] {
+
+
+
+		const debug = parsedFile.uri.endsWith("Atom.Anchor.fusion")
+
 		const node = <PathSegment | ObjectPathNode>foundNodeByLine.getNode()
+
+		if(debug) {
+			console.log(findParent(node, ObjectPath))
+			// const path: any[] = [node]
+			// let parent = node["parent"]
+			// while (parent) {
+			// 	path.push(parent)
+			// 	parent = parent["parent"]
+			// }
+			// console.log(path)
+		}
+
+
 		const objectNode = node["parent"]
 		if (!(objectNode instanceof ObjectNode)) return null
 
