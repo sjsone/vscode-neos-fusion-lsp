@@ -1,5 +1,5 @@
 import { Diagnostic, DiagnosticRelatedInformation, DiagnosticSeverity, Location } from 'vscode-languageserver'
-import { NodeService } from '../common/NodeService'
+import { LegacyNodeService } from '../common/LegacyNodeService'
 import { getPrototypeNameFromNode } from '../common/util'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
@@ -7,7 +7,7 @@ import { CommonDiagnosticHelper } from './CommonDiagnosticHelper'
 
 const isPrototypeOneOf = (prototypeName: string, oneOf: string[], workspace: FusionWorkspace) => {
 	for (const name of oneOf) {
-		if (NodeService.isPrototypeOneOf(prototypeName, name, workspace)) return true
+		if (LegacyNodeService.isPrototypeOneOf(prototypeName, name, workspace)) return true
 	}
 	return false
 }
@@ -31,7 +31,7 @@ export function diagnoseNodeTypeDefinitions(parsedFusionFile: ParsedFusionFile) 
 		if (contentPrototypeNames.includes(prototypeName)) continue
 		if (!isPrototypeOneOf(prototypeName, contentPrototypeNames, workspace)) continue
 		if (isPrototypeOneOf(prototypeName, workspace.getConfiguration().diagnostics.ignoreNodeTypes, workspace)) continue
-		if (NodeService.isNodeAffectedByIgnoreComment(creation.getNode(), parsedFusionFile)) continue
+		if (LegacyNodeService.isNodeAffectedByIgnoreComment(creation.getNode(), parsedFusionFile)) continue
 
 		const nodeTypeDefinition = nodeTypeDefinitions.find(nodeType => nodeType.nodeType === prototypeName)
 		if (!nodeTypeDefinition) {

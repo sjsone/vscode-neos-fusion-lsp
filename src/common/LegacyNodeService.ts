@@ -32,7 +32,7 @@ export interface FoundApplyPropsResult {
 	appliedStatements?: ObjectStatement[]
 }
 
-class NodeService {
+class LegacyNodeService {
 
 	public doesPrototypeOverrideProps(name: string): boolean {
 		// TODO: use this.isPrototypeOneOf ? 
@@ -390,5 +390,5 @@ class NodeService {
 	}
 }
 
-const nodeService = new NodeService
-export { NodeService as NodeServiceClass, nodeService as NodeService }
+const nodeService = new LegacyNodeService
+export { LegacyNodeService as NodeServiceClass, nodeService as LegacyNodeService }

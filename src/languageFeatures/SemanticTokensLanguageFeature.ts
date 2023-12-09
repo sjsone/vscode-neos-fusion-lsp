@@ -16,7 +16,7 @@ import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
 import { ActionUriPartTypes } from '../common/ActionUriService'
 import { LinePosition, LinePositionedNode } from '../common/LinePositionedNode'
-import { NodeService } from '../common/NodeService'
+import { LegacyNodeService } from '../common/LegacyNodeService'
 import { findParent, getObjectIdentifier, parseSemanticComment } from '../common/util'
 import { ActionUriDefinitionNode } from '../fusion/node/ActionUriDefinitionNode'
 import { NeosFusionFormDefinitionNode } from '../fusion/node/NeosFusionFormDefinitionNode'
@@ -257,7 +257,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 			const tagNode = findParent(tagAttributeNode.getNode(), TagNode)
 			if (tagNode === undefined) continue
 
-			for (const statement of NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], languageFeatureContext.workspace, true)) {
+			for (const statement of LegacyNodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], languageFeatureContext.workspace, true)) {
 				const identifier = getObjectIdentifier(statement.statement)
 
 				if (tagAttributeNode.getNode().name === identifier) {
@@ -331,7 +331,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 
 		for (const prototypeDefinition of [...languageFeatureContext.parsedFile.prototypeCreations, ...languageFeatureContext.parsedFile.prototypeOverwrites]) {
 			const node = prototypeDefinition.getNode()
-			if (!NodeService.isPrototypeOneOf(node.identifier, 'Neos.Fusion:Component', languageFeatureContext.workspace)) continue
+			if (!LegacyNodeService.isPrototypeOneOf(node.identifier, 'Neos.Fusion:Component', languageFeatureContext.workspace)) continue
 
 			const block = findParent(node, ObjectStatement)?.block
 			if (!block) continue

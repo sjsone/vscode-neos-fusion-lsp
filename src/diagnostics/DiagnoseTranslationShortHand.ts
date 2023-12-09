@@ -3,7 +3,7 @@ import { XLIFFService } from '../common/XLIFFService'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
 import { IgnorableDiagnostic } from './IgnorableDiagnostic'
-import { NodeService } from '../common/NodeService'
+import { LegacyNodeService } from '../common/LegacyNodeService'
 
 export async function diagnoseTranslationShortHand(parsedFusionFile: ParsedFusionFile) {
 	const diagnostics: Diagnostic[] = []
@@ -17,7 +17,7 @@ export async function diagnoseTranslationShortHand(parsedFusionFile: ParsedFusio
 		const translationFiles = await XLIFFService.getMatchingTranslationFiles(workspace, identifier)
 		if (translationFiles.length > 0) continue
 
-		if (NodeService.isNodeAffectedByIgnoreComment(node, parsedFusionFile)) continue
+		if (LegacyNodeService.isNodeAffectedByIgnoreComment(node, parsedFusionFile)) continue
 
 		diagnostics.push(IgnorableDiagnostic.create(translationShortHandNode.getPositionAsRange(), `Unknown Translation ID ${node.getValue()}`, DiagnosticSeverity.Error))
 	}
