@@ -17,11 +17,12 @@ class NodeService {
 		if(debug) console.log("pathForNode", pathForNode)
 		const runtimeConfiguration = new RuntimeConfiguration(workspace.mergedArrayTree);
 		// if(debug) console.log("runtimeConfiguration", runtimeConfiguration)
-
+		
 		const relevantTree = pathForNode.map((pathPart, index) => ({
 			pathPart,
 			configuration: runtimeConfiguration.forPath(pathForNode.slice(0, index + 1).join('/'))
 		}))
+		if(debug) console.log("relevantTree", relevantTree)
 
 		// console.log(`Elapsed time relevantTree: ${performance.now() - startTimePathResolving} milliseconds`);
 
