@@ -20,6 +20,7 @@ import { NeosPackage } from '../neos/NeosPackage'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
+import { NodeService } from '../common/NodeService'
 
 const BuiltInCompletions = {
 	prototypeCompletion: {
@@ -150,33 +151,16 @@ export class CompletionCapability extends AbstractCapability {
 
 	protected getFusionPropertyCompletionsForObjectPath(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {
 		const node = foundNode.getNode()
-		const objectNode = node["parent"]
-		if (!(objectNode instanceof ObjectNode)) return null
+		const completions: CompletionItem[] = []
 
+		const fusionContext = NodeService.getFusionContextUntilNode(node, workspace)
 
-		if (objectNode.path.length === 1) {
-			return [
-				{
-					label: 'props',
-					insertText: 'props.',
-					kind: CompletionItemKind.Keyword,
-					command: CompletionCapability.SuggestCommand
-				},
-				{
-					label: 'this',
-					insertText: 'this.',
-					kind: CompletionItemKind.Keyword,
-					command: CompletionCapability.SuggestCommand
-				}
-			]
+		if (fusionContext) for (const label of Object.keys(fusionContext)) {
+			if (label.startsWith('__')) continue
+			completions.push(this.createCompletionItem(label, foundNode, CompletionItemKind.Class))
 		}
 
-		if ((objectNode.path[0]["value"] !== "this" && objectNode.path[0]["value"] !== "props") || objectNode.path.length === 1) {
-			// TODO: handle context properties
-			return []
-		}
-
-		return this.getPropertyDefinitionSegments(objectNode, workspace)
+		return completions;
 	}
 
 	protected getPropertyDefinitionSegments(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace) {
@@ -210,18 +194,30 @@ export class CompletionCapability extends AbstractCapability {
 				}
 			}
 		}
-
-
-
 		return completions
 	}
 
-	protected getFusionPropertyCompletionsForObjectNode(fusionWorkspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectNode>): CompletionItem[] {
+	protected getFusionPropertyCompletionsForObjectNode(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectNode>): CompletionItem[] {
 		const node = foundNode.getNode()
-		if (node.path[0]["value"] !== "props") return null
-		if (node.path.length !== 1) return null
+		const completions: CompletionItem[] = []
 
-		return this.getPropertyDefinitionSegments(node, fusionWorkspace)
+		const objectPathParts = node.path.map(segment => segment["value"])
+		let fusionContext = NodeService.getFusionContextUntilNode(node, workspace)
+
+		for (const objectPathPart of objectPathParts) {
+			if (!(objectPathPart in fusionContext)) {
+				fusionContext = fusionContext
+				break;
+			}
+			fusionContext = fusionContext[objectPathPart]
+		}
+
+		if (typeof fusionContext === "object") for (const label of Object.keys(fusionContext)) {
+			if (label.startsWith('__')) continue
+			completions.push(this.createCompletionItem([...objectPathParts, label].join('.'), foundNode, CompletionItemKind.Class))
+		}
+
+		return completions;
 	}
 
 	protected getEelHelperCompletionsForObjectPath(fusionWorkspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {

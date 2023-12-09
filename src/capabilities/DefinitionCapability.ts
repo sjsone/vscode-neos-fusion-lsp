@@ -13,17 +13,17 @@ import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/Prototyp
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
 import { DefinitionLink, Location, LocationLink, Position, Range } from 'vscode-languageserver/node'
 import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService'
-import { LinePositionedNode } from '../common/LinePositionedNode'
 import { LegacyNodeService } from '../common/LegacyNodeService'
+import { LinePositionedNode } from '../common/LinePositionedNode'
 import { XLIFFService } from '../common/XLIFFService'
 import { findParent, getObjectIdentifier, getPrototypeNameFromNode, pathToUri } from '../common/util'
+import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { ActionUriActionNode } from '../fusion/node/ActionUriActionNode'
 import { ActionUriControllerNode } from '../fusion/node/ActionUriControllerNode'
 import { FqcnNode } from '../fusion/node/FqcnNode'
-import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { NeosFusionFormActionNode } from '../fusion/node/NeosFusionFormActionNode'
 import { NeosFusionFormControllerNode } from '../fusion/node/NeosFusionFormControllerNode'
-import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { PhpClassMethodNode } from '../fusion/node/PhpClassMethodNode'
 import { PhpClassNode } from '../fusion/node/PhpClassNode'
 import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
@@ -31,8 +31,6 @@ import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNod
 import { ClassDefinition } from '../neos/NeosPackageNamespace'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
-import { MergedArrayTreeService } from '../common/MergedArrayTreeService'
-import { RuntimeConfiguration } from 'ts-fusion-runtime'
 
 export interface ActionUriDefinition {
 	package: string
@@ -49,67 +47,6 @@ export class DefinitionCapability extends AbstractCapability {
 		const node = foundNodeByLine.getNode()
 
 		console.log(`node type "${foundNodeByLine.getNode().constructor.name}"`)
-		const startTimePathResolving = performance.now();
-
-		const baseNode = node instanceof PathSegment ? findParent(node, ObjectStatement)["parent"] : node
-
-		const pathForNode = MergedArrayTreeService.buildPathForNode(baseNode)
-		const runtimeConfiguration = new RuntimeConfiguration(workspace.mergedArrayTree);
-
-		const relevantTree = pathForNode.map((pathPart, index) => ({
-			pathPart,
-			configuration: runtimeConfiguration.forPath(pathForNode.slice(0, index + 1).join('/'))
-		}))
-
-		console.log(`Elapsed time relevantTree: ${performance.now() - startTimePathResolving} milliseconds`);
-
-		// console.log("relevantTree", relevantTree)
-
-		const finalFusionContext = {} as { [key: string]: any }
-		for (const relevantTreePart of relevantTree) {
-			const partConfiguration = relevantTreePart.configuration
-			if ('__eelExpression' in partConfiguration && partConfiguration.__eelExpression !== null) continue
-
-			const hasRenderer = partConfiguration.__objectType === 'Neos.Fusion:Component' || partConfiguration.__prototypeChain?.includes('Neos.Fusion:Component')
-
-			let thisFusionContext = {}
-
-			if (partConfiguration.__meta) {
-				if (partConfiguration.__meta.context && typeof partConfiguration.__meta.context === "object") {
-					for (const contextKey in partConfiguration.__meta.context) {
-						finalFusionContext[contextKey] = partConfiguration.__meta.context[contextKey]
-					}
-				}
-
-				// TODO: sort `__meta` before using it ("@position")
-				if (partConfiguration.__meta.apply && typeof partConfiguration.__meta.apply === "object") {
-					for (const toApply of Object.values(partConfiguration.__meta.apply)) {
-						if (toApply['__eelExpression'] !== "props") continue
-						// TODO: run EEL-Expression
-						const valueToApply = finalFusionContext[toApply['__eelExpression']]
-
-						thisFusionContext = {
-							...thisFusionContext,
-							...valueToApply
-						}
-					}
-				}
-			}
-
-			for (const key in partConfiguration) {
-				console.log("#> KEY: " + key)
-				if (key.startsWith("__")) continue
-				if (hasRenderer && key === "renderer") continue
-				thisFusionContext[key] = partConfiguration[key]
-			}
-			finalFusionContext.this = thisFusionContext
-			if (hasRenderer) finalFusionContext.props = thisFusionContext
-		}
-
-		console.log("finalFusionContext", finalFusionContext)
-		console.log("pathForNode", pathForNode)
-
-		return null;
 
 
 		switch (true) {
