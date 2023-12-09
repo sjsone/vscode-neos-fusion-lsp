@@ -31,7 +31,8 @@ import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNod
 import { ClassDefinition } from '../neos/NeosPackageNamespace'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
-import { ObjectPath } from 'ts-fusion-parser/out/fusion/nodes/ObjectPath'
+import { MergedArrayTreeService } from '../common/MergedArrayTreeService'
+import { RuntimeConfiguration } from 'ts-fusion-runtime'
 
 export interface ActionUriDefinition {
 	package: string
@@ -48,6 +49,69 @@ export class DefinitionCapability extends AbstractCapability {
 		const node = foundNodeByLine.getNode()
 
 		console.log(`node type "${foundNodeByLine.getNode().constructor.name}"`)
+		const startTimePathResolving = performance.now();
+
+		const baseNode = node instanceof PathSegment ? findParent(node, ObjectStatement)["parent"] : node
+
+		const pathForNode = MergedArrayTreeService.buildPathForNode(baseNode)
+		const runtimeConfiguration = new RuntimeConfiguration(workspace.mergedArrayTree);
+
+		const relevantTree = pathForNode.map((pathPart, index) => ({
+			pathPart,
+			configuration: runtimeConfiguration.forPath(pathForNode.slice(0, index + 1).join('/'))
+		}))
+
+		console.log(`Elapsed time relevantTree: ${performance.now() - startTimePathResolving} milliseconds`);
+
+		// console.log("relevantTree", relevantTree)
+
+		const finalFusionContext = {} as { [key: string]: any }
+		for (const relevantTreePart of relevantTree) {
+			const partConfiguration = relevantTreePart.configuration
+			if ('__eelExpression' in partConfiguration && partConfiguration.__eelExpression !== null) continue
+
+			const hasRenderer = partConfiguration.__objectType === 'Neos.Fusion:Component' || partConfiguration.__prototypeChain?.includes('Neos.Fusion:Component')
+
+			let thisFusionContext = {}
+
+			if (partConfiguration.__meta) {
+				if (partConfiguration.__meta.context && typeof partConfiguration.__meta.context === "object") {
+					for (const contextKey in partConfiguration.__meta.context) {
+						finalFusionContext[contextKey] = partConfiguration.__meta.context[contextKey]
+					}
+				}
+
+				// TODO: sort `__meta` before using it ("@position")
+				if (partConfiguration.__meta.apply && typeof partConfiguration.__meta.apply === "object") {
+					for (const toApply of Object.values(partConfiguration.__meta.apply)) {
+						if (toApply['__eelExpression'] !== "props") continue
+						// TODO: run EEL-Expression
+						const valueToApply = finalFusionContext[toApply['__eelExpression']]
+
+						thisFusionContext = {
+							...thisFusionContext,
+							...valueToApply
+						}
+					}
+				}
+			}
+
+			for (const key in partConfiguration) {
+				console.log("#> KEY: " + key)
+				if (key.startsWith("__")) continue
+				if (hasRenderer && key === "renderer") continue
+				thisFusionContext[key] = partConfiguration[key]
+			}
+			finalFusionContext.this = thisFusionContext
+			if (hasRenderer) finalFusionContext.props = thisFusionContext
+		}
+
+		console.log("finalFusionContext", finalFusionContext)
+		console.log("pathForNode", pathForNode)
+
+		return null;
+
+
 		switch (true) {
 			case node instanceof TranslationShortHandNode:
 				return this.getTranslationShortHandNodeDefinitions(workspace, <LinePositionedNode<TranslationShortHandNode>>foundNodeByLine)
@@ -127,25 +191,7 @@ export class DefinitionCapability extends AbstractCapability {
 	}
 
 	getPropertyDefinitions(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<AbstractNode>): null | Location[] {
-
-
-
-		const debug = parsedFile.uri.endsWith("Atom.Anchor.fusion")
-
 		const node = <PathSegment | ObjectPathNode>foundNodeByLine.getNode()
-
-		if(debug) {
-			console.log(findParent(node, ObjectPath))
-			// const path: any[] = [node]
-			// let parent = node["parent"]
-			// while (parent) {
-			// 	path.push(parent)
-			// 	parent = parent["parent"]
-			// }
-			// console.log(path)
-		}
-
-
 		const objectNode = node["parent"]
 		if (!(objectNode instanceof ObjectNode)) return null
 
