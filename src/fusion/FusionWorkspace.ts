@@ -26,6 +26,7 @@ export class FusionWorkspace extends Logger {
 
     public neosWorkspace: NeosWorkspace
 
+    public fusionParser: LanguageServerFusionParser
     public mergedArrayTree: InternalArrayTreePart = {}
     public parsedFiles: ParsedFusionFile[] = []
     public filesWithErrors: string[] = []
@@ -34,11 +35,15 @@ export class FusionWorkspace extends Logger {
 
     protected filesToDiagnose: ParsedFusionFile[] = []
 
+    protected rootFusionPaths: string[] = []
+
     constructor(name: string, uri: string, languageServer: LanguageServer) {
         super(name)
         this.name = name
         this.uri = uri
         this.languageServer = languageServer
+
+        this.fusionParser = new LanguageServerFusionParser(this)
     }
 
     getConfiguration() {
@@ -113,13 +118,13 @@ export class FusionWorkspace extends Logger {
         const sortOrder: string[] = ['neos-framework', 'neos-package', 'neos-site', 'library'];
         const possibleNeosFusionPackages = Array.from(this.neosWorkspace.getPackages().values()).sort((a, b) => sortOrder.indexOf(a["composerJson"]["type"]) - sortOrder.indexOf(b["composerJson"]["type"]))
 
-        const rootFusionPaths = possibleNeosFusionPackages.reduce((acc, neosPackage) => {
+        this.rootFusionPaths = possibleNeosFusionPackages.reduce((acc, neosPackage) => {
             const rootFusionPath = neosPackage.getResourceUriPath("/Private/Fusion/Root.fusion")
             if (NodeFs.existsSync(rootFusionPath)) acc.push(rootFusionPath)
             return acc
         }, [] as string[])
 
-        this.logDebug("Root Fusion Paths and order for include", rootFusionPaths)
+        this.logDebug("Root Fusion Paths and order for include", this.rootFusionPaths)
 
         FilePatternResolver.addUriProtocolStrategy('nodetypes:', (uri, filePattern, contextPathAndFilename) => {
             if (uri.protocol !== "nodetypes:") return undefined
@@ -129,11 +134,7 @@ export class FusionWorkspace extends Logger {
             return NodePath.join(neosPackage["path"], "NodeTypes", uri.pathname)
         })
 
-        const fusionParser = new LanguageServerFusionParser(this)
-        const startTimeFullMergedArrayTree = performance.now();
-        this.mergedArrayTree = fusionParser.parseFiles(rootFusionPaths)
-        console.log(`Elapsed time FULL MAT: ${performance.now() - startTimeFullMergedArrayTree} milliseconds`);
-
+        this.buildMergedArrayTree()
 
         for (const parsedFile of this.parsedFiles) {
             parsedFile.runPostProcessing()
@@ -161,6 +162,12 @@ export class FusionWorkspace extends Logger {
         this.languageServer.sendProgressNotificationFinish("fusion_workspace_init").catch(error => this.logError("init", error))
 
         this.processFilesToDiagnose().catch(error => this.logError("init", error))
+    }
+
+    buildMergedArrayTree() {
+        const startTimeFullMergedArrayTree = performance.now();
+        this.mergedArrayTree = this.fusionParser.parseFiles(this.rootFusionPaths)
+        console.log(`Elapsed time FULL MAT: ${performance.now() - startTimeFullMergedArrayTree} milliseconds`);
     }
 
     addParsedFileFromPath(fusionFilePath: string, neosPackage: NeosPackage) {
@@ -212,6 +219,7 @@ export class FusionWorkspace extends Logger {
         const file = this.getParsedFileByUri(change.document.uri)
         if (file === undefined) return
         this.initParsedFile(file, change.document.getText())
+        this.buildMergedArrayTree()
         file.runPostProcessing()
 
         if (this.configuration.diagnostics.alwaysDiagnoseChangedFile && !this.filesToDiagnose.includes(file)) {
