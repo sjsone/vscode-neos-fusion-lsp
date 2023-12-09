@@ -124,13 +124,9 @@ export class FusionWorkspace extends Logger {
         FilePatternResolver.addUriProtocolStrategy('nodetypes:', (uri, filePattern, contextPathAndFilename) => {
             if (uri.protocol !== "nodetypes:") return undefined
             if (!contextPathAndFilename) return undefined
-        
-            const packageName = uri.hostname
-            const relativePath = uri.pathname
-        
-            // TODO: resolve correctly
-            const basePackagePath = NodePath.normalize(contextPathAndFilename).split("/").slice(0, 2).join("/")
-            return NodePath.join(basePackagePath, "NodeTypes", relativePath)
+
+            const neosPackage = this.neosWorkspace.getPackage(uri.hostname)
+            return NodePath.join(neosPackage["path"], "NodeTypes", uri.pathname)
         })
 
         const fusionParser = new LanguageServerFusionParser(this)
