@@ -390,5 +390,5 @@ class LegacyNodeService {
 	}
 }
 
-const nodeService = new LegacyNodeService
-export { LegacyNodeService as NodeServiceClass, nodeService as LegacyNodeService }
+const legacyNodeService = new LegacyNodeService
+export { LegacyNodeService as LegacyNodeServiceClass, legacyNodeService as LegacyNodeService }
