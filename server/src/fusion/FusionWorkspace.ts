@@ -119,10 +119,22 @@ export class FusionWorkspace extends Logger {
         const possibleNeosFusionPackages = Array.from(this.neosWorkspace.getPackages().values()).sort((a, b) => sortOrder.indexOf(a["composerJson"]["type"]) - sortOrder.indexOf(b["composerJson"]["type"]))
 
         this.rootFusionPaths = possibleNeosFusionPackages.reduce((acc, neosPackage) => {
-            const rootFusionPath = neosPackage.getResourceUriPath("/Private/Fusion/Root.fusion")
-            if (NodeFs.existsSync(rootFusionPath)) acc.push(rootFusionPath)
+            // TODO: introduce something like a "FusionRootContext" for each root file and associate ParsedFusionFiles with these "FusionRootContexts"
+            const packageFusionRootPaths = [
+                "/Private/Fusion/Root.fusion",
+                "/Private/FusionModules/Root.fusion",
+                "/Private/FusionPlugins/Root.fusion",
+            ]
+            
+            for(const packageFusionRootPath of packageFusionRootPaths) {
+                const rootFusionPath = neosPackage.getResourceUriPath(packageFusionRootPath)
+                if (NodeFs.existsSync(rootFusionPath)) acc.push(rootFusionPath)
+            }
+            
             return acc
         }, [] as string[])
+        // console.log("this.rootFusionPaths", this.rootFusionPaths)
+
 
         this.logDebug("Root Fusion Paths and order for include", this.rootFusionPaths)
 

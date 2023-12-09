@@ -151,16 +151,9 @@ export class CompletionCapability extends AbstractCapability {
 
 	protected getFusionPropertyCompletionsForObjectPath(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {
 		const node = foundNode.getNode()
-		const completions: CompletionItem[] = []
-
-		const fusionContext = NodeService.getFusionContextUntilNode(node, workspace)
-
-		if (fusionContext) for (const label of Object.keys(fusionContext)) {
-			if (label.startsWith('__')) continue
-			completions.push(this.createCompletionItem(label, foundNode, CompletionItemKind.Class))
-		}
-
-		return completions;
+		const objectNode = findParent(node, ObjectNode)
+		if (!objectNode) return []
+		return this.getFusionPropertyCompletionsForObjectNode(workspace, objectNode.linePositionedNode)
 	}
 
 	protected getPropertyDefinitionSegments(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace) {
@@ -214,7 +207,10 @@ export class CompletionCapability extends AbstractCapability {
 
 		if (typeof fusionContext === "object") for (const label of Object.keys(fusionContext)) {
 			if (label.startsWith('__')) continue
-			completions.push(this.createCompletionItem([...objectPathParts, label].join('.'), foundNode, CompletionItemKind.Class))
+
+
+			const restObjectPathParts = objectPathParts.slice(0,-1) ?? []
+			completions.push(this.createCompletionItem([...restObjectPathParts, label].join('.'), foundNode, CompletionItemKind.Class))
 		}
 
 		return completions;

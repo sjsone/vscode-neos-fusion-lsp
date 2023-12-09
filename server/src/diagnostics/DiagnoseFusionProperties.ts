@@ -8,6 +8,7 @@ import { LegacyNodeService } from '../common/LegacyNodeService'
 import { abstractNodeToString, findParent } from '../common/util'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { CommonDiagnosticHelper } from './CommonDiagnosticHelper'
+import { NodeService } from '../common/NodeService'
 
 function hasObjectNodeApplicableObjectStatement(node: ObjectNode) {
 	const objectStatement = findParent(node, ObjectStatement)
@@ -29,6 +30,9 @@ function hasObjectNodeApplicablePath(node: ObjectNode) {
 export function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 	const diagnostics: Diagnostic[] = []
 
+	// const debug = parsedFusionFile.uri.endsWith("CompanyAreaIntegration.Erecruiter.fusion")
+	const debug = false
+
 	const positionedObjectNodes = parsedFusionFile.getNodesByType(ObjectNode)
 	if (positionedObjectNodes === undefined) return diagnostics
 
@@ -40,11 +44,29 @@ export function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 
 		if (!hasObjectNodeApplicableObjectStatement(node)) continue
 		if (!hasObjectNodeApplicablePath(node)) continue
-
-		const definition = definitionCapability.getPropertyDefinitions(this, parsedFusionFile.workspace, node.path[0].linePositionedNode)
-		if (definition) continue
-
 		if (LegacyNodeService.isNodeAffectedByIgnoreComment(node, parsedFusionFile)) continue
+
+		let fusionContext = NodeService.getFusionContextUntilNode(node, parsedFusionFile.workspace)
+		// if (debug) console.log("fusionContext", fusionContext)
+		if (debug) console.log("here ")
+		const objectPathParts = node.path.map(segment => segment["value"])
+		if (debug) console.log("objectPathParts", objectPathParts)
+
+		let found = false
+		for (const objectPathPart of objectPathParts) {
+			if (!(objectPathPart in fusionContext)) {
+				found = false
+				break;
+			}
+			found = true
+			fusionContext = fusionContext[objectPathPart]
+		}
+
+		// if (debug) console.log("found", found)
+		if (found) continue
+
+
+
 
 		const diagnostic: Diagnostic = {
 			severity: DiagnosticSeverity.Warning,
