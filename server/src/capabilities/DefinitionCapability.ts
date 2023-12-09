@@ -14,7 +14,7 @@ import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignme
 import { DefinitionLink, Location, LocationLink, Position, Range } from 'vscode-languageserver/node'
 import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService'
 import { LinePositionedNode } from '../common/LinePositionedNode'
-import { NodeService } from '../common/NodeService'
+import { LegacyNodeService } from '../common/LegacyNodeService'
 import { XLIFFService } from '../common/XLIFFService'
 import { findParent, getObjectIdentifier, getPrototypeNameFromNode, pathToUri } from '../common/util'
 import { ActionUriActionNode } from '../fusion/node/ActionUriActionNode'
@@ -209,9 +209,9 @@ export class DefinitionCapability extends AbstractCapability {
 			if (isObjectNodeInDsl) return null
 
 			const objectStatement = findParent(objectNode, ObjectStatement)
-			const prototypeName = NodeService.findPrototypeName(objectStatement)
+			const prototypeName = LegacyNodeService.findPrototypeName(objectStatement)
 
-			for (const property of NodeService.getInheritedPropertiesByPrototypeName(prototypeName, workspace)) {
+			for (const property of LegacyNodeService.getInheritedPropertiesByPrototypeName(prototypeName, workspace)) {
 				const firstPropertyPathSegment = property.statement.path.segments[0]
 				if (firstPropertyPathSegment["identifier"] === objectNode.path[1]["value"]) {
 					return [{
@@ -223,7 +223,7 @@ export class DefinitionCapability extends AbstractCapability {
 			return null
 		}
 
-		const { foundIgnoreComment, foundIgnoreBlockComment } = NodeService.getSemanticCommentsNodeIsAffectedBy(objectNode, parsedFile)
+		const { foundIgnoreComment, foundIgnoreBlockComment } = LegacyNodeService.getSemanticCommentsNodeIsAffectedBy(objectNode, parsedFile)
 		if (foundIgnoreComment) return [{
 			uri: parsedFile.uri,
 			range: foundIgnoreComment.getPositionAsRange()
@@ -233,7 +233,7 @@ export class DefinitionCapability extends AbstractCapability {
 			range: foundIgnoreBlockComment.getPositionAsRange()
 		}]
 
-		const segment = NodeService.findPropertyDefinitionSegment(objectNode, workspace, true)
+		const segment = LegacyNodeService.findPropertyDefinitionSegment(objectNode, workspace, true)
 		if (!segment) return null
 
 		if (segment instanceof PathSegment) return [{
@@ -346,7 +346,7 @@ export class DefinitionCapability extends AbstractCapability {
 			}
 		}
 
-		for (const property of NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace, true)) {
+		for (const property of LegacyNodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace, true)) {
 			if (getObjectIdentifier(property.statement) !== node.name) continue
 			locationLinks.push({
 				targetUri: property.uri,

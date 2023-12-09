@@ -4,7 +4,7 @@ import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/nodes/MetaPathSegme
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver'
 import { DefinitionCapability } from '../capabilities/DefinitionCapability'
-import { NodeService } from '../common/NodeService'
+import { LegacyNodeService } from '../common/LegacyNodeService'
 import { abstractNodeToString, findParent } from '../common/util'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { CommonDiagnosticHelper } from './CommonDiagnosticHelper'
@@ -44,7 +44,7 @@ export function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 		const definition = definitionCapability.getPropertyDefinitions(this, parsedFusionFile.workspace, node.path[0].linePositionedNode)
 		if (definition) continue
 
-		if (NodeService.isNodeAffectedByIgnoreComment(node, parsedFusionFile)) continue
+		if (LegacyNodeService.isNodeAffectedByIgnoreComment(node, parsedFusionFile)) continue
 
 		const diagnostic: Diagnostic = {
 			severity: DiagnosticSeverity.Warning,
@@ -54,7 +54,7 @@ export function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 			data: {
 				quickAction: 'ignorable',
 				commentType: findParent(node, DslExpressionValue) ? 'afx' : 'fusion',
-				affectedNodeRange: NodeService.getAffectedNodeBySemanticComment(node).linePositionedNode.getPositionAsRange()
+				affectedNodeRange: LegacyNodeService.getAffectedNodeBySemanticComment(node).linePositionedNode.getPositionAsRange()
 			}
 		}
 

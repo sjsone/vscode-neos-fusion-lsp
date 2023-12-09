@@ -12,7 +12,7 @@ import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { Command, CompletionItem, CompletionItemKind, InsertTextFormat, InsertTextMode } from 'vscode-languageserver/node'
 import { LinePositionedNode } from '../common/LinePositionedNode'
-import { ExternalObjectStatement, NodeService } from '../common/NodeService'
+import { ExternalObjectStatement, LegacyNodeService } from '../common/LegacyNodeService'
 import { findParent, getObjectIdentifier } from '../common/util'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
@@ -131,7 +131,7 @@ export class CompletionCapability extends AbstractCapability {
 		const tagNode = findParent(attributeNode, TagNode)
 		if (tagNode !== undefined) {
 			const labels = []
-			for (const statement of NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace)) {
+			for (const statement of LegacyNodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace)) {
 				const label = getObjectIdentifier(statement.statement)
 				if (!labels.includes(label)) labels.push(label)
 			}
@@ -182,7 +182,7 @@ export class CompletionCapability extends AbstractCapability {
 	protected getPropertyDefinitionSegments(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace) {
 		const completions: CompletionItem[] = []
 
-		for (const segmentOrExternalStatement of NodeService.findPropertyDefinitionSegments(objectNode, workspace, true)) {
+		for (const segmentOrExternalStatement of LegacyNodeService.findPropertyDefinitionSegments(objectNode, workspace, true)) {
 			const segment = segmentOrExternalStatement instanceof ExternalObjectStatement ? segmentOrExternalStatement.statement.path.segments[0] : segmentOrExternalStatement
 			if (!(segment instanceof PathSegment)) continue
 			if (segment.identifier === "renderer" || !segment.identifier) continue

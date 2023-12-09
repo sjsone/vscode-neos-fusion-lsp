@@ -13,7 +13,7 @@ import { NeosFusionFormDefinitionNode } from '../fusion/node/NeosFusionFormDefin
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { NeosPackageNamespace } from '../neos/NeosPackageNamespace'
 import { Logger } from './Logging'
-import { NodeService } from './NodeService'
+import { LegacyNodeService } from './LegacyNodeService'
 import { findUntil, getObjectIdentifier } from './util'
 
 export enum ActionUriPartTypes {
@@ -29,7 +29,7 @@ class ActionUriService extends Logger {
 		const actionUriBasePrototypes = ["Neos.Fusion:ActionUri", "Neos.Fusion:UriBuilder", "Neos.Neos:Plugin"]
 		// TODO: cache prototypes which have prototypeActionUris
 		for (const actionUriBasePrototype of actionUriBasePrototypes) {
-			if (NodeService.isPrototypeOneOf(prototypeName, actionUriBasePrototype, workspace)) return true
+			if (LegacyNodeService.isPrototypeOneOf(prototypeName, actionUriBasePrototype, workspace)) return true
 		}
 
 		return false

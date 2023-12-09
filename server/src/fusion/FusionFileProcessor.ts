@@ -19,7 +19,7 @@ import { ValueCopy } from 'ts-fusion-parser/out/fusion/nodes/ValueCopy';
 import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService';
 import { LinePositionedNode } from '../common/LinePositionedNode';
 import { Logger } from '../common/Logging';
-import { NodeService } from '../common/NodeService';
+import { LegacyNodeService } from '../common/LegacyNodeService';
 import { findParent, getObjectIdentifier } from '../common/util';
 import { ActionUriActionNode } from './node/ActionUriActionNode';
 import { ActionUriControllerNode } from './node/ActionUriControllerNode';
@@ -215,7 +215,7 @@ export class FusionFileProcessor extends Logger {
 
 		if (segments[0] instanceof PrototypePathSegment) {
 			this.postProcessors.push(() => {
-				const isPlugin = NodeService.isPrototypeOneOf((segments[0] as PrototypePathSegment)?.identifier, "Neos.Neos:Plugin", this.parsedFusionFile.workspace)
+				const isPlugin = LegacyNodeService.isPrototypeOneOf((segments[0] as PrototypePathSegment)?.identifier, "Neos.Neos:Plugin", this.parsedFusionFile.workspace)
 				if (isPlugin) this.processActionUriObjectStatement(objectStatement, text)
 			})
 		}
