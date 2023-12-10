@@ -114,7 +114,15 @@ export class FusionWorkspace extends Logger {
 
         // TODO: use correct package include order instead of guessing
         const sortOrder: string[] = ['neos-framework', 'neos-package', 'neos-site', 'library'];
-        const possibleNeosFusionPackages = Array.from(this.neosWorkspace.getPackages().values()).sort((a, b) => sortOrder.indexOf(a["composerJson"]["type"]) - sortOrder.indexOf(b["composerJson"]["type"]))
+        const possibleNeosFusionPackages = Array.from(this.neosWorkspace.getPackages().values()).sort((a, b) => {
+            const typeOrder = sortOrder.indexOf(a["composerJson"]["type"]) - sortOrder.indexOf(b["composerJson"]["type"])
+            if (typeOrder === 0) {
+                if (a["path"].includes("DistributionPackages")) return 1
+                if (b["path"].includes("DistributionPackages")) return -1
+            }
+
+            return typeOrder
+        })
 
 
 
@@ -136,7 +144,12 @@ export class FusionWorkspace extends Logger {
         // console.log("this.rootFusionPaths", this.rootFusionPaths)
 
 
-        this.logDebug("Root Fusion Paths and order for include", this.fusionParser.rootFusionPaths)
+        this.logDebug("Root Fusion Paths and order for include", Array.from(this.fusionParser.rootFusionPaths.entries()).map(([neosPackage, rootPaths]) => {
+            return {
+                name: neosPackage.getName(),
+                type: neosPackage["composerJson"]["type"]
+            }
+        }))
 
         FilePatternResolver.addUriProtocolStrategy('nodetypes:', (uri, filePattern, contextPathAndFilename) => {
             if (uri.protocol !== "nodetypes:") return undefined
@@ -179,7 +192,7 @@ export class FusionWorkspace extends Logger {
     buildMergedArrayTree() {
         const startTimeFullMergedArrayTree = performance.now();
         this.mergedArrayTree = this.fusionParser.parseRootFusionFiles()
-        console.log(`Elapsed time FULL MAT: ${performance.now() - startTimeFullMergedArrayTree} milliseconds`);
+        this.logInfo(`Elapsed time FULL MAT: ${performance.now() - startTimeFullMergedArrayTree} milliseconds`);
     }
 
     addParsedFileFromPath(fusionFilePath: string, neosPackage: NeosPackage) {
