@@ -76,28 +76,6 @@ class LegacyNodeService {
 		return undefined
 	}
 
-	public isPrototypeOneOf(prototypeName: string, oneOf: string, workspace: FusionWorkspace) {
-		// TODO: cache
-		if (prototypeName === oneOf) return true
-
-		for (const parsedFile of workspace.parsedFiles) {
-			for (const prototypeCreation of [...parsedFile.prototypeCreations, ...parsedFile.prototypeOverwrites]) {
-				const objectStatement = findParent(prototypeCreation.getNode(), ObjectStatement)
-				const prototype = objectStatement.path.segments[0]
-				if (!(prototype instanceof PrototypePathSegment)) continue
-				if (prototype.identifier !== prototypeName) continue
-
-				if (!(objectStatement.operation instanceof ValueCopy)) continue
-				const copiedPrototype = objectStatement.operation["assignedObjectPath"].objectPath.segments[0]
-				if (!(copiedPrototype instanceof PrototypePathSegment)) continue
-				if (copiedPrototype.identifier === oneOf) return true
-				if (this.isPrototypeOneOf(copiedPrototype.identifier, oneOf, workspace)) return true
-			}
-		}
-
-		return false
-	}
-
 	public * findPropertyDefinitionSegments(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace, includeOverwrites: boolean = false) {
 		const objectStatement = objectNode instanceof ObjectStatement ? objectNode : findParent(objectNode, ObjectStatement) // [props.foo]
 
