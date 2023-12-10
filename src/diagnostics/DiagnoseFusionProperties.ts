@@ -30,8 +30,7 @@ function hasObjectNodeApplicablePath(node: ObjectNode) {
 export function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 	const diagnostics: Diagnostic[] = []
 
-	// const debug = parsedFusionFile.uri.endsWith("CompanyAreaIntegration.Erecruiter.fusion")
-	const debug = false
+	let debug = false
 
 	const positionedObjectNodes = parsedFusionFile.getNodesByType(ObjectNode)
 	if (positionedObjectNodes === undefined) return diagnostics
@@ -47,26 +46,28 @@ export function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 		if (LegacyNodeService.isNodeAffectedByIgnoreComment(node, parsedFusionFile)) continue
 
 		let fusionContext = NodeService.getFusionContextUntilNode(node, parsedFusionFile.workspace)
-		// if (debug) console.log("fusionContext", fusionContext)
-		if (debug) console.log("here ")
 		const objectPathParts = node.path.map(segment => segment["value"])
-		if (debug) console.log("objectPathParts", objectPathParts)
+
+		if (debug) console.log("objectPathParts", objectPathParts.join("."))
+		if (debug) console.log("fusionContext", fusionContext)
 
 		let found = false
+
+		// TODO: if nothing is found, check if @propTypes exist
 		for (const objectPathPart of objectPathParts) {
 			if (!(objectPathPart in fusionContext)) {
-				found = false
+				// TODO: check if there is a better way. Currently not found stuff is ignored: `prop.thing.notFound`
+				found = objectPathParts.indexOf(objectPathPart) > 1
 				break;
 			}
 			found = true
 			fusionContext = fusionContext[objectPathPart]
+			if (fusionContext === null) break
+			if (typeof fusionContext["__eelExpression"] === "string") break
 		}
 
 		// if (debug) console.log("found", found)
 		if (found) continue
-
-
-
 
 		const diagnostic: Diagnostic = {
 			severity: DiagnosticSeverity.Warning,
