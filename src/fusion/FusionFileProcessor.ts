@@ -34,6 +34,7 @@ import { PhpClassNode } from './node/PhpClassNode';
 import { ResourceUriNode } from './node/ResourceUriNode';
 import { TranslationShortHandNode } from './node/TranslationShortHandNode';
 import { EelHelperMethod } from '../eel/EelHelperMethod';
+import { NodeService } from '../common/NodeService';
 
 type PostProcess = () => void
 export class FusionFileProcessor extends Logger {
@@ -215,7 +216,8 @@ export class FusionFileProcessor extends Logger {
 
 		if (segments[0] instanceof PrototypePathSegment) {
 			this.postProcessors.push(() => {
-				const isPlugin = LegacyNodeService.isPrototypeOneOf((segments[0] as PrototypePathSegment)?.identifier, "Neos.Neos:Plugin", this.parsedFusionFile.workspace)
+				// PERF: use MTA instead of LegacyNodeService to check if it a Plugin
+				const isPlugin = NodeService.isPrototypeOneOf((segments[0] as PrototypePathSegment)?.identifier, "Neos.Neos:Plugin", this.parsedFusionFile.workspace)
 				if (isPlugin) this.processActionUriObjectStatement(objectStatement, text)
 			})
 		}

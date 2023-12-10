@@ -123,6 +123,7 @@ export function isPrototypeDeprecated(workspace: FusionWorkspace, prototypeName:
 
 export function mergeObjects(source: unknown, target: unknown) {
     // TODO: rewrite mergeObjects
+    // PERF: mergeObject is somewhat slow
     // https://gist.github.com/ahtcx/0cd94e62691f539160b32ecda18af3d6?permalink_comment_id=3889214#gistcomment-3889214
     for (const [key, val] of Object.entries(source)) {
         if (val !== null && typeof val === `object`) {

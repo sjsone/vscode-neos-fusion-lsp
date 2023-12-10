@@ -35,8 +35,6 @@ export class FusionWorkspace extends Logger {
 
     protected filesToDiagnose: ParsedFusionFile[] = []
 
-    protected rootFusionPaths: string[] = []
-
     constructor(name: string, uri: string, languageServer: LanguageServer) {
         super(name)
         this.name = name
@@ -118,25 +116,27 @@ export class FusionWorkspace extends Logger {
         const sortOrder: string[] = ['neos-framework', 'neos-package', 'neos-site', 'library'];
         const possibleNeosFusionPackages = Array.from(this.neosWorkspace.getPackages().values()).sort((a, b) => sortOrder.indexOf(a["composerJson"]["type"]) - sortOrder.indexOf(b["composerJson"]["type"]))
 
-        this.rootFusionPaths = possibleNeosFusionPackages.reduce((acc, neosPackage) => {
+
+
+        for (const neosPackage of possibleNeosFusionPackages) {
             // TODO: introduce something like a "FusionRootContext" for each root file and associate ParsedFusionFiles with these "FusionRootContexts"
             const packageFusionRootPaths = [
                 "/Private/Fusion/Root.fusion",
                 "/Private/FusionModules/Root.fusion",
                 "/Private/FusionPlugins/Root.fusion",
             ]
-            
-            for(const packageFusionRootPath of packageFusionRootPaths) {
-                const rootFusionPath = neosPackage.getResourceUriPath(packageFusionRootPath)
-                if (NodeFs.existsSync(rootFusionPath)) acc.push(rootFusionPath)
+
+            const existingFusionRootPaths = packageFusionRootPaths.map(path => neosPackage.getResourceUriPath(path)).filter(path => NodeFs.existsSync(path))
+
+            if (existingFusionRootPaths.length > 0) {
+                this.fusionParser.rootFusionPaths.set(neosPackage, existingFusionRootPaths)
             }
-            
-            return acc
-        }, [] as string[])
+        }
+
         // console.log("this.rootFusionPaths", this.rootFusionPaths)
 
 
-        this.logDebug("Root Fusion Paths and order for include", this.rootFusionPaths)
+        this.logDebug("Root Fusion Paths and order for include", this.fusionParser.rootFusionPaths)
 
         FilePatternResolver.addUriProtocolStrategy('nodetypes:', (uri, filePattern, contextPathAndFilename) => {
             if (uri.protocol !== "nodetypes:") return undefined
@@ -178,7 +178,7 @@ export class FusionWorkspace extends Logger {
 
     buildMergedArrayTree() {
         const startTimeFullMergedArrayTree = performance.now();
-        this.mergedArrayTree = this.fusionParser.parseFiles(this.rootFusionPaths)
+        this.mergedArrayTree = this.fusionParser.parseRootFusionFiles()
         console.log(`Elapsed time FULL MAT: ${performance.now() - startTimeFullMergedArrayTree} milliseconds`);
     }
 

@@ -25,6 +25,7 @@ import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNod
 import { AbstractLanguageFeature } from './AbstractLanguageFeature'
 import { LanguageFeatureContext } from './LanguageFeatureContext'
 import { FqcnNode } from '../fusion/node/FqcnNode'
+import { NodeService } from '../common/NodeService'
 
 export interface SemanticTokenConstruct {
 	position: LinePosition
@@ -331,7 +332,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 
 		for (const prototypeDefinition of [...languageFeatureContext.parsedFile.prototypeCreations, ...languageFeatureContext.parsedFile.prototypeOverwrites]) {
 			const node = prototypeDefinition.getNode()
-			if (!LegacyNodeService.isPrototypeOneOf(node.identifier, 'Neos.Fusion:Component', languageFeatureContext.workspace)) continue
+			if (!NodeService.isPrototypeOneOf(node.identifier, 'Neos.Fusion:Component', languageFeatureContext.workspace)) continue
 
 			const block = findParent(node, ObjectStatement)?.block
 			if (!block) continue

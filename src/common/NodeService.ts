@@ -1,10 +1,10 @@
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement';
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment';
 import { RuntimeConfiguration } from 'ts-fusion-runtime';
+import { FusionWorkspace } from '../fusion/FusionWorkspace';
 import { MergedArrayTreeService } from './MergedArrayTreeService';
 import { findParent } from './util';
-import { FusionWorkspace } from '../fusion/FusionWorkspace';
 
 class NodeService {
 
@@ -14,15 +14,15 @@ class NodeService {
 		const baseNode = node instanceof PathSegment ? findParent(node, ObjectStatement)["parent"] : node
 
 		const pathForNode = MergedArrayTreeService.buildPathForNode(baseNode)
-		if(debug) console.log("pathForNode", pathForNode)
+		if (debug) console.log("pathForNode", pathForNode)
 		const runtimeConfiguration = new RuntimeConfiguration(workspace.mergedArrayTree);
 		// if(debug) console.log("runtimeConfiguration", runtimeConfiguration)
-		
+
 		const relevantTree = pathForNode.map((pathPart, index) => ({
 			pathPart,
 			configuration: runtimeConfiguration.forPath(pathForNode.slice(0, index + 1).join('/'))
 		}))
-		if(debug) console.log("relevantTree", relevantTree)
+		if (debug) console.log("relevantTree", relevantTree)
 
 		// console.log(`Elapsed time relevantTree: ${performance.now() - startTimePathResolving} milliseconds`);
 
@@ -69,12 +69,25 @@ class NodeService {
 
 		// console.log("finalFusionContext", finalFusionContext)
 		// console.log("pathForNode", pathForNode)
-		if(debug) console.log("finalFusionContext", finalFusionContext)
+		if (debug) console.log("finalFusionContext", finalFusionContext)
 
 		return finalFusionContext
+	}
+
+	public isPrototypeOneOf(prototypeName: string, oneOf: string, workspace: FusionWorkspace) {
+		// TODO: cache
+		if (prototypeName === oneOf) return true
+
+		const prototypeConfiguration = workspace.mergedArrayTree?.__prototypes?.[prototypeName]
+		if (!prototypeConfiguration) return false
+		if (prototypeConfiguration['__prototypeObjectName'] === oneOf) return true
+		if (Array.isArray(prototypeConfiguration['__prototypeChain']) && prototypeConfiguration['__prototypeChain'].includes(oneOf)) return true
+
+		return false
 	}
 }
 
 
 const nodeService = new NodeService
-export { NodeService as NodeServiceClass, nodeService as NodeService }
+export { nodeService as NodeService, NodeService as NodeServiceClass };
+
