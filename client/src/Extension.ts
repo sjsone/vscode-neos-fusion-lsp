@@ -139,6 +139,7 @@ export class Extension {
 
 		const runOptions = { execArgv: [] }
 
+		inspect = true
 		console.log("start in inspect", inspect)
 		if (inspect) {
 			runOptions.execArgv.push(`--inspect-brk=${6011 + this.clients.size}`)

@@ -5,8 +5,13 @@ import { FusionWorkspace } from './FusionWorkspace';
 import { pathToUri } from '../common/util';
 import { MergedArrayTree } from 'ts-fusion-runtime/out/core/MergedArrayTree';
 import * as NodeFs from 'fs'
+import { NeosPackage } from '../neos/NeosPackage';
 
 export class LanguageServerFusionParser extends Parser {
+
+	public rootFusionPaths: Map<NeosPackage, string[]> = new Map
+
+	protected mergedArrayTreeCache: Map<NeosPackage, MergedArrayTree> = new Map
 
 	constructor(
 		protected fusionWorkspace: FusionWorkspace
@@ -14,8 +19,19 @@ export class LanguageServerFusionParser extends Parser {
 		super()
 	}
 
-	parseFiles(files: string[]) {
-		let mergedArrayTreeUntilNow: { [key: string]: any } = {}
+	public parseRootFusionFiles() {
+		const files = [...this.rootFusionPaths.values()].reduce((carry, rootPaths) => {
+			carry.push(...rootPaths)
+			return carry
+		}, [])
+		return this.parseFiles(files)
+	}
+
+	protected test() {
+
+	}
+
+	public parseFiles(files: string[], mergedArrayTreeUntilNow: { [key: string]: any } = {}) {
 		let mergedArrayTree = new MergedArrayTree(mergedArrayTreeUntilNow);
 
 		for (const file of files) {

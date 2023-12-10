@@ -7,13 +7,13 @@ import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignme
 import { ValueCopy } from 'ts-fusion-parser/out/fusion/nodes/ValueCopy'
 import { Range } from 'vscode-languageserver'
 import { ActionUriDefinition } from '../capabilities/DefinitionCapability'
-import { ActionUriDefinitionNode } from '../fusion/node/ActionUriDefinitionNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
-import { NeosFusionFormDefinitionNode } from '../fusion/node/NeosFusionFormDefinitionNode'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
+import { ActionUriDefinitionNode } from '../fusion/node/ActionUriDefinitionNode'
+import { NeosFusionFormDefinitionNode } from '../fusion/node/NeosFusionFormDefinitionNode'
 import { NeosPackageNamespace } from '../neos/NeosPackageNamespace'
 import { Logger } from './Logging'
-import { LegacyNodeService } from './LegacyNodeService'
+import { NodeService } from './NodeService'
 import { findUntil, getObjectIdentifier } from './util'
 
 export enum ActionUriPartTypes {
@@ -29,7 +29,7 @@ class ActionUriService extends Logger {
 		const actionUriBasePrototypes = ["Neos.Fusion:ActionUri", "Neos.Fusion:UriBuilder", "Neos.Neos:Plugin"]
 		// TODO: cache prototypes which have prototypeActionUris
 		for (const actionUriBasePrototype of actionUriBasePrototypes) {
-			if (LegacyNodeService.isPrototypeOneOf(prototypeName, actionUriBasePrototype, workspace)) return true
+			if (NodeService.isPrototypeOneOf(prototypeName, actionUriBasePrototype, workspace)) return true
 		}
 
 		return false
