@@ -45,11 +45,7 @@ class NodeService {
 
 				// TODO: sort `__meta` before using it ("@position")
 				if (partConfiguration.__meta.apply && typeof partConfiguration.__meta.apply === "object") {
-					for (const toApply of Object.values(partConfiguration.__meta.apply)) {
-						if (toApply['__eelExpression'] !== "props") continue
-						// TODO: run EEL-Expression
-						const valueToApply = finalFusionContext[toApply['__eelExpression']]
-
+					for (const valueToApply of this.getAppliedValues(partConfiguration.__meta.apply, finalFusionContext)) {
 						thisFusionContext = {
 							...thisFusionContext,
 							...valueToApply
@@ -84,6 +80,19 @@ class NodeService {
 		if (Array.isArray(prototypeConfiguration['__prototypeChain']) && prototypeConfiguration['__prototypeChain'].includes(oneOf)) return true
 
 		return false
+	}
+
+	protected * getAppliedValues(apply: { [key: string]: any }, finalFusionContext: { [key: string]: any }) {
+		for (const toApply of Object.values(apply)) {
+			// TODO: run EEL-Expression or at least handle things like `@apply.baseAttributes = ${props.baseAttributes}` 
+			if (toApply['__eelExpression'] === "props") yield finalFusionContext[toApply['__eelExpression']]
+
+			const valueToApplyIsDataStructure = toApply.__objectType === 'Neos.Fusion:DataStructure' || !!toApply.__prototypeChain?.includes('Neos.Fusion:DataStructure')
+			if (valueToApplyIsDataStructure) for (const key in toApply) {
+				if (key.startsWith('__')) continue
+				yield { [key]: toApply[key] }
+			}
+		}
 	}
 }
 
