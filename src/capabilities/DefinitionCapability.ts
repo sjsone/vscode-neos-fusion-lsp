@@ -14,18 +14,18 @@ import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignme
 import { Position, Range } from 'vscode-languageserver'
 import { DefinitionLink, Location, LocationLink } from 'vscode-languageserver/node'
 import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService'
+import { LegacyNodeService } from '../common/LegacyNodeService'
 import { LinePositionedNode } from '../common/LinePositionedNode'
-import { NodeService } from '../common/NodeService'
 import { XLIFFService } from '../common/XLIFFService'
 import { findParent, getObjectIdentifier, getPrototypeNameFromNode, pathToUri } from '../common/util'
+import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { ActionUriActionNode } from '../fusion/node/ActionUriActionNode'
 import { ActionUriControllerNode } from '../fusion/node/ActionUriControllerNode'
 import { FlowConfigurationPathPartNode } from '../fusion/FlowConfigurationPathPartNode'
 import { FqcnNode } from '../fusion/node/FqcnNode'
-import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { NeosFusionFormActionNode } from '../fusion/node/NeosFusionFormActionNode'
 import { NeosFusionFormControllerNode } from '../fusion/node/NeosFusionFormControllerNode'
-import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { PhpClassMethodNode } from '../fusion/node/PhpClassMethodNode'
 import { PhpClassNode } from '../fusion/node/PhpClassNode'
 import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
@@ -148,9 +148,9 @@ export class DefinitionCapability extends AbstractCapability {
 			if (isObjectNodeInDsl) return null
 
 			const objectStatement = findParent(objectNode, ObjectStatement)
-			const prototypeName = NodeService.findPrototypeName(objectStatement)
+			const prototypeName = LegacyNodeService.findPrototypeName(objectStatement)
 
-			for (const property of NodeService.getInheritedPropertiesByPrototypeName(prototypeName, workspace)) {
+			for (const property of LegacyNodeService.getInheritedPropertiesByPrototypeName(prototypeName, workspace)) {
 				const firstPropertyPathSegment = property.statement.path.segments[0]
 				if (firstPropertyPathSegment["identifier"] === objectNode.path[1]["value"]) {
 					return [{
@@ -162,7 +162,7 @@ export class DefinitionCapability extends AbstractCapability {
 			return null
 		}
 
-		const { foundIgnoreComment, foundIgnoreBlockComment } = NodeService.getSemanticCommentsNodeIsAffectedBy(objectNode, parsedFile)
+		const { foundIgnoreComment, foundIgnoreBlockComment } = LegacyNodeService.getSemanticCommentsNodeIsAffectedBy(objectNode, parsedFile)
 		if (foundIgnoreComment) return [{
 			uri: parsedFile.uri,
 			range: foundIgnoreComment.getPositionAsRange()
@@ -172,7 +172,7 @@ export class DefinitionCapability extends AbstractCapability {
 			range: foundIgnoreBlockComment.getPositionAsRange()
 		}]
 
-		const segment = NodeService.findPropertyDefinitionSegment(objectNode, workspace, true)
+		const segment = LegacyNodeService.findPropertyDefinitionSegment(objectNode, workspace, true)
 		if (!segment) return null
 
 		if (segment instanceof PathSegment) return [{
@@ -285,7 +285,7 @@ export class DefinitionCapability extends AbstractCapability {
 			}
 		}
 
-		for (const property of NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace, true)) {
+		for (const property of LegacyNodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace, true)) {
 			if (getObjectIdentifier(property.statement) !== node.name) continue
 			locationLinks.push({
 				targetUri: property.uri,

@@ -12,7 +12,7 @@ import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { Command, CompletionItem, CompletionItemKind, InsertTextFormat, InsertTextMode } from 'vscode-languageserver/node'
 import { LinePositionedNode } from '../common/LinePositionedNode'
-import { ExternalObjectStatement, NodeService } from '../common/NodeService'
+import { ExternalObjectStatement, LegacyNodeService } from '../common/LegacyNodeService'
 import { findParent, getObjectIdentifier } from '../common/util'
 import { FlowConfigurationPathPartNode } from '../fusion/FlowConfigurationPathPartNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
@@ -22,6 +22,7 @@ import { NeosPackage } from '../neos/NeosPackage'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
+import { NodeService } from '../common/NodeService'
 
 const BuiltInCompletions = {
 	prototypeCompletion: {
@@ -136,7 +137,7 @@ export class CompletionCapability extends AbstractCapability {
 		const tagNode = findParent(attributeNode, TagNode)
 		if (tagNode !== undefined) {
 			const labels = []
-			for (const statement of NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace)) {
+			for (const statement of LegacyNodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace)) {
 				const label = getObjectIdentifier(statement.statement)
 				if (!labels.includes(label)) labels.push(label)
 			}
@@ -155,39 +156,15 @@ export class CompletionCapability extends AbstractCapability {
 
 	protected getFusionPropertyCompletionsForObjectPath(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {
 		const node = foundNode.getNode()
-		const objectNode = node["parent"]
-		if (!(objectNode instanceof ObjectNode)) return null
-
-
-		if (objectNode.path.length === 1) {
-			return [
-				{
-					label: 'props',
-					insertText: 'props.',
-					kind: CompletionItemKind.Keyword,
-					command: CompletionCapability.SuggestCommand
-				},
-				{
-					label: 'this',
-					insertText: 'this.',
-					kind: CompletionItemKind.Keyword,
-					command: CompletionCapability.SuggestCommand
-				}
-			]
-		}
-
-		if ((objectNode.path[0]["value"] !== "this" && objectNode.path[0]["value"] !== "props") || objectNode.path.length === 1) {
-			// TODO: handle context properties
-			return []
-		}
-
-		return this.getPropertyDefinitionSegments(objectNode, workspace)
+		const objectNode = findParent(node, ObjectNode)
+		if (!objectNode) return []
+		return this.getFusionPropertyCompletionsForObjectNode(workspace, objectNode.linePositionedNode)
 	}
 
 	protected getPropertyDefinitionSegments(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace) {
 		const completions: CompletionItem[] = []
 
-		for (const segmentOrExternalStatement of NodeService.findPropertyDefinitionSegments(objectNode, workspace, true)) {
+		for (const segmentOrExternalStatement of LegacyNodeService.findPropertyDefinitionSegments(objectNode, workspace, true)) {
 			const segment = segmentOrExternalStatement instanceof ExternalObjectStatement ? segmentOrExternalStatement.statement.path.segments[0] : segmentOrExternalStatement
 			if (!(segment instanceof PathSegment)) continue
 			if (segment.identifier === "renderer" || !segment.identifier) continue
@@ -299,12 +276,30 @@ export class CompletionCapability extends AbstractCapability {
 		return completions
 	}
 
-	protected getFusionPropertyCompletionsForObjectNode(fusionWorkspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectNode>): CompletionItem[] {
+	protected getFusionPropertyCompletionsForObjectNode(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectNode>): CompletionItem[] {
 		const node = foundNode.getNode()
-		if (node.path[0]["value"] !== "props") return null
-		if (node.path.length !== 1) return null
+		const completions: CompletionItem[] = []
 
-		return this.getPropertyDefinitionSegments(node, fusionWorkspace)
+		const objectPathParts = node.path.map(segment => segment["value"])
+		let fusionContext = NodeService.getFusionContextUntilNode(node, workspace)
+
+		for (const objectPathPart of objectPathParts) {
+			if (!(objectPathPart in fusionContext)) {
+				fusionContext = fusionContext
+				break;
+			}
+			fusionContext = fusionContext[objectPathPart]
+		}
+
+		if (typeof fusionContext === "object") for (const label of Object.keys(fusionContext)) {
+			if (label.startsWith('__')) continue
+
+
+			const restObjectPathParts = objectPathParts.slice(0,-1) ?? []
+			completions.push(this.createCompletionItem([...restObjectPathParts, label].join('.'), foundNode, CompletionItemKind.Class))
+		}
+
+		return completions;
 	}
 
 	protected getEelHelperCompletionsForObjectPath(fusionWorkspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {
