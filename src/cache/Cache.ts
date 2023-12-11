@@ -16,7 +16,7 @@ export class Cache<T> extends Logger {
 	}
 
 	public set(key: CacheKey, value: T, tags: CacheTag[] = []): void {
-		this.logDebug(`Setting "${key.split('_')[0]}" with tags: `, tags)
+		this.logVerbose(`Setting "${key.split('_')[0]}" with tags: `, tags)
 
 		this.cacheStore.set(key, value)
 
@@ -38,7 +38,7 @@ export class Cache<T> extends Logger {
 	}
 
 	public retrieve(key: CacheKey, retrieveCallback: () => T, tags: CacheTag[] = []): T {
-		this.logDebug(`Retrieving for ${key.split('_')[0]} with tags`, tags)
+		this.logVerbose(`Retrieving for ${key.split('_')[0]} with tags`, tags)
 
 		if (!this.has(key)) {
 			const value = retrieveCallback()
@@ -63,7 +63,7 @@ export class Cache<T> extends Logger {
 
 	public clearByTag(tag: CacheTag): void {
 		if (this.tagKeys.has(tag)) {
-			this.logDebug(`clearing by tag "${tag}"`);
+			this.logVerbose(`clearing by tag "${tag}"`);
 			const tagKeys = this.tagKeys.get(tag)!;
 			for (const key of tagKeys) {
 				this.cacheStore.delete(key);
