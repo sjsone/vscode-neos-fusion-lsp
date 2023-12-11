@@ -2,50 +2,24 @@ import * as NodeFs from 'fs';
 import { FusionParserOptions } from 'ts-fusion-parser';
 import { FusionFile } from 'ts-fusion-parser/out/fusion/nodes/FusionFile';
 import { Parser } from 'ts-fusion-runtime';
-import { InternalArrayTreePart, MergedArrayTree } from 'ts-fusion-runtime/out/core/MergedArrayTree';
-import { FusionFileAffectedCache } from '../cache/FusionFileAffectedCache';
+import { MergedArrayTree } from 'ts-fusion-runtime/out/core/MergedArrayTree';
 import { NeosPackage } from '../neos/NeosPackage';
 import { FusionWorkspace } from './FusionWorkspace';
-import * as NodeCrypto from 'crypto'
-import { pathToUri } from '../common/util';
 
 export class LanguageServerFusionParser extends Parser {
 
 	public rootFusionPaths: Map<NeosPackage, string[]> = new Map
 
-	protected mergedArrayTreeCache: FusionFileAffectedCache<InternalArrayTreePart>
-
 	constructor(
 		protected fusionWorkspace: FusionWorkspace
 	) {
 		super()
-		this.mergedArrayTreeCache = new FusionFileAffectedCache('MTA')
 	}
 
-	public parseRootFusionFiles(withCachedRootFiles?: string[]) {
+	public parseRootFusionFiles() {
 		const files = [...this.rootFusionPaths.values()].reduce((carry, rootPaths) => [...carry, ...rootPaths], [])
 
-		if (!withCachedRootFiles || withCachedRootFiles.length === 0) return this.parseFiles(files)
-
-		const cachedFiles = []
-		const uncachedFiles = []
-		for (const file of files) {
-			if (withCachedRootFiles.includes(file)) cachedFiles.push(file)
-			else uncachedFiles.push(file)
-		}
-
-		const cacheId = this.createCacheId(cachedFiles)
-		if (!this.mergedArrayTreeCache.has(cacheId)) {
-			this.mergedArrayTreeCache.set(cacheId, this.parseFiles(cachedFiles), cachedFiles.map(cachedFile => pathToUri(cachedFile)))
-		}
-		return this.parseFiles(uncachedFiles, this.mergedArrayTreeCache.get(cacheId))
-
-	}
-
-	protected createCacheId(cachedFiles: string[]): string {
-		const sorted = Array.from(cachedFiles)
-		sorted.sort()
-		return NodeCrypto.createHash('md5').update(sorted.join('-')).digest('hex')
+		return this.parseFiles(files)
 	}
 
 	public parseFiles(files: string[], mergedArrayTreeUntilNow: { [key: string]: any } = {}) {

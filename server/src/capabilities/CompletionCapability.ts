@@ -195,7 +195,7 @@ export class CompletionCapability extends AbstractCapability {
 		const completions: CompletionItem[] = []
 
 		const objectPathParts = node.path.map(segment => segment["value"])
-		let fusionContext = NodeService.getFusionContextUntilNode(node, workspace)
+		let fusionContext = NodeService.getFusionContextUntilNode(node, workspace, true)
 
 		for (const objectPathPart of objectPathParts) {
 			if (!(objectPathPart in fusionContext)) {
