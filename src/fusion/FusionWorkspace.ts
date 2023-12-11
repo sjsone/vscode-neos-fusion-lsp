@@ -1,11 +1,13 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
-import { FilePatternResolver } from 'ts-fusion-runtime/out/core/FilePatternResolver'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
-import { ExecutionSummary, TextDocumentChangeEvent } from 'vscode-languageserver'
+import { FilePatternResolver } from 'ts-fusion-runtime/out/core/FilePatternResolver'
+import { InternalArrayTreePart } from 'ts-fusion-runtime/out/core/MergedArrayTree'
+import { TextDocumentChangeEvent } from 'vscode-languageserver'
 import { TextDocument } from "vscode-languageserver-textdocument"
 import { LoggingLevel, type ExtensionConfiguration } from '../ExtensionConfiguration'
 import { LanguageServer } from '../LanguageServer'
+import { CacheManager } from '../cache/CacheManager'
 import { ComposerService } from '../common/ComposerService'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { LogService, Logger } from '../common/Logging'
@@ -15,10 +17,8 @@ import { diagnose } from '../diagnostics/ParsedFusionFileDiagnostics'
 import { NeosPackage } from '../neos/NeosPackage'
 import { NeosWorkspace } from '../neos/NeosWorkspace'
 import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile'
-import { ParsedFusionFile } from './ParsedFusionFile'
 import { LanguageServerFusionParser } from './LanguageServerFusionParser'
-import { InternalArrayTreePart } from 'ts-fusion-runtime/out/core/MergedArrayTree'
-import { CacheManager } from '../cache/CacheManager'
+import { ParsedFusionFile } from './ParsedFusionFile'
 
 export class FusionWorkspace extends Logger {
     public uri: string
@@ -128,6 +128,7 @@ export class FusionWorkspace extends Logger {
             if (typeOrder === 0) {
                 if (a["path"].includes("DistributionPackages")) return 1
                 if (b["path"].includes("DistributionPackages")) return -1
+                return (<string>a["composerJson"]["name"]).localeCompare(b["composerJson"]["name"])
             }
 
             return typeOrder
@@ -205,13 +206,8 @@ export class FusionWorkspace extends Logger {
             busy: true,
         })
 
-        const withCachedRootFiles = []
 
-        if (this.configuration.experimental.fusionParserCaching) for (const [neosPackage, rootFiles] of this.fusionParser.rootFusionPaths.entries()) {
-            if (!neosPackage["path"].includes('DistributionPackages')) withCachedRootFiles.push(...rootFiles)
-        }
-
-        this.mergedArrayTree = this.fusionParser.parseRootFusionFiles(withCachedRootFiles)
+        this.mergedArrayTree = this.fusionParser.parseRootFusionFiles()
         this.logInfo(`Elapsed time FULL MAT: ${performance.now() - startTimeFullMergedArrayTree} milliseconds`);
         this.languageServer.sendBusyDispose('parsingFusionMergedArrayTree')
     }
