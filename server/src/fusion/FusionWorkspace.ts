@@ -17,6 +17,7 @@ import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile'
 import { ParsedFusionFile } from './ParsedFusionFile'
 import { LanguageServerFusionParser } from './LanguageServerFusionParser'
 import { InternalArrayTreePart } from 'ts-fusion-runtime/out/core/MergedArrayTree'
+import { CacheManager } from '../cache/CacheManager'
 
 export class FusionWorkspace extends Logger {
     public uri: string
@@ -191,8 +192,20 @@ export class FusionWorkspace extends Logger {
 
     buildMergedArrayTree() {
         const startTimeFullMergedArrayTree = performance.now();
-        this.mergedArrayTree = this.fusionParser.parseRootFusionFiles()
+        this.languageServer.sendBusyCreate('parsingFusionMergedArrayTree', {
+            busy: true,
+        })
+
+        const withCachedRootFiles = []
+        // for (const [neosPackage, rootFiles] of this.fusionParser.rootFusionPaths.entries()) {
+        //     if (!neosPackage["path"].includes('DistributionPackages')) {
+        //         withCachedRootFiles.push(...rootFiles)
+        //     }
+        // }
+
+        this.mergedArrayTree = this.fusionParser.parseRootFusionFiles(withCachedRootFiles)
         this.logInfo(`Elapsed time FULL MAT: ${performance.now() - startTimeFullMergedArrayTree} milliseconds`);
+        this.languageServer.sendBusyDispose('parsingFusionMergedArrayTree')
     }
 
     addParsedFileFromPath(fusionFilePath: string, neosPackage: NeosPackage) {
@@ -250,6 +263,9 @@ export class FusionWorkspace extends Logger {
         if (this.configuration.diagnostics.alwaysDiagnoseChangedFile && !this.filesToDiagnose.includes(file)) {
             this.filesToDiagnose.push(file)
         }
+
+        // TODO: get Root.fusion file of changed file
+        CacheManager.clearByFusionFileUri(file.uri)
 
         await this.processFilesToDiagnose()
     }

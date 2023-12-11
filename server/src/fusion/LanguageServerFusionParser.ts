@@ -1,34 +1,51 @@
+import * as NodeFs from 'fs';
 import { FusionParserOptions } from 'ts-fusion-parser';
 import { FusionFile } from 'ts-fusion-parser/out/fusion/nodes/FusionFile';
 import { Parser } from 'ts-fusion-runtime';
-import { FusionWorkspace } from './FusionWorkspace';
-import { pathToUri } from '../common/util';
-import { MergedArrayTree } from 'ts-fusion-runtime/out/core/MergedArrayTree';
-import * as NodeFs from 'fs'
+import { InternalArrayTreePart, MergedArrayTree } from 'ts-fusion-runtime/out/core/MergedArrayTree';
+import { FusionFileAffectedCache } from '../cache/FusionFileAffectedCache';
 import { NeosPackage } from '../neos/NeosPackage';
+import { FusionWorkspace } from './FusionWorkspace';
+import * as NodeCrypto from 'crypto'
+import { pathToUri } from '../common/util';
 
 export class LanguageServerFusionParser extends Parser {
 
 	public rootFusionPaths: Map<NeosPackage, string[]> = new Map
 
-	protected mergedArrayTreeCache: Map<NeosPackage, MergedArrayTree> = new Map
+	protected mergedArrayTreeCache: FusionFileAffectedCache<InternalArrayTreePart>
 
 	constructor(
 		protected fusionWorkspace: FusionWorkspace
 	) {
 		super()
+		this.mergedArrayTreeCache = new FusionFileAffectedCache('MTA')
 	}
 
-	public parseRootFusionFiles() {
-		const files = [...this.rootFusionPaths.values()].reduce((carry, rootPaths) => {
-			carry.push(...rootPaths)
-			return carry
-		}, [])
-		return this.parseFiles(files)
+	public parseRootFusionFiles(withCachedRootFiles?: string[]) {
+		const files = [...this.rootFusionPaths.values()].reduce((carry, rootPaths) => [...carry, ...rootPaths], [])
+
+		if (!withCachedRootFiles || withCachedRootFiles.length === 0) return this.parseFiles(files)
+
+		const cachedFiles = []
+		const uncachedFiles = []
+		for (const file of files) {
+			if (withCachedRootFiles.includes(file)) cachedFiles.push(file)
+			else uncachedFiles.push(file)
+		}
+
+		const cacheId = this.createCacheId(cachedFiles)
+		if (!this.mergedArrayTreeCache.has(cacheId)) {
+			this.mergedArrayTreeCache.set(cacheId, this.parseFiles(cachedFiles), cachedFiles.map(cachedFile => pathToUri(cachedFile)))
+		}
+		return this.parseFiles(uncachedFiles, this.mergedArrayTreeCache.get(cacheId))
+
 	}
 
-	protected test() {
-
+	protected createCacheId(cachedFiles: string[]): string {
+		const sorted = Array.from(cachedFiles)
+		sorted.sort()
+		return NodeCrypto.createHash('md5').update(sorted.join('-')).digest('hex')
 	}
 
 	public parseFiles(files: string[], mergedArrayTreeUntilNow: { [key: string]: any } = {}) {

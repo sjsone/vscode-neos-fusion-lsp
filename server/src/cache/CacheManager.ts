@@ -1,6 +1,7 @@
+import { Logger } from '../common/Logging'
 import { Cache } from './Cache'
 
-class CacheManager {
+class CacheManager extends Logger {
 	public globalCache: Cache<any> = new Cache()
 	protected fusionFileAffectedCaches: Cache<any>[] = []
 
@@ -11,6 +12,7 @@ class CacheManager {
 	}
 
 	clearByFusionFileUri(uri: string) {
+		this.logVerbose(`Clearing fusionFileAffectedCaches by uri ${uri}`)
 		for (const cache of this.fusionFileAffectedCaches) {
 			cache.clearByTag(uri)
 		}

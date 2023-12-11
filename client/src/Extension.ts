@@ -29,8 +29,9 @@ export class Extension {
 	protected context: ExtensionContext | undefined = undefined
 
 	protected languageStatusBarItems: {
-		reload: LanguageStatusItem
-	} = { reload: undefined }
+		reload: LanguageStatusItem,
+		parsingFusionMergedArrayTree: LanguageStatusItem
+	} = { reload: undefined, parsingFusionMergedArrayTree: undefined }
 
 	constructor() {
 		this.outputChannel = Window.createOutputChannel('Neos Fusion LSP')
@@ -50,6 +51,11 @@ export class Extension {
 			command: "neos-fusion-lsp.reload",
 			tooltip: "Reload the Fusion Language Server"
 		}
+		this.languageStatusBarItems.parsingFusionMergedArrayTree = languages.createLanguageStatusItem("fusion.parsingFusionMergedArrayTree", documentSelector)
+
+		this.languageStatusBarItems.parsingFusionMergedArrayTree.text = "$(beaker)"
+		this.languageStatusBarItems.parsingFusionMergedArrayTree.detail = "parsing fusion"
+		this.languageStatusBarItems.parsingFusionMergedArrayTree.name = "parsing"
 	}
 
 	public getClients() {
@@ -172,12 +178,24 @@ export class Extension {
 		const progressNotificationService = new ProgressNotificationService()
 		const client = new LanguageClient('vscode-neos-fusion-lsp', 'LSP For Neos Fusion (and AFX)', serverOptions, clientOptions)
 
-		client.onNotification('custom/busy/create', () => this.languageStatusBarItems.reload.busy = true)
+		client.onNotification('custom/busy/create', ({ id, configuration }) => {
+			if (id === "parsingFusionMergedArrayTree") {
+				this.languageStatusBarItems.parsingFusionMergedArrayTree.busy = configuration.busy
+			} else {
+				this.languageStatusBarItems.reload.busy = true
+			}
+		})
 		client.onNotification('custom/progressNotification/create', ({ id, title }) => progressNotificationService.create(id, title))
 
 		client.onNotification('custom/progressNotification/update', ({ id, payload }) => progressNotificationService.update(id, payload))
 
-		client.onNotification('custom/busy/dispose', () => this.languageStatusBarItems.reload.busy = false)
+		client.onNotification('custom/busy/dispose', ({ id }) => {
+			if (id === "parsingFusionMergedArrayTree") {
+				this.languageStatusBarItems.parsingFusionMergedArrayTree.busy = false
+			} else {
+				this.languageStatusBarItems.reload.busy = false
+			}
+		})
 		client.onNotification('custom/progressNotification/finish', ({ id }) => progressNotificationService.finish(id))
 
 		client.start()
