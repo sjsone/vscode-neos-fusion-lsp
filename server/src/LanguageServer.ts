@@ -1,4 +1,4 @@
-import { CodeAction, CodeActionParams, FileEvent } from 'vscode-languageserver'
+import { CodeAction, CodeActionParams } from 'vscode-languageserver'
 import {
 	DidChangeConfigurationParams,
 	DidChangeWatchedFilesParams,
@@ -24,11 +24,13 @@ import { DefinitionCapability } from './capabilities/DefinitionCapability'
 import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
 import { HoverCapability } from './capabilities/HoverCapability'
 import { ReferenceCapability } from './capabilities/ReferenceCapability'
+import { RenameCapability } from './capabilities/RenameCapability'
+import { RenamePrepareCapability } from './capabilities/RenamePrepareCapability'
 import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
 import { AbstractFunctionality } from './common/AbstractFunctionality'
 import { ClientCapabilityService } from './common/ClientCapabilityService'
 import { LogService, Logger } from './common/Logging'
-import { clearLineDataCache, clearLineDataCacheForFile, uriToPath } from './common/util'
+import { clearLineDataCache, uriToPath } from './common/util'
 import { AbstractFileChangeHandler } from './fileChangeHandler/AbstractFileChangeHandler'
 import { FusionFileChangeHandler } from './fileChangeHandler/FusionFileChangeHandler'
 import { PhpFileChangeHandler } from './fileChangeHandler/PhpFileChangeHandler'
@@ -39,8 +41,6 @@ import { AbstractLanguageFeature } from './languageFeatures/AbstractLanguageFeat
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { FusionDocument } from './main'
-import { RenameCapability } from './capabilities/RenameCapability'
-import { RenamePrepareCapability } from './capabilities/RenamePrepareCapability'
 
 
 const CodeActions = [

@@ -19,7 +19,7 @@ import { ValueCopy } from 'ts-fusion-parser/out/fusion/nodes/ValueCopy';
 import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService';
 import { LinePositionedNode } from '../common/LinePositionedNode';
 import { Logger } from '../common/Logging';
-import { LegacyNodeService } from '../common/LegacyNodeService';
+import { NodeService } from '../common/NodeService';
 import { findParent, getObjectIdentifier } from '../common/util';
 import { FlowConfigurationPathNode } from './FlowConfigurationPathNode';
 import { ParsedFusionFile } from './ParsedFusionFile';
@@ -34,7 +34,6 @@ import { PhpClassMethodNode } from './node/PhpClassMethodNode';
 import { PhpClassNode } from './node/PhpClassNode';
 import { ResourceUriNode } from './node/ResourceUriNode';
 import { TranslationShortHandNode } from './node/TranslationShortHandNode';
-import { NodeService } from '../common/NodeService';
 
 type PostProcess = () => void
 export class FusionFileProcessor extends Logger {
@@ -94,18 +93,6 @@ export class FusionFileProcessor extends Logger {
 				this.parsedFusionFile.addNode(eelHelperNode, text)
 				this.processTranslations(eelHelperIdentifier, eelHelperMethodNode, text)
 				this.processPropTypesFqcn(eelHelperIdentifier, eelHelperMethodNode, text)
-			}
-
-			if (eelHelperIdentifier + "." + eelHelperMethodNode.identifier === "Configuration.setting") {
-				this.createFlowConfigurationPathNode(<ObjectFunctionPathNode>methodNode, text)
-			}
-
-			if (eelHelperIdentifier + "." + eelHelperMethodNode.identifier === "Configuration.setting") {
-				this.createFlowConfigurationPathNode(<ObjectFunctionPathNode>methodNode, text)
-			}
-
-			if (eelHelperIdentifier + "." + eelHelperMethodNode.identifier === "Configuration.setting") {
-				this.createFlowConfigurationPathNode(<ObjectFunctionPathNode>methodNode, text)
 			}
 
 			if (eelHelperIdentifier + "." + eelHelperMethodNode.identifier === "Configuration.setting") {

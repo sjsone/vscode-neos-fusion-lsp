@@ -1,4 +1,9 @@
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { Comment } from 'ts-fusion-parser/out/common/Comment'
+import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
+import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
+import { AbstractPathValue } from 'ts-fusion-parser/out/fusion/nodes/AbstractPathValue'
 import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue'
 import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue'
 import { FusionFile } from 'ts-fusion-parser/out/fusion/nodes/FusionFile'
@@ -11,14 +16,9 @@ import { StatementList } from 'ts-fusion-parser/out/fusion/nodes/StatementList'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
 import { ValueCopy } from 'ts-fusion-parser/out/fusion/nodes/ValueCopy'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
-import { abstractNodeToString, checkSemanticCommentIgnoreArguments, findParent, findUntil, getObjectIdentifier, parseSemanticComment, SemanticCommentType } from './util'
-import { AbstractPathValue } from 'ts-fusion-parser/out/fusion/nodes/AbstractPathValue'
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
-import { Comment } from 'ts-fusion-parser/out/common/Comment'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
-import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
-import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 import { LinePositionedNode } from './LinePositionedNode'
+import { abstractNodeToString, checkSemanticCommentIgnoreArguments, findParent, findUntil, getObjectIdentifier, parseSemanticComment, SemanticCommentType } from './util'
 
 export class ExternalObjectStatement {
 	constructor(
@@ -369,4 +369,4 @@ class LegacyNodeService {
 }
 
 const legacyNodeService = new LegacyNodeService
-export { LegacyNodeService as LegacyNodeServiceClass, legacyNodeService as LegacyNodeService }
+export { legacyNodeService as LegacyNodeService, LegacyNodeService as LegacyNodeServiceClass }

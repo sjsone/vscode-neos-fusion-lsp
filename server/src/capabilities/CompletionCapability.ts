@@ -11,18 +11,17 @@ import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStateme
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { Command, CompletionItem, CompletionItemKind, InsertTextFormat, InsertTextMode } from 'vscode-languageserver/node'
-import { LinePositionedNode } from '../common/LinePositionedNode'
 import { ExternalObjectStatement, LegacyNodeService } from '../common/LegacyNodeService'
+import { LinePositionedNode } from '../common/LinePositionedNode'
+import { NodeService } from '../common/NodeService'
 import { findParent, getObjectIdentifier } from '../common/util'
 import { FlowConfigurationPathPartNode } from '../fusion/FlowConfigurationPathPartNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
-import { TranslationShortHandNode } from '../fusion/TranslationShortHandNode'
+import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
 import { NeosPackage } from '../neos/NeosPackage'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
-import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
-import { NodeService } from '../common/NodeService'
 
 const BuiltInCompletions = {
 	prototypeCompletion: {
@@ -237,65 +236,22 @@ export class CompletionCapability extends AbstractCapability {
 		return completions
 	}
 
-	protected getFlowConfigurationCompletions(fusionWorkspace: FusionWorkspace, partNode: LinePositionedNode<FlowConfigurationPathPartNode>): CompletionItem[] {
-		const completions: CompletionItem[] = []
-		const node = partNode.getNode()["parent"]
-		const partIndex = node["path"].indexOf(partNode.getNode())
-		if (partIndex === -1) return []
-
-		const pathParts = node["path"].slice(0, partIndex + 1)
-		const searchPath = pathParts.map(part => part["value"]).filter(Boolean)
-		this.logDebug("searching for ", searchPath)
-
-		for (const neosPackage of fusionWorkspace.neosWorkspace.getPackages().values()) {
-			for (const result of neosPackage["configuration"].search(searchPath)) {
-				if (typeof result.value === "string") {
-					completions.push(this.createCompletionItem(result.value, partNode, CompletionItemKind.Text))
-				}
-
-				if (typeof result.value === "object") {
-					for (const itemName in result.value) {
-						const value = result.value[itemName]
-						const isObject = typeof value === "object"
-
-						const label = (searchPath.length > 0 ? '.' : '') + itemName + (isObject ? '.' : '')
-						if (completions.find(completion => completion.label === label)) continue
-
-						let type: CompletionItemKind = CompletionItemKind.Value
-						if (typeof value === "string") type = CompletionItemKind.Text
-						if (isObject) type = CompletionItemKind.Class
-
-						const completion = this.createCompletionItem(label, partNode, type)
-						completion.command = CompletionCapability.SuggestCommand
-						completions.push(completion)
-					}
-				}
-			}
-		}
-
-		return completions
-	}
-
 	protected getFusionPropertyCompletionsForObjectNode(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectNode>): CompletionItem[] {
 		const node = foundNode.getNode()
 		const completions: CompletionItem[] = []
 
 		const objectPathParts = node.path.map(segment => segment["value"])
-		let fusionContext = NodeService.getFusionContextUntilNode(node, workspace)
+		let fusionContext = NodeService.getFusionContextUntilNode(node, workspace, true)
 
 		for (const objectPathPart of objectPathParts) {
-			if (!(objectPathPart in fusionContext)) {
-				fusionContext = fusionContext
-				break;
-			}
+			if (!(objectPathPart in fusionContext)) break
 			fusionContext = fusionContext[objectPathPart]
 		}
 
 		if (typeof fusionContext === "object") for (const label of Object.keys(fusionContext)) {
 			if (label.startsWith('__')) continue
 
-
-			const restObjectPathParts = objectPathParts.slice(0,-1) ?? []
+			const restObjectPathParts = objectPathParts.slice(0, -1) ?? []
 			completions.push(this.createCompletionItem([...restObjectPathParts, label].join('.'), foundNode, CompletionItemKind.Class))
 		}
 

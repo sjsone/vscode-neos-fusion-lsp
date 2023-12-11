@@ -1,10 +1,9 @@
 import * as NodeFs from "fs"
-import * as NodePath from "path"
-import { AbstractListYamlNode, AbstractYamlNode, DocumentNode, ListYamlNode, ValueNode } from "./YamlNodes"
-import { YamlToken, YamlTokenType } from "./YamlToken"
+import { Position } from 'vscode-languageserver'
 import { getLineNumberOfChar, uriToPath } from '../common/util'
 import { YamlLexer } from './YamlLexer'
-import { Position, Range } from 'vscode-languageserver'
+import { AbstractListYamlNode, AbstractYamlNode, DocumentNode, ListYamlNode, ValueNode } from "./YamlNodes"
+import { YamlToken, YamlTokenType } from "./YamlToken"
 
 const traverseUpwards = (node: AbstractYamlNode, steps: number) => {
     for (let i = 0; i < steps; i++) {

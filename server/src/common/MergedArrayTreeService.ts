@@ -1,15 +1,10 @@
-import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
-import { FusionWorkspace } from '../fusion/FusionWorkspace'
-import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
-import { NodeTypeDefinition } from '../neos/FlowConfiguration'
-import { LinePositionedNode } from './LinePositionedNode'
-import { findParent, getPrototypeNameFromNode } from './util'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
-import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
+import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
+import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/nodes/MetaPathSegment'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
-import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/nodes/MetaPathSegment'
+import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 
 class MergedArrayTreeService {
 
@@ -65,4 +60,4 @@ class MergedArrayTreeService {
 }
 
 const mergedArrayTreeService = new MergedArrayTreeService
-export { MergedArrayTreeService as MergedArrayTreeServiceClass, mergedArrayTreeService as MergedArrayTreeService }
+export { mergedArrayTreeService as MergedArrayTreeService, MergedArrayTreeService as MergedArrayTreeServiceClass }

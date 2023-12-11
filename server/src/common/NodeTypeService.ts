@@ -1,7 +1,7 @@
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
-import { NodeTypeDefinition } from '../neos/FlowConfiguration'
+import { NodeTypeDefinition } from '../neos/FlowConfigurationFile'
 import { LinePositionedNode } from './LinePositionedNode'
 import { getPrototypeNameFromNode } from './util'
 
@@ -30,4 +30,4 @@ class NodeTypeService {
 }
 
 const nodeTypeService = new NodeTypeService
-export { NodeTypeService as NodeTypeServiceClass, nodeTypeService as NodeTypeService }
+export { nodeTypeService as NodeTypeService, NodeTypeService as NodeTypeServiceClass }
