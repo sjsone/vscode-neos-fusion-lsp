@@ -34,12 +34,12 @@ export interface FoundApplyPropsResult {
 
 class LegacyNodeService {
 
-	public doesPrototypeOverrideProps(name: string): boolean {
+	protected doesPrototypeOverrideProps(name: string): boolean {
 		// TODO: use this.isPrototypeOneOf ? 
 		return !["Neos.Fusion:Case", "Neos.Fusion:Loop", "Neos.Neos:ImageUri", "Neos.Neos:NodeUri"].includes(name)
 	}
 
-	public findParentPrototypeName(node: AbstractNode) {
+	protected findParentPrototypeName(node: AbstractNode) {
 		const foundParentOperationPrototype = findUntil(node, (possiblePrototype) => {
 			if (!(possiblePrototype instanceof ObjectStatement)) return false
 			if (!(possiblePrototype.operation instanceof ValueAssignment)) return false
@@ -270,7 +270,7 @@ class LegacyNodeService {
 		}
 	}
 
-	public * getInheritedPropertiesByPrototypeNameFromParsedFile(name: string, parsedFile: ParsedFusionFile, workspace: FusionWorkspace, includeOverwrites: boolean = false, debug: boolean = false) {
+	protected * getInheritedPropertiesByPrototypeNameFromParsedFile(name: string, parsedFile: ParsedFusionFile, workspace: FusionWorkspace, includeOverwrites: boolean = false, debug: boolean = false) {
 		const prototypeNodes = [...parsedFile.prototypeCreations]
 		if (includeOverwrites) prototypeNodes.push(...parsedFile.prototypeOverwrites)
 		for (const positionedNode of prototypeNodes) {
@@ -278,7 +278,7 @@ class LegacyNodeService {
 		}
 	}
 
-	public * getInheritedPropertiesByPrototypeNameFromPrototypePathSegments(name: string, workspace: FusionWorkspace, parsedFile: ParsedFusionFile, positionedNode: LinePositionedNode<PrototypePathSegment>, includeOverwrites: boolean = false, debug: boolean = false) {
+	protected * getInheritedPropertiesByPrototypeNameFromPrototypePathSegments(name: string, workspace: FusionWorkspace, parsedFile: ParsedFusionFile, positionedNode: LinePositionedNode<PrototypePathSegment>, includeOverwrites: boolean = false, debug: boolean = false) {
 		if (positionedNode.getNode().identifier !== name) return
 		const objectStatement = findParent(positionedNode.getNode(), ObjectStatement)
 		const operation = objectStatement.operation
