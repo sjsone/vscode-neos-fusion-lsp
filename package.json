@@ -283,7 +283,7 @@
                     "neosFusionLsp.experimental.fusionParserCaching": {
                         "type": "boolean",
                         "default": false,
-                        "description": "Enable experimental caching in the Fusion Parser."
+                        "description": "**NOT IN USE** Enable experimental caching in the Fusion Parser."
                     }
                 }
             }
