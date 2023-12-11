@@ -16,6 +16,7 @@ import { clearLineDataCacheForFile, findParent, getLineNumberOfChar, getNodeWeig
 import { NeosPackage } from '../neos/NeosPackage'
 import { FusionFileProcessor } from './FusionFileProcessor'
 import { FusionWorkspace } from './FusionWorkspace'
+import { FusionFile } from 'ts-fusion-parser/out/fusion/nodes/FusionFile'
 
 
 const eelParserOptions: EelParserOptions = {
@@ -50,6 +51,7 @@ export class ParsedFusionFile extends Logger {
 	public prototypeOverwrites: LinePositionedNode<PrototypePathSegment>[] = []
 	public prototypeExtends: LinePositionedNode<AbstractNode>[] = []
 
+	public fusionFile: FusionFile
 	public nodesByLine: { [key: string]: LinePositionedNode<AbstractNode>[] } = {}
 	public nodesByType: Map<new (...args: unknown[]) => AbstractNode, LinePositionedNode<AbstractNode>[]> = new Map()
 
@@ -76,24 +78,25 @@ export class ParsedFusionFile extends Logger {
 		try {
 			this.clearCaches()
 			this.logVerbose("init")
+			const filePath = uriToPath(this.uri)
 			if (text === undefined) {
-				text = NodeFs.readFileSync(uriToPath(this.uri)).toString()
+				text = NodeFs.readFileSync(filePath).toString()
 				this.logVerbose("    read text from file")
 			}
 
-			const objectTree = ObjectTreeParser.parse(text, undefined, fusionParserOptions)
-			this.ignoredErrorsByParser = objectTree.errors
+			this.fusionFile = ObjectTreeParser.parse(text, filePath, fusionParserOptions)
+			this.ignoredErrorsByParser = this.fusionFile.errors
 			for(const ignoredError of this.ignoredErrorsByParser) {
 				if(!(ignoredError instanceof ParserError)) continue
 
 				ignoredError['linePosition'] = getLineNumberOfChar(text, ignoredError.getPosition(), this.uri)
 			}
-			this.fusionFileProcessor.readStatementList(objectTree.statementList, text)
+			this.fusionFileProcessor.readStatementList(this.fusionFile.statementList, text)
 
-			for (const nodeType of objectTree.nodesByType.keys()) {
-				this.fusionFileProcessor.processNodesByType(nodeType, objectTree, text)
+			for (const nodeType of this.fusionFile.nodesByType.keys()) {
+				this.fusionFileProcessor.processNodesByType(nodeType, this.fusionFile, text)
 			}
-			const fileName = NodePath.basename(uriToPath(this.uri))
+			const fileName = NodePath.basename(filePath)
 			if (fileName.startsWith("Routing") && fileName.endsWith(".fusion")) this.handleFusionRouting(text)
 			this.logVerbose("finished")
 			return true

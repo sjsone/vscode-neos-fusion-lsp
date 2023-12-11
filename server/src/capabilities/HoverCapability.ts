@@ -12,7 +12,7 @@ import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/Prototyp
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
 import * as YAML from 'yaml'
 import { LinePositionedNode } from '../common/LinePositionedNode'
-import { ExternalObjectStatement, NodeService } from '../common/NodeService'
+import { ExternalObjectStatement, LegacyNodeService } from '../common/LegacyNodeService'
 import { XLIFFService } from '../common/XLIFFService'
 import { abstractNodeToString, findParent, getPrototypeNameFromNode } from '../common/util'
 import { FlowConfigurationPathPartNode } from '../fusion/FlowConfigurationPathPartNode'
@@ -178,7 +178,7 @@ export class HoverCapability extends AbstractCapability {
 
 		if ((objectNode.path[0]["value"] !== "this" && objectNode.path[0]["value"] !== "props") || objectNode.path.length < 2) return null
 
-		let segment = NodeService.findPropertyDefinitionSegment(objectNode, workspace, true)
+		let segment = LegacyNodeService.findPropertyDefinitionSegment(objectNode, workspace, true)
 		if (segment instanceof ExternalObjectStatement) {
 			segment = <PathSegment>segment.statement.path.segments[0]
 		}

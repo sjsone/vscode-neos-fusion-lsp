@@ -1,7 +1,8 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
+import { FilePatternResolver } from 'ts-fusion-runtime/out/core/FilePatternResolver'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
-import { TextDocumentChangeEvent } from 'vscode-languageserver'
+import { ExecutionSummary, TextDocumentChangeEvent } from 'vscode-languageserver'
 import { TextDocument } from "vscode-languageserver-textdocument"
 import { LoggingLevel, type ExtensionConfiguration } from '../ExtensionConfiguration'
 import { LanguageServer } from '../LanguageServer'
@@ -15,6 +16,9 @@ import { NeosPackage } from '../neos/NeosPackage'
 import { NeosWorkspace } from '../neos/NeosWorkspace'
 import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile'
 import { ParsedFusionFile } from './ParsedFusionFile'
+import { LanguageServerFusionParser } from './LanguageServerFusionParser'
+import { InternalArrayTreePart } from 'ts-fusion-runtime/out/core/MergedArrayTree'
+import { CacheManager } from '../cache/CacheManager'
 
 export class FusionWorkspace extends Logger {
     public uri: string
@@ -24,6 +28,8 @@ export class FusionWorkspace extends Logger {
 
     public neosWorkspace: NeosWorkspace
 
+    public fusionParser: LanguageServerFusionParser
+    public mergedArrayTree: InternalArrayTreePart = {}
     public parsedFiles: ParsedFusionFile[] = []
     public filesWithErrors: string[] = []
 
@@ -38,6 +44,8 @@ export class FusionWorkspace extends Logger {
         this.name = name
         this.uri = uri
         this.languageServer = languageServer
+
+        this.fusionParser = new LanguageServerFusionParser(this)
     }
 
     setSelectedFlowContextName(contextName: string) {
@@ -117,15 +125,64 @@ export class FusionWorkspace extends Logger {
             }).catch(error => this.logError("init", error))
         }
 
+
+        // TODO: use correct package include order instead of guessing
+        const sortOrder: string[] = ['neos-framework', 'neos-package', 'neos-site', 'library'];
+        const possibleNeosFusionPackages = Array.from(this.neosWorkspace.getPackages().values()).sort((a, b) => {
+            const typeOrder = sortOrder.indexOf(a["composerJson"]["type"]) - sortOrder.indexOf(b["composerJson"]["type"])
+            if (typeOrder === 0) {
+                if (a["path"].includes("DistributionPackages")) return 1
+                if (b["path"].includes("DistributionPackages")) return -1
+            }
+
+            return typeOrder
+        })
+
+
+
+        for (const neosPackage of possibleNeosFusionPackages) {
+            // TODO: introduce something like a "FusionRootContext" for each root file and associate ParsedFusionFiles with these "FusionRootContexts"
+            const packageFusionRootPaths = [
+                "/Private/Fusion/Root.fusion",
+                "/Private/FusionModules/Root.fusion",
+                "/Private/FusionPlugins/Root.fusion",
+            ]
+
+            const existingFusionRootPaths = packageFusionRootPaths.map(path => neosPackage.getResourceUriPath(path)).filter(path => NodeFs.existsSync(path))
+
+            if (existingFusionRootPaths.length > 0) {
+                this.fusionParser.rootFusionPaths.set(neosPackage, existingFusionRootPaths)
+            }
+        }
+
+        // console.log("this.rootFusionPaths", this.rootFusionPaths)
+
+
+        this.logDebug("Root Fusion Paths and order for include", Array.from(this.fusionParser.rootFusionPaths.entries()).map(([neosPackage, rootPaths]) => {
+            return {
+                name: neosPackage.getName(),
+                type: neosPackage["composerJson"]["type"]
+            }
+        }))
+
+        FilePatternResolver.addUriProtocolStrategy('nodetypes:', (uri, filePattern, contextPathAndFilename) => {
+            if (uri.protocol !== "nodetypes:") return undefined
+            if (!contextPathAndFilename) return undefined
+
+            const neosPackage = this.neosWorkspace.getPackage(uri.hostname)
+            return NodePath.join(neosPackage["path"], "NodeTypes", uri.pathname)
+        })
+
+        this.buildMergedArrayTree()
+
         for (const parsedFile of this.parsedFiles) {
             parsedFile.runPostProcessing()
         }
 
-
         this.logInfo(`Successfully parsed ${this.parsedFiles.length} fusion files. `)
 
-        if(usingWorkspaceAsPackageFallback && this.parsedFiles.length === 0) {
-            
+        if (usingWorkspaceAsPackageFallback && this.parsedFiles.length === 0) {
+
         }
 
         // TODO: if this.parsedFiles.length === 0 show error message with link to TBD-setting "workspace root"
@@ -144,6 +201,23 @@ export class FusionWorkspace extends Logger {
         this.languageServer.sendProgressNotificationFinish("fusion_workspace_init").catch(error => this.logError("init", error))
 
         this.processFilesToDiagnose().catch(error => this.logError("init", error))
+    }
+
+    buildMergedArrayTree() {
+        const startTimeFullMergedArrayTree = performance.now();
+        this.languageServer.sendBusyCreate('parsingFusionMergedArrayTree', {
+            busy: true,
+        })
+
+        const withCachedRootFiles = []
+
+        if (this.configuration.experimental.fusionParserCaching) for (const [neosPackage, rootFiles] of this.fusionParser.rootFusionPaths.entries()) {
+            if (!neosPackage["path"].includes('DistributionPackages')) withCachedRootFiles.push(...rootFiles)
+        }
+
+        this.mergedArrayTree = this.fusionParser.parseRootFusionFiles(withCachedRootFiles)
+        this.logInfo(`Elapsed time FULL MAT: ${performance.now() - startTimeFullMergedArrayTree} milliseconds`);
+        this.languageServer.sendBusyDispose('parsingFusionMergedArrayTree')
     }
 
     addParsedFileFromPath(fusionFilePath: string, neosPackage: NeosPackage) {
@@ -195,11 +269,15 @@ export class FusionWorkspace extends Logger {
         const file = this.getParsedFileByUri(change.document.uri)
         if (file === undefined) return
         this.initParsedFile(file, change.document.getText())
+        this.buildMergedArrayTree()
         file.runPostProcessing()
 
         if (this.configuration.diagnostics.alwaysDiagnoseChangedFile && !this.filesToDiagnose.includes(file)) {
             this.filesToDiagnose.push(file)
         }
+
+        // TODO: get Root.fusion file of changed file
+        CacheManager.clearByFusionFileUri(file.uri)
 
         await this.processFilesToDiagnose()
     }
@@ -210,6 +288,10 @@ export class FusionWorkspace extends Logger {
 
     getParsedFileByUri(uri: string) {
         return this.parsedFiles.find(file => file.uri === uri)
+    }
+
+    getParsedFileByContextPathAndFilename(contextPathAndFilename: string) {
+        return this.parsedFiles.find(file => file.uri.endsWith(contextPathAndFilename))
     }
 
     getNodesByType<T extends new (...args: unknown[]) => AbstractNode>(type: T): Array<{ uri: string, nodes: LinePositionedNode<InstanceType<T>>[] }> {

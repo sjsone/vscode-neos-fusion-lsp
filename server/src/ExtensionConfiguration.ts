@@ -62,5 +62,8 @@ export interface ExtensionConfiguration {
     },
     inlayHint: {
         depth: InlayHintDepth
+    },
+    experimental: {
+        fusionParserCaching: boolean
     }
 }
