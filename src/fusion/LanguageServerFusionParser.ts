@@ -1,13 +1,13 @@
+import * as NodeCrypto from 'crypto';
 import * as NodeFs from 'fs';
 import { FusionParserOptions } from 'ts-fusion-parser';
 import { FusionFile } from 'ts-fusion-parser/out/fusion/nodes/FusionFile';
 import { Parser } from 'ts-fusion-runtime';
 import { InternalArrayTreePart, MergedArrayTree } from 'ts-fusion-runtime/out/core/MergedArrayTree';
 import { FusionFileAffectedCache } from '../cache/FusionFileAffectedCache';
+import { pathToUri } from '../common/util';
 import { NeosPackage } from '../neos/NeosPackage';
 import { FusionWorkspace } from './FusionWorkspace';
-import * as NodeCrypto from 'crypto'
-import { pathToUri } from '../common/util';
 
 export class LanguageServerFusionParser extends Parser {
 

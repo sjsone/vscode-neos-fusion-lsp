@@ -88,13 +88,8 @@ export class FusionWorkspace extends Logger {
             this.logDebug("fallback to using workspace as package")
             packagesPaths.push(workspacePath)
         }
-        if (usingWorkspaceAsPackageFallback) packagesPaths.push(workspacePath)
 
         this.neosWorkspace = new NeosWorkspace(this)
-
-        // this.neosWorkspace = new NeosWorkspace(this, workspacePath, this.name)
-        this.neosWorkspace = new NeosWorkspace(this)
-        // for (const packagePath of packagesPaths) {
         for (const packagePath of ComposerService.getSortedPackagePaths(packagesPaths)) {
             this.neosWorkspace.addPackage(packagePath)
         }
@@ -158,10 +153,11 @@ export class FusionWorkspace extends Logger {
         // console.log("this.rootFusionPaths", this.rootFusionPaths)
 
 
-        this.logDebug("Root Fusion Paths and order for include", Array.from(this.fusionParser.rootFusionPaths.entries()).map(([neosPackage, rootPaths]) => {
+        this.logInfo("Root Fusion Paths and order for include", Array.from(this.fusionParser.rootFusionPaths.entries()).map(([neosPackage, rootPaths]) => {
             return {
                 name: neosPackage.getName(),
-                type: neosPackage["composerJson"]["type"]
+                type: neosPackage["composerJson"]["type"],
+                rootPaths: rootPaths.map(p => p.split("/").slice(-2).join('/'))
             }
         }))
 

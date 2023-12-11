@@ -128,7 +128,7 @@ export class NeosPackageNamespace {
 	}
 
 	protected parseMethodParameters(rawParameters: string): PhpMethodParameter[] {
-		const parametersRegex = /(\w+ )?(\.\.\.\s*?)?(\$\w*)( ?= ?.*?)?(?:[,\)])/g
+		const parametersRegex = /(\w+ )?(\.\.\.\s*?)?(\$\w*)( ?= ?.*?)?(?:[,)])/g
 		let match = parametersRegex.exec(rawParameters)
 		const parameters = []
 		let runAwayPrevention = 0

@@ -1,6 +1,5 @@
 import { ParserError } from 'ts-fusion-parser/out/common/ParserError'
 import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver'
-import { getLineNumberOfChar, hasLineDataCacheFile } from '../common/util'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 
 

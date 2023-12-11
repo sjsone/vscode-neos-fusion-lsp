@@ -100,15 +100,15 @@ export class FlowConfiguration extends Logger {
 	protected updateConfigurationsFromFlowConfigurationFile(configurationFile: FlowConfigurationFile) {
 		if (configurationFile.isOfType(FlowConfigurationFileType.Settings)) {
 			const parsedYaml = configurationFile.parseYaml()
-
-			try {
+			if (parsedYaml) try {
 				const mergedConfiguration = <ParsedYaml>mergeObjects(parsedYaml, this.settingsConfiguration)
-				this.settingsConfiguration = mergedConfiguration ? mergedConfiguration : this.settingsConfiguration
+				this.settingsConfiguration = mergedConfiguration ?? this.settingsConfiguration
 				if (LogService.isLogLevel(LoggingLevel.Debug)) Logger.LogNameAndLevel(LoggingLevel.Debug.toUpperCase(), 'FlowConfiguration:FromFolder', 'Read configuration from: ' + configurationFile["path"])
 			} catch (e) {
 				if (e instanceof Error) {
 					console.log("ERROR: configuration", this.settingsConfiguration)
-					console.log("    ", e.message, e.stack)
+					console.log("    \\_> ", e.message, e.stack)
+					console.log("    \\_parsedYaml, this.settingsConfiguration_> ", parsedYaml, this.settingsConfiguration)
 				}
 			}
 		}

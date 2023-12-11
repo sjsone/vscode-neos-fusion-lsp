@@ -1,10 +1,10 @@
-import { Diagnostic, DiagnosticRelatedInformation, DiagnosticSeverity, Location } from 'vscode-languageserver'
+import { Diagnostic, DiagnosticSeverity, Location } from 'vscode-languageserver'
 import { LegacyNodeService } from '../common/LegacyNodeService'
+import { NodeService } from '../common/NodeService'
 import { getPrototypeNameFromNode } from '../common/util'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { CommonDiagnosticHelper } from './CommonDiagnosticHelper'
-import { NodeService } from '../common/NodeService'
 
 const isPrototypeOneOf = (prototypeName: string, oneOf: string[], workspace: FusionWorkspace) => {
 	for (const name of oneOf) {

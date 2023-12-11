@@ -1,8 +1,6 @@
 import { TextDocument } from "vscode-languageserver-textdocument"
 import {
-    Position,
     ProposedFeatures,
-    Range,
     TextDocuments,
     createConnection
 } from "vscode-languageserver/node"
@@ -13,11 +11,11 @@ import { DefinitionCapability } from './capabilities/DefinitionCapability'
 import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
 import { HoverCapability } from './capabilities/HoverCapability'
 import { ReferenceCapability } from './capabilities/ReferenceCapability'
+import { RenameCapability } from './capabilities/RenameCapability'
+import { RenamePrepareCapability } from './capabilities/RenamePrepareCapability'
 import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
-import { RenameCapability } from './capabilities/RenameCapability'
-import { RenamePrepareCapability } from './capabilities/RenamePrepareCapability'
 
 export interface FusionDocument extends TextDocument { }
 
@@ -32,11 +30,11 @@ const languageserver = new LanguageServer(connection, documents)
 
 
 connection.onInitialize(params => languageserver.onInitialize(params))
-connection.onDidChangeConfiguration(params => languageserver.onDidChangeConfiguration(params))
+connection.onDidChangeConfiguration(params => { languageserver.onDidChangeConfiguration(params) })
 
 documents.onDidOpen(event => languageserver.onDidOpen(event))
 documents.onDidChangeContent(change => languageserver.onDidChangeContent(change))
-connection.onDidChangeWatchedFiles(params => languageserver.onDidChangeWatchedFiles(params))
+connection.onDidChangeWatchedFiles(params => { languageserver.onDidChangeWatchedFiles(params) })
 
 
 connection.onDefinition(params => languageserver.runCapability(DefinitionCapability, params))

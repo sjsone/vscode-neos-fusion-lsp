@@ -1,12 +1,12 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
-import { Logger } from './common/Logging'
-import { NeosWorkspace } from './neos/NeosWorkspace'
-import { FlowConfiguration } from './neos/FlowConfiguration'
 import { Range } from 'vscode-languageserver'
-import { ParsedYaml, FlowConfigurationFile } from './neos/FlowConfigurationFile'
-import { NeosPackage } from './neos/NeosPackage'
+import { Logger } from './common/Logging'
 import { mergeObjects } from './common/util'
+import { FlowConfiguration } from './neos/FlowConfiguration'
+import { FlowConfigurationFile, ParsedYaml } from './neos/FlowConfigurationFile'
+import { NeosPackage } from './neos/NeosPackage'
+import { NeosWorkspace } from './neos/NeosWorkspace'
 
 export interface ConfigurationContext {
 	name: string,
@@ -35,7 +35,7 @@ export class ConfigurationManager extends Logger {
 		this.packagePaths.push(path)
 		try {
 			const mergedConfiguration = <ParsedYaml>mergeObjects(neosPackage["configuration"]["settingsConfiguration"], this.mergedConfiguration)
-			this.mergedConfiguration = mergedConfiguration ? mergedConfiguration : this.mergedConfiguration
+			this.mergedConfiguration = mergedConfiguration ?? this.mergedConfiguration
 		} catch (error) {
 			console.log(error)
 		}
@@ -44,7 +44,7 @@ export class ConfigurationManager extends Logger {
 	addToMergedConfiguration(newConfiguration: ParsedYaml) {
 		try {
 			const mergedConfiguration = <ParsedYaml>mergeObjects(newConfiguration, this.mergedConfiguration)
-			this.mergedConfiguration = mergedConfiguration ? mergedConfiguration : this.mergedConfiguration
+			this.mergedConfiguration = mergedConfiguration ?? this.mergedConfiguration
 		} catch (error) {
 			console.log(error)
 		}
