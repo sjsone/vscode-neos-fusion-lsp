@@ -17,6 +17,11 @@ import { NeosPackage } from '../neos/NeosPackage'
 import { FusionFileProcessor } from './FusionFileProcessor'
 import { FusionWorkspace } from './FusionWorkspace'
 import { FusionFile } from 'ts-fusion-parser/out/fusion/nodes/FusionFile'
+import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
+import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue'
+import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
+import { InlineEelNode } from 'ts-fusion-parser/out/dsl/afx/nodes/InlineEelNode'
+import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 
 
 const eelParserOptions: EelParserOptions = {
@@ -68,7 +73,7 @@ export class ParsedFusionFile extends Logger {
 		this.uri = uri
 		this.workspace = workspace
 		this.neosPackage = neosPackage
-		this.debug = this.uri.endsWith("FusionModule/Routing.fusion")
+		this.debug = this.uri.endsWith("<never>")
 		this.fusionFileProcessor = new FusionFileProcessor(this, loggerPrefix)
 
 		this.logVerbose("Created", uri)
@@ -86,8 +91,8 @@ export class ParsedFusionFile extends Logger {
 
 			this.fusionFile = ObjectTreeParser.parse(text, filePath, fusionParserOptions)
 			this.ignoredErrorsByParser = this.fusionFile.errors
-			for(const ignoredError of this.ignoredErrorsByParser) {
-				if(!(ignoredError instanceof ParserError)) continue
+			for (const ignoredError of this.ignoredErrorsByParser) {
+				if (!(ignoredError instanceof ParserError)) continue
 
 				ignoredError['linePosition'] = getLineNumberOfChar(text, ignoredError.getPosition(), this.uri)
 			}

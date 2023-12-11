@@ -120,6 +120,7 @@ export class FusionWorkspace extends Logger {
             if (typeOrder === 0) {
                 if (a["path"].includes("DistributionPackages")) return 1
                 if (b["path"].includes("DistributionPackages")) return -1
+                return (<string>a["composerJson"]["name"]).localeCompare(b["composerJson"]["name"])
             }
 
             return typeOrder
@@ -196,13 +197,8 @@ export class FusionWorkspace extends Logger {
             busy: true,
         })
 
-        const withCachedRootFiles = []
 
-        if (this.configuration.experimental.fusionParserCaching) for (const [neosPackage, rootFiles] of this.fusionParser.rootFusionPaths.entries()) {
-            if (!neosPackage["path"].includes('DistributionPackages')) withCachedRootFiles.push(...rootFiles)
-        }
-
-        this.mergedArrayTree = this.fusionParser.parseRootFusionFiles(withCachedRootFiles)
+        this.mergedArrayTree = this.fusionParser.parseRootFusionFiles()
         this.logInfo(`Elapsed time FULL MAT: ${performance.now() - startTimeFullMergedArrayTree} milliseconds`);
         this.languageServer.sendBusyDispose('parsingFusionMergedArrayTree')
     }
