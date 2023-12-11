@@ -197,11 +197,10 @@ export class FusionWorkspace extends Logger {
         })
 
         const withCachedRootFiles = []
-        // for (const [neosPackage, rootFiles] of this.fusionParser.rootFusionPaths.entries()) {
-        //     if (!neosPackage["path"].includes('DistributionPackages')) {
-        //         withCachedRootFiles.push(...rootFiles)
-        //     }
-        // }
+
+        if (this.configuration.experimental.fusionParserCaching) for (const [neosPackage, rootFiles] of this.fusionParser.rootFusionPaths.entries()) {
+            if (!neosPackage["path"].includes('DistributionPackages')) withCachedRootFiles.push(...rootFiles)
+        }
 
         this.mergedArrayTree = this.fusionParser.parseRootFusionFiles(withCachedRootFiles)
         this.logInfo(`Elapsed time FULL MAT: ${performance.now() - startTimeFullMergedArrayTree} milliseconds`);
