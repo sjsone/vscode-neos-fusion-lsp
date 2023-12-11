@@ -4,7 +4,7 @@ import { clearLineDataCacheForFile, uriToPath } from '../common/util';
 
 export class PhpFileChangeHandler extends AbstractFileChangeHandler {
 	canHandleFileEvent(fileEvent: FileEvent): boolean {
-		this.logInfo(`canHandleFileEvent: ${fileEvent.type === FileChangeType.Changed}`)
+		this.logDebug(`canHandleFileEvent: ${fileEvent.type === FileChangeType.Changed}`)
 		return fileEvent.type === FileChangeType.Changed && fileEvent.uri.endsWith(".php")
 	}
 
