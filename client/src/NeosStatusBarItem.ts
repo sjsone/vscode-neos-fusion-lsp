@@ -10,19 +10,19 @@ class NeosStatusBarItem {
 
 	init({ subscriptions }: ExtensionContext, client: LanguageClient, outputChannel: OutputChannel) {
 		this.statusBarItem.backgroundColor = '#26224C'
-		this.statusBarItem.color = '#ffffff'
+		this.statusBarItem.color = '#00ADEE'
 		this.updateText("Development")
 
 		const showStatusBarActionsQuickPickCommandId = 'fusion-lsp.showStatusBarActionsQuickPick';
 		subscriptions.push(commands.registerCommand(showStatusBarActionsQuickPickCommandId, async () => {
 			const reloadQuickPickItem = {
 				label: "$(search-refresh) Reload",
-				detail: "This reloads the language server",
+				detail: "...because have you tried turning it off and on again?",
 				description: "language server",
 			}
 
 			const setConfigurationContextQuickPickItem = {
-				label: "$(search-show-context) Set Context",
+				label: "$(search-show-context) 🧪-Experimental-🧪  Set Context",
 				detail: "This sets the configuration context used for language server features"
 			}
 
