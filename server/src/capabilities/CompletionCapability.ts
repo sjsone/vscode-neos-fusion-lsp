@@ -21,6 +21,8 @@ import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
 import { NodeService } from '../common/NodeService'
+import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
+import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue'
 
 const BuiltInCompletions = {
 	prototypeCompletion: {
@@ -145,8 +147,20 @@ export class CompletionCapability extends AbstractCapability {
 
 	protected getObjectStatementCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectStatement>) {
 		const node = foundNode.getNode()
-		if (node.operation === null || node.operation["position"].begin !== node.operation["position"].end) return []
-		return [BuiltInCompletions.prototypeCompletion, ...this.getPropertyDefinitionSegments(node, workspace)]
+
+		if (node.operation === null || node.operation["position"].begin !== node.operation["position"].end) {
+			const completions: CompletionItem[] = []
+
+			if (!(node.operation instanceof ValueAssignment)) return completions
+			if (!(node.operation.pathValue instanceof EelExpressionValue)) return completions
+			const objectNode = <ObjectNode><unknown>node.operation.pathValue.nodes
+			if (!(objectNode instanceof ObjectNode)) return completions
+
+			return this.getFusionPropertyCompletionsForObjectNode(workspace, objectNode.linePositionedNode)
+			return completions
+		} else {
+			return [BuiltInCompletions.prototypeCompletion, ...this.getPropertyDefinitionSegments(node, workspace)]
+		}
 	}
 
 	protected getFusionPropertyCompletionsForObjectPath(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {
@@ -198,18 +212,17 @@ export class CompletionCapability extends AbstractCapability {
 		let fusionContext = NodeService.getFusionContextUntilNode(node, workspace, true)
 
 		for (const objectPathPart of objectPathParts) {
-			if (!(objectPathPart in fusionContext)) {
-				fusionContext = fusionContext
-				break;
-			}
+			if (!(objectPathPart in fusionContext)) break
 			fusionContext = fusionContext[objectPathPart]
 		}
+
+		console.log("objectPathParts", objectPathParts)
 
 		if (typeof fusionContext === "object") for (const label of Object.keys(fusionContext)) {
 			if (label.startsWith('__')) continue
 
 
-			const restObjectPathParts = objectPathParts.slice(0,-1) ?? []
+			const restObjectPathParts = objectPathParts.slice(0, -1) ?? []
 			completions.push(this.createCompletionItem([...restObjectPathParts, label].join('.'), foundNode, CompletionItemKind.Class))
 		}
 
