@@ -46,7 +46,7 @@ export class CompletionCapability extends AbstractCapability {
 		const completions = []
 		if (foundNodeByLine) {
 			const foundNode = foundNodeByLine.getNode()
-			console.log(`Type: ${foundNode.constructor.name}`)
+			this.logVerbose(`Type: ${foundNode.constructor.name}`)
 			switch (true) {
 				case foundNode instanceof PathSegment:
 					completions.push(BuiltInCompletions.prototypeCompletion)
@@ -201,18 +201,16 @@ export class CompletionCapability extends AbstractCapability {
 		const completions: CompletionItem[] = []
 
 		const objectPathParts = node.path.map(segment => segment["value"])
-		let fusionContext = NodeService.getFusionContextUntilNode(node, workspace, true)
+		let fusionContext = NodeService.getFusionContextUntilNode(node, workspace)
 
 		for (const objectPathPart of objectPathParts) {
 			if (!(objectPathPart in fusionContext)) break
 			fusionContext = fusionContext[objectPathPart]
 		}
+		if (typeof fusionContext !== "object") return completions
 
-		console.log("objectPathParts", objectPathParts)
-
-		if (typeof fusionContext === "object") for (const label of Object.keys(fusionContext)) {
+		for (const label of Object.keys(fusionContext)) {
 			if (label.startsWith('__')) continue
-
 
 			const restObjectPathParts = objectPathParts.slice(0, -1) ?? []
 			completions.push(this.createCompletionItem([...restObjectPathParts, label].join('.'), foundNode, CompletionItemKind.Class))
