@@ -22,6 +22,8 @@ import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNod
 import { NeosPackage } from '../neos/NeosPackage'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
+import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
+import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue'
 
 const BuiltInCompletions = {
 	prototypeCompletion: {
@@ -45,7 +47,7 @@ export class CompletionCapability extends AbstractCapability {
 		const completions = []
 		if (foundNodeByLine) {
 			const foundNode = foundNodeByLine.getNode()
-			console.log(`Type: ${foundNode.constructor.name}`)
+			this.logVerbose(`Type: ${foundNode.constructor.name}`)
 			switch (true) {
 				case foundNode instanceof PathSegment:
 					completions.push(BuiltInCompletions.prototypeCompletion)
@@ -149,7 +151,11 @@ export class CompletionCapability extends AbstractCapability {
 
 	protected getObjectStatementCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectStatement>) {
 		const node = foundNode.getNode()
-		if (node.operation === null || node.operation["position"].begin !== node.operation["position"].end) return []
+
+		if (!(node.operation === null || node.operation["position"].begin !== node.operation["position"].end)) {
+			return []
+		}
+
 		return [BuiltInCompletions.prototypeCompletion, ...this.getPropertyDefinitionSegments(node, workspace)]
 	}
 
@@ -241,14 +247,15 @@ export class CompletionCapability extends AbstractCapability {
 		const completions: CompletionItem[] = []
 
 		const objectPathParts = node.path.map(segment => segment["value"])
-		let fusionContext = NodeService.getFusionContextUntilNode(node, workspace, true)
+		let fusionContext = NodeService.getFusionContextUntilNode(node, workspace)
 
 		for (const objectPathPart of objectPathParts) {
 			if (!(objectPathPart in fusionContext)) break
 			fusionContext = fusionContext[objectPathPart]
 		}
+		if (typeof fusionContext !== "object") return completions
 
-		if (typeof fusionContext === "object") for (const label of Object.keys(fusionContext)) {
+		for (const label of Object.keys(fusionContext)) {
 			if (label.startsWith('__')) continue
 
 			const restObjectPathParts = objectPathParts.slice(0, -1) ?? []

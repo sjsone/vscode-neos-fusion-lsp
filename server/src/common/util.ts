@@ -194,16 +194,17 @@ export function getObjectIdentifier(objectStatement: ObjectStatement): string {
 
 export function getNodeWeight(node: any) {
     switch (true) {
-        case node instanceof TranslationShortHandNode: return 60
-        case node instanceof FusionObjectValue: return 50
-        case node instanceof PhpClassMethodNode: return 40
-        case node instanceof PhpClassNode: return 30
-        case node instanceof FqcnNode: return 20
-        case node instanceof PrototypePathSegment: return 18
-        case node instanceof FlowConfigurationPathPartNode: return 17
-        case node instanceof ResourceUriNode: return 16
-        case node instanceof ObjectPathNode: return 15
-        case node instanceof ObjectStatement: return 10
+        case node instanceof TranslationShortHandNode: return 600
+        case node instanceof FusionObjectValue: return 500
+        case node instanceof PhpClassMethodNode: return 400
+        case node instanceof PhpClassNode: return 300
+        case node instanceof FqcnNode: return 200
+        case node instanceof PrototypePathSegment: return 180
+        case node instanceof FlowConfigurationPathPartNode: return 170
+        case node instanceof ResourceUriNode: return 160
+        case node instanceof ObjectPathNode: return 150
+        case node instanceof ObjectNode: return 140
+        case node instanceof ObjectStatement: return 100
         default: return 0
     }
 }
