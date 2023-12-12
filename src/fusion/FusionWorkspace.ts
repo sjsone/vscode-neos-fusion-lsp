@@ -44,7 +44,6 @@ export class FusionWorkspace extends Logger {
         this.name = name
         this.uri = uri
         this.languageServer = languageServer
-
         this.fusionParser = new LanguageServerFusionParser(this)
     }
 
@@ -62,6 +61,7 @@ export class FusionWorkspace extends Logger {
     }
 
     init(configuration: ExtensionConfiguration) {
+        // TODO: split init method
         this.configuration = configuration
         this.clear()
         this.languageServer.sendProgressNotificationCreate("fusion_workspace_init", "Fusion")
@@ -120,7 +120,6 @@ export class FusionWorkspace extends Logger {
             }).catch(error => this.logError("init", error))
         }
 
-
         // TODO: use correct package include order instead of guessing
         const sortOrder: string[] = ['neos-framework', 'neos-package', 'neos-site', 'library'];
         const possibleNeosFusionPackages = Array.from(this.neosWorkspace.getPackages().values()).sort((a, b) => {
@@ -134,15 +133,9 @@ export class FusionWorkspace extends Logger {
             return typeOrder
         })
 
-
-
         for (const neosPackage of possibleNeosFusionPackages) {
             // TODO: introduce something like a "FusionRootContext" for each root file and associate ParsedFusionFiles with these "FusionRootContexts"
-            const packageFusionRootPaths = [
-                "/Private/Fusion/Root.fusion",
-                "/Private/FusionModules/Root.fusion",
-                "/Private/FusionPlugins/Root.fusion",
-            ]
+            const packageFusionRootPaths = this.configuration.code.fusion.rootFiles ?? []
 
             const existingFusionRootPaths = packageFusionRootPaths.map(path => neosPackage.getResourceUriPath(path)).filter(path => NodeFs.existsSync(path))
 
@@ -151,10 +144,7 @@ export class FusionWorkspace extends Logger {
             }
         }
 
-        // console.log("this.rootFusionPaths", this.rootFusionPaths)
-
-
-        this.logInfo("Root Fusion Paths and order for include", Array.from(this.fusionParser.rootFusionPaths.entries()).map(([neosPackage, rootPaths]) => {
+        this.logVerbose("Root Fusion Paths and order for include", Array.from(this.fusionParser.rootFusionPaths.entries()).map(([neosPackage, rootPaths]) => {
             return {
                 name: neosPackage.getName(),
                 type: neosPackage["composerJson"]["type"],
