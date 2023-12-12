@@ -41,6 +41,7 @@ import { AbstractLanguageFeature } from './languageFeatures/AbstractLanguageFeat
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { FusionDocument } from './main'
+import { ParsedYaml } from './neos/FlowConfigurationFile'
 
 
 const CodeActions = [
@@ -227,6 +228,10 @@ export class LanguageServer extends Logger {
 
 	public sendProgressNotificationFinish(id: string) {
 		return this.connection.sendNotification("custom/progressNotification/finish", { id })
+	}
+
+	public sendFlowConfiguration(flowConfiguration: ParsedYaml) {
+		return this.connection.sendNotification("custom/flowConfiguration/update", { flowConfiguration })
 	}
 
 	public sendDiagnostics(params: PublishDiagnosticsParams) {

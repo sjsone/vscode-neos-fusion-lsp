@@ -335,6 +335,23 @@
                     "fontCharacter": "A"
                 }
             }
+        },
+        "viewsContainers": {
+            "activitybar": [
+              {
+                "id": "neos",
+                "title": "NEOS",
+                "icon": "images/logo.svg"
+              }
+            ]
+          },
+        "views": {
+            "neos": [
+                {
+                    "id": "neosConfiguration",
+                    "name": "Configuration"
+                }
+            ]
         }
     },
     "scripts": {

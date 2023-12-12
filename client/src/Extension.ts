@@ -21,6 +21,7 @@ import { ProgressNotificationService } from './ProgressNotificationService'
 import { AbstractCommandConstructor } from './commands/AbstractCommand'
 import { InspectCommand } from './commands/InspectCommand'
 import { ReloadCommand } from './commands/ReloadCommand'
+import { ConfigurationTreeProvider, FlowConfigurationTreeModel } from './views/ConfigurationTreeProvider'
 
 
 export class Extension {
@@ -28,6 +29,7 @@ export class Extension {
 	protected outputChannel: OutputChannel
 	protected sortedWorkspaceFolders: string[] | undefined = undefined
 	protected context: ExtensionContext | undefined = undefined
+	protected flowConfigurationModel = new FlowConfigurationTreeModel
 
 	protected languageStatusBarItems: {
 		reload: LanguageStatusItem,
@@ -89,6 +91,10 @@ export class Extension {
 
 		this.registerCommand(InspectCommand)
 		this.registerCommand(ReloadCommand)
+
+		Window.createTreeView('neosConfiguration', {
+			treeDataProvider: new ConfigurationTreeProvider(this.flowConfigurationModel),
+		});
 	}
 
 	protected onDidOpenTextDocument(document: TextDocument) {
@@ -191,8 +197,8 @@ export class Extension {
 				this.languageStatusBarItems.reload.busy = true
 			}
 		})
-		client.onNotification('custom/progressNotification/create', ({ id, title }) => progressNotificationService.create(id, title))
 
+		client.onNotification('custom/progressNotification/create', ({ id, title }) => progressNotificationService.create(id, title))
 		client.onNotification('custom/progressNotification/update', ({ id, payload }) => progressNotificationService.update(id, payload))
 
 		client.onNotification('custom/busy/dispose', ({ id }) => {
@@ -203,6 +209,8 @@ export class Extension {
 			}
 		})
 		client.onNotification('custom/progressNotification/finish', ({ id }) => progressNotificationService.finish(id))
+
+		client.onNotification('custom/flowConfiguration/update', ({ flowConfiguration }) => this.flowConfigurationModel.updateData(flowConfiguration))
 
 		client.start()
 		this.clients.set(folder.uri.toString(), client)
