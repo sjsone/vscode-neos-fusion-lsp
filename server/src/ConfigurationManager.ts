@@ -33,12 +33,7 @@ export class ConfigurationManager extends Logger {
 	addPackage(neosPackage: NeosPackage, path: string) {
 		// this.logInfo(`Adding package ${path}`)
 		this.packagePaths.push(path)
-		try {
-			const mergedConfiguration = <ParsedYaml>mergeObjects(neosPackage["configuration"]["settingsConfiguration"], this.mergedConfiguration)
-			this.mergedConfiguration = mergedConfiguration ?? this.mergedConfiguration
-		} catch (error) {
-			console.log(error)
-		}
+		this.addToMergedConfiguration(neosPackage["configuration"]["settingsConfiguration"])
 	}
 
 	addToMergedConfiguration(newConfiguration: ParsedYaml) {
