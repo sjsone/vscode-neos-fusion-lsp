@@ -6,6 +6,7 @@ import { ParserError } from 'ts-fusion-parser/out/common/ParserError'
 import { AfxParserOptions } from 'ts-fusion-parser/out/dsl/afx/parser'
 import { EelParserOptions } from 'ts-fusion-parser/out/dsl/eel/parser'
 import { AbstractPathSegment } from 'ts-fusion-parser/out/fusion/nodes/AbstractPathSegment'
+import { FusionFile } from 'ts-fusion-parser/out/fusion/nodes/FusionFile'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
@@ -16,12 +17,6 @@ import { clearLineDataCacheForFile, findParent, getLineNumberOfChar, getNodeWeig
 import { NeosPackage } from '../neos/NeosPackage'
 import { FusionFileProcessor } from './FusionFileProcessor'
 import { FusionWorkspace } from './FusionWorkspace'
-import { FusionFile } from 'ts-fusion-parser/out/fusion/nodes/FusionFile'
-import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
-import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue'
-import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
-import { InlineEelNode } from 'ts-fusion-parser/out/dsl/afx/nodes/InlineEelNode'
-import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 
 
 const eelParserOptions: EelParserOptions = {
