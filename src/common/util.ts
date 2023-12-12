@@ -15,10 +15,9 @@ import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
 import { URI } from 'vscode-uri'
-import { uriToFsPath } from 'vscode-uri/lib/umd/uri'
 import { DeprecationConfigurationSpecialType } from '../ExtensionConfiguration'
-import { FqcnNode } from '../fusion/node/FqcnNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { FqcnNode } from '../fusion/node/FqcnNode'
 import { PhpClassMethodNode } from '../fusion/node/PhpClassMethodNode'
 import { PhpClassNode } from '../fusion/node/PhpClassNode'
 import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
@@ -95,6 +94,40 @@ export function* getFiles(dir: string, withExtension = ".fusion"): Generator<str
             yield res
         }
     }
+}
+
+const isWindows = typeof process !== 'undefined' && process.platform === 'win32'
+enum CharCode {
+    Slash = 47,
+    A = 65,
+    a = 97,
+    Z = 90,
+    z = 122,
+    Colon = 58,
+}
+
+export function uriToFsPath(uri: URI, keepDriveLetterCasing: boolean): string {
+    let value: string
+    if (uri.authority && uri.path.length > 1 && uri.scheme === 'file') {
+        // unc path: file://shares/c$/far/boo
+        value = `//${uri.authority}${uri.path}`
+    } else if (
+        uri.path.charCodeAt(0) === CharCode.Slash
+        && (uri.path.charCodeAt(1) >= CharCode.A && uri.path.charCodeAt(1) <= CharCode.Z || uri.path.charCodeAt(1) >= CharCode.a && uri.path.charCodeAt(1) <= CharCode.z)
+        && uri.path.charCodeAt(2) === CharCode.Colon
+    ) {
+        if (!keepDriveLetterCasing) {
+            // windows drive letter: file:///c:/far/boo
+            value = uri.path[1].toLowerCase() + uri.path.substring(2)
+        } else {
+            value = uri.path.substring(1)
+        }
+    } else {
+        // other path
+        value = uri.path
+    }
+
+    return isWindows ? value.replace(/\//g, '\\') : value
 }
 
 export function uriToPath(uri: string) {

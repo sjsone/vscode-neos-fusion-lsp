@@ -176,7 +176,7 @@ vscode-languageserver@^8.0.0:
   dependencies:
     vscode-languageserver-protocol "3.17.3"
 
-vscode-uri@^3.0.7:
+vscode-uri@^3.0.8:
   version "3.0.8"
   resolved "https://registry.yarnpkg.com/vscode-uri/-/vscode-uri-3.0.8.tgz#1770938d3e72588659a172d0fd4642780083ff9f"
   integrity sha512-AyFQ0EVmsOZOlAnxoFOGOq1SQDWAB7C6aqMGS23svWAllfOaxbuFvcT8D1i8z3Gyn8fraVeZNNmN6e9bxxXkKw==
