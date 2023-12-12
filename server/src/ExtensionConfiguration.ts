@@ -58,6 +58,9 @@ export interface ExtensionConfiguration {
                 template: string
                 detectAbstractRegEx: string
             },
+        },
+        fusion: {
+            rootFiles: string[]
         }
     },
     inlayHint: {
