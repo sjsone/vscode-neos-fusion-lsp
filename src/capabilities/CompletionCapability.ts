@@ -148,19 +148,11 @@ export class CompletionCapability extends AbstractCapability {
 	protected getObjectStatementCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectStatement>) {
 		const node = foundNode.getNode()
 
-		if (node.operation === null || node.operation["position"].begin !== node.operation["position"].end) {
-			const completions: CompletionItem[] = []
-
-			if (!(node.operation instanceof ValueAssignment)) return completions
-			if (!(node.operation.pathValue instanceof EelExpressionValue)) return completions
-			const objectNode = <ObjectNode><unknown>node.operation.pathValue.nodes
-			if (!(objectNode instanceof ObjectNode)) return completions
-
-			return this.getFusionPropertyCompletionsForObjectNode(workspace, objectNode.linePositionedNode)
-			return completions
-		} else {
-			return [BuiltInCompletions.prototypeCompletion, ...this.getPropertyDefinitionSegments(node, workspace)]
+		if (!(node.operation === null || node.operation["position"].begin !== node.operation["position"].end)) {
+			return []
 		}
+
+		return [BuiltInCompletions.prototypeCompletion, ...this.getPropertyDefinitionSegments(node, workspace)]
 	}
 
 	protected getFusionPropertyCompletionsForObjectPath(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {
