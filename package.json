@@ -295,7 +295,16 @@
                     "light": "./icons/filetype_light_fusion.svg"
                 }
             }
-        ]
+        ],
+        "icons": {
+            "neos-lsp": {
+                "description": "NEOS Icon - LSP edition",
+                "default": {
+                    "fontPath": "icons/icon-font.woff",
+                    "fontCharacter": "A"
+                }
+            }
+        }
     },
     "scripts": {
         "vscode:prepublish": "yarn run compile",
