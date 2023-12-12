@@ -221,7 +221,13 @@ export class DefinitionCapability extends AbstractCapability {
 			targetUri: classDefinition.uri,
 			targetRange: classDefinition.position,
 			targetSelectionRange: classDefinition.position,
-			originSelectionRange: foundNodeByLine.getPositionAsRange()
+			originSelectionRange: {
+				start: foundNodeByLine.getBegin(),
+				end: {
+					character: foundNodeByLine.getBegin().character + foundNodeByLine.getNode().realLength,
+					line: foundNodeByLine.getBegin().line
+				}
+			}
 		}]
 	}
 
