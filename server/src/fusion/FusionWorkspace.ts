@@ -19,7 +19,6 @@ import { NeosWorkspace } from '../neos/NeosWorkspace'
 import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile'
 import { LanguageServerFusionParser } from './LanguageServerFusionParser'
 import { ParsedFusionFile } from './ParsedFusionFile'
-import { ConfigurationManager } from '../ConfigurationManager'
 
 export class FusionWorkspace extends Logger {
     public uri: string

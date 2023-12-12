@@ -35,6 +35,7 @@ export class ConfigurationTreeProvider implements TreeDataProvider<NeosConfigura
 	readonly onDidChangeTreeData: Event<void | NeosConfigurationNode | NeosConfigurationNode[]> = this.onDidChangeTreeDataEventEmitter.event;
 
 	public refresh(): any {
+		this.log("Refreshing...")
 		this.onDidChangeTreeDataEventEmitter.fire(undefined);
 	}
 
