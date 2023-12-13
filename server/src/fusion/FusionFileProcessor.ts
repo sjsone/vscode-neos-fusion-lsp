@@ -34,6 +34,7 @@ import { PhpClassMethodNode } from './node/PhpClassMethodNode';
 import { PhpClassNode } from './node/PhpClassNode';
 import { ResourceUriNode } from './node/ResourceUriNode';
 import { TranslationShortHandNode } from './node/TranslationShortHandNode';
+import { OperationNode } from 'ts-fusion-parser/out/dsl/eel/nodes/OperationNode';
 
 type PostProcess = () => void
 export class FusionFileProcessor extends Logger {
@@ -146,10 +147,15 @@ export class FusionFileProcessor extends Logger {
 	}
 
 	protected createFlowConfigurationPathNode(functionNode: ObjectFunctionPathNode, text: string) {
-		const configurationPath = functionNode.args[0]
-		if (!(configurationPath instanceof LiteralStringNode)) return
+		let configurationPath = functionNode.args[0]
+		if (!(configurationPath instanceof LiteralStringNode)) {
+			if (!(configurationPath instanceof OperationNode)) return
+			const leftHand = configurationPath.leftHand
+			if (!(leftHand instanceof LiteralStringNode)) return
+			configurationPath = leftHand
+		}
 
-		const flowConfigurationPathNode = FlowConfigurationPathNode.FromLiteralStringNode(configurationPath)
+		const flowConfigurationPathNode = FlowConfigurationPathNode.FromLiteralStringNode(<LiteralStringNode>configurationPath)
 		if (flowConfigurationPathNode) {
 			this.parsedFusionFile.addNode(flowConfigurationPathNode, text)
 			for (const pathPart of flowConfigurationPathNode["path"]) {
