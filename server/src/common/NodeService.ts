@@ -31,7 +31,11 @@ class NodeService {
 		// console.log(`Elapsed time relevantTree: ${performance.now() - startTimePathResolving} milliseconds`);
 
 
-		const finalFusionContext = {} as { [key: string]: any }
+		const finalFusionContext = {
+			site: null,
+			documentNode: null,
+			node: null
+		} as { [key: string]: any }
 		for (const relevantTreePart of relevantTree) {
 			const partConfiguration = relevantTreePart.configuration
 			if ('__eelExpression' in partConfiguration && partConfiguration.__eelExpression !== null) continue
