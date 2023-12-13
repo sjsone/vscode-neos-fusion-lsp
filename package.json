@@ -25,7 +25,8 @@
         "vscode": "^1.70.0"
     },
     "activationEvents": [
-        "workspaceContains:**/*.fusion"
+        "workspaceContains:**/*.fusion",
+        "onView:neosConfiguration"
     ],
     "extensionKind": [
         "workspace",
