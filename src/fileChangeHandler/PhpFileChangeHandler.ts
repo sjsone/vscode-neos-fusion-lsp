@@ -4,13 +4,13 @@ import { clearLineDataCacheForFile, uriToPath } from '../common/util';
 
 export class PhpFileChangeHandler extends AbstractFileChangeHandler {
 	canHandleFileEvent(fileEvent: FileEvent): boolean {
-		this.logInfo(`canHandleFileEvent: ${fileEvent.type === FileChangeType.Changed}`)
+		this.logVerbose(`canHandleFileEvent: ${fileEvent.type === FileChangeType.Changed}`)
 		return fileEvent.type === FileChangeType.Changed && fileEvent.uri.endsWith(".php")
 	}
 
 	public async handleChanged(fileEvent: FileEvent) {
 		clearLineDataCacheForFile(fileEvent.uri)
-		this.logInfo(`handle change of file: ${fileEvent.uri}`)
+		this.logVerbose(`handle change of file: ${fileEvent.uri}`)
 		for (const workspace of this.languageServer["fusionWorkspaces"]) {
 			for (const neosPackage of workspace.neosWorkspace.getPackages().values()) {
 				const helper = neosPackage.getEelHelpers().find(helper => helper.uri === fileEvent.uri)
