@@ -194,7 +194,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 	protected generateFqcnTokens(languageFeatureContext: LanguageFeatureContext) {
 		return this.generateForType(FqcnNode, languageFeatureContext, node => ({
 			position: node.getBegin(),
-			length: node.getNode()['identifier'].length,
+			length: node.getNode().realLength,
 			type: 'class',
 			modifier: 'declaration'
 		}))

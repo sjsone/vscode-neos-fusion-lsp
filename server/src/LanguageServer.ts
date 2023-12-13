@@ -14,6 +14,7 @@ import {
 } from "vscode-languageserver/node"
 import { type ExtensionConfiguration } from './ExtensionConfiguration'
 import { addFusionIgnoreSemanticCommentAction } from './actions/AddFusionIgnoreSemanticCommentAction'
+import { addFusionNoAutoincludeNeededSemanticCommentAction } from './actions/AddFusionNoAutoincludeNeededSemanticCommentAction'
 import { createNodeTypeFileAction } from './actions/CreateNodeTypeFileAction'
 import { openDocumentationAction } from './actions/OpenDocumentationAction'
 import { replaceDeprecatedQuickFixAction } from './actions/ReplaceDeprecatedQuickFixAction'
@@ -46,6 +47,7 @@ import { ParsedYaml } from './neos/FlowConfigurationFile'
 
 const CodeActions = [
 	addFusionIgnoreSemanticCommentAction,
+	addFusionNoAutoincludeNeededSemanticCommentAction,
 	replaceDeprecatedQuickFixAction,
 	openDocumentationAction,
 	createNodeTypeFileAction,
