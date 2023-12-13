@@ -353,7 +353,13 @@
                     "name": "🧪-Experimental-🧪 Configuration"
                 }
             ]
-        }
+        },
+        "viewsWelcome": [
+            {
+                "view": "neosConfiguration",
+                "contents": "No Configuration loaded.\nOpen any file to start the Language Server"
+              }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "yarn run compile",
