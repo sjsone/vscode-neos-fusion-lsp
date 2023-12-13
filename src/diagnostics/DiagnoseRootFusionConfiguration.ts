@@ -1,9 +1,21 @@
 import { DiagnosticSeverity, Position, Range } from 'vscode-languageserver'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
+import { Comment } from 'ts-fusion-parser/out/common/Comment'
+import { SemanticCommentType, parseSemanticComment } from '../common/util'
+
+const noAutoincludeNeeded = (parsedFusionFile: ParsedFusionFile) => {
+	const comments = parsedFusionFile.getNodesByType(Comment)
+	if (comments) for (const comment of comments) {
+		const semanticComment = parseSemanticComment(comment.getNode().value)
+		if (!semanticComment) continue
+		if (semanticComment.type === SemanticCommentType.NoAutoincludeNeeded) return true
+	}
+	return false
+}
 
 // TODO: make this diagnostic configurable in the settings
 export function diagnoseRootFusionConfiguration(parsedFusionFile: ParsedFusionFile) {
-	if (!parsedFusionFile.uri.endsWith("/Root.fusion")) return []
+	if (!parsedFusionFile.uri.endsWith("Fusion/Root.fusion")) return []
 
 	const workspace = parsedFusionFile.workspace
 
@@ -16,9 +28,15 @@ export function diagnoseRootFusionConfiguration(parsedFusionFile: ParsedFusionFi
 	const isInAutoInclude = neosPackage["configuration"].get(["Neos", "Neos", "fusion", "autoInclude", neosPackage.getPackageName()]) === true
 	if (isInAutoInclude) return []
 
+	if (noAutoincludeNeeded(parsedFusionFile)) return []
+
 	return [{
 		range: Range.create(Position.create(0, 0), Position.create(0, 1)),
 		severity: DiagnosticSeverity.Warning,
 		message: `To include this file add the configuration "Neos.Neos.fusion.autoInclude.'${neosPackage.getPackageName()}': true" `,
+		data: {
+			quickAction: 'notAutoincludeNeeded',
+			commentType: 'fusion'
+		}
 	}]
 }

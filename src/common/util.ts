@@ -240,7 +240,8 @@ export function getNodeWeight(node: any) {
 
 export enum SemanticCommentType {
     Ignore = "ignore",
-    IgnoreBlock = "ignore-block"
+    IgnoreBlock = "ignore-block",
+    NoAutoincludeNeeded = "no-autoinclude-needed"
 }
 
 export interface ParsedSemanticComment {
