@@ -10,6 +10,7 @@ contributing.md
 *.svg
 !icons/filetype_dark_fusion.svg
 !icons/filetype_light_fusion.svg
+!icons/icon-font.woff
 images/
 !images/logo.png
 @types
