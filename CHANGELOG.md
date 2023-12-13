@@ -13,6 +13,22 @@
   - Autocompletion and Hover for the `Configuration.setting()` EEL-Helper
 - Integration of the WIP [`ts-fusion-runtime`](https://www.npmjs.com/package/ts-fusion-runtime) to correctly resolve Fusion properties
 
+## 🧪 0.4.1
+
+- feature: NEOS-ViewContainer
+- feature: NEOS-Status bar item with new CommandMenu (to left hand side in the status bar)
+
+### ✨ Merged Array Tree
+
+Starting with this release the `ts-fusion-runtime` package is implemented, which provides the (hopefully) same MergedArrayTree as its PHP-Counterpart does.
+The MergedArrayTree has already been put to use in the Diagnostic and Completion capabilities which greatly increases their usefulness.
+>Properties inside of `@propTypes` do currently not count into the properties of the prototype.
+
+### 🧪 Configuration and `FLOW_CONTEXT`
+
+Another big feature is everything connected to the Configuration. It is now possible to not only change the used `FLOW_CONTEXT` but to also view the Configuration in the new NEOS-ViewContainer.
+> This is still experimental.
+
 ## 🚀 0.3.10
 
 - feature: `@fusion-no-autoinclude-needed` can be used in `Fusion/Root.fusion` files when they are deliberately not auto-included by the configuration
