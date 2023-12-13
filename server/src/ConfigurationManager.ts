@@ -45,6 +45,14 @@ export class ConfigurationManager extends Logger {
 		}
 	}
 
+	rebuildConfiguration() {
+		this.mergedConfiguration = {}
+		for (const configuration of this.configurations) {
+			configuration["initialize"]()
+			this.addToMergedConfiguration(configuration["settingsConfiguration"])
+		}
+	}
+
 	buildConfiguration(selectedFlowContextName?: string) {
 		const projectConfigurationFolder = this.workspace["fusionWorkspace"].getConfiguration().folders.projectConfiguration
 		const globalConfigurationPath = NodePath.join(this.workspace["workspacePath"], projectConfigurationFolder)

@@ -8,19 +8,33 @@ import { FlowConfigurationFile, FlowConfigurationFileType, NodeTypeDefinition, P
 import { NeosPackage } from './NeosPackage'
 import { NeosWorkspace } from './NeosWorkspace'
 
+enum FlowConfigurationType {
+	NodeTypes,
+	Configuration
+}
+
 export class FlowConfiguration extends Logger {
 	protected settingsConfiguration: ParsedYaml
 	protected nodeTypeDefinitions: NodeTypeDefinition[]
 	protected configurationFiles: FlowConfigurationFile[] = []
-	protected neosWorkspace: NeosWorkspace
-	protected folderPath: string
 
-	protected constructor(neosWorkspace: NeosWorkspace, folderPath: string) {
+	protected constructor(protected neosWorkspace: NeosWorkspace, protected folderPath: string, protected types: FlowConfigurationType[]) {
 		super(NodePath.basename(folderPath))
 		this.folderPath = folderPath
 		this.neosWorkspace = neosWorkspace
 
 		// this.logDebug("Created", folderPath)
+	}
+
+	protected initialize() {
+		this.settingsConfiguration = {}
+		this.nodeTypeDefinitions = []
+		this.configurationFiles = []
+
+		for (const type of this.types) {
+			if (type === FlowConfigurationType.Configuration) this.readConfigurationsFromConfigurationFolder()
+			if (type === FlowConfigurationType.NodeTypes) this.readNodeTypeDefinitionsFromNodeTypesFolder()
+		}
 	}
 
 	get<T extends ParsedYaml>(path: string | string[], settingsConfiguration = this.settingsConfiguration): T {
@@ -125,16 +139,15 @@ export class FlowConfiguration extends Logger {
 	}
 
 	static ForPackage(neosPackage: NeosPackage) {
-		const configuration = new FlowConfiguration(neosPackage["neosWorkspace"], neosPackage["path"]);
-		configuration.readNodeTypeDefinitionsFromNodeTypesFolder()
-		configuration.readConfigurationsFromConfigurationFolder()
+		const configuration = new FlowConfiguration(neosPackage["neosWorkspace"], neosPackage["path"], [FlowConfigurationType.Configuration, FlowConfigurationType.NodeTypes]);
+		configuration.initialize()
 		neosPackage["neosWorkspace"]["configurationManager"]["configurations"].push(configuration)
 		return configuration
 	}
 
 	static ForPath(neosWorkspace: NeosWorkspace, folderPath: string) {
-		const configuration = new FlowConfiguration(neosWorkspace, folderPath);
-		configuration.readConfigurationsFromConfigurationFolder()
+		const configuration = new FlowConfiguration(neosWorkspace, folderPath, [FlowConfigurationType.Configuration]);
+		configuration.initialize()
 		neosWorkspace.configurationManager["configurations"].push(configuration)
 		return configuration
 	}

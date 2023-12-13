@@ -148,6 +148,7 @@ export class LanguageServer extends Logger {
 			this.logInfo(`Setting FusionContext to "${selectedContextName}"`)
 			for (const fusionWorkspace of this.fusionWorkspaces) {
 				fusionWorkspace.setSelectedFlowContextName(selectedContextName)
+				fusionWorkspace.neosWorkspace.configurationManager.rebuildConfiguration()
 				fusionWorkspace.languageServer.sendFlowConfiguration(fusionWorkspace.neosWorkspace.configurationManager['mergedConfiguration'])
 			}
 		})
