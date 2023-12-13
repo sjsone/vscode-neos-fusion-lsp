@@ -31,6 +31,7 @@ class NodeService {
 		// console.log(`Elapsed time relevantTree: ${performance.now() - startTimePathResolving} milliseconds`);
 
 
+		// TODO: prefill fusion context with the correct values (from controller?, EEL-Helper?)
 		const finalFusionContext = {
 			site: null,
 			documentNode: null,
