@@ -14,7 +14,6 @@ export interface ConfigurationContext {
 	contexts: { [key: string]: ConfigurationContext }
 }
 
-// CONTINUE: here
 // TODO: Check if ConfigurationManager has to be consolidated with FlowConfigurations 
 
 export class ConfigurationManager extends Logger {
