@@ -20,6 +20,7 @@ import { PreferenceService } from './PreferenceService'
 import { ProgressNotificationService } from './ProgressNotificationService'
 import { AbstractCommandConstructor } from './commands/AbstractCommand'
 import { InspectCommand } from './commands/InspectCommand'
+import { PutContentIntoClipboard } from './commands/PutContentIntoClipboard'
 import { ReloadCommand } from './commands/ReloadCommand'
 import { ConfigurationTreeProvider, FlowConfigurationTreeModel } from './views/ConfigurationTreeProvider'
 
@@ -91,6 +92,7 @@ export class Extension {
 
 		this.registerCommand(InspectCommand)
 		this.registerCommand(ReloadCommand)
+		this.registerCommand(PutContentIntoClipboard)
 
 		Window.createTreeView('neosConfiguration', {
 			treeDataProvider: new ConfigurationTreeProvider(this.flowConfigurationModel),

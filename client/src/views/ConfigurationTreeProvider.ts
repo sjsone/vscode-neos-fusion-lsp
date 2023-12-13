@@ -2,6 +2,7 @@ import {
 	Event,
 	EventEmitter,
 	ProviderResult,
+	ThemeIcon,
 	TreeDataProvider,
 	TreeItem,
 	TreeItemCollapsibleState
@@ -44,8 +45,11 @@ export class ConfigurationTreeProvider implements TreeDataProvider<NeosConfigura
 		treeItem.id = element.path.join('###')
 
 		const data = this.getDataFromPath(element.path)
-		treeItem.collapsibleState = typeof data === 'object' && data !== null ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None
+		const isObject = typeof data === 'object' && data !== null
+		treeItem.collapsibleState = isObject ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None
+		treeItem.iconPath = isObject ? ThemeIcon.Folder : ThemeIcon.File
 		treeItem.description = this.buildTreeItemDescription(data)
+		treeItem.command = this.buildTreeItemCommand(data)
 
 		return treeItem
 	}
@@ -58,6 +62,17 @@ export class ConfigurationTreeProvider implements TreeDataProvider<NeosConfigura
 		if (typeof data === "number") return `${data}`
 		if (Array.isArray(data)) return '<Array>'
 
+		return undefined
+	}
+
+	protected buildTreeItemCommand(data: any) {
+		if (typeof data === "string" || typeof data === "number") return {
+			title: "copy value",
+			command: 'neos-fusion-lsp.putContentIntoClipboard',
+			arguments: [
+				data
+			]
+		}
 		return undefined
 	}
 
