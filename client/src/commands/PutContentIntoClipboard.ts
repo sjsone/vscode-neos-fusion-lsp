@@ -5,7 +5,7 @@ export class PutContentIntoClipboard extends AbstractCommand {
 	static Identifier = "neos-fusion-lsp.putContentIntoClipboard"
 
 	public callback(text: string): Promise<any> {
-		vscode.window.setStatusBarMessage(`Copied: ${text} into clipboard`, 3500)
+		vscode.window.setStatusBarMessage(`Copied "${text}"`, 3500)
 		return Promise.resolve(vscode.env.clipboard.writeText(text))
 	}
 }
