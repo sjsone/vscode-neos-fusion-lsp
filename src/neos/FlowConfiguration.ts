@@ -20,8 +20,7 @@ export class FlowConfiguration extends Logger {
 		this.folderPath = folderPath
 		this.neosWorkspace = neosWorkspace
 
-		this.logDebug("Created", folderPath)
-		// this.logInfo("ContextPath", neosPackage["neosWorkspace"].configurationManager.getContextPath())
+		// this.logDebug("Created", folderPath)
 	}
 
 	get<T extends ParsedYaml>(path: string | string[], settingsConfiguration = this.settingsConfiguration): T {
@@ -85,15 +84,22 @@ export class FlowConfiguration extends Logger {
 
 	protected readConfigurationsFromConfigurationFolder() {
 		this.settingsConfiguration = {}
-		const settingsFolderPath = NodePath.join(this.folderPath, 'Configuration')
-		if (!NodeFs.existsSync(settingsFolderPath)) return
+		const contextPath = this.neosWorkspace.configurationManager.getContextPath()
 
-		for (const configurationFilePath of getFiles(settingsFolderPath, ".yaml")) {
-			const configurationFile = new FlowConfigurationFile(configurationFilePath)
+		const settingsFolderPaths = [NodePath.join(this.folderPath, 'Configuration')]
+		for (const contextPathPart of contextPath.split('/')) {
+			const lastPart = settingsFolderPaths[settingsFolderPaths.length - 1]
+			settingsFolderPaths.push(NodePath.join(lastPart, contextPathPart))
+		}
 
-			this.updateConfigurationsFromFlowConfigurationFile(configurationFile)
+		for (const settingsFolderPath of settingsFolderPaths) {
+			if (!NodeFs.existsSync(settingsFolderPath)) return
 
-			this.configurationFiles.push(configurationFile)
+			for (const configurationFilePath of getFiles(settingsFolderPath, ".yaml", false)) {
+				const configurationFile = new FlowConfigurationFile(configurationFilePath)
+				this.updateConfigurationsFromFlowConfigurationFile(configurationFile)
+				this.configurationFiles.push(configurationFile)
+			}
 		}
 	}
 

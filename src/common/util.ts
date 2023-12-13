@@ -85,13 +85,13 @@ export function getLineNumberOfChar(data: string, index: number, textUri: string
     return { line: i, character: column } as Position
 }
 
-export function* getFiles(dir: string, withExtension = ".fusion"): Generator<string> {
+export function* getFiles(dir: string, withExtension = ".fusion", recursive: boolean = true): Generator<string> {
     const directoryEntries = NodeFs.readdirSync(dir, { withFileTypes: true })
     for (const dirent of directoryEntries) {
         if (dirent.isSymbolicLink()) continue
         const res = NodePath.resolve(dir, dirent.name)
         if (dirent.isDirectory()) {
-            yield* getFiles(res, withExtension)
+            if (recursive) yield* getFiles(res, withExtension)
         } else if (NodePath.extname(res) === withExtension) {
             yield res
         }
