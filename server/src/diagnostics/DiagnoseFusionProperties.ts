@@ -46,6 +46,7 @@ export function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 		if (!hasObjectNodeApplicablePath(node)) continue
 		if (LegacyNodeService.isNodeAffectedByIgnoreComment(node, parsedFusionFile)) continue
 
+		// FIXME: `@context.test = ${this.test}` resolves as correct even if `this.test` is not defined
 		let fusionContext = NodeService.getFusionContextUntilNode(node, parsedFusionFile.workspace)
 		const objectPathParts = node.path.map(segment => segment["value"])
 
