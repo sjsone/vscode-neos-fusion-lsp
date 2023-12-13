@@ -13,7 +13,7 @@
   - Autocompletion and Hover for the `Configuration.setting()` EEL-Helper
 - Integration of the WIP [`ts-fusion-runtime`](https://www.npmjs.com/package/ts-fusion-runtime) to correctly resolve Fusion properties
 
-## 🚀 0.4.0
+## 🚀 0.3.10
 
 - feature: `@fusion-no-autoinclude-needed` can be used in `Fusion/Root.fusion` files when they are deliberately not auto-included by the configuration
 - fix: FQCNs in fusion are now highlighted correctly
