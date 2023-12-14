@@ -17,15 +17,12 @@ class NodeService {
 		const pathForNode = MergedArrayTreeService.buildPathForNode(baseNode)
 		if (debug) console.log("pathForNode", pathForNode)
 		const runtimeConfiguration = new RuntimeConfiguration(workspace.mergedArrayTree);
-		// if(debug) console.log("runtimeConfiguration", runtimeConfiguration)
+		// if (debug) console.log("runtimeConfiguration", runtimeConfiguration['fusionConfiguration']['__prototypes']['Otter.Demo:Molecule.Hero'])
 
-		const relevantTree = pathForNode.map((pathPart, index) => {
-
-			return {
-				pathPart,
-				configuration: runtimeConfiguration.forPath(pathForNode.slice(0, index + 1).join('/'))
-			}
-		})
+		const relevantTree = pathForNode.map((pathPart, index) => ({
+			pathPart,
+			configuration: runtimeConfiguration.forPath(pathForNode.slice(0, index + 1).join('/'))
+		}))
 		if (debug) console.log("relevantTree", relevantTree)
 
 		// console.log(`Elapsed time relevantTree: ${performance.now() - startTimePathResolving} milliseconds`);
@@ -42,6 +39,7 @@ class NodeService {
 			if ('__eelExpression' in partConfiguration && partConfiguration.__eelExpression !== null) continue
 
 			const hasRenderer = partConfiguration.__objectType === 'Neos.Fusion:Component' || partConfiguration.__prototypeChain?.includes('Neos.Fusion:Component')
+			const rendererNextInPath = relevantTree[relevantTree.indexOf(relevantTreePart) + 1]?.pathPart === "renderer"
 
 			let thisFusionContext = {}
 
@@ -69,7 +67,7 @@ class NodeService {
 				thisFusionContext[key] = partConfiguration[key]
 			}
 			finalFusionContext.this = thisFusionContext
-			if (hasRenderer) finalFusionContext.props = thisFusionContext
+			if (hasRenderer && rendererNextInPath) finalFusionContext.props = thisFusionContext
 		}
 
 		// console.log("finalFusionContext", finalFusionContext)
