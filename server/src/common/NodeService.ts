@@ -29,11 +29,7 @@ class NodeService {
 
 
 		// TODO: prefill fusion context with the correct values (from controller?, EEL-Helper?)
-		const finalFusionContext = {
-			site: null,
-			documentNode: null,
-			node: null
-		} as { [key: string]: any }
+		const finalFusionContext = {} as { [key: string]: any }
 		for (const relevantTreePart of relevantTree) {
 			const partConfiguration = relevantTreePart.configuration
 			if ('__eelExpression' in partConfiguration && partConfiguration.__eelExpression !== null) continue
