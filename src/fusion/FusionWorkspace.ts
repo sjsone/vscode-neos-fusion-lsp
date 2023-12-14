@@ -199,7 +199,7 @@ export class FusionWorkspace extends Logger {
 
 
         this.mergedArrayTree = this.fusionParser.parseRootFusionFiles()
-        this.logInfo(`Elapsed time FULL MAT: ${performance.now() - startTimeFullMergedArrayTree} milliseconds`);
+        this.logVerbose(`Elapsed time FULL MAT: ${performance.now() - startTimeFullMergedArrayTree} milliseconds`);
         this.languageServer.sendBusyDispose('parsingFusionMergedArrayTree')
     }
 
