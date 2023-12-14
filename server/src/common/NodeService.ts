@@ -31,13 +31,16 @@ class NodeService {
 		// TODO: prefill fusion context with the correct values (from controller?, EEL-Helper?)
 		const finalFusionContext = {} as { [key: string]: any }
 		for (const relevantTreePart of relevantTree) {
+			const relevantTreePartIndex = relevantTree.indexOf(relevantTreePart)
 			const partConfiguration = relevantTreePart.configuration
 			if ('__eelExpression' in partConfiguration && partConfiguration.__eelExpression !== null) continue
 
 			const hasRenderer = partConfiguration.__objectType === 'Neos.Fusion:Component' || partConfiguration.__prototypeChain?.includes('Neos.Fusion:Component')
-			const rendererNextInPath = relevantTree[relevantTree.indexOf(relevantTreePart) + 1]?.pathPart === "renderer"
+			const rendererNextInPath = relevantTree[relevantTreePartIndex + 1]?.pathPart === "renderer"
+			const atPrivateNextInPath = relevantTree[relevantTreePartIndex + 1]?.pathPart === "__meta" && relevantTree[relevantTreePartIndex + 2]?.pathPart === "private"
 
 			let thisFusionContext = {}
+			let privateFusionContext = {}
 
 			if (partConfiguration.__meta) {
 				if (partConfiguration.__meta.context && typeof partConfiguration.__meta.context === "object") {
@@ -55,6 +58,12 @@ class NodeService {
 						}
 					}
 				}
+
+				if (partConfiguration.__meta.private && typeof partConfiguration.__meta.private === "object") {
+					for (const privateKey in partConfiguration.__meta.private) {
+						privateFusionContext[privateKey] = partConfiguration.__meta.private[privateKey]
+					}
+				}
 			}
 
 			for (const key in partConfiguration) {
@@ -63,7 +72,10 @@ class NodeService {
 				thisFusionContext[key] = partConfiguration[key]
 			}
 			finalFusionContext.this = thisFusionContext
-			if (hasRenderer && rendererNextInPath) finalFusionContext.props = thisFusionContext
+			if (hasRenderer && (rendererNextInPath || atPrivateNextInPath)) {
+				finalFusionContext.props = thisFusionContext
+				finalFusionContext.private = privateFusionContext
+			}
 		}
 
 		// console.log("finalFusionContext", finalFusionContext)
