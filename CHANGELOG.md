@@ -7,16 +7,11 @@
 
 ## 🪐🔭 *Upcoming*
 
-- Improved StatusBar interface
-- Flow Context & Configuration
-  - Select which `FLOW_CONTEXT` the LanguageServer should use to read in the configuration  
-  - Autocompletion and Hover for the `Configuration.setting()` EEL-Helper
-- Integration of the WIP [`ts-fusion-runtime`](https://www.npmjs.com/package/ts-fusion-runtime) to correctly resolve Fusion properties
-
 ## 🧪 0.4.1
 
 - feature: NEOS-ViewContainer
 - feature: NEOS-Status bar item with new CommandMenu (to left hand side in the status bar)
+- feature: Completion- and Hover-Capabilities for the `Configuration.setting()` EEL-Helper
 
 ### ✨ Merged Array Tree
 
