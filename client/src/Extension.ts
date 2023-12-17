@@ -1,14 +1,13 @@
 import * as path from 'path'
 import {
 	ExtensionContext,
-	LanguageStatusItem,
 	OutputChannel,
 	TextDocument,
 	Uri,
 	window as Window,
 	workspace as Workspace,
 	WorkspaceFolder,
-	commands, languages,
+	commands,
 	workspace
 } from 'vscode'
 
@@ -20,6 +19,9 @@ import { ProgressNotificationService } from './ProgressNotificationService'
 import { AbstractCommandConstructor } from './commands/AbstractCommand'
 import { InspectCommand } from './commands/InspectCommand'
 import { ReloadCommand } from './commands/ReloadCommand'
+import { AbstractLanguageStatusBarItem } from './languageStatusBarItems/AbstractLanguageStatusBarItem'
+import { Reload } from './languageStatusBarItems/Reload'
+import { Diagnostics } from './languageStatusBarItems/Diagnostics'
 
 
 export class Extension {
@@ -28,9 +30,7 @@ export class Extension {
 	protected sortedWorkspaceFolders: string[] | undefined = undefined
 	protected context: ExtensionContext | undefined = undefined
 
-	protected languageStatusBarItems: {
-		reload: LanguageStatusItem
-	} = { reload: undefined }
+	protected languageStatusBarItems: { [name: string]: AbstractLanguageStatusBarItem } = { reload: undefined }
 
 	constructor() {
 		this.outputChannel = Window.createOutputChannel('Neos Fusion LSP')
@@ -41,14 +41,9 @@ export class Extension {
 	}
 
 	protected createLanguageStatusItems() {
-		const documentSelector = { scheme: 'file', language: 'fusion' }
-		this.languageStatusBarItems.reload = languages.createLanguageStatusItem("fusion.reload", documentSelector)
-		this.languageStatusBarItems.reload.name = "reload"
-		this.languageStatusBarItems.reload.text = "Reload Fusion language server"
-		this.languageStatusBarItems.reload.command = {
-			title: "reload",
-			command: "neos-fusion-lsp.reload",
-			tooltip: "Reload the Fusion Language Server"
+		for (const itemConstructor of [Reload, Diagnostics]) {
+			const statusItem = new itemConstructor()
+			this.languageStatusBarItems[statusItem.getName()] = statusItem
 		}
 	}
 
@@ -172,12 +167,20 @@ export class Extension {
 		const progressNotificationService = new ProgressNotificationService()
 		const client = new LanguageClient('vscode-neos-fusion-lsp', 'LSP For Neos Fusion (and AFX)', serverOptions, clientOptions)
 
-		client.onNotification('custom/busy/create', () => this.languageStatusBarItems.reload.busy = true)
+		client.onNotification('custom/busy/create', ({ id }) => {
+			if (id in this.languageStatusBarItems) {
+				this.languageStatusBarItems[id].item.busy = true
+			}
+		})
 		client.onNotification('custom/progressNotification/create', ({ id, title }) => progressNotificationService.create(id, title))
 
 		client.onNotification('custom/progressNotification/update', ({ id, payload }) => progressNotificationService.update(id, payload))
 
-		client.onNotification('custom/busy/dispose', () => this.languageStatusBarItems.reload.busy = false)
+		client.onNotification('custom/busy/dispose', ({ id }) => {
+			if (id in this.languageStatusBarItems) {
+				this.languageStatusBarItems[id].item.busy = false
+			}
+		})
 		client.onNotification('custom/progressNotification/finish', ({ id }) => progressNotificationService.finish(id))
 
 		client.start()
