@@ -8,11 +8,11 @@ export abstract class AbstractLanguageStatusBarItem {
 	public readonly item: LanguageStatusItem
 
 	protected getDocumentSelector(): DocumentSelector {
-		return [{ scheme: 'file', language: 'fusion' }]
+		return [{ scheme: 'file', language: 'neosfusion' }]
 	}
 
 	protected getId(): string {
-		return "fusion." + this.getName()
+		return "neosfusion." + this.getName()
 	}
 
 	public abstract getName(): string

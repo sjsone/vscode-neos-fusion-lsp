@@ -33,7 +33,7 @@
     ],
     "main": "./client/out/main.js",
     "extensionDependencies": [
-        "networkteam.neos-fusion"
+        "SimonSchmidt.vscode-neos-fusion-grammar"
     ],
     "extensionPack": [
         "formulahendry.auto-rename-tag",
@@ -282,14 +282,7 @@
         ],
         "languages": [
             {
-                "id": "fusion",
-                "extensions": [
-                    ".fusion"
-                ],
-                "aliases": [
-                    "Fusion"
-                ],
-                "configuration": "./language-configuration.json",
+                "id": "neosfusion",
                 "icon": {
                     "dark": "./icons/filetype_dark_fusion.svg",
                     "light": "./icons/filetype_light_fusion.svg"

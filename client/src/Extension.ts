@@ -58,7 +58,7 @@ export class Extension {
 
 			preferenceService.modify({
 				path: "auto-close-tag.activationOnLanguage",
-				modifier: (value: string[]) => !value.includes("fusion") ? [...value, "fusion"] : null
+				modifier: (value: string[]) => !value.includes("neosfusion") ? [...value, "neosfusion"] : null
 			})
 		}
 
@@ -142,7 +142,7 @@ export class Extension {
 			run: { module, transport: TransportKind.ipc, options: runOptions },
 			debug: { module, transport: TransportKind.ipc, options: runOptions }
 		}
-		const documentSelector = [{ scheme: 'file', language: 'fusion', pattern: `${folder.uri.fsPath}/**/*` }]
+		const documentSelector = [{ scheme: 'file', language: 'neosfusion', pattern: `${folder.uri.fsPath}/**/*` }]
 		const clientOptions: LanguageClientOptions = {
 			documentSelector,
 			diagnosticCollectionName: 'vscode-neos-fusion-lsp',
