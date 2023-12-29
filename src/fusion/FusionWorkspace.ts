@@ -304,6 +304,7 @@ export class FusionWorkspace extends Logger {
     protected async processFilesToDiagnose() {
         const randomDiagnoseRun = Math.round(Math.random() * 100)
         this.logDebug(`<${randomDiagnoseRun}> Will diagnose ${this.filesToDiagnose.length} files`)
+        this.languageServer.sendBusyCreate('diagnostics')
         await Promise.all(this.filesToDiagnose.map(async parsedFile => {
             const diagnostics = await diagnose(parsedFile)
             if (diagnostics) await this.languageServer.sendDiagnostics({
@@ -311,7 +312,9 @@ export class FusionWorkspace extends Logger {
                 diagnostics
             })
         }))
+
         this.logDebug(`<${randomDiagnoseRun}>...finished`)
+        this.languageServer.sendBusyDispose('diagnostics')
 
         this.filesToDiagnose = []
     }
