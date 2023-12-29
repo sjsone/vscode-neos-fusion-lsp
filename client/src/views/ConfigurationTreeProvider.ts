@@ -47,11 +47,22 @@ export class ConfigurationTreeProvider implements TreeDataProvider<NeosConfigura
 		const data = this.getDataFromPath(element.path)
 		const isObject = typeof data === 'object' && data !== null
 		treeItem.collapsibleState = isObject ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None
-		treeItem.iconPath = isObject ? ThemeIcon.Folder : ThemeIcon.File
+		treeItem.iconPath = this.buildTreeItemIcon(data) ?? (isObject ? ThemeIcon.Folder : ThemeIcon.File)
 		treeItem.description = this.buildTreeItemDescription(data)
 		treeItem.command = this.buildTreeItemCommand(data)
 
 		return treeItem
+	}
+
+	protected buildTreeItemIcon(data: any) {
+		if (data === null) return new ThemeIcon("symbol-null")
+		if (data === true || data === false) return new ThemeIcon("symbol-boolean")
+		if (typeof data === "string") return new ThemeIcon("symbol-string")
+		if (typeof data === "number") return new ThemeIcon("symbol-number")
+		if (Array.isArray(data)) return new ThemeIcon("symbol-array")
+		if (typeof data === "object") return new ThemeIcon("symbol-module")
+
+		return undefined
 	}
 
 	protected buildTreeItemDescription(data: any) {
