@@ -138,10 +138,10 @@ ts-fusion-parser@^0.1.32:
   resolved "https://registry.yarnpkg.com/ts-fusion-parser/-/ts-fusion-parser-0.1.32.tgz#405996feb0451fbce57b6310e6e568c4af4700e4"
   integrity sha512-ZsvQboDYsbOfhOpZ8ajaYDv4PFYfUY5/VNukpfsVZPvTBjhfTrVf2PrN7F6mKcGdeLDzBgMsZNhJVpO61QeqoQ==
 
-ts-fusion-parser@^0.1.33:
-  version "0.1.33"
-  resolved "https://registry.yarnpkg.com/ts-fusion-parser/-/ts-fusion-parser-0.1.33.tgz#b1190653488e842a34b53d9c1fe2c826e3cd4aec"
-  integrity sha512-bpPjePmmaQClIqzGiLZy2hMe7Iv66B9EZIZC5IAhmv4/Bd6WB6AFovuYiVbeDeKmuiWLQ1SvyNQmg54G9kEQ3Q==
+ts-fusion-parser@^0.1.35:
+  version "0.1.35"
+  resolved "https://registry.yarnpkg.com/ts-fusion-parser/-/ts-fusion-parser-0.1.35.tgz#5c291a45279ea29b77f0b11e506dd586cadebde0"
+  integrity sha512-yLDxEWYbv3AjI9rPsniDNH/LCnmFsWL/hImUGMG/dLgrIME7sTB/niK+9GlTK5TWYJyT3m4pe0/yarXDj0E7Iw==
 
 ts-fusion-runtime@^0.0.32:
   version "0.0.32"
