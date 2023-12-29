@@ -24,6 +24,10 @@ The MergedArrayTree has already been put to use in the Diagnostic and Completion
 Another big feature is everything connected to the Configuration. It is now possible to not only change the used `FLOW_CONTEXT` but to also view the Configuration in the new NEOS-ViewContainer.
 > This is still experimental.
 
+## 🚀 0.3.12
+
+- feature: new Icons for Fusion Files ([@typerunningwild](https://www.instagram.com/typerunningwild))
+
 ## 🚀 0.3.10
 
 - feature: `@fusion-no-autoinclude-needed` can be used in `Fusion/Root.fusion` files when they are deliberately not auto-included by the configuration

@@ -36,6 +36,9 @@ documents.onDidOpen(event => languageserver.onDidOpen(event))
 documents.onDidChangeContent(change => languageserver.onDidChangeContent(change))
 connection.onDidChangeWatchedFiles(params => { languageserver.onDidChangeWatchedFiles(params) })
 
+// TODO: connection.onSignatureHelp
+// TODO: connection.onDocumentHighlight
+// TODO: connection.onDocumentOnTypeFormatting : for fusion assignments and eel in afx attributes (spaces)
 
 connection.onDefinition(params => languageserver.runCapability(DefinitionCapability, params))
 connection.onReferences(params => languageserver.runCapability(ReferenceCapability, params))
@@ -47,11 +50,11 @@ connection.onWorkspaceSymbol(params => languageserver.runCapability(WorkspaceSym
 connection.onCodeLens(params => languageserver.runCapability(CodeLensCapability, params))
 connection.onPrepareRename(params => languageserver.runCapability(RenamePrepareCapability, params))
 connection.onRenameRequest(params => languageserver.runCapability(RenameCapability, params))
+connection.onCodeAction(params => languageserver.onCodeAction(params))
 
 connection.languages.semanticTokens.on(params => languageserver.runLanguageFeature(SemanticTokensLanguageFeature, params))
 connection.languages.inlayHint.on(params => languageserver.runLanguageFeature(InlayHintLanguageFeature, params))
 
-connection.onCodeAction(params => languageserver.onCodeAction(params))
 
 
 documents.listen(connection)

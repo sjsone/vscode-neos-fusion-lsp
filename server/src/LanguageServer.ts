@@ -234,7 +234,7 @@ export class LanguageServer extends Logger {
 		const configuration: ExtensionConfiguration = params.settings.neosFusionLsp
 		Object.freeze(configuration)
 
-		await this.sendBusyCreate('configuration', {
+		await this.sendBusyCreate('reload', {
 			busy: true,
 			text: "$(rocket)",
 			detail: "initializing language server",
@@ -251,7 +251,7 @@ export class LanguageServer extends Logger {
 
 		clearLineDataCache()
 
-		await this.sendBusyDispose('configuration')
+		await this.sendBusyDispose('reload')
 	}
 
 	public async onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams) {
