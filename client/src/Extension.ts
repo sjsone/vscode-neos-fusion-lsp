@@ -1,6 +1,7 @@
 import * as path from 'path'
 import {
 	ExtensionContext,
+	LanguageStatusItem,
 	OutputChannel,
 	TextDocument,
 	Uri,
@@ -34,8 +35,9 @@ export class Extension {
 	protected context: ExtensionContext | undefined = undefined
 	protected flowConfigurationModel = new FlowConfigurationTreeModel
 
-	protected languageStatusBarItems: { [name: string]: AbstractLanguageStatusBarItem,
-		parsingFusionMergedArrayTree: LanguageStatusItem } = { reload: undefined, parsingFusionMergedArrayTree: undefined }
+	protected languageStatusBarItems: {
+		[name: string]: AbstractLanguageStatusBarItem,
+	} = {}
 
 	constructor() {
 		this.outputChannel = Window.createOutputChannel('Neos Fusion LSP')
@@ -182,30 +184,18 @@ export class Extension {
 		const progressNotificationService = new ProgressNotificationService()
 		const client = new LanguageClient('vscode-neos-fusion-lsp', 'LSP For Neos Fusion (and AFX)', serverOptions, clientOptions)
 
-		client.onNotification('custom/busy/create', ({ id }{ id, configuration }) => {
-			if (id in {
-			if (id === "parsingFusionMergedArrayTree") {
-				this.languageStatusBarItems.parsingFusionMergedArrayTree.busy = configuration.busy
-			} else {
-				this.languageStatusBarItems) {
+		client.onNotification('custom/busy/create', ({ id, configuration }) => {
+			if (id in this.languageStatusBarItems) {
 				this.languageStatusBarItems[id].item.busy = true
-			}
-		}
 			}
 		})
 
 		client.onNotification('custom/progressNotification/create', ({ id, title }) => progressNotificationService.create(id, title))
 		client.onNotification('custom/progressNotification/update', ({ id, payload }) => progressNotificationService.update(id, payload))
 
-		client.onNotification('custom/busy/dispose', ({ id }{ id }) => {
-			if (id in {
-			if (id === "parsingFusionMergedArrayTree") {
-				this.languageStatusBarItems.parsingFusionMergedArrayTree.busy = false
-			} else {
-				this.languageStatusBarItems) {
+		client.onNotification('custom/busy/dispose', ({ id }) => {
+			if (id in this.languageStatusBarItems) {
 				this.languageStatusBarItems[id].item.busy = false
-			}
-		}
 			}
 		})
 		client.onNotification('custom/progressNotification/finish', ({ id }) => progressNotificationService.finish(id))
