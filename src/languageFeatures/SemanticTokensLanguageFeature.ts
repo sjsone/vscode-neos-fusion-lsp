@@ -43,7 +43,6 @@ function sortSemanticTokenConstructsByLineAndCharacter(constructs: SemanticToken
 	})
 }
 
-//TODO: Implement cache 
 //TODO: Consolidate with DefinitionCapability::getControllerActionDefinition
 export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 

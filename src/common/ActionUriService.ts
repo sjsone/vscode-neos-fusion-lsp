@@ -27,7 +27,6 @@ class ActionUriService extends Logger {
 
 	public hasPrototypeNameActionUri(prototypeName: string, workspace: FusionWorkspace) {
 		const actionUriBasePrototypes = ["Neos.Fusion:ActionUri", "Neos.Fusion:UriBuilder", "Neos.Neos:Plugin"]
-		// TODO: cache prototypes which have prototypeActionUris
 		for (const actionUriBasePrototype of actionUriBasePrototypes) {
 			if (NodeService.isPrototypeOneOf(prototypeName, actionUriBasePrototype, workspace)) return true
 		}

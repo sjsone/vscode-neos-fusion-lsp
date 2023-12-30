@@ -41,8 +41,6 @@ export interface ActionUriDefinition {
 export class DefinitionCapability extends AbstractCapability {
 
 	protected run(context: CapabilityContext<AbstractNode>) {
-		// TODO: `I18n.translate('Neos.RedirectHandler.Ui:Modules:action.export')` resolve translation id to `.xlf` file or even `trans-unit`
-
 		const { workspace, parsedFile, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
 		const node = foundNodeByLine.getNode()
 
