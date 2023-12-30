@@ -30,7 +30,6 @@ const BuiltInCompletions = {
 	}
 }
 
-// TODO: eel helper arguments
 export class CompletionCapability extends AbstractCapability {
 
 	static SuggestCommand: Command = {
