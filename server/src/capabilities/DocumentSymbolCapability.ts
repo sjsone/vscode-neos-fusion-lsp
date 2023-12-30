@@ -23,7 +23,6 @@ import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
 import { AbstractCapability } from './AbstractCapability';
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext';
 
-// TODO: Implement cache
 export class DocumentSymbolCapability extends AbstractCapability {
 	protected noPositionedNode: boolean = true
 

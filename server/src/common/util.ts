@@ -28,7 +28,6 @@ export interface LineDataCacheEntry {
     lineIndents: string[]
 }
 
-// TODO: use a real cache [cache-branch]
 const lineDataCache: Map<string, LineDataCacheEntry> = new Map
 
 const whitespaceRegex = /^[ \t]+/;

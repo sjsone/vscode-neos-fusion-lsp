@@ -21,9 +21,7 @@ import { RenamePrepareCapability } from './capabilities/RenamePrepareCapability'
 
 export interface FusionDocument extends TextDocument { }
 
-// TODO: define and handle some arguments like [`showDefaultConfiguration`, `showDefaultInitialization`, `--logFile`, ...] to improve usability as a standalone server
-
-// INFO: https://github.com/microsoft/vscode/issues/135453
+// INFO: everything is debounced https://github.com/microsoft/vscode/issues/135453
 
 const connection = createConnection(ProposedFeatures.all)
 const documents: TextDocuments<FusionDocument> = new TextDocuments(TextDocument)
@@ -37,10 +35,6 @@ connection.onDidChangeConfiguration(params => { languageserver.onDidChangeConfig
 documents.onDidOpen(event => languageserver.onDidOpen(event))
 documents.onDidChangeContent(change => languageserver.onDidChangeContent(change))
 connection.onDidChangeWatchedFiles(params => { languageserver.onDidChangeWatchedFiles(params) })
-
-// TODO: connection.onSignatureHelp
-// TODO: connection.onDocumentHighlight
-// TODO: connection.onDocumentOnTypeFormatting : for fusion assignments and eel in afx attributes (spaces)
 
 connection.onDefinition(params => languageserver.runCapability(DefinitionCapability, params))
 connection.onReferences(params => languageserver.runCapability(ReferenceCapability, params))

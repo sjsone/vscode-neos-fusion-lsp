@@ -218,7 +218,6 @@ export class FusionWorkspace extends Logger {
     }
 
     public async diagnoseAllFusionFiles() {
-        // TODO: Create Diagnose class with concurrency (no need to diagnose the same files at the same time)
         this.filesToDiagnose = Array.from(this.parsedFiles)
         return this.processFilesToDiagnose()
     }

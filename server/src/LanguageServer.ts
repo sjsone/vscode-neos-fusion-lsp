@@ -233,7 +233,6 @@ export class LanguageServer extends Logger {
 	}
 
 	public async onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams) {
-		// TODO: Update relevant ParsedFusionFiles but check if it was not a change the LSP does know of
 		for (const change of params.changes) {
 			this.logVerbose(`Watched: (${Object.keys(FileChangeType)[Object.values(FileChangeType).indexOf(change.type)]}) ${change.uri}`)
 			for (const fileChangeHandlerType of FileChangeHandlerTypes) {
