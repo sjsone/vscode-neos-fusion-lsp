@@ -8,7 +8,6 @@ async function getLinesFromUri(uri: string) {
 	return document.split("\n")
 }
 
-// TODO: implement central SemanticComment handling (Service etc.)
 export const addFusionIgnoreSemanticCommentAction = async (languageServer: LanguageServer, params: CodeActionParams) => {
 	const uri = params.textDocument.uri
 	const codeActions: CodeAction[] = [];

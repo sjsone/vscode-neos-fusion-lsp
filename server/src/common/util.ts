@@ -236,8 +236,6 @@ export function getNodeWeight(node: any) {
     }
 }
 
-// TODO: Put the SemanticComment stuff into Service
-
 export enum SemanticCommentType {
     Ignore = "ignore",
     IgnoreBlock = "ignore-block",
