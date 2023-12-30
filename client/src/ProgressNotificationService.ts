@@ -56,4 +56,10 @@ export class ProgressNotificationService {
 		const progressNotification = this.progressNotifications.get(id)
 		progressNotification.finish()
 	}
+
+	finishAll() {
+		for(const progressNotification of this.progressNotifications.values()) {
+			progressNotification.finish()
+		}
+	}
 }

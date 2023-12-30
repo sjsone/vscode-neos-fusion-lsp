@@ -13,7 +13,7 @@ import {
 } from 'vscode'
 
 import {
-	LanguageClient, LanguageClientOptions, ServerOptions, TransportKind
+	LanguageClient, LanguageClientOptions, ServerOptions, State, TransportKind
 } from 'vscode-languageclient/node'
 import { NeosStatusBarItem, NeosStatusBarItemClass } from './NeosStatusBarItem'
 import { PreferenceService } from './PreferenceService'
@@ -205,6 +205,12 @@ export class Extension {
 		client.start()
 		this.clients.set(folder.uri.toString(), client)
 
+		client.onDidChangeState((event) => {
+			if (event.oldState === State.Running && event.newState === State.Stopped) {
+				this.stopAllRunningInterfaceItems(progressNotificationService)
+			}
+		})
+
 		return client
 	}
 
@@ -215,5 +221,12 @@ export class Extension {
 			promises.push(client.stop())
 		}
 		return Promise.all(promises).then(() => undefined)
+	}
+
+	protected stopAllRunningInterfaceItems(progressNotificationService?: ProgressNotificationService) {
+		progressNotificationService?.finishAll()
+		for (const id in this.languageStatusBarItems) {
+			this.languageStatusBarItems[id].item.busy = false
+		}
 	}
 }
