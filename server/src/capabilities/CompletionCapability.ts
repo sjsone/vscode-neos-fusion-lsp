@@ -39,7 +39,7 @@ export class CompletionCapability extends AbstractCapability {
 
 	protected run(context: CapabilityContext<AbstractNode>) {
 		const { workspace, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
-		const completions = []
+		const completions: CompletionItem[] = []
 		if (foundNodeByLine) {
 			const foundNode = foundNodeByLine.getNode()
 			console.log(`Type: ${foundNode.constructor.name}`)
@@ -129,7 +129,7 @@ export class CompletionCapability extends AbstractCapability {
 
 		const tagNode = findParent(attributeNode, TagNode)
 		if (tagNode !== undefined) {
-			const labels = []
+			const labels: string[] = []
 			for (const statement of NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace)) {
 				const label = getObjectIdentifier(statement.statement)
 				if (!labels.includes(label)) labels.push(label)
