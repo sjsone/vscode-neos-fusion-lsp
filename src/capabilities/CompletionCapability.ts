@@ -90,7 +90,7 @@ export class CompletionCapability extends AbstractCapability {
 		const completions: CompletionItem[] = []
 
 		const foundNodes = workspace.getNodesByType(PrototypePathSegment)
-		if (!foundNodes) return null
+		if (!foundNodes) return []
 
 		for (const fileNodes of foundNodes) {
 			for (const fileNode of fileNodes.nodes) {
@@ -150,7 +150,7 @@ export class CompletionCapability extends AbstractCapability {
 	protected getFusionPropertyCompletionsForObjectPath(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {
 		const node = foundNode.getNode()
 		const objectNode = node["parent"]
-		if (!(objectNode instanceof ObjectNode)) return null
+		if (!(objectNode instanceof ObjectNode)) return []
 
 
 		if (objectNode.path.length === 1) {
@@ -199,7 +199,7 @@ export class CompletionCapability extends AbstractCapability {
 		const completions: CompletionItem[] = []
 
 		const foundNodes = fusionWorkspace.getNodesByType(PrototypePathSegment)
-		if (!foundNodes) return null
+		if (!foundNodes) return []
 
 		for (const fileNodes of foundNodes) {
 			for (const fileNode of fileNodes.nodes) {
@@ -217,8 +217,8 @@ export class CompletionCapability extends AbstractCapability {
 
 	protected getFusionPropertyCompletionsForObjectNode(fusionWorkspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectNode>): CompletionItem[] {
 		const node = foundNode.getNode()
-		if (node.path[0]["value"] !== "props") return null
-		if (node.path.length !== 1) return null
+		if (node.path[0]["value"] !== "props") return []
+		if (node.path.length !== 1) return []
 
 		return this.getPropertyDefinitionSegments(node, fusionWorkspace)
 	}
