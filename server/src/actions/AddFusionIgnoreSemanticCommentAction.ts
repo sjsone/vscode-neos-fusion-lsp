@@ -17,6 +17,7 @@ export const addFusionIgnoreSemanticCommentAction = async (languageServer: Langu
 
 		if (!hasLineDataCacheFile(uri)) setLinesFromLineDataCacheForFile(uri, await getLinesFromUri(uri))
 		const entry = getLinesFromLineDataCacheForFile(uri)
+		if (!entry) continue
 
 		const affectedNodeRange: Range = diagnostic.data?.affectedNodeRange ?? diagnostic.range
 		const lineIndent = entry.lineIndents[affectedNodeRange.start.line]

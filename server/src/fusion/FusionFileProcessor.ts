@@ -33,7 +33,6 @@ import { PhpClassMethodNode } from './node/PhpClassMethodNode';
 import { PhpClassNode } from './node/PhpClassNode';
 import { ResourceUriNode } from './node/ResourceUriNode';
 import { TranslationShortHandNode } from './node/TranslationShortHandNode';
-import { EelHelperMethod } from '../eel/EelHelperMethod';
 
 type PostProcess = () => void
 export class FusionFileProcessor extends Logger {
@@ -46,7 +45,7 @@ export class FusionFileProcessor extends Logger {
 	}
 
 	processNodesByType(nodeType: any, objectTree: FusionFile, text: string) {
-		for (const node of objectTree.nodesByType.get(nodeType)) {
+		for (const node of objectTree.nodesByType.get(nodeType) ?? []) {
 			if (node instanceof ObjectNode) this.processEelObjectNode(node, text)
 			if (node instanceof TagNode) this.processTagNameNode(node, text)
 			if (node instanceof TagAttributeNode) this.processTagAttributeNode(node, text)
@@ -78,6 +77,8 @@ export class FusionFileProcessor extends Logger {
 			}
 
 			const methodNode = currentPath.pop()
+			if (!methodNode) continue
+
 			const eelHelperMethodNodePosition = new NodePosition(methodNode["position"].begin, methodNode["position"].begin + methodNode["value"].length)
 			const eelHelperMethodNode = new PhpClassMethodNode(methodNode["value"], part, eelHelperMethodNodePosition)
 
@@ -113,7 +114,10 @@ export class FusionFileProcessor extends Logger {
 	protected processPropTypesFqcn(identifier: string, methodNode: PhpClassMethodNode, text: string) {
 		if (identifier !== "PropTypes" || methodNode.identifier.toLowerCase() !== "instanceof") return
 
-		const firstArgument = methodNode.pathNode["args"][0]
+		const pathNode = methodNode.pathNode
+		if (!(pathNode instanceof ObjectFunctionPathNode)) return
+
+		const firstArgument = pathNode["args"][0]
 		if (!(firstArgument instanceof LiteralStringNode)) return
 
 		let fqcn = firstArgument["value"].split("\\\\").join("\\")
@@ -292,7 +296,7 @@ export class FusionFileProcessor extends Logger {
 
 		if (value.startsWith('[instanceof ') && value.endsWith(']')) {
 			const instanceofRegex = /(?:\[instanceof (.+?)\])+/gm
-			let result: RegExpExecArray
+			let result: RegExpExecArray | null
 			while ((result = instanceofRegex.exec(value)) !== null) {
 				const prototypeName = result[1]
 				const begin = literalStringNode["position"].begin + value.indexOf(prototypeName, result.index) + 1

@@ -8,12 +8,14 @@ import { CommonDiagnosticHelper } from './CommonDiagnosticHelper'
 export function diagnoseResourceUris(parsedFusionFile: ParsedFusionFile) {
 	const diagnostics: Diagnostic[] = []
 
-	const resourceUriNodes = <LinePositionedNode<ResourceUriNode>[]>parsedFusionFile.nodesByType.get(ResourceUriNode)
+	const resourceUriNodes = <LinePositionedNode<ResourceUriNode>[]>parsedFusionFile.getNodesByType(ResourceUriNode)
 	if (resourceUriNodes === undefined) return diagnostics
 
 	for (const resourceUriNode of resourceUriNodes) {
 		const node = resourceUriNode.getNode()
 		const uri = parsedFusionFile.workspace.neosWorkspace.getResourceUriPath(node.getNamespace(), node.getRelativePath())
+		if (!uri) continue
+
 		const diagnostic: Diagnostic = {
 			severity: DiagnosticSeverity.Warning,
 			range: resourceUriNode.getPositionAsRange(),

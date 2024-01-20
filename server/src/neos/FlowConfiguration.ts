@@ -25,11 +25,11 @@ export class FlowConfiguration extends Logger {
 		this.nodeTypeDefinitions = nodeTypeDefinitions
 	}
 
-	get<T extends ParsedYaml>(path: string | string[], settingsConfiguration = this.settingsConfiguration): T {
+	get<T extends ParsedYaml>(path: string | string[], settingsConfiguration = this.settingsConfiguration): T | undefined {
 		if (settingsConfiguration === undefined || settingsConfiguration === null) return undefined
 		if (!Array.isArray(path)) path = path.split(".")
-		const key = path.shift()
-		const value = settingsConfiguration[key]
+		const key = path.shift()!
+		const value = (<{ [key: string]: any }>settingsConfiguration)[key]
 		if (path.length === 0) return value
 		if (value === undefined || value === null) return undefined
 		return (typeof value === 'object' && typeof value !== 'function') ? this.get(path, value) : undefined
@@ -50,9 +50,6 @@ export class FlowConfiguration extends Logger {
 			nodeTypeDefinitions.push(...settingsAndNodeTypes.nodeTypeDefinitions)
 		}
 
-		// if (LogService.isLogLevel(LoggingLevel.Verbose)) {
-		// Logger.LogNameAndLevel(LoggingLevel.Verbose.toUpperCase(), 'FlowConfiguration:FromFolder', 'Created FlowConfiguration from: ' + folderPath)
-		// }
 		return new FlowConfiguration(settings, nodeTypeDefinitions)
 	}
 
@@ -66,8 +63,8 @@ export class FlowConfiguration extends Logger {
 				const configurationFileYaml = NodeFs.readFileSync(configurationFilePath).toString()
 				const parsedYaml = parseYaml(configurationFileYaml)
 
-				if(parsedYaml) try {
-					const mergedConfiguration = <ParsedYaml>mergeObjects(parsedYaml, configuration)
+				if (parsedYaml) try {
+					const mergedConfiguration = <ParsedYaml>mergeObjects(parsedYaml, <any>configuration)
 					configuration = mergedConfiguration ?? configuration
 					if (LogService.isLogLevel(LoggingLevel.Debug)) {
 						Logger.LogNameAndLevel(LoggingLevel.Debug.toUpperCase(), 'FlowConfiguration:FromFolder', 'Read configuration from: ' + configurationFilePath)
@@ -75,9 +72,9 @@ export class FlowConfiguration extends Logger {
 				} catch (error) {
 					if (error instanceof Error) {
 						Logger.LogNameAndLevel(
-							LoggingLevel.Error.toUpperCase(), 
-							'FlowConfiguration:FromFolder', 
-							"trying to read configuration from: ",configurationFilePath,  configuration, error
+							LoggingLevel.Error.toUpperCase(),
+							'FlowConfiguration:FromFolder',
+							"trying to read configuration from: ", configurationFilePath, configuration, error
 						)
 					}
 				}
@@ -110,7 +107,7 @@ export class FlowConfiguration extends Logger {
 			const yamlLexer = new YamlLexer(configurationFileYaml, nodeTypeFilePath)
 			for (const yamlToken of yamlLexer.tokenize()) {
 				if (yamlToken.indent !== 0) continue
-				if (yamlToken.type !== "complexstring" && yamlToken.type !== "string") continue
+				if (yamlToken.type !== "complex_string" && yamlToken.type !== "string") continue
 
 				const match = /^[0-9a-zA-Z.]+(?::[0-9a-zA-Z.]+$)/m.exec(yamlToken.value)
 				if (match === null) continue

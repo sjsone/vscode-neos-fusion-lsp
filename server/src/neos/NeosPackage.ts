@@ -29,7 +29,7 @@ export class NeosPackage extends Logger {
 	protected composerJson: any
 
 	protected namespaces: Map<string, NeosPackageNamespace> = new Map()
-	protected configuration: FlowConfiguration
+	protected configuration!: FlowConfiguration
 	protected eelHelpers: EELHelperToken[] = []
 
 	protected debug: boolean
@@ -68,7 +68,7 @@ export class NeosPackage extends Logger {
 	public initEelHelper() {
 		if (this.configuration["settingsConfiguration"] === null) return undefined
 
-		const defaultNeosFusionContext = this.configuration.get<{}>("Neos.Fusion.defaultContext")
+		const defaultNeosFusionContext = this.configuration.get<{ [key: string]: any }>("Neos.Fusion.defaultContext")
 		if (!defaultNeosFusionContext) return undefined
 
 		this.logVerbose("Found EEL-Helpers:")
@@ -98,7 +98,7 @@ export class NeosPackage extends Logger {
 
 	extractFqcnAndStaticMethodFromDefaultContextEntry(path: string) {
 		const staticMethodRegex = /^(.*?)(?:::(.*))?$/
-		const match = staticMethodRegex.exec(this.trimLeadingBackslash(path))
+		const match = staticMethodRegex.exec(this.trimLeadingBackslash(path))!
 		return {
 			fqcn: match[1],
 			staticMethod: match[2]

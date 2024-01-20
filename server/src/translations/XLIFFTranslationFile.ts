@@ -24,7 +24,7 @@ export interface TransUnit {
 export class XLIFFTranslationFile extends Logger {
 	protected static XMLParser = new XMLParser({ ignoreAttributes: false })
 	protected sourcePath: string
-	protected data: undefined | any
+	protected data: any
 	public readonly uri: string
 
 	protected transUnits: Map<string, TransUnit> = new Map
@@ -42,10 +42,10 @@ export class XLIFFTranslationFile extends Logger {
 	}
 
 	protected getXLIFFTransUnitsFromParsedXML(data: any): XLIFFTransUnit[] {
-		if(!data) return []
-		if(!this.data?.xliff.file.body["trans-unit"]) return []
+		if (!data) return []
+		if (!this.data?.xliff.file.body["trans-unit"]) return []
 
-		if(Array.isArray(this.data?.xliff.file.body["trans-unit"])) return this.data?.xliff.file.body["trans-unit"]
+		if (Array.isArray(this.data?.xliff.file.body["trans-unit"])) return this.data?.xliff.file.body["trans-unit"]
 		return [this.data?.xliff.file.body["trans-unit"]]
 	}
 
@@ -55,7 +55,7 @@ export class XLIFFTranslationFile extends Logger {
 		this.data = XLIFFTranslationFile.XMLParser.parse(xmlTextBuffer)
 		const xmlText = xmlTextBuffer.toString()
 		setLinesFromLineDataCacheForFile(this.uri, xmlText.split("\n"))
-		
+
 		const XLIFFTransUnits: XLIFFTransUnit[] = this.getXLIFFTransUnitsFromParsedXML(this.data)
 		this.logVerbose(`Found ${XLIFFTransUnits.length} TransUnits`)
 		for (const transUnit of XLIFFTransUnits) {
@@ -63,7 +63,7 @@ export class XLIFFTranslationFile extends Logger {
 			const position = getLineNumberOfChar(xmlText, offset, this.uri)
 
 			this.transUnits.set(transUnit["@_id"], {
-				source: this.getTextFromSourceOrTarget(transUnit.source),
+				source: this.getTextFromSourceOrTarget(transUnit.source)!,
 				target: this.getTextFromSourceOrTarget(transUnit.target),
 				id: transUnit["@_id"],
 				position,
@@ -95,8 +95,8 @@ export class XLIFFTranslationFile extends Logger {
 		const relativePath = NodePath.relative(basePath, filePath)
 		const sourceParts = relativePath.split(NodePath.sep)
 
-		const language = sourceParts.shift()
-		const translationFileName = sourceParts.pop()
+		const language = sourceParts.shift()!
+		const translationFileName = sourceParts.pop()!
 		sourceParts.push(NodePath.parse(translationFileName).name)
 
 		const translationFile = new XLIFFTranslationFile(neosPackage, filePath, language, sourceParts)

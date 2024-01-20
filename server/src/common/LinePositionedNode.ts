@@ -8,16 +8,26 @@ export interface LinePosition {
 }
 
 declare module 'ts-fusion-parser/out/common/AbstractNode' {
-	interface AbstractNode { linePositionedNode: LinePositionedNode<typeof this>; }
+	interface AbstractNode {
+		// FIXME: do not use @ts-ignore
+		// @ts-ignore
+		linePositionedNode: LinePositionedNode<typeof this>;
+	}
+}
+
+declare module 'ts-fusion-parser/out/common/ParserError' {
+	interface ParserError {
+		linePosition: { line: number, character: number }
+	}
 }
 
 export class LinePositionedNode<T extends AbstractNode> {
 	protected node: T
 
-	protected start: LinePosition
-	protected end: LinePosition
+	protected start!: LinePosition
+	protected end!: LinePosition
 
-	constructor(node: T, text: string = undefined, textUri: string = undefined) {
+	constructor(node: T, text?: string, textUri?: string) {
 		this.node = node
 		this.node.linePositionedNode = this
 

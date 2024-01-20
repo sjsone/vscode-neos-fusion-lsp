@@ -1,8 +1,6 @@
 import { TextDocument } from "vscode-languageserver-textdocument"
 import {
-    Position,
     ProposedFeatures,
-    Range,
     TextDocuments,
     createConnection
 } from "vscode-languageserver/node"

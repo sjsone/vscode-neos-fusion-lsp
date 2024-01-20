@@ -1,4 +1,4 @@
-export type YamlToken = ColonToken | DashToken | NumberToken | TildeToken | ComplexStringToken | AliasToken | AnchorToken | TagToken | StringToken | StringBlockToken | CommentToken | SymbolToken | NewlineToken | SpaceToken 
+export type YamlToken = ColonToken | DashToken | NumberToken | TildeToken | ComplexStringToken | AliasToken | AnchorToken | TagToken | StringToken | StringBlockToken | CommentToken | SymbolToken | NewlineToken | SpaceToken
 
 
 interface AbstractYamlToken {
@@ -29,7 +29,7 @@ export interface TildeToken extends AbstractYamlToken {
 }
 
 export interface ComplexStringToken extends AbstractYamlToken {
-    type: "complexstring"
+    type: "complex_string"
 }
 
 export interface AliasToken extends AbstractYamlToken {
@@ -50,7 +50,7 @@ export interface StringToken extends AbstractYamlToken {
 }
 
 export interface StringBlockToken extends AbstractYamlToken {
-    type: "stringblock"
+    type: "string_block"
 }
 
 export interface CommentToken extends AbstractYamlToken {

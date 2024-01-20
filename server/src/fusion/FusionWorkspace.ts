@@ -19,9 +19,9 @@ export class FusionWorkspace extends Logger {
     public uri: string
     public name: string
     public languageServer: LanguageServer
-    protected configuration: ExtensionConfiguration
+    protected configuration!: ExtensionConfiguration
 
-    public neosWorkspace: NeosWorkspace
+    public neosWorkspace!: NeosWorkspace
 
     public parsedFiles: ParsedFusionFile[] = []
     public filesWithErrors: string[] = []
@@ -108,12 +108,7 @@ export class FusionWorkspace extends Logger {
             parsedFile.runPostProcessing()
         }
 
-
         this.logInfo(`Successfully parsed ${this.parsedFiles.length} fusion files. `)
-
-        if (usingWorkspaceAsPackageFallback && this.parsedFiles.length === 0) {
-
-        }
 
         // TODO: if this.parsedFiles.length === 0 show error message with link to TBD-setting "workspace root"
         // TODO: if no package has a composer.json show error message with link to TBD-setting "workspace root"
@@ -152,7 +147,7 @@ export class FusionWorkspace extends Logger {
         }
     }
 
-    initParsedFile(parsedFile: ParsedFusionFile, text: string = undefined) {
+    initParsedFile(parsedFile: ParsedFusionFile, text?: string) {
         if (this.filesWithErrors.includes(parsedFile.uri)) return false
 
         try {
@@ -199,16 +194,14 @@ export class FusionWorkspace extends Logger {
         return this.parsedFiles.find(file => file.uri === uri)
     }
 
-    getNodesByType<T extends new (...args: unknown[]) => AbstractNode>(type: T): Array<{ uri: string, nodes: LinePositionedNode<InstanceType<T>>[] }> {
-        const nodes = []
+    getNodesByType<T extends AbstractNode>(type: new (...args: any[]) => T): Array<{ uri: string, nodes: LinePositionedNode<T>[] }> {
+        const nodes: Array<{ uri: string, nodes: LinePositionedNode<T>[] }> = []
         for (const file of this.parsedFiles) {
             const fileNodes = file.nodesByType.get(type)
-            if (fileNodes) {
-                nodes.push({
-                    uri: file.uri,
-                    nodes: fileNodes
-                })
-            }
+            if (fileNodes) nodes.push({
+                uri: file.uri,
+                nodes: <any>fileNodes
+            })
         }
         return nodes
     }

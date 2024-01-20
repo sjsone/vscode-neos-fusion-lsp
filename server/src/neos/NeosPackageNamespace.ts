@@ -52,7 +52,7 @@ export class NeosPackageNamespace {
 		return fileUri
 	}
 
-	getClassDefinitionFromFilePathAndClassName(filePath: string, className: string, pathParts: string[]): ClassDefinition {
+	getClassDefinitionFromFilePathAndClassName(filePath: string, className: string, pathParts: string[]): undefined | ClassDefinition {
 		const phpFileSource = NodeFs.readFileSync(filePath).toString()
 
 		const namespace = this.name + pathParts.join("\\")
@@ -108,9 +108,9 @@ export class NeosPackageNamespace {
 		}
 	}
 
-	getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName: string): ClassDefinition {
+	getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName: string): undefined | ClassDefinition {
 		if (this.fqcnCache.has(fullyQualifiedClassName)) {
-			const { possibleFilePath, className, pathParts } = this.fqcnCache.get(fullyQualifiedClassName)
+			const { possibleFilePath, className, pathParts } = this.fqcnCache.get(fullyQualifiedClassName)!
 			if (!NodeFs.existsSync(possibleFilePath)) return undefined
 			return this.getClassDefinitionFromFilePathAndClassName(possibleFilePath, className, pathParts)
 		}
@@ -118,7 +118,7 @@ export class NeosPackageNamespace {
 		const path = fullyQualifiedClassName.replace(this.name, "")
 
 		const pathParts = path.split("\\")
-		const className = pathParts.pop()
+		const className = pathParts.pop()!
 		const possibleFilePath = NodePath.join(this.path, ...pathParts, className + ".php")
 
 		this.fqcnCache.set(fullyQualifiedClassName, { possibleFilePath, className, pathParts })

@@ -22,7 +22,7 @@ export class NeosWorkspace extends Logger {
 			this.packages.set(neosPackage.getName(), neosPackage)
 		} catch (error) {
 			if (error instanceof Error) {
-				if (error["code"] === 'ENOENT') {
+				if ("code" in error && error["code"] === 'ENOENT') {
 					this.logError('File not found!', packagePath)
 					this.logError("    Error: ", error)
 				} else {
