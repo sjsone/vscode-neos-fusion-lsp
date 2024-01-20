@@ -74,7 +74,7 @@ export class ParsedFusionFile extends Logger {
 		this.logVerbose("Created", uri)
 	}
 
-	init(text: string = undefined) {
+	init(text?: string) {
 		try {
 			this.clearCaches()
 			this.logVerbose("init")
@@ -89,7 +89,7 @@ export class ParsedFusionFile extends Logger {
 			for (const ignoredError of this.ignoredErrorsByParser) {
 				if (!(ignoredError instanceof ParserError)) continue
 
-				ignoredError['linePosition'] = getLineNumberOfChar(text, ignoredError.getPosition(), this.uri)
+				ignoredError.linePosition = getLineNumberOfChar(text, ignoredError.getPosition(), this.uri)
 			}
 			this.fusionFileProcessor.readStatementList(this.fusionFile.statementList, text)
 
@@ -197,10 +197,14 @@ export class ParsedFusionFile extends Logger {
 
 	protected addPrototypeInRoutes(node: PrototypePathSegment | FusionObjectValue) {
 		const prototypeName = getPrototypeNameFromNode(node)
+		if (!prototypeName) return
+
 		const actionObjectStatement = findParent(node, ObjectStatement)
+		if (!actionObjectStatement) return
 
 		const actionName = getObjectIdentifier(actionObjectStatement)
 		const controllerObjectStatement = findParent(actionObjectStatement, ObjectStatement)
+		if (!controllerObjectStatement) return
 
 		const controllerPathSegments = controllerObjectStatement.path.segments
 
@@ -247,7 +251,7 @@ export class ParsedFusionFile extends Logger {
 
 		const sortedKeys = Object.keys(foundNodesByWeight).sort((a, b) => parseInt(b) - parseInt(a))
 		if (sortedKeys.length === 0) return undefined
-		return foundNodesByWeight[sortedKeys[0]]
+		return foundNodesByWeight[parseInt(sortedKeys[0])]
 	}
 
 	clear() {

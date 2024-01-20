@@ -20,7 +20,10 @@ class XLIFFService {
 	public async getMatchingTranslations(workspace: FusionWorkspace, shortHandIdentifier: ShortHandIdentifier) {
 		const matching: TransUnit[] = []
 		for (const translationFile of workspace.translationFiles) {
-			if (await translationFile.matches(shortHandIdentifier)) matching.push(await translationFile.getId(shortHandIdentifier.translationIdentifier))
+			if (await translationFile.matches(shortHandIdentifier)) {
+				const transUnit = await translationFile.getId(shortHandIdentifier.translationIdentifier)
+				if (transUnit) matching.push(transUnit)
+			}
 		}
 		return matching
 	}

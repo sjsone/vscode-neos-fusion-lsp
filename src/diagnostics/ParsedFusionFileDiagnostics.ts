@@ -14,6 +14,7 @@ import { diagnoseResourceUris } from './DiagnoseResourceUris';
 import { diagnoseRootFusionConfiguration } from './DiagnoseRootFusionConfiguration';
 import { diagnoseTagNames } from './DiagnoseTagNames';
 import { diagnoseTranslationShortHand } from './DiagnoseTranslationShortHand';
+import { diagnoseAfxWithDollarEel } from './DiagnoseAfxWithDollarEel';
 
 export async function diagnose(parsedFusionFile: ParsedFusionFile) {
 	const diagnostics: Diagnostic[] = []
@@ -30,7 +31,8 @@ export async function diagnose(parsedFusionFile: ParsedFusionFile) {
 		diagnoseNonParsedFusion,
 		diagnoseRootFusionConfiguration,
 		diagnoseTranslationShortHand,
-		diagnoseParserError
+		diagnoseParserError,
+		diagnoseAfxWithDollarEel
 	]
 
 	for (const diagnoseFunction of diagnoseFunctions) {

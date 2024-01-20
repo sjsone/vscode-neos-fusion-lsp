@@ -30,7 +30,6 @@ export interface LineDataCacheEntry {
     lineIndents: string[]
 }
 
-// TODO: use a real cache [cache-branch]
 const lineDataCache: Map<string, LineDataCacheEntry> = new Map
 
 const whitespaceRegex = /^[ \t]+/;
@@ -73,7 +72,7 @@ export function clearLineDataCache() {
 
 export function getLineNumberOfChar(data: string, index: number, textUri: string) {
     if (!lineDataCache.has(textUri)) setLinesFromLineDataCacheForFile(textUri, data.split('\n'))
-    const entry = lineDataCache.get(textUri)
+    const entry = lineDataCache.get(textUri)!
     let totalLength = 0
     let column = index
     let i = 0
@@ -198,7 +197,8 @@ export function abstractNodeToString(node: AbstractEelNode | AbstractNode): stri
     // TODO: This should be node.toString() but for now...
     if (node instanceof StringValue) return `"${node["value"]}"`
     if (node instanceof LiteralStringNode) return node["quotationType"] + node["value"] + node["quotationType"]
-    if (node instanceof LiteralNumberNode || node instanceof FusionObjectValue) return node["value"]
+    if (node instanceof LiteralNumberNode) return node["value"]
+    if (node instanceof FusionObjectValue) return node["value"]
     if (node instanceof EelExpressionValue) {
         if (Array.isArray(node.nodes)) return undefined
         return `\${${abstractNodeToString(<AbstractEelNode>node.nodes)}}`
@@ -242,8 +242,6 @@ export function getNodeWeight(node: any) {
     }
 }
 
-// TODO: Put the SemanticComment stuff into Service
-
 export enum SemanticCommentType {
     Ignore = "ignore",
     IgnoreBlock = "ignore-block",
@@ -255,7 +253,7 @@ export interface ParsedSemanticComment {
     arguments: string[]
 }
 
-export function parseSemanticComment(comment: string): ParsedSemanticComment {
+export function parseSemanticComment(comment: string): undefined | ParsedSemanticComment {
     const semanticCommentRegex = /^ *@fusion-([a-zA-Z0-9_-]+) *(?:\[(.*)\])?$/
 
     const matches = semanticCommentRegex.exec(comment)

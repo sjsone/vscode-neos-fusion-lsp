@@ -30,6 +30,7 @@ export class HoverCapability extends AbstractCapability {
 
 	public async run(context: CapabilityContext<AbstractNode>) {
 		const { workspace, parsedFile, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
+		if (!foundNodeByLine) return null
 
 		const markdown = await this.getMarkdownByNode(foundNodeByLine, parsedFile, workspace)
 		if (markdown === null) return null
@@ -75,7 +76,7 @@ export class HoverCapability extends AbstractCapability {
 		if (prototypeNode["identifier"] !== prototypeName) return
 
 		const otherObjectStatement = findParent(prototypeNode, ObjectStatement)
-		if (!otherObjectStatement.block) return
+		if (!otherObjectStatement?.block) return
 
 		for (const statement of <ObjectStatement[]>otherObjectStatement.block.statementList.statements) {
 			let statementName = statement["path"].segments.map(abstractNodeToString).filter(Boolean).join(".")
@@ -104,7 +105,7 @@ export class HoverCapability extends AbstractCapability {
 			results.push(`# [${packageName}] ${NodePath.basename(fileUri)}`)
 			results.push(YAML.stringify(result.value, undefined, 3))
 		}
-		if(results.length === 0) return `_no value found_`
+		if (results.length === 0) return `_no value found_`
 
 		return [
 			"```yaml",

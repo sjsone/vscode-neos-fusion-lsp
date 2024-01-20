@@ -1,7 +1,6 @@
 import { CodeAction, CodeActionKind, CodeActionParams, Position, TextEdit } from 'vscode-languageserver';
 import { LanguageServer } from '../LanguageServer';
 
-// TODO: implement central SemanticComment handling (Service etc.)
 export const addFusionNoAutoincludeNeededSemanticCommentAction = async (languageServer: LanguageServer, params: CodeActionParams) => {
 	const codeActions: CodeAction[] = [];
 

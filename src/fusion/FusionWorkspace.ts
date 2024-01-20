@@ -24,9 +24,9 @@ export class FusionWorkspace extends Logger {
     public uri: string
     public name: string
     public languageServer: LanguageServer
-    protected configuration: ExtensionConfiguration
+    protected configuration!: ExtensionConfiguration
 
-    public neosWorkspace: NeosWorkspace
+    public neosWorkspace!: NeosWorkspace
 
     public fusionParser: LanguageServerFusionParser
     public mergedArrayTree: InternalArrayTreePart = {}
@@ -169,10 +169,6 @@ export class FusionWorkspace extends Logger {
 
         this.logInfo(`Successfully parsed ${this.parsedFiles.length} fusion files. `)
 
-        if (usingWorkspaceAsPackageFallback && this.parsedFiles.length === 0) {
-
-        }
-
         // TODO: if this.parsedFiles.length === 0 show error message with link to TBD-setting "workspace root"
         // TODO: if no package has a composer.json show error message with link to TBD-setting "workspace root"
         if (this.filesWithErrors.length > 0) {
@@ -222,7 +218,7 @@ export class FusionWorkspace extends Logger {
         }
     }
 
-    initParsedFile(parsedFile: ParsedFusionFile, text: string = undefined) {
+    initParsedFile(parsedFile: ParsedFusionFile, text?: string) {
         if (this.filesWithErrors.includes(parsedFile.uri)) return false
 
         try {
@@ -281,12 +277,10 @@ export class FusionWorkspace extends Logger {
         const nodes = []
         for (const file of this.parsedFiles) {
             const fileNodes = file.nodesByType.get(type)
-            if (fileNodes) {
-                nodes.push({
-                    uri: file.uri,
-                    nodes: fileNodes
-                })
-            }
+            if (fileNodes) nodes.push({
+                uri: file.uri,
+                nodes: <any>fileNodes
+            })
         }
         return nodes
     }
@@ -296,7 +290,6 @@ export class FusionWorkspace extends Logger {
     }
 
     public async diagnoseAllFusionFiles() {
-        // TODO: Create Diagnose class with concurrency (no need to diagnose the same files at the same time)
         this.filesToDiagnose = Array.from(this.parsedFiles)
         return this.processFilesToDiagnose()
     }

@@ -5,7 +5,7 @@ import { clearLineDataCacheForFile } from '../common/util';
 export abstract class AbstractFileChangeHandler extends AbstractFunctionality {
 	abstract canHandleFileEvent(fileEvent: FileEvent): boolean
 
-	public async tryToHandle(fileEvent) {
+	public async tryToHandle(fileEvent: FileEvent) {
 		if (this.canHandleFileEvent(fileEvent)) return this.handle(fileEvent)
 	}
 

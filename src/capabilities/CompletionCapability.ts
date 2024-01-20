@@ -34,7 +34,6 @@ const BuiltInCompletions = {
 	}
 }
 
-// TODO: eel helper arguments
 export class CompletionCapability extends AbstractCapability {
 
 	static SuggestCommand: Command = {
@@ -44,7 +43,7 @@ export class CompletionCapability extends AbstractCapability {
 
 	protected run(context: CapabilityContext<AbstractNode>) {
 		const { workspace, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
-		const completions = []
+		const completions: CompletionItem[] = []
 		if (foundNodeByLine) {
 			const foundNode = foundNodeByLine.getNode()
 			this.logVerbose(`Type: ${foundNode.constructor.name}`)
@@ -98,7 +97,7 @@ export class CompletionCapability extends AbstractCapability {
 		const completions: CompletionItem[] = []
 
 		const foundNodes = workspace.getNodesByType(PrototypePathSegment)
-		if (!foundNodes) return null
+		if (!foundNodes) return []
 
 		for (const fileNodes of foundNodes) {
 			for (const fileNode of fileNodes.nodes) {
@@ -137,7 +136,7 @@ export class CompletionCapability extends AbstractCapability {
 
 		const tagNode = findParent(attributeNode, TagNode)
 		if (tagNode !== undefined) {
-			const labels = []
+			const labels: string[] = []
 			for (const statement of LegacyNodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace)) {
 				const label = getObjectIdentifier(statement.statement)
 				if (!labels.includes(label)) labels.push(label)
@@ -187,7 +186,7 @@ export class CompletionCapability extends AbstractCapability {
 		const completions: CompletionItem[] = []
 
 		const foundNodes = fusionWorkspace.getNodesByType(PrototypePathSegment)
-		if (!foundNodes) return null
+		if (!foundNodes) return []
 
 		for (const fileNodes of foundNodes) {
 			for (const fileNode of fileNodes.nodes) {

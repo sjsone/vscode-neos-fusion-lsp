@@ -4,7 +4,7 @@ import { NeosFusionFormDefinitionNode } from './NeosFusionFormDefinitionNode';
 
 export class NeosFusionFormActionNode extends AbstractNode {
 	tagAttribute: TagAttributeNode
-	parent: NeosFusionFormDefinitionNode
+	parent!: NeosFusionFormDefinitionNode
 
 	constructor(tagAttribute: TagAttributeNode) {
 		super(tagAttribute["position"])
