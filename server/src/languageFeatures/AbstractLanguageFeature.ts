@@ -1,10 +1,9 @@
-import { InlayHintParams } from 'vscode-languageserver/node'
 import { AbstractFunctionality } from '../common/AbstractFunctionality'
-import { LanguageFeatureContext } from './LanguageFeatureContext'
+import { AbstractLanguageFeatureParams, LanguageFeatureContext } from './LanguageFeatureContext'
 
-export abstract class AbstractLanguageFeature extends AbstractFunctionality {
+export abstract class AbstractLanguageFeature<Params extends AbstractLanguageFeatureParams> extends AbstractFunctionality {
 
-	public execute(params) {
+	public execute(params: Params) {
 		try {
 			const context = this.buildContextFromParams(params)
 			if (!context) return null
@@ -17,7 +16,7 @@ export abstract class AbstractLanguageFeature extends AbstractFunctionality {
 
 	protected abstract run(languageFeatureContext: LanguageFeatureContext): any
 
-	protected buildContextFromParams(params: InlayHintParams): LanguageFeatureContext {
+	protected buildContextFromParams(params: Params): null | LanguageFeatureContext {
 		const uri = params.textDocument.uri
 
 		this.logDebug(` ${params.textDocument.uri}`)

@@ -63,7 +63,7 @@ export class XLIFFTranslationFile extends Logger {
 			const position = getLineNumberOfChar(xmlText, offset, this.uri)
 
 			this.transUnits.set(transUnit["@_id"], {
-				source: this.getTextFromSourceOrTarget(transUnit.source),
+				source: this.getTextFromSourceOrTarget(transUnit.source)!,
 				target: this.getTextFromSourceOrTarget(transUnit.target),
 				id: transUnit["@_id"],
 				position,
@@ -95,8 +95,8 @@ export class XLIFFTranslationFile extends Logger {
 		const relativePath = NodePath.relative(basePath, filePath)
 		const sourceParts = relativePath.split(NodePath.sep)
 
-		const language = sourceParts.shift()
-		const translationFileName = sourceParts.pop()
+		const language = sourceParts.shift()!
+		const translationFileName = sourceParts.pop()!
 		sourceParts.push(NodePath.parse(translationFileName).name)
 
 		const translationFile = new XLIFFTranslationFile(neosPackage, filePath, language, sourceParts)

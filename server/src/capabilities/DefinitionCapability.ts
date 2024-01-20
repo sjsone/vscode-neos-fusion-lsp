@@ -43,9 +43,9 @@ export interface ActionUriDefinition {
 export class DefinitionCapability extends AbstractCapability {
 
 	protected run(context: CapabilityContext<AbstractNode>) {
-		// TODO: `I18n.translate('Neos.RedirectHandler.Ui:Modules:action.export')` resolve translation id to `.xlf` file or even `trans-unit`
-
 		const { workspace, parsedFile, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
+		if (!foundNodeByLine) return null
+
 		const node = foundNodeByLine.getNode()
 
 		this.logDebug(`node type "${foundNodeByLine.getNode().constructor.name}"`)
@@ -181,7 +181,7 @@ export class DefinitionCapability extends AbstractCapability {
 		}]
 
 		return [{
-			uri: segment.uri,
+			uri: segment.uri!,
 			range: segment.statement.path.segments[0].linePositionedNode.getPositionAsRange()
 		}]
 	}
@@ -269,6 +269,8 @@ export class DefinitionCapability extends AbstractCapability {
 		if (!(node.operation instanceof ValueAssignment)) return null
 
 		const foundNodes = parsedFile.getNodesByPosition(context.params.position)
+		if (!foundNodes) return null
+
 		const actionUriPartNode = <LinePositionedNode<ActionUriActionNode | ActionUriControllerNode>>foundNodes.find(positionedNode => (positionedNode.getNode() instanceof ActionUriActionNode || positionedNode.getNode() instanceof ActionUriControllerNode))
 		if (actionUriPartNode === undefined) return null
 
@@ -281,6 +283,8 @@ export class DefinitionCapability extends AbstractCapability {
 	getTagAttributeDefinition(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<TagAttributeNode>, context: ParsedFileCapabilityContext<TagAttributeNode>): null | LocationLink[] {
 		const node = foundNodeByLine.getNode()
 		const tagNode = findParent(node, TagNode)
+		if (!tagNode) return []
+
 		const locationLinks: LocationLink[] = []
 		const nodePositionBegin = foundNodeByLine.getBegin()
 		const originSelectionRange = {
@@ -293,6 +297,8 @@ export class DefinitionCapability extends AbstractCapability {
 
 		for (const property of LegacyNodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace, true)) {
 			if (getObjectIdentifier(property.statement) !== node.name) continue
+			if (!property.uri) continue
+
 			locationLinks.push({
 				targetUri: property.uri,
 				targetRange: property.statement.linePositionedNode.getPositionAsRange(),
@@ -302,6 +308,7 @@ export class DefinitionCapability extends AbstractCapability {
 		}
 
 		const foundNodes = parsedFile.getNodesByPosition(context.params.position)
+		if (!foundNodes) return locationLinks
 
 		const neosFusionFormPartNode = <LinePositionedNode<NeosFusionFormActionNode | NeosFusionFormControllerNode>>foundNodes.find(positionedNode => (positionedNode.getNode() instanceof NeosFusionFormActionNode || positionedNode.getNode() instanceof NeosFusionFormControllerNode))
 		if (neosFusionFormPartNode !== undefined) {

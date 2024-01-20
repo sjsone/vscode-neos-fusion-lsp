@@ -27,7 +27,6 @@ class ActionUriService extends Logger {
 
 	public hasPrototypeNameActionUri(prototypeName: string, workspace: FusionWorkspace) {
 		const actionUriBasePrototypes = ["Neos.Fusion:ActionUri", "Neos.Fusion:UriBuilder", "Neos.Neos:Plugin"]
-		// TODO: cache prototypes which have prototypeActionUris
 		for (const actionUriBasePrototype of actionUriBasePrototypes) {
 			if (NodeService.isPrototypeOneOf(prototypeName, actionUriBasePrototype, workspace)) return true
 		}
@@ -124,12 +123,12 @@ class ActionUriService extends Logger {
 
 	protected buildBaseActionUriDefinitionFromActionUriDefinitionNode(actionUriDefinitionNode: ActionUriDefinitionNode) {
 		let actionUriDefinition = {
-			package: null as string,
-			controller: actionUriDefinitionNode.controller?.name?.value ?? null as string,
-			action: actionUriDefinitionNode.action?.name?.value ?? null as string
+			package: <string><unknown>null,
+			controller: actionUriDefinitionNode.controller?.name?.value ?? <string><unknown>null,
+			action: actionUriDefinitionNode.action?.name?.value ?? <string><unknown>null
 		}
 
-		for (const statement of actionUriDefinitionNode.statement.block.statementList.statements) {
+		for (const statement of actionUriDefinitionNode.statement.block!.statementList.statements) {
 			if (!(statement instanceof ObjectStatement)) continue
 			if (!(statement.operation instanceof ValueAssignment)) continue
 			if (!(statement.operation.pathValue instanceof StringValue)) continue
@@ -143,9 +142,9 @@ class ActionUriService extends Logger {
 
 	protected buildBaseActionUriDefinitionFromFusionFormDefinitionNode(neosFusionFormDefinitionNode: NeosFusionFormDefinitionNode) {
 		let actionUriDefinition = {
-			package: null as string,
-			controller: neosFusionFormDefinitionNode.controller?.tagAttribute ? this.getTagAttributeValue(neosFusionFormDefinitionNode.controller?.tagAttribute) : null as string,
-			action: neosFusionFormDefinitionNode.action?.tagAttribute ? this.getTagAttributeValue(neosFusionFormDefinitionNode.action?.tagAttribute) : null as string
+			package: <string><unknown>null,
+			controller: neosFusionFormDefinitionNode.controller?.tagAttribute ? this.getTagAttributeValue(neosFusionFormDefinitionNode.controller?.tagAttribute) : <string><unknown>null,
+			action: neosFusionFormDefinitionNode.action?.tagAttribute ? this.getTagAttributeValue(neosFusionFormDefinitionNode.action?.tagAttribute) : <string><unknown>null
 		}
 
 		for (const attribute of neosFusionFormDefinitionNode.tag["attributes"]) {
@@ -153,7 +152,7 @@ class ActionUriService extends Logger {
 			if (typeof attribute.value !== "string") continue
 			if (attribute.name !== "form.target.package") continue
 
-			actionUriDefinition.package = this.getTagAttributeValue(attribute)
+			actionUriDefinition.package = <string><unknown>this.getTagAttributeValue(attribute)
 		}
 
 		return actionUriDefinition

@@ -23,7 +23,6 @@ import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
 import { AbstractCapability } from './AbstractCapability';
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext';
 
-// TODO: Implement cache
 export class DocumentSymbolCapability extends AbstractCapability {
 	protected noPositionedNode: boolean = true
 
@@ -101,7 +100,7 @@ export class DocumentSymbolCapability extends AbstractCapability {
 		return DocumentSymbol.create(node.identifier, detail, kind, range, range, symbols)
 	}
 
-	protected createDocumentSymbolFromPositionedObjectStatement(node: ObjectStatement) {
+	protected createDocumentSymbolFromPositionedObjectStatement(node: ObjectStatement): null | DocumentSymbol {
 		const firstSegment = node.path.segments[0]
 		const range = firstSegment.linePositionedNode.getPositionAsRange()
 
@@ -157,6 +156,8 @@ export class DocumentSymbolCapability extends AbstractCapability {
 
 		if (value instanceof NullValue) return { detail: 'NULL', kind: SymbolKind.Null }
 		if (value instanceof BoolValue) return { detail: value.value ? 'true' : 'false', kind: SymbolKind.Boolean }
+
+		return { detail: undefined, kind: SymbolKind.Variable }
 	}
 
 	protected getKindAndDetailForEelExpressionValue(value: EelExpressionValue) {

@@ -41,11 +41,8 @@ export const createNodeTypeFileAction = (languageServer: LanguageServer, params:
 
 		const newFileUri = pathToUri(newFilePath)
 
-		// TODO: Make template editable/configurable
-		// TODO: Predict Mixins/SuperTypes
-
 		const template = workspace.getConfiguration().code.actions.createNodeTypeConfiguration.template
-		const variables = {
+		const variables: { [key: string]: string } = {
 			"{nodeTypeName}": nodeTypeName
 		}
 

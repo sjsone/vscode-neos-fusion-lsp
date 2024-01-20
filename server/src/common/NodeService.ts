@@ -86,7 +86,6 @@ class NodeService {
 	}
 
 	public isPrototypeOneOf(prototypeName: string, oneOf: string, workspace: FusionWorkspace) {
-		// TODO: cache
 		if (prototypeName === oneOf) return true
 
 		const prototypeConfiguration = workspace.mergedArrayTree?.__prototypes?.[prototypeName]

@@ -15,6 +15,8 @@ export class FusionFileChangeHandler extends AbstractFileChangeHandler {
 		}
 
 		const neosPackage = workspace.neosWorkspace.getPackageByUri(fileEvent.uri)
+		if (!neosPackage) return
+
 		workspace.addParsedFileFromPath(uriToPath(fileEvent.uri), neosPackage)
 		workspace.buildMergedArrayTree()
 		this.logDebug(`Added new ParsedFusionFile ${fileEvent.uri}`)

@@ -3,8 +3,8 @@ import { NodePosition } from 'ts-fusion-parser/out/common/NodePosition'
 
 export class ResourceUriNode extends AbstractNode {
 	protected identifier: string
-	protected namespace: string
-	protected relativePath: string
+	protected namespace!: string
+	protected relativePath!: string
 
 	constructor(identifier: string, position: NodePosition) {
 		super(position)

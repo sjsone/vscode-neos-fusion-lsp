@@ -29,7 +29,7 @@ export class NeosPackage extends Logger {
 	protected composerJson: any
 
 	protected namespaces: Map<string, NeosPackageNamespace> = new Map()
-	protected configuration: FlowConfiguration
+	protected configuration!: FlowConfiguration
 	protected eelHelpers: EELHelperToken[] = []
 
 	protected debug: boolean
@@ -69,7 +69,7 @@ export class NeosPackage extends Logger {
 		// const found = this.configuration.search("Neos.Flow.core")
 		// if (found.length > 1) this.logInfo("Test found", found)
 
-		const defaultNeosFusionContext = this.configuration.get<{}>("Neos.Fusion.defaultContext")
+		const defaultNeosFusionContext = this.configuration.get<{ [key: string]: any }>("Neos.Fusion.defaultContext")
 		if (!defaultNeosFusionContext) return undefined
 
 		this.logVerbose("Found EEL-Helpers:")
@@ -99,7 +99,7 @@ export class NeosPackage extends Logger {
 
 	extractFqcnAndStaticMethodFromDefaultContextEntry(path: string) {
 		const staticMethodRegex = /^(.*?)(?:::(.*))?$/
-		const match = staticMethodRegex.exec(this.trimLeadingBackslash(path))
+		const match = staticMethodRegex.exec(this.trimLeadingBackslash(path))!
 		return {
 			fqcn: match[1],
 			staticMethod: match[2]
@@ -136,13 +136,13 @@ export class NeosPackage extends Logger {
 		return this.eelHelpers
 	}
 
-	getName() {
+	getName(): string {
 		return this.composerJson.name
 	}
 
 	getPackageName() {
 		const packageKey = this.composerJson.extra?.neos?.["package-key"]
-		return packageKey ?? this.getName().split("/").map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('.')
+		return packageKey ?? this.getName().split(/[\/-]+/).map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('.')
 	}
 
 	hasName(name: string) {

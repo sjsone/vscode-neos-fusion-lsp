@@ -44,9 +44,8 @@ function sortSemanticTokenConstructsByLineAndCharacter(constructs: SemanticToken
 	})
 }
 
-//TODO: Implement cache 
 //TODO: Consolidate with DefinitionCapability::getControllerActionDefinition
-export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
+export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<SemanticTokensParams> {
 
 	static TokenTypes = [
 		'namespace', 'type',
@@ -115,6 +114,8 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 			const node = neosFusionFormDefinitionNode.getNode()
 
 			for (const definition of [node.action, node.controller].filter(Boolean)) {
+				if (!definition) continue
+
 				const begin = definition.tagAttribute.linePositionedNode.getBegin()
 				semanticTokenConstructs.push({
 					position: {
@@ -131,7 +132,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 	}
 
 	protected * getSemanticTokenConstructsFromObjectStatement(objectStatement: ObjectStatement) {
-		for (const statement of objectStatement.block.statementList.statements) {
+		for (const statement of objectStatement.block!.statementList.statements) {
 			if (!(statement instanceof ObjectStatement)) continue
 			if (!(statement.operation instanceof ValueAssignment)) continue
 			if (!(statement.operation.pathValue instanceof StringValue)) continue
@@ -363,7 +364,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 		}))
 	}
 
-	protected generateForType<T extends AbstractNode>(type: new (...args: any) => T, languageFeatureContext: LanguageFeatureContext, createConstructCallback: (node: LinePositionedNode<T>) => SemanticTokenConstruct) {
+	protected generateForType<T extends AbstractNode>(type: new (...args: any) => T, languageFeatureContext: LanguageFeatureContext, createConstructCallback: (node: LinePositionedNode<T>) => undefined | SemanticTokenConstruct) {
 		const nodes = languageFeatureContext.parsedFile.getNodesByType(type)
 		if (!nodes) return []
 
@@ -371,7 +372,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature {
 			const value = createConstructCallback(current)
 			if (value) prev.push(value)
 			return prev
-		}, [])
+		}, [] as SemanticTokenConstruct[])
 	}
 
 	protected getTypesAndModifier(identifier: string): { type: TokenTypes, modifier: TokenModifiers } {

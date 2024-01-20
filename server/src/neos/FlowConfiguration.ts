@@ -37,11 +37,11 @@ export class FlowConfiguration extends Logger {
 		}
 	}
 
-	get<T extends ParsedYaml>(path: string | string[], settingsConfiguration = this.settingsConfiguration): T {
+	get<T extends ParsedYaml>(path: string | string[], settingsConfiguration = this.settingsConfiguration): T | undefined {
 		if (settingsConfiguration === undefined || settingsConfiguration === null) return undefined
 		if (!Array.isArray(path)) path = path.split(".")
-		const key = path.shift()
-		const value = settingsConfiguration[key]
+		const key = path.shift()!
+		const value = (<{ [key: string]: any }>settingsConfiguration)[key]
 		if (path.length === 0) return value
 		if (value === undefined || value === null) return undefined
 		return (typeof value === 'object' && typeof value !== 'function') ? this.get(path, value) : undefined
