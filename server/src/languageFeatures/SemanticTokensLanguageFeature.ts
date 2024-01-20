@@ -26,6 +26,7 @@ import { AbstractLanguageFeature } from './AbstractLanguageFeature'
 import { LanguageFeatureContext } from './LanguageFeatureContext'
 import { FqcnNode } from '../fusion/node/FqcnNode'
 import { NodeService } from '../common/NodeService'
+import { SemanticTokensParams } from 'vscode-languageserver'
 
 export interface SemanticTokenConstruct {
 	position: LinePosition

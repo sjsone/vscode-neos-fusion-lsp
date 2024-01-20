@@ -43,6 +43,7 @@ import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFe
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { FusionDocument } from './main'
 import { ParsedYaml } from './neos/FlowConfigurationFile'
+import { AbstractLanguageFeatureParams } from './languageFeatures/LanguageFeatureContext'
 
 
 const CodeActions = [
@@ -156,6 +157,8 @@ export class LanguageServer extends Logger {
 
 		this.connection.onRequest("custom/neosContexts/get", () => {
 			const contexts = this.fusionWorkspaces[0].neosWorkspace.configurationManager.getContexts()
+			if (!contexts) return
+
 			const selectedContext = this.fusionWorkspaces[0].neosWorkspace.configurationManager.getContextPath()
 			return contexts.map(context => ({ context, selected: selectedContext === context }))
 		})

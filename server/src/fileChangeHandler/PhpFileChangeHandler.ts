@@ -20,6 +20,7 @@ export class PhpFileChangeHandler extends AbstractFileChangeHandler {
 
 				const namespace = helper.namespace
 				const classDefinition = namespace.getClassDefinitionFromFilePathAndClassName(uriToPath(helper.uri), helper.className, helper.pathParts)
+				if (!classDefinition) continue
 
 				this.logVerbose(`  Methods: then ${helper.methods.length} now ${classDefinition.methods.length}`)
 

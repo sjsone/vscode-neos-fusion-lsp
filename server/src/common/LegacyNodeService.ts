@@ -19,6 +19,7 @@ import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { LinePositionedNode } from './LinePositionedNode'
 import { abstractNodeToString, checkSemanticCommentIgnoreArguments, findParent, findUntil, getObjectIdentifier, parseSemanticComment, SemanticCommentType } from './util'
+import { AbstractStatement } from 'ts-fusion-parser/out/fusion/nodes/AbstractStatement'
 
 export class ExternalObjectStatement {
 	constructor(
@@ -78,8 +79,10 @@ class LegacyNodeService {
 
 	public * findPropertyDefinitionSegments(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace, includeOverwrites: boolean = false) {
 		const objectStatement = objectNode instanceof ObjectStatement ? objectNode : findParent(objectNode, ObjectStatement) // [props.foo]
+		if (!objectStatement) return
 
 		let statementList = findParent(objectNode, StatementList)
+		if (!statementList) return
 
 		// TODO: get object identifier and match it runtime-like against the property definition to check if it resolves 
 		const isObjectStatementRenderer = (
@@ -96,16 +99,16 @@ class LegacyNodeService {
 			if (parentObjectStatement) {
 				const prototypeName = this.getPrototypeNameFromObjectStatement(objectStatement)
 				if (prototypeName) {
-					yield* this.getInheritedPropertiesByPrototypeName(prototypeName, workspace, includeOverwrites)
+					yield* this.getInheritedPropertiesByPrototypeName(prototypeName, workspace!, includeOverwrites)
 				}
 			}
 		}
 
 		const parentPrototypeName = this.findPrototypeName(objectStatement)
 		if (parentPrototypeName) {
-			const potentialSurroundingPrototypeName = this.findPrototypeName(findParent(objectStatement, ObjectStatement))
+			const potentialSurroundingPrototypeName = this.findPrototypeName(findParent(objectStatement, ObjectStatement)!)
 			if (potentialSurroundingPrototypeName) {
-				yield* this.getInheritedPropertiesByPrototypeName(parentPrototypeName, workspace, includeOverwrites)
+				yield* this.getInheritedPropertiesByPrototypeName(parentPrototypeName, workspace!, includeOverwrites)
 			}
 		}
 
@@ -114,7 +117,7 @@ class LegacyNodeService {
 		const dsl = findParent(objectNode, DslExpressionValue)
 		if (dsl !== undefined) {
 			const parentPrototypeName = this.findParentPrototypeName(statementList)
-			wasComingFromRenderer = getObjectIdentifier(findParent(dsl, ObjectStatement)) === "renderer" && this.doesPrototypeOverrideProps(parentPrototypeName)
+			wasComingFromRenderer = getObjectIdentifier(findParent(dsl, ObjectStatement)!) === "renderer" && this.doesPrototypeOverrideProps(parentPrototypeName)
 		}
 
 		let traverseUpwards = true
@@ -135,7 +138,7 @@ class LegacyNodeService {
 				if (parentStatementList) {
 					const willBeInPrototypeSegmentList = parentStatementList["parent"] instanceof FusionFile
 					if (willBeInPrototypeSegmentList) {
-						const prototypeObjectStatement = findParent(statementList, ObjectStatement)
+						const prototypeObjectStatement = findParent(statementList, ObjectStatement)!
 						const operation = prototypeObjectStatement.operation
 
 						const prototypeSegment = operation instanceof ValueCopy ? operation.assignedObjectPath.objectPath.segments[0] : prototypeObjectStatement.path.segments[0]
@@ -170,7 +173,7 @@ class LegacyNodeService {
 			}
 
 			if (foundPropTypes !== undefined) {
-				for (const propType of foundPropTypes.block.statementList.statements) {
+				for (const propType of foundPropTypes.block!.statementList.statements) {
 					if (!(propType instanceof ObjectStatement)) continue
 					yield propType.path.segments[0]
 				}
@@ -227,9 +230,9 @@ class LegacyNodeService {
 			// TODO: Allow more than just `Neos.Fusion:DataStructure` as @apply value
 			if (pathValue.value !== "Neos.Fusion:DataStructure") return false
 			const objectStatement = findParent(pathValue, ObjectStatement)
-			if (!objectStatement.block) return false
-			const applyStatements = []
-			applyStatements.push(...objectStatement.block.statementList.statements)
+			if (!objectStatement?.block) return false
+			const applyStatements: ObjectStatement[] = []
+			applyStatements.push(...objectStatement.block!.statementList.statements as ObjectStatement[])
 			return applyStatements.length === 0 ? false : applyStatements
 		}
 
@@ -245,7 +248,7 @@ class LegacyNodeService {
 			appliedProps: false
 		}
 
-		const applyStatements = statement.operation instanceof ValueAssignment ? [statement] : statement.block.statementList.statements
+		const applyStatements = statement.operation instanceof ValueAssignment ? [statement] : statement.block!.statementList.statements
 		const foundStatements: any[] = []
 		for (const applyStatement of applyStatements) {
 			if (!(applyStatement instanceof ObjectStatement)) continue
@@ -281,6 +284,8 @@ class LegacyNodeService {
 	protected * getInheritedPropertiesByPrototypeNameFromPrototypePathSegments(name: string, workspace: FusionWorkspace, parsedFile: ParsedFusionFile, positionedNode: LinePositionedNode<PrototypePathSegment>, includeOverwrites: boolean = false, debug: boolean = false) {
 		if (positionedNode.getNode().identifier !== name) return
 		const objectStatement = findParent(positionedNode.getNode(), ObjectStatement)
+		if (!objectStatement) return
+
 		const operation = objectStatement.operation
 		if (operation instanceof ValueCopy) {
 			const prototypeSegment = operation.assignedObjectPath.objectPath.segments[0]
@@ -295,7 +300,7 @@ class LegacyNodeService {
 
 	public * getMetaPropTypesAsExternalObjectStatements(objectStatement: ObjectStatement, parsedFile: ParsedFusionFile) {
 		let foundPropTypes: ObjectStatement | undefined = undefined
-		for (const statement of objectStatement.block.statementList.statements) {
+		for (const statement of objectStatement.block!.statementList.statements) {
 			if (!(statement instanceof ObjectStatement)) continue
 
 			const firstPathSegment = statement.path.segments[0]
@@ -308,7 +313,7 @@ class LegacyNodeService {
 		}
 
 		if (foundPropTypes !== undefined) {
-			for (const propType of foundPropTypes.block.statementList.statements) {
+			for (const propType of foundPropTypes.block!.statementList.statements) {
 				if (!(propType instanceof ObjectStatement)) continue
 				yield new ExternalObjectStatement(propType, parsedFile.uri)
 			}
@@ -330,7 +335,20 @@ class LegacyNodeService {
 
 	public getSemanticCommentsNodeIsAffectedBy(node: AbstractNode, parsedFusionFile: ParsedFusionFile) {
 		const objectStatementText = abstractNodeToString(node)
+		if (!objectStatementText) {
+			return {
+				foundIgnoreComment: undefined,
+				foundIgnoreBlockComment: undefined
+			}
+		}
 		const affectedNodeBySemanticComment = this.getAffectedNodeBySemanticComment(node)
+		if (!affectedNodeBySemanticComment) {
+			return {
+				foundIgnoreComment: undefined,
+				foundIgnoreBlockComment: undefined
+			}
+		}
+
 		const affectedLine = affectedNodeBySemanticComment.linePositionedNode.getBegin().line - 1
 
 		if (!parsedFusionFile.nodesByLine) {

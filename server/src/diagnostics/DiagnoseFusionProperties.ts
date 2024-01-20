@@ -79,7 +79,7 @@ export function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 			data: {
 				quickAction: 'ignorable',
 				commentType: findParent(node, DslExpressionValue) ? 'afx' : 'fusion',
-				affectedNodeRange: LegacyNodeService.getAffectedNodeBySemanticComment(node).linePositionedNode.getPositionAsRange()
+				affectedNodeRange: LegacyNodeService.getAffectedNodeBySemanticComment(node)!.linePositionedNode.getPositionAsRange()
 			}
 		}
 

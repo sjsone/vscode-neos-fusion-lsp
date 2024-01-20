@@ -37,7 +37,7 @@ export class Cache<T> extends Logger {
 		return this.cacheStore.get(key)
 	}
 
-	public retrieve(key: CacheKey, retrieveCallback: () => T, tags: CacheTag[] = []): T {
+	public retrieve(key: CacheKey, retrieveCallback: () => T, tags: CacheTag[] = []): T | undefined {
 		this.logVerbose(`Retrieving for ${key.split('_')[0]} with tags`, tags)
 
 		if (!this.has(key)) {

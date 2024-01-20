@@ -52,6 +52,7 @@ export class FlowConfiguration extends Logger {
 
 		const results: { value: T, file: FlowConfigurationFile, range: Range }[] = []
 		const contextPath = this.neosWorkspace.configurationManager.getContextPath()
+		if (!contextPath) return results
 
 		for (const configurationFile of this.configurationFiles) {
 			if (filterByCurrentFlowContext && !configurationFile.isOfContext(contextPath)) continue
@@ -99,6 +100,7 @@ export class FlowConfiguration extends Logger {
 	protected readConfigurationsFromConfigurationFolder() {
 		this.settingsConfiguration = {}
 		const contextPath = this.neosWorkspace.configurationManager.getContextPath()
+		if (!contextPath) return
 
 		const settingsFolderPaths = [NodePath.join(this.folderPath, 'Configuration')]
 		for (const contextPathPart of contextPath.split('/')) {
