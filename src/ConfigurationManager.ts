@@ -107,7 +107,7 @@ export class ConfigurationManager extends Logger {
 			return list
 		}
 
-		return Object.values(this.allContexts.contexts).reduce((contexts, subContext) => [...contexts, ...getFromContexts(subContext)], [])
+		return Object.values(this.allContexts.contexts).reduce((contexts, subContext) => [...contexts, ...getFromContexts(subContext)], [] as string[])
 	}
 
 	search(searchPath: string) {
@@ -118,13 +118,17 @@ export class ConfigurationManager extends Logger {
 		return results
 	}
 
-	getMerged<T extends ParsedYaml>(path: string | string[], settingsConfiguration = this.mergedConfiguration): T {
+	getMerged<T extends ParsedYaml>(path: string | string[], settingsConfiguration = this.mergedConfiguration): T | undefined {
 		if (settingsConfiguration === undefined || settingsConfiguration === null) return undefined
 		if (!Array.isArray(path)) path = path.split(".")
+
 		const key = path.shift()
+		if (!key) return undefined
+
 		const value = settingsConfiguration[key]
 		if (path.length === 0) return value
 		if (value === undefined || value === null) return undefined
+
 		return (typeof value === 'object' && typeof value !== 'function') ? this.getMerged(path, value) : undefined
 	}
 }

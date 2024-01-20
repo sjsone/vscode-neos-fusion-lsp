@@ -10,10 +10,11 @@ class MergedArrayTreeService {
 
 	public buildPathForNode(node: AbstractNode): string[] {
 		let nodePath: string[] = []
+		let foundNode: AbstractNode | undefined = node
 		do {
-			nodePath.unshift(...this.abstractNodeToMergedArrayTreePath(node))
-			node = node["parent"]
-		} while (node)
+			nodePath.unshift(...this.abstractNodeToMergedArrayTreePath(foundNode))
+			foundNode = foundNode["parent"]
+		} while (foundNode)
 		return nodePath
 	}
 

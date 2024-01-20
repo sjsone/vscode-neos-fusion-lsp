@@ -71,7 +71,7 @@ export class FlowConfigurationFile extends Logger {
 				this.positionedParsedYaml = YamlParser.Parse(this.uri)
 			} catch (error) {
 				this.logVerbose("Error while parsing", this.uri, error)
-				this.positionedParsedYaml = null
+				this.positionedParsedYaml = undefined
 			}
 		}
 		if (!(this.positionedParsedYaml instanceof DocumentNode)) return undefined
