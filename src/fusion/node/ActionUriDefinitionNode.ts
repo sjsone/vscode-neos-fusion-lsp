@@ -1,7 +1,7 @@
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement';
-import { ActionUriActionNode } from './ActionUriActionNode';
-import { ActionUriControllerNode } from './ActionUriControllerNode';
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
+import { ActionUriActionNode } from './ActionUriActionNode'
+import { ActionUriControllerNode } from './ActionUriControllerNode'
 
 export class ActionUriDefinitionNode extends AbstractNode {
 	statement: ObjectStatement

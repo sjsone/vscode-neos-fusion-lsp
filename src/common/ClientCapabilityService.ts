@@ -1,4 +1,4 @@
-import { ClientCapabilities } from 'vscode-languageserver';
+import { ClientCapabilities } from 'vscode-languageserver'
 
 export class ClientCapabilityService {
 	constructor(

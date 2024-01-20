@@ -1,7 +1,7 @@
-import * as NodeFs from 'fs';
-import { CodeAction, CodeActionKind, CodeActionParams, Range, TextEdit } from 'vscode-languageserver';
-import { LanguageServer } from '../LanguageServer';
-import { getLinesFromLineDataCacheForFile, hasLineDataCacheFile, setLinesFromLineDataCacheForFile, uriToPath } from '../common/util';
+import * as NodeFs from 'fs'
+import { CodeAction, CodeActionKind, CodeActionParams, Range, TextEdit } from 'vscode-languageserver'
+import { LanguageServer } from '../LanguageServer'
+import { getLinesFromLineDataCacheForFile, hasLineDataCacheFile, setLinesFromLineDataCacheForFile, uriToPath } from '../common/util'
 
 async function getLinesFromUri(uri: string) {
 	const document = (await NodeFs.promises.readFile(uriToPath(uri))).toString()
@@ -10,7 +10,7 @@ async function getLinesFromUri(uri: string) {
 
 export const addFusionIgnoreSemanticCommentAction = async (languageServer: LanguageServer, params: CodeActionParams) => {
 	const uri = params.textDocument.uri
-	const codeActions: CodeAction[] = [];
+	const codeActions: CodeAction[] = []
 
 	for (const diagnostic of params.context.diagnostics) {
 		if (diagnostic.data?.quickAction !== "ignorable") continue

@@ -1,6 +1,6 @@
-import { FileChangeType, FileEvent } from 'vscode-languageserver';
-import { AbstractFileChangeHandler } from './AbstractFileChangeHandler';
-import { clearLineDataCacheForFile, uriToPath } from '../common/util';
+import { FileChangeType, FileEvent } from 'vscode-languageserver'
+import { AbstractFileChangeHandler } from './AbstractFileChangeHandler'
+import { clearLineDataCacheForFile, uriToPath } from '../common/util'
 
 export class PhpFileChangeHandler extends AbstractFileChangeHandler {
 	canHandleFileEvent(fileEvent: FileEvent): boolean {
@@ -30,10 +30,10 @@ export class PhpFileChangeHandler extends AbstractFileChangeHandler {
 	}
 
 	public async handleCreated(fileEvent: FileEvent) {
-		this.logError('handleCreated: Method not implemented.');
+		this.logError('handleCreated: Method not implemented.')
 	}
 
 	public async handleDeleted(fileEvent: FileEvent) {
-		this.logError('handleDeleted: Method not implemented.');
+		this.logError('handleDeleted: Method not implemented.')
 	}
 }

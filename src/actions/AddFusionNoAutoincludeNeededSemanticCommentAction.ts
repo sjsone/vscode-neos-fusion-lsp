@@ -1,8 +1,8 @@
-import { CodeAction, CodeActionKind, CodeActionParams, Position, TextEdit } from 'vscode-languageserver';
-import { LanguageServer } from '../LanguageServer';
+import { CodeAction, CodeActionKind, CodeActionParams, Position, TextEdit } from 'vscode-languageserver'
+import { LanguageServer } from '../LanguageServer'
 
 export const addFusionNoAutoincludeNeededSemanticCommentAction = async (languageServer: LanguageServer, params: CodeActionParams) => {
-	const codeActions: CodeAction[] = [];
+	const codeActions: CodeAction[] = []
 
 	for (const diagnostic of params.context.diagnostics) {
 		if (diagnostic.data?.quickAction !== "notAutoincludeNeeded") continue

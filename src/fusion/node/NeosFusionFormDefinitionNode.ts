@@ -1,7 +1,7 @@
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode';
-import { NeosFusionFormActionNode } from './NeosFusionFormActionNode';
-import { NeosFusionFormControllerNode } from './NeosFusionFormControllerNode';
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
+import { NeosFusionFormActionNode } from './NeosFusionFormActionNode'
+import { NeosFusionFormControllerNode } from './NeosFusionFormControllerNode'
 
 export class NeosFusionFormDefinitionNode extends AbstractNode {
 	tag: TagNode

@@ -30,7 +30,7 @@ export interface LineDataCacheEntry {
 
 const lineDataCache: Map<string, LineDataCacheEntry> = new Map
 
-const whitespaceRegex = /^[ \t]+/;
+const whitespaceRegex = /^[ \t]+/
 
 export function clearLineDataCacheForFile(textUri: string) {
     if (lineDataCache.has(textUri)) lineDataCache.delete(textUri)
@@ -53,7 +53,7 @@ export function buildEntryForLineDataCache(lines: string[]): LineDataCacheEntry 
     const lineIndents = []
 
     for (const line of lines) {
-        const match = RegExp(whitespaceRegex).exec(line);
+        const match = RegExp(whitespaceRegex).exec(line)
         lineIndents.push(match ? match[0] : '')
         lineLengths.push(line.length)
     }
