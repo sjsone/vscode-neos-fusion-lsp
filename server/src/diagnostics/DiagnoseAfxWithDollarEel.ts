@@ -1,11 +1,11 @@
-import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver';
-import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
-import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue';
-import { findParent } from '../common/util';
-import { InlineEelNode } from 'ts-fusion-parser/out/dsl/afx/nodes/InlineEelNode';
-import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode';
-import { TextNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TextNode';
-import { CommonDiagnosticHelper } from './CommonDiagnosticHelper';
+import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver'
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
+import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue'
+import { findParent } from '../common/util'
+import { InlineEelNode } from 'ts-fusion-parser/out/dsl/afx/nodes/InlineEelNode'
+import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
+import { TextNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TextNode'
+import { CommonDiagnosticHelper } from './CommonDiagnosticHelper'
 
 export function diagnoseAfxWithDollarEel(parsedFusionFile: ParsedFusionFile): Diagnostic[] {
 	const diagnostics: Diagnostic[] = []

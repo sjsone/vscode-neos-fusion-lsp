@@ -35,7 +35,7 @@ class ActionUriService extends Logger {
 	}
 
 	public resolveFusionFormDefinitionNode(tagAttributeNode: TagAttributeNode, neosFusionFormDefinitionNode: NeosFusionFormDefinitionNode, definitionTargetName: ActionUriPartTypes, workspace: FusionWorkspace, parsedFile: ParsedFusionFile) {
-		let actionUriDefinition = this.buildBaseActionUriDefinitionFromFusionFormDefinitionNode(neosFusionFormDefinitionNode)
+		const actionUriDefinition = this.buildBaseActionUriDefinitionFromFusionFormDefinitionNode(neosFusionFormDefinitionNode)
 		// TODO: implement tryToCompleteActionUriDefinitionPackage for `NeosFusionFormDefinitionNode`
 		// actionUriDefinition = this.tryToCompleteActionUriDefinitionPackage(tagAttributeNode, workspace, parsedFile, actionUriDefinition)
 		this.logDebug("Found Action URI Definition: ", actionUriDefinition)
@@ -122,7 +122,7 @@ class ActionUriService extends Logger {
 	}
 
 	protected buildBaseActionUriDefinitionFromActionUriDefinitionNode(actionUriDefinitionNode: ActionUriDefinitionNode) {
-		let actionUriDefinition = {
+		const actionUriDefinition = {
 			package: <string><unknown>null,
 			controller: actionUriDefinitionNode.controller?.name?.value ?? <string><unknown>null,
 			action: actionUriDefinitionNode.action?.name?.value ?? <string><unknown>null
@@ -141,7 +141,7 @@ class ActionUriService extends Logger {
 	}
 
 	protected buildBaseActionUriDefinitionFromFusionFormDefinitionNode(neosFusionFormDefinitionNode: NeosFusionFormDefinitionNode) {
-		let actionUriDefinition = {
+		const actionUriDefinition = {
 			package: <string><unknown>null,
 			controller: neosFusionFormDefinitionNode.controller?.tagAttribute ? this.getTagAttributeValue(neosFusionFormDefinitionNode.controller?.tagAttribute) : <string><unknown>null,
 			action: neosFusionFormDefinitionNode.action?.tagAttribute ? this.getTagAttributeValue(neosFusionFormDefinitionNode.action?.tagAttribute) : <string><unknown>null

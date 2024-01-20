@@ -1,4 +1,4 @@
-import { AbstractLanguageStatusBarItem } from './AbstractLanguageStatusBarItem';
+import { AbstractLanguageStatusBarItem } from './AbstractLanguageStatusBarItem'
 
 export class Reload extends AbstractLanguageStatusBarItem {
 	public getName(): string {

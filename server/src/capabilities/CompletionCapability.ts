@@ -46,7 +46,7 @@ export class CompletionCapability extends AbstractCapability {
 			switch (true) {
 				case foundNode instanceof PathSegment:
 					completions.push(BuiltInCompletions.prototypeCompletion)
-					break;
+					break
 				case foundNode instanceof TagNode:
 					completions.push(...this.getTagNodeCompletions(workspace, <LinePositionedNode<TagNode>>foundNodeByLine))
 					break

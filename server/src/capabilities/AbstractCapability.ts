@@ -4,7 +4,7 @@ import { CapabilityContext, WorkspacesCapabilityContext } from './CapabilityCont
 import { AbstractFunctionality } from '../common/AbstractFunctionality'
 
 export abstract class AbstractCapability extends AbstractFunctionality {
-	protected noPositionedNode: boolean = false
+	protected noPositionedNode = false
 
 	public execute(params: TextDocumentPositionParams | WorkspaceSymbolParams) {
 		try {

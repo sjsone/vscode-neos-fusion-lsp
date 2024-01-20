@@ -10,7 +10,7 @@ export interface LinePosition {
 declare module 'ts-fusion-parser/out/common/AbstractNode' {
 	interface AbstractNode {
 		// FIXME: do not use @ts-ignore
-		// @ts-ignore
+		// @ts-expect-error Because `this` cannot be resolved correctly by Typescript
 		linePositionedNode: LinePositionedNode<typeof this>;
 	}
 }

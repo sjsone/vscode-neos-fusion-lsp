@@ -1,7 +1,7 @@
-import { FileChangeType, FileEvent } from 'vscode-languageserver';
-import { AbstractFileChangeHandler } from './AbstractFileChangeHandler';
-import { clearLineDataCacheForFile, uriToPath } from '../common/util';
-import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile';
+import { FileChangeType, FileEvent } from 'vscode-languageserver'
+import { AbstractFileChangeHandler } from './AbstractFileChangeHandler'
+import { clearLineDataCacheForFile, uriToPath } from '../common/util'
+import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile'
 
 export class XlfFileChangeHandler extends AbstractFileChangeHandler {
 	canHandleFileEvent(fileEvent: FileEvent): boolean {

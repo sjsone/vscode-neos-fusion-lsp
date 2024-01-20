@@ -1,9 +1,9 @@
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { Position, Range, SymbolKind, WorkspaceSymbol } from 'vscode-languageserver';
-import { FusionWorkspace } from '../fusion/FusionWorkspace';
-import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
-import { AbstractCapability } from './AbstractCapability';
-import { CapabilityContext, WorkspacesCapabilityContext } from './CapabilityContext';
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { Position, Range, SymbolKind, WorkspaceSymbol } from 'vscode-languageserver'
+import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
+import { AbstractCapability } from './AbstractCapability'
+import { CapabilityContext, WorkspacesCapabilityContext } from './CapabilityContext'
 
 export class WorkspaceSymbolCapability extends AbstractCapability {
 	protected run(context: CapabilityContext<AbstractNode>) {

@@ -1,14 +1,14 @@
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue';
-import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment';
-import { TextDocumentEdit, TextEdit } from 'vscode-languageserver';
-import { LinePositionedNode } from '../common/LinePositionedNode';
-import { getPrototypeNameFromNode } from '../common/util';
-import { FusionWorkspace } from '../fusion/FusionWorkspace';
-import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
-import { AbstractCapability } from './AbstractCapability';
-import { ParsedFileCapabilityContext } from './CapabilityContext';
-import { RenamePrepareCapability } from './RenamePrepareCapability';
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
+import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
+import { TextDocumentEdit, TextEdit } from 'vscode-languageserver'
+import { LinePositionedNode } from '../common/LinePositionedNode'
+import { getPrototypeNameFromNode } from '../common/util'
+import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
+import { AbstractCapability } from './AbstractCapability'
+import { ParsedFileCapabilityContext } from './CapabilityContext'
+import { RenamePrepareCapability } from './RenamePrepareCapability'
 
 
 

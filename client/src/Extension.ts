@@ -94,7 +94,7 @@ export class Extension {
 	}
 
 	protected registerCommand(command: AbstractCommandConstructor) {
-		this.context.subscriptions.push(commands.registerCommand(command.Identifier, (...args: any[]) => (new command(this)).callback(...args)));
+		this.context.subscriptions.push(commands.registerCommand(command.Identifier, (...args: any[]) => (new command(this)).callback(...args)))
 	}
 
 	public deactivate() {
@@ -129,7 +129,7 @@ export class Extension {
 		return folder
 	}
 
-	public startClient(folder: WorkspaceFolder, inspect: boolean = false) {
+	public startClient(folder: WorkspaceFolder, inspect = false) {
 		const module = this.context.asAbsolutePath(path.join('server', 'out', 'main.js'))
 
 		const runOptions = { execArgv: [] }

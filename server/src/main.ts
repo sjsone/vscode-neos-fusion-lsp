@@ -17,7 +17,7 @@ import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokens
 import { RenameCapability } from './capabilities/RenameCapability'
 import { RenamePrepareCapability } from './capabilities/RenamePrepareCapability'
 
-export interface FusionDocument extends TextDocument { }
+export type FusionDocument = TextDocument
 
 // INFO: everything is debounced https://github.com/microsoft/vscode/issues/135453
 

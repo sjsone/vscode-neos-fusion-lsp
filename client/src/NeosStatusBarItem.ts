@@ -1,6 +1,6 @@
-import { EventEmitter } from "events";
-import { ExtensionContext, OutputChannel, StatusBarAlignment, window } from 'vscode';
-import { LanguageClient } from 'vscode-languageclient/node';
+import { EventEmitter } from "events"
+import { ExtensionContext, OutputChannel, StatusBarAlignment, window } from 'vscode'
+import { LanguageClient } from 'vscode-languageclient/node'
 
 class NeosStatusBarItem {
 	protected contextStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 100)
@@ -13,7 +13,7 @@ class NeosStatusBarItem {
 		// this.contextStatusBarItem.command = selectContextCommandId;
 		this.updateText("Development")
 		this.contextStatusBarItem.show()
-		subscriptions.push(this.contextStatusBarItem);
+		subscriptions.push(this.contextStatusBarItem)
 	}
 
 	updateText(name: string) {

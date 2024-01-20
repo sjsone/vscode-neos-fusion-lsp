@@ -98,7 +98,7 @@ export class HoverCapability extends AbstractCapability {
 			if (a.isSource && !b.isSource) return -1
 			if (!a.isSource && b.isSource) return 1
 			return 0
-		});
+		})
 
 		return translationMarkdowns.map(translationMarkdowns => translationMarkdowns.markdown).join("\n")
 	}

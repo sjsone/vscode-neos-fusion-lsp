@@ -1,13 +1,13 @@
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { CodeLens } from 'vscode-languageserver';
-import { NodeTypeService } from '../common/NodeTypeService';
-import { FusionWorkspace } from '../fusion/FusionWorkspace';
-import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
-import { AbstractCapability } from './AbstractCapability';
-import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext';
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { CodeLens } from 'vscode-languageserver'
+import { NodeTypeService } from '../common/NodeTypeService'
+import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
+import { AbstractCapability } from './AbstractCapability'
+import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 
 export class CodeLensCapability extends AbstractCapability {
-	protected noPositionedNode: boolean = true
+	protected noPositionedNode = true
 
 	protected run(context: CapabilityContext) {
 		const codeLenses: CodeLens[] = []
