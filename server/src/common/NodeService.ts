@@ -89,7 +89,7 @@ class NodeService {
 				if (prototype.identifier !== prototypeName) continue
 
 				if (!(objectStatement.operation instanceof ValueCopy)) continue
-				const copiedPrototype = objectStatement.operation["assignedObjectPath"].objectPath.segments[0]
+				const copiedPrototype = objectStatement.operation.assignedObjectPath.objectPath.segments[0]
 				if (!(copiedPrototype instanceof PrototypePathSegment)) continue
 				if (copiedPrototype.identifier === oneOf) return true
 				if (this.isPrototypeOneOf(copiedPrototype.identifier, oneOf, workspace)) return true
@@ -150,7 +150,7 @@ class NodeService {
 			if (!onlyWhenFoundApplyProps && wasComingFromRenderer) onlyWhenFoundApplyProps = true
 
 			const parentObjectNode = findParent(statementList, ObjectStatement)
-			const parentObjectIdentifier = parentObjectNode ? parentObjectNode.path.segments[0]["identifier"] : ""
+			const parentObjectIdentifier = parentObjectNode ? parentObjectNode.path.segments[0].identifier : ""
 			const isParentObjectMeta = parentObjectNode ? parentObjectNode.path.segments[0] instanceof MetaPathSegment : false
 			let foundApplyProps = false
 
@@ -158,7 +158,7 @@ class NodeService {
 			if (workspace !== undefined) {
 				const parentStatementList = findParent(statementList, StatementList)
 				if (parentStatementList) {
-					const willBeInPrototypeSegmentList = parentStatementList["parent"] instanceof FusionFile
+					const willBeInPrototypeSegmentList = parentStatementList.parent instanceof FusionFile
 					if (willBeInPrototypeSegmentList) {
 						const prototypeObjectStatement = findParent(statementList, ObjectStatement)
 						if (prototypeObjectStatement) {
@@ -213,7 +213,7 @@ class NodeService {
 				})
 				parentIdentifiersRenderer = true
 				if (rendererPrototype instanceof ObjectStatement && rendererPrototype.operation instanceof ValueAssignment && "value" in rendererPrototype.operation.pathValue) {
-					parentIdentifiersRenderer = this.doesPrototypeOverrideProps(rendererPrototype.operation.pathValue["value"] as string)
+					parentIdentifiersRenderer = this.doesPrototypeOverrideProps(rendererPrototype.operation.pathValue.value as string)
 				}
 			}
 
@@ -222,19 +222,19 @@ class NodeService {
 
 			traverseUpwards = !onlyWhenFoundApplyProps || foundApplyProps
 			statementList = findParent(statementList, StatementList)
-		} while (traverseUpwards && statementList && !(statementList["parent"] instanceof FusionFile))
+		} while (traverseUpwards && statementList && !(statementList.parent instanceof FusionFile))
 	}
 
 	public findPropertyDefinitionSegment(objectNode: ObjectNode, workspace?: FusionWorkspace, includeOverwrites: boolean = false) {
 		for (const segmentOrExternalStatement of this.findPropertyDefinitionSegments(objectNode, workspace, includeOverwrites)) {
 			if (segmentOrExternalStatement instanceof ExternalObjectStatement) {
-				if (segmentOrExternalStatement.statement.path.segments[0]["identifier"] === objectNode.path[1]["value"]) return segmentOrExternalStatement
+				if (segmentOrExternalStatement.statement.path.segments[0].identifier === objectNode.path[1].value) return segmentOrExternalStatement
 			}
 			if (!(segmentOrExternalStatement instanceof PathSegment)) continue
 			// TODO: Decide what to do with "renderer"
 			if (segmentOrExternalStatement.identifier === "renderer") continue
 
-			if (objectNode.path.length > 1 && segmentOrExternalStatement.identifier === objectNode.path[1]["value"]) {
+			if (objectNode.path.length > 1 && segmentOrExternalStatement.identifier === objectNode.path[1].value) {
 				return segmentOrExternalStatement
 			}
 		}
@@ -246,7 +246,7 @@ class NodeService {
 		if (pathValue instanceof EelExpressionValue) {
 			const appliedObjectNode = Array.isArray(pathValue.nodes) ? pathValue.nodes[0] : pathValue.nodes
 			if (!(appliedObjectNode instanceof ObjectNode)) return false
-			if (appliedObjectNode.path[0]["value"] === "props") return true
+			if (appliedObjectNode.path[0].value === "props") return true
 
 			return false
 		}
@@ -394,7 +394,7 @@ class NodeService {
 			const commentNode = positionedComment.getNode()
 			if (!this.affectsCommentTheProperty(objectStatementText, commentNode, SemanticCommentType.IgnoreBlock)) return false
 
-			const commentParent = commentNode["parent"]
+			const commentParent = commentNode.parent
 			return !!findUntil(node, parentNode => parentNode === commentParent)
 		})
 
@@ -405,7 +405,7 @@ class NodeService {
 	}
 
 	public getAffectedNodeBySemanticComment(node: AbstractNode) {
-		return node["parent"] instanceof TagAttributeNode ? findParent(node, TagNode) : node
+		return node.parent instanceof TagAttributeNode ? findParent(node, TagNode) : node
 	}
 }
 

@@ -50,7 +50,7 @@ class ActionUriService extends Logger {
 
 		const className = actionUriDefinition.controller.replace("/", "\\") + 'Controller'
 
-		for (const namespace of neosPackage["namespaces"].values()) {
+		for (const namespace of neosPackage.namespaces.values()) {
 			const range = tagAttributeNode.linePositionedNode.getPositionAsRange()
 			const definition = this.searchInNamespaceForControllerActionDefinition(range, definitionTargetName, namespace, className, actionUriDefinition.action)
 			if (definition) return definition
@@ -75,7 +75,7 @@ class ActionUriService extends Logger {
 
 		const className = actionUriDefinition.controller.replace("/", "\\") + 'Controller'
 
-		for (const namespace of neosPackage["namespaces"].values()) {
+		for (const namespace of neosPackage.namespaces.values()) {
 			const originSelectionRange = (<ValueAssignment>objectStatement.operation).pathValue.linePositionedNode.getPositionAsRange()
 			const definition = this.searchInNamespaceForControllerActionDefinition(originSelectionRange, definitionTargetName, namespace, className, actionUriDefinition.action)
 			if (definition) return definition
@@ -85,7 +85,7 @@ class ActionUriService extends Logger {
 	}
 
 	protected searchInNamespaceForControllerActionDefinition(originSelectionRange: Range, definitionTargetName: ActionUriPartTypes, namespace: NeosPackageNamespace, className: string, actionName: string) {
-		const fqcnParts = namespace["name"].split("\\").filter(Boolean)
+		const fqcnParts = namespace.name.split("\\").filter(Boolean)
 		fqcnParts.push('Controller')
 		fqcnParts.push(className)
 		const fqcn = fqcnParts.join('\\')
@@ -147,7 +147,7 @@ class ActionUriService extends Logger {
 			action: neosFusionFormDefinitionNode.action?.tagAttribute ? this.getTagAttributeValue(neosFusionFormDefinitionNode.action?.tagAttribute) : <string><unknown>null
 		}
 
-		for (const attribute of neosFusionFormDefinitionNode.tag["attributes"]) {
+		for (const attribute of neosFusionFormDefinitionNode.tag.attributes) {
 			if (!(attribute instanceof TagAttributeNode)) continue
 			if (typeof attribute.value !== "string") continue
 			if (attribute.name !== "form.target.package") continue

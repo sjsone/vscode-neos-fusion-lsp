@@ -9,17 +9,17 @@ export class ActionUriDefinitionNode extends AbstractNode {
 	controller?: ActionUriControllerNode
 
 	constructor(statement: ObjectStatement) {
-		super(statement["position"])
+		super(statement.position)
 		this.statement = statement
 	}
 
 	setAction(action: ActionUriActionNode) {
 		this.action = action
-		this.action["parent"] = this
+		this.action.parent = this
 	}
 
 	setController(controller: ActionUriControllerNode) {
 		this.controller = controller
-		this.controller["parent"] = this
+		this.controller.parent = this
 	}
 }

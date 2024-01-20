@@ -58,7 +58,7 @@ export class DocumentSymbolCapability extends AbstractCapability {
 
 			const parentStatementList = findParent(node, StatementList)
 			if (!parentStatementList) continue
-			if (!(parentStatementList["parent"] instanceof FusionFile)) continue
+			if (!(parentStatementList.parent instanceof FusionFile)) continue
 
 			const symbol = this.createDocumentSymbolFromPositionedNode(prototypeOverwrite, undefined, SymbolKind.Interface)
 			if (symbol) yield symbol
@@ -74,8 +74,8 @@ export class DocumentSymbolCapability extends AbstractCapability {
 			const parentStatementList = findParent(node, StatementList)
 
 			if (!parentStatementList) continue
-			if (!(parentStatementList["parent"] instanceof FusionFile)) continue
-			if (node["block"] !== undefined) continue
+			if (!(parentStatementList.parent instanceof FusionFile)) continue
+			if (node.block !== undefined) continue
 			if (!(node.path.segments[0] instanceof PrototypePathSegment)) continue
 
 			const symbol = this.createDocumentSymbolFromPositionedNode(objectStatement)

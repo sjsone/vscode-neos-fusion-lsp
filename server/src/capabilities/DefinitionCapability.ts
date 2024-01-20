@@ -112,7 +112,7 @@ export class DefinitionCapability extends AbstractCapability {
 
 		for (const otherParsedFile of workspace.parsedFiles) {
 			for (const otherNode of [...otherParsedFile.prototypeCreations, ...otherParsedFile.prototypeOverwrites]) {
-				if (otherNode.getNode()["identifier"] !== goToPrototypeName) continue
+				if (otherNode.getNode().identifier !== goToPrototypeName) continue
 				locations.push({
 					targetUri: otherParsedFile.uri,
 					targetRange: otherNode.getPositionAsRange(),
@@ -127,11 +127,11 @@ export class DefinitionCapability extends AbstractCapability {
 
 	getPropertyDefinitions(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<AbstractNode>): null | Location[] {
 		const node = <PathSegment | ObjectPathNode>foundNodeByLine.getNode()
-		const objectNode = node["parent"]
+		const objectNode = node.parent
 		if (!(objectNode instanceof ObjectNode)) return null
 
-		const isThisProperty = objectNode.path[0]["value"] === "this"
-		const isPropsProperty = objectNode.path[0]["value"] === "props"
+		const isThisProperty = objectNode.path[0].value === "this"
+		const isPropsProperty = objectNode.path[0].value === "props"
 
 		if ((!isThisProperty && !isPropsProperty) || objectNode.path.length === 1) {
 			// TODO: handle context properties
@@ -153,7 +153,7 @@ export class DefinitionCapability extends AbstractCapability {
 				if (!property.uri) continue
 
 				const firstPropertyPathSegment = property.statement.path.segments[0]
-				if (firstPropertyPathSegment["identifier"] === objectNode.path[1]["value"]) {
+				if (firstPropertyPathSegment.identifier === objectNode.path[1].value) {
 					return [{
 						uri: property.uri,
 						range: firstPropertyPathSegment.linePositionedNode.getPositionAsRange()
@@ -219,7 +219,7 @@ export class DefinitionCapability extends AbstractCapability {
 	}
 
 	getFqcnDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<FqcnNode>) {
-		const classDefinition: ClassDefinition = foundNodeByLine.getNode()["classDefinition"]
+		const classDefinition: ClassDefinition = foundNodeByLine.getNode().classDefinition
 		if (classDefinition === undefined) return null
 
 		return [{
@@ -275,7 +275,7 @@ export class DefinitionCapability extends AbstractCapability {
 		const actionUriPartNode = <LinePositionedNode<ActionUriActionNode | ActionUriControllerNode>>foundNodes.find(positionedNode => (positionedNode.getNode() instanceof ActionUriActionNode || positionedNode.getNode() instanceof ActionUriControllerNode))
 		if (actionUriPartNode === undefined) return null
 
-		const actionUriDefinitionNode = actionUriPartNode.getNode()["parent"]
+		const actionUriDefinitionNode = actionUriPartNode.getNode().parent
 		const definitionTargetName = actionUriPartNode.getNode() instanceof ActionUriControllerNode ? ActionUriPartTypes.Controller : ActionUriPartTypes.Action
 		return ActionUriService.resolveActionUriDefinitionNode(node, actionUriDefinitionNode, definitionTargetName, workspace, parsedFile)
 	}
@@ -296,7 +296,7 @@ export class DefinitionCapability extends AbstractCapability {
 			}
 		}
 
-		for (const property of NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace, true)) {
+		for (const property of NodeService.getInheritedPropertiesByPrototypeName(tagNode.name, workspace, true)) {
 			if (getObjectIdentifier(property.statement) !== node.name) continue
 			if (!property.uri) continue
 
@@ -313,7 +313,7 @@ export class DefinitionCapability extends AbstractCapability {
 
 		const neosFusionFormPartNode = <LinePositionedNode<NeosFusionFormActionNode | NeosFusionFormControllerNode>>foundNodes.find(positionedNode => (positionedNode.getNode() instanceof NeosFusionFormActionNode || positionedNode.getNode() instanceof NeosFusionFormControllerNode))
 		if (neosFusionFormPartNode !== undefined) {
-			const neosFusionFormDefinitionNode = neosFusionFormPartNode.getNode()["parent"]
+			const neosFusionFormDefinitionNode = neosFusionFormPartNode.getNode().parent
 
 			const definitionTargetName = neosFusionFormPartNode.getNode() instanceof NeosFusionFormActionNode ? ActionUriPartTypes.Action : ActionUriPartTypes.Controller
 

@@ -23,7 +23,7 @@ export abstract class AbstractCapability extends AbstractFunctionality {
 	protected buildContextFromParams(params: TextDocumentPositionParams | WorkspaceSymbolParams): null | CapabilityContext<AbstractNode> {
 		if (!('textDocument' in params)) {
 			return {
-				workspaces: this.languageServer["fusionWorkspaces"],
+				workspaces: this.languageServer.fusionWorkspaces,
 				params
 			} as WorkspacesCapabilityContext
 		}

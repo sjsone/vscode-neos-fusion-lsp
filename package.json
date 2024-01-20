@@ -329,7 +329,9 @@
         "eslint": "^8.36.0",
         "typescript": "^5.0.2"
     },
-    "dependencies": {},
+    "dependencies": {
+        "ts-fusion-parser": "^0.1.39"
+    },
     "repository": {
         "type": "git",
         "url": "git+ssh://git@github.com/sjsone/vscode-neos-fusion-lsp.git"

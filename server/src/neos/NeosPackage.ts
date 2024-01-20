@@ -23,13 +23,13 @@ export interface EELHelperToken {
 }
 
 export class NeosPackage extends Logger {
-	protected path: string
-	protected neosWorkspace: NeosWorkspace
+	public path: string
+	public neosWorkspace: NeosWorkspace
 
-	protected composerJson: any
+	public composerJson: any
 
-	protected namespaces: Map<string, NeosPackageNamespace> = new Map()
-	protected configuration!: FlowConfiguration
+	public namespaces: Map<string, NeosPackageNamespace> = new Map()
+	public configuration!: FlowConfiguration
 	protected eelHelpers: EELHelperToken[] = []
 
 	protected debug: boolean
@@ -66,7 +66,7 @@ export class NeosPackage extends Logger {
 	}
 
 	public initEelHelper() {
-		if (this.configuration["settingsConfiguration"] === null) return undefined
+		if (this.configuration.settingsConfiguration === null) return undefined
 
 		const defaultNeosFusionContext = this.configuration.get<{ [key: string]: any }>("Neos.Fusion.defaultContext")
 		if (!defaultNeosFusionContext) return undefined

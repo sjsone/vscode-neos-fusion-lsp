@@ -64,7 +64,7 @@ export class LanguageServer extends Logger {
 
 	protected connection: _Connection
 	protected documents: TextDocuments<FusionDocument>
-	protected fusionWorkspaces: FusionWorkspace[] = []
+	public fusionWorkspaces: FusionWorkspace[] = []
 	protected clientCapabilityService!: ClientCapabilityService
 
 	protected functionalityInstances: Map<new (...args: any[]) => AbstractFunctionality, AbstractFunctionality> = new Map()

@@ -121,7 +121,7 @@ export class ParsedFusionFile extends Logger {
 	}
 
 	addNode(node: AbstractNode, text: string) {
-		if (node["position"] === undefined) return
+		if (node.position === undefined) return
 		const nodeByLine = new LinePositionedNode(node, text, this.uri)
 
 		for (let line = nodeByLine.getBegin().line; line <= nodeByLine.getEnd().line; line++) {
@@ -153,7 +153,7 @@ export class ParsedFusionFile extends Logger {
 	}
 
 	protected extractPackageAndControllerNameFromFusionRoute(segments: AbstractPathSegment[]) {
-		const fusionRoute = segments.map(s => s["identifier"]).join('.')
+		const fusionRoute = segments.map(s => s.identifier).join('.')
 		const ownPackageNameWithDot = this.neosPackage.getPackageName() + '.'
 
 		if (fusionRoute.startsWith(ownPackageNameWithDot)) {
@@ -169,9 +169,9 @@ export class ParsedFusionFile extends Logger {
 		}
 
 
-		const packageName = segments.slice(0, 2).map(s => s["identifier"]).join('.')
+		const packageName = segments.slice(0, 2).map(s => s.identifier).join('.')
 
-		const fullControllerName = segments.slice(2).map(s => s["identifier"]).join('/')
+		const fullControllerName = segments.slice(2).map(s => s.identifier).join('/')
 		const controllerName = fullControllerName.replace(/(Controller)$/, "")
 
 		return {

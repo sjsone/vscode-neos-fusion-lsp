@@ -8,7 +8,7 @@ export class NeosWorkspace extends Logger {
 	protected packages: Map<string, NeosPackage> = new Map()
 
 	constructor(
-		protected fusionWorkspace: FusionWorkspace,
+		public fusionWorkspace: FusionWorkspace,
 		protected workspacePath: string,
 		name: string
 	) {
@@ -22,7 +22,7 @@ export class NeosWorkspace extends Logger {
 			this.packages.set(neosPackage.getName(), neosPackage)
 		} catch (error) {
 			if (error instanceof Error) {
-				if ("code" in error && error["code"] === 'ENOENT') {
+				if ("code" in error && error.code === 'ENOENT') {
 					this.logError('File not found!', packagePath)
 					this.logError("    Error: ", error)
 				} else {
@@ -46,7 +46,7 @@ export class NeosWorkspace extends Logger {
 	getPackageByUri(uri: string): NeosPackage | undefined {
 		const uriPath = uriToPath(uri)
 		for (const neosPackage of this.packages.values()) {
-			if (uriPath.startsWith(neosPackage["path"])) return neosPackage
+			if (uriPath.startsWith(neosPackage.path)) return neosPackage
 		}
 
 		return undefined

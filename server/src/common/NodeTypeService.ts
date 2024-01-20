@@ -10,7 +10,7 @@ class NodeTypeService {
 		const neosPackage = workspace.neosWorkspace.getPackageByUri(parsedFile.uri)
 		if (!neosPackage) return []
 
-		const nodeTypeDefinitions = neosPackage["configuration"]["nodeTypeDefinitions"]
+		const nodeTypeDefinitions = neosPackage.configuration.nodeTypeDefinitions
 		if (nodeTypeDefinitions.length === 0) return []
 
 		const definitions: {

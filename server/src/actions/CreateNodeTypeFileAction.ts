@@ -36,7 +36,7 @@ export const createNodeTypeFileAction = (languageServer: LanguageServer, params:
 		const neosPackage = workspace.neosWorkspace.getPackageByUri(uri)
 		if (!neosPackage) continue
 
-		const newFilePath = getNewFilePath(neosPackage["path"], nodeTypeName)
+		const newFilePath = getNewFilePath(neosPackage.path, nodeTypeName)
 		if (NodeFs.existsSync(newFilePath)) continue
 
 		const newFileUri = pathToUri(newFilePath)

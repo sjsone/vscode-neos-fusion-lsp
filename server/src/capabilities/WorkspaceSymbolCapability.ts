@@ -56,7 +56,7 @@ export class WorkspaceSymbolCapability extends AbstractCapability {
 		const symbols: WorkspaceSymbol[] = []
 
 		for (const neosPackage of workspace.neosWorkspace.getPackages().values()) {
-			const nodeTypeDefinitions = neosPackage["configuration"]["nodeTypeDefinitions"]
+			const nodeTypeDefinitions = neosPackage.configuration.nodeTypeDefinitions
 			if (!nodeTypeDefinitions) continue
 			for (const nodeTypeDefinition of nodeTypeDefinitions) {
 				symbols.push({
