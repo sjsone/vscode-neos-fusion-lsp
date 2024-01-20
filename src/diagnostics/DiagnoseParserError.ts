@@ -16,7 +16,7 @@ export const diagnoseParserError = (parsedFusionFile: ParsedFusionFile) => {
 		if (firstError === undefined) return error
 		if ((firstError as ParserError).getPosition() > error.getPosition()) return error
 		return firstError
-	}, undefined as ParserError)
+	}, <ParserError><unknown>undefined)
 	if (firstError === undefined) return diagnostics
 
 	const position = firstError['linePosition']

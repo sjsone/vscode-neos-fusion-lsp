@@ -19,7 +19,7 @@ function* getDiagnosticFromEelHelper(positionedNode: LinePositionedNode<PhpClass
 	const method = eelHelper.methods.find(method => method.valid(node.identifier))
 	if (!method) return
 
-	if (NodeService.isNodeAffectedByIgnoreComment(findParent(node, ObjectNode), parsedFusionFile)) return
+	if (NodeService.isNodeAffectedByIgnoreComment(findParent(node, ObjectNode)!, parsedFusionFile)) return
 
 	for (const parameterIndex in method.parameters) {
 		const parameter = method.parameters[parameterIndex]

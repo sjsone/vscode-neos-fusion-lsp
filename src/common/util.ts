@@ -70,7 +70,7 @@ export function clearLineDataCache() {
 
 export function getLineNumberOfChar(data: string, index: number, textUri: string) {
     if (!lineDataCache.has(textUri)) setLinesFromLineDataCacheForFile(textUri, data.split('\n'))
-    const entry = lineDataCache.get(textUri)
+    const entry = lineDataCache.get(textUri)!
     let totalLength = 0
     let column = index
     let i = 0
@@ -153,7 +153,7 @@ export function isPrototypeDeprecated(workspace: FusionWorkspace, prototypeName:
     return deprecated
 }
 
-export function mergeObjects(source: unknown, target: unknown) {
+export function mergeObjects(source: { [key: string]: any }, target: { [key: string]: any }) {
     // TODO: rewrite mergeObjects
     // https://gist.github.com/ahtcx/0cd94e62691f539160b32ecda18af3d6?permalink_comment_id=3889214#gistcomment-3889214
     for (const [key, val] of Object.entries(source)) {
@@ -193,7 +193,8 @@ export function abstractNodeToString(node: AbstractEelNode | AbstractNode): stri
     // TODO: This should be node.toString() but for now...
     if (node instanceof StringValue) return `"${node["value"]}"`
     if (node instanceof LiteralStringNode) return node["quotationType"] + node["value"] + node["quotationType"]
-    if (node instanceof LiteralNumberNode || node instanceof FusionObjectValue) return node["value"]
+    if (node instanceof LiteralNumberNode) return node["value"]
+    if (node instanceof FusionObjectValue) return node["value"]
     if (node instanceof EelExpressionValue) {
         if (Array.isArray(node.nodes)) return undefined
         return `\${${abstractNodeToString(<AbstractEelNode>node.nodes)}}`
@@ -246,7 +247,7 @@ export interface ParsedSemanticComment {
     arguments: string[]
 }
 
-export function parseSemanticComment(comment: string): ParsedSemanticComment {
+export function parseSemanticComment(comment: string): undefined | ParsedSemanticComment {
     const semanticCommentRegex = /^ *@fusion-([a-zA-Z0-9_-]+) *(?:\[(.*)\])?$/
 
     const matches = semanticCommentRegex.exec(comment)

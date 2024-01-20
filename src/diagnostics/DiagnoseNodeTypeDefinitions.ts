@@ -27,7 +27,7 @@ export function diagnoseNodeTypeDefinitions(parsedFusionFile: ParsedFusionFile) 
 
 	for (const creation of parsedFusionFile.prototypeCreations) {
 		const prototypeName = getPrototypeNameFromNode(creation.getNode())
-
+		if (!prototypeName) continue
 		if (contentPrototypeNames.includes(prototypeName)) continue
 		if (!isPrototypeOneOf(prototypeName, contentPrototypeNames, workspace)) continue
 		if (isPrototypeOneOf(prototypeName, workspace.getConfiguration().diagnostics.ignoreNodeTypes, workspace)) continue

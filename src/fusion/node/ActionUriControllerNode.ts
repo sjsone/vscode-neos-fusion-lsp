@@ -6,7 +6,7 @@ import { ActionUriDefinitionNode } from './ActionUriDefinitionNode';
 export class ActionUriControllerNode extends AbstractNode {
 	statement: ObjectStatement
 	name: StringValue
-	parent: ActionUriDefinitionNode
+	parent!: ActionUriDefinitionNode
 
 	constructor(statement: ObjectStatement, name: StringValue) {
 		super(statement["position"])

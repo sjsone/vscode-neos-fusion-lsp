@@ -2,14 +2,11 @@ import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { TextDocumentPositionParams, WorkspaceSymbolParams } from 'vscode-languageserver/node'
 import { CapabilityContext, WorkspacesCapabilityContext } from './CapabilityContext'
 import { AbstractFunctionality } from '../common/AbstractFunctionality'
-import { LogService } from '../common/Logging'
-import { LoggingLevel } from '../ExtensionConfiguration'
-import { uriToPath } from '../common/util'
 
 export abstract class AbstractCapability extends AbstractFunctionality {
 	protected noPositionedNode: boolean = false
 
-	public execute(params) {
+	public execute(params: TextDocumentPositionParams | WorkspaceSymbolParams) {
 		try {
 			const context = this.buildContextFromParams(params)
 			if (!context) return null
@@ -20,9 +17,10 @@ export abstract class AbstractCapability extends AbstractFunctionality {
 		}
 	}
 
+	// TODO: create context with non-undefinable `foundNodeByLine`
 	protected abstract run<N extends AbstractNode>(capabilityContext: CapabilityContext<N>): any
 
-	protected buildContextFromParams(params: TextDocumentPositionParams | WorkspaceSymbolParams): CapabilityContext<AbstractNode> {
+	protected buildContextFromParams(params: TextDocumentPositionParams | WorkspaceSymbolParams): null | CapabilityContext<AbstractNode> {
 		if (!('textDocument' in params)) {
 			return {
 				workspaces: this.languageServer["fusionWorkspaces"],
