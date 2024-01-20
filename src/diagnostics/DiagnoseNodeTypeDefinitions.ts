@@ -22,7 +22,7 @@ export function diagnoseNodeTypeDefinitions(parsedFusionFile: ParsedFusionFile) 
 	const neosPackage = workspace.neosWorkspace.getPackageByUri(parsedFusionFile.uri)
 	if (!neosPackage) return diagnostics
 
-	const nodeTypeDefinitions = neosPackage["configuration"]["nodeTypeDefinitions"]
+	const nodeTypeDefinitions = neosPackage.configuration.nodeTypeDefinitions
 	if (nodeTypeDefinitions.length === 0) return diagnostics
 
 	for (const creation of parsedFusionFile.prototypeCreations) {

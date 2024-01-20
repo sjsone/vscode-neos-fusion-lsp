@@ -79,14 +79,14 @@ export class FusionFileProcessor extends Logger {
 			const methodNode = currentPath.pop()
 			if (!methodNode) continue
 
-			const eelHelperMethodNodePosition = new NodePosition(methodNode["position"].begin, methodNode["position"].begin + methodNode["value"].length)
-			const eelHelperMethodNode = new PhpClassMethodNode(methodNode["value"], part, eelHelperMethodNodePosition)
+			const eelHelperMethodNodePosition = new NodePosition(methodNode.position.begin, methodNode.position.begin + methodNode.value.length)
+			const eelHelperMethodNode = new PhpClassMethodNode(methodNode.value, part, eelHelperMethodNodePosition)
 
 			const { position, eelHelperIdentifier } = this.createEelHelperIdentifierAndPositionFromPath(currentPath)
 			for (const eelHelper of eelHelperTokens) {
 				if (eelHelper.name !== eelHelperIdentifier) continue
 
-				const method = eelHelper.methods.find(method => method.valid(methodNode["value"]))
+				const method = eelHelper.methods.find(method => method.valid(methodNode.value))
 				if (!method) continue
 
 				this.parsedFusionFile.addNode(eelHelperMethodNode, text)
@@ -117,16 +117,16 @@ export class FusionFileProcessor extends Logger {
 		const pathNode = methodNode.pathNode
 		if (!(pathNode instanceof ObjectFunctionPathNode)) return
 
-		const firstArgument = pathNode["args"][0]
+		const firstArgument = pathNode.args[0]
 		if (!(firstArgument instanceof LiteralStringNode)) return
 
-		let fqcn = firstArgument["value"].split("\\\\").join("\\")
+		let fqcn = firstArgument.value.split("\\\\").join("\\")
 		if (fqcn.startsWith("\\")) fqcn = fqcn.replace("\\", "")
 
 		const classDefinition = this.parsedFusionFile.workspace.neosWorkspace.getClassDefinitionFromFullyQualifiedClassName(fqcn)
 		if (classDefinition === undefined) return
 
-		const fqcnNode = new FqcnNode(firstArgument["value"], classDefinition, firstArgument["position"])
+		const fqcnNode = new FqcnNode(firstArgument.value, classDefinition, firstArgument.position)
 		this.parsedFusionFile.addNode(fqcnNode, text)
 	}
 
@@ -134,10 +134,10 @@ export class FusionFileProcessor extends Logger {
 		const position = new NodePosition(-1, -1)
 		const nameParts = []
 		for (const method of path) {
-			const value = method["value"]
+			const value = method.value
 			nameParts.push(value)
-			if (position.begin === -1) position.begin = method["position"].begin
-			position.end = method["position"].end
+			if (position.begin === -1) position.begin = method.position.begin
+			position.end = method.position.end
 		}
 
 		return {
@@ -147,42 +147,42 @@ export class FusionFileProcessor extends Logger {
 	}
 
 	protected processTagNameNode(node: TagNode, text: string) {
-		const identifier = node["name"]
+		const identifier = node.name
 		if (!identifier.includes(".") || !identifier.includes(":")) return
 
 		const prototypePath = new PrototypePathSegment(identifier, new NodePosition(
-			node["position"].begin + 1,
-			node["position"].begin + 1 + identifier.length
+			node.position.begin + 1,
+			node.position.begin + 1 + identifier.length
 		))
 
-		prototypePath["parent"] = node
+		prototypePath.parent = node
 		this.parsedFusionFile.addNode(prototypePath, text)
 
-		if (node["selfClosing"] || node["end"] === undefined) return
+		if (node.selfClosing || node.end === undefined) return
 
-		const endOffset = node["end"]["name"].indexOf(identifier)
+		const endOffset = node.end.name.indexOf(identifier)
 		const endPrototypePath = new PrototypePathSegment(identifier, new NodePosition(
-			node["end"]["position"].begin + endOffset,
-			node["end"]["position"].begin + endOffset + identifier.length
+			node.end.position.begin + endOffset,
+			node.end.position.begin + endOffset + identifier.length
 		))
 
-		endPrototypePath["parent"] = node
+		endPrototypePath.parent = node
 		this.parsedFusionFile.addNode(endPrototypePath, text)
 
-		if (node["name"] === "Neos.Fusion.Form:Form") {
+		if (node.name === "Neos.Fusion.Form:Form") {
 			const neosFusionFormDefinitionNode = new NeosFusionFormDefinitionNode(node)
-			for (const attribute of node["attributes"]) {
+			for (const attribute of node.attributes) {
 				if (!(attribute instanceof TagAttributeNode)) continue
-				if (!attribute["name"].startsWith("form.target")) continue
-				if (typeof attribute["value"] !== "string") continue
+				if (!attribute.name.startsWith("form.target")) continue
+				if (typeof attribute.value !== "string") continue
 
-				if (attribute["name"] === "form.target.action") {
+				if (attribute.name === "form.target.action") {
 					const actionUriActionNode = new NeosFusionFormActionNode(attribute)
 					neosFusionFormDefinitionNode.setAction(actionUriActionNode)
 					this.parsedFusionFile.addNode(actionUriActionNode, text)
 				}
 
-				if (attribute["name"] === "form.target.controller") {
+				if (attribute.name === "form.target.controller") {
 					const actionUriControllerNode = new NeosFusionFormControllerNode(attribute)
 					neosFusionFormDefinitionNode.setController(actionUriControllerNode)
 					this.parsedFusionFile.addNode(actionUriControllerNode, text)
@@ -197,8 +197,8 @@ export class FusionFileProcessor extends Logger {
 			const value = node.value.substring(1, node.value.length - 1)
 			if (value.startsWith("resource://")) {
 				const position: NodePosition = {
-					begin: node["position"].end - value.length - 1,
-					end: node["position"].end
+					begin: node.position.end - value.length - 1,
+					end: node.position.end
 				}
 				const resourceUriNode = new ResourceUriNode(value, position)
 				if (resourceUriNode) this.parsedFusionFile.addNode(resourceUriNode, text)
@@ -235,7 +235,7 @@ export class FusionFileProcessor extends Logger {
 		const classDefinition = this.parsedFusionFile.workspace.neosWorkspace.getClassDefinitionFromFullyQualifiedClassName(fqcn)
 		if (classDefinition === undefined) return
 
-		const begin = operation.pathValue["position"].begin + operation.pathValue.value.indexOf(fqcn) + 1
+		const begin = operation.pathValue.position.begin + operation.pathValue.value.indexOf(fqcn) + 1
 		const position = {
 			begin,
 			end: begin + fqcn.length + 1
@@ -248,7 +248,7 @@ export class FusionFileProcessor extends Logger {
 	protected processStringValue(stringValue: StringValue, text: string) {
 		const value = stringValue.value
 		if (value.startsWith("resource://")) {
-			const resourceUriNode = new ResourceUriNode(value, stringValue["position"])
+			const resourceUriNode = new ResourceUriNode(value, stringValue.position)
 			if (resourceUriNode) this.parsedFusionFile.addNode(resourceUriNode, text)
 		}
 	}
@@ -288,9 +288,9 @@ export class FusionFileProcessor extends Logger {
 	}
 
 	protected processLiteralStringNode(literalStringNode: LiteralStringNode, text: string) {
-		const value = literalStringNode["value"]
+		const value = literalStringNode.value
 		if (value.startsWith("resource://")) {
-			const resourceUriNode = new ResourceUriNode(value, literalStringNode["position"])
+			const resourceUriNode = new ResourceUriNode(value, literalStringNode.position)
 			if (resourceUriNode) this.parsedFusionFile.addNode(resourceUriNode, text)
 		}
 
@@ -299,7 +299,7 @@ export class FusionFileProcessor extends Logger {
 			let result: RegExpExecArray | null
 			while ((result = instanceofRegex.exec(value)) !== null) {
 				const prototypeName = result[1]
-				const begin = literalStringNode["position"].begin + value.indexOf(prototypeName, result.index) + 1
+				const begin = literalStringNode.position.begin + value.indexOf(prototypeName, result.index) + 1
 				const position = {
 					begin,
 					end: begin + prototypeName.length
@@ -314,7 +314,7 @@ export class FusionFileProcessor extends Logger {
 				} else {
 					const prototypePath = new PrototypePathSegment(prototypeName, position)
 					if (!prototypePath) continue
-					prototypePath["parent"] = literalStringNode
+					prototypePath.parent = literalStringNode
 					this.parsedFusionFile.addNode(prototypePath, text)
 				}
 			}

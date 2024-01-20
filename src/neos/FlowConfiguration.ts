@@ -16,8 +16,8 @@ export interface NodeTypeDefinition {
 }
 
 export class FlowConfiguration extends Logger {
-	protected settingsConfiguration: ParsedYaml
-	protected nodeTypeDefinitions: NodeTypeDefinition[]
+	public settingsConfiguration: ParsedYaml
+	public nodeTypeDefinitions: NodeTypeDefinition[]
 
 	protected constructor(settingsConfiguration: ParsedYaml, nodeTypeDefinitions: NodeTypeDefinition[]) {
 		super()

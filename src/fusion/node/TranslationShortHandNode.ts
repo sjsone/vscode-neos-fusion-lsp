@@ -14,8 +14,8 @@ export class TranslationShortHandNode extends AbstractNode {
 	constructor(
 		public literalStringNode: LiteralStringNode
 	) {
-		super(literalStringNode["position"], literalStringNode["parent"])
-		literalStringNode["translationShortHandNode"] = this
+		super(literalStringNode.position, literalStringNode.parent)
+		literalStringNode.translationShortHandNode = this
 	}
 
 	getShortHandIdentifier() {
@@ -24,6 +24,6 @@ export class TranslationShortHandNode extends AbstractNode {
 	}
 
 	getValue() {
-		return this.literalStringNode["value"]
+		return this.literalStringNode.value
 	}
 }

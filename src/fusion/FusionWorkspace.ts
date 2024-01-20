@@ -83,7 +83,7 @@ export class FusionWorkspace extends Logger {
         const incrementPerPackage = 100 / packagesPaths.length
 
         for (const neosPackage of this.neosWorkspace.getPackages().values()) {
-            const packagePath = neosPackage["path"]
+            const packagePath = neosPackage.path
             this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
                 message: `Package: ${packagePath}`
             }).catch(error => this.logError("init", error))

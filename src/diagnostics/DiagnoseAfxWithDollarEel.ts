@@ -18,11 +18,11 @@ export function diagnoseAfxWithDollarEel(parsedFusionFile: ParsedFusionFile): Di
 
 		const parentDslExpression = findParent(node, DslExpressionValue)
 		if (!parentDslExpression) continue
-		if (node["parent"] instanceof TagNode) {
-			for (const content of node["parent"]!["content"]) {
+		if (node.parent instanceof TagNode) {
+			for (const content of node.parent!.content) {
 				if (!(content instanceof TextNode)) continue
-				if (!content["text"].endsWith("$")) continue
-				if (content["position"].end !== node["position"].begin) continue
+				if (!content.text.endsWith("$")) continue
+				if (content.position.end !== node.position.begin) continue
 
 				const range = inlineEelNode.getPositionAsRange()
 				range.start.character -= 1

@@ -140,7 +140,7 @@ export function pathToUri(path: string) {
 export function getPrototypeNameFromNode(node: AbstractNode) {
     if (node instanceof FusionObjectValue) return node.value
     if (node instanceof PrototypePathSegment) return node.identifier
-    if (node instanceof FusionObjectValue) return node["value"]
+    if (node instanceof FusionObjectValue) return node.value
     return null
 }
 
@@ -170,55 +170,55 @@ export function mergeObjects(source: { [key: string]: any }, target: { [key: str
 }
 
 export function findParent<T extends new (...args: any) => AbstractNode>(node: AbstractNode, parentType: T) {
-    let parent = node["parent"]
+    let parent = node.parent
     while (parent) {
         if (parent instanceof parentType) return <InstanceType<T>>parent
-        parent = parent["parent"]
+        parent = (parent as AbstractNode).parent
     }
     return undefined
 }
 
 export function findUntil<T extends AbstractNode>(node: any, condition: (parent: AbstractNode) => boolean): T | undefined {
-    let parent = node["parent"]
+    let parent = node.parent
     while (parent) {
         if (condition(parent)) {
             return parent
         }
-        parent = parent["parent"]
+        parent = parent.parent
     }
     return undefined
 }
 
 export function abstractNodeToString(node: AbstractEelNode | AbstractNode): string | undefined {
     // TODO: This should be node.toString() but for now...
-    if (node instanceof StringValue) return `"${node["value"]}"`
-    if (node instanceof LiteralStringNode) return node["quotationType"] + node["value"] + node["quotationType"]
-    if (node instanceof LiteralNumberNode) return node["value"]
-    if (node instanceof FusionObjectValue) return node["value"]
+    if (node instanceof StringValue) return `"${node.value}"`
+    if (node instanceof LiteralStringNode) return node.quotationType + node.value + node.quotationType
+    if (node instanceof LiteralNumberNode) return node.value
+    if (node instanceof FusionObjectValue) return node.value
     if (node instanceof EelExpressionValue) {
         if (Array.isArray(node.nodes)) return undefined
         return `\${${abstractNodeToString(<AbstractEelNode>node.nodes)}}`
     }
 
-    if (node instanceof MetaPathSegment) return "@" + node["identifier"]
-    if (node instanceof PathSegment) return node["identifier"]
-    if (node instanceof PrototypePathSegment) return `prototype(${node["identifier"]})`
+    if (node instanceof MetaPathSegment) return "@" + node.identifier
+    if (node instanceof PathSegment) return node.identifier
+    if (node instanceof PrototypePathSegment) return `prototype(${node.identifier})`
     if (node instanceof ObjectFunctionPathNode) {
-        return `${node["value"]}(${node["args"].map(abstractNodeToString).join(", ")})`
+        return `${node.value}(${node.args.map(abstractNodeToString).join(", ")})`
     }
-    if (node instanceof ObjectPathNode) return node["value"]
+    if (node instanceof ObjectPathNode) return node.value
     if (node instanceof ObjectNode) {
-        return node["path"].map(abstractNodeToString).join(".")
+        return node.path.map(abstractNodeToString).join(".")
     }
     if (node instanceof OperationNode) {
-        return `${abstractNodeToString(node["leftHand"])} ${node["operation"]} ${abstractNodeToString(node["rightHand"])}`
+        return `${abstractNodeToString(node.leftHand)} ${node.operation} ${abstractNodeToString(node.rightHand)}`
     }
 
     return undefined
 }
 
 export function getObjectIdentifier(objectStatement: ObjectStatement): string {
-    return objectStatement.path.segments.map(segment => `${segment instanceof MetaPathSegment ? '@' : ''}${segment["identifier"]}`).join(".")
+    return objectStatement.path.segments.map(segment => `${segment instanceof MetaPathSegment ? '@' : ''}${segment.identifier}`).join(".")
 }
 
 export function getNodeWeight(node: any) {

@@ -17,7 +17,7 @@ export interface ClassDefinition {
 }
 
 export class NeosPackageNamespace {
-	protected name: string
+	public name: string
 	protected path: string
 
 	protected fileUriCache: Map<string, string> = new Map()

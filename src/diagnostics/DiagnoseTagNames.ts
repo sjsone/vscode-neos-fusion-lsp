@@ -12,9 +12,9 @@ export function diagnoseTagNames(parsedFusionFile: ParsedFusionFile) {
 
 	for (const positionedTagNode of positionedTagNodes) {
 		const node = positionedTagNode.getNode()
-		if (!node["selfClosing"]) continue
-		if (node["end"]?.["name"] === "/>") continue
-		if (node["attributes"].find(attribute => (<TagAttributeNode>attribute)["name"] === "@children")) continue
+		if (!node.selfClosing) continue
+		if (node.end?.name === "/>") continue
+		if (node.attributes.find(attribute => (<TagAttributeNode>attribute).name === "@children")) continue
 
 		const diagnostic: Diagnostic = {
 			severity: DiagnosticSeverity.Error,

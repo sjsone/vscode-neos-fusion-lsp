@@ -18,10 +18,10 @@ function hasObjectNodeApplicableObjectStatement(node: ObjectNode) {
 }
 
 function hasObjectNodeApplicablePath(node: ObjectNode) {
-	const pathBegin = node.path[0]["value"]
+	const pathBegin = node.path[0].value
 	if (pathBegin !== "props") return false
 	if (node.path.length === 1) return false
-	if (node.path[1]["value"] === "content") return false
+	if (node.path[1].value === "content") return false
 
 	return true
 }

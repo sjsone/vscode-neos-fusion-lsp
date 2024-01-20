@@ -9,17 +9,17 @@ export class NeosFusionFormDefinitionNode extends AbstractNode {
 	controller?: NeosFusionFormControllerNode
 
 	constructor(tag: TagNode) {
-		super(tag["position"])
+		super(tag.position)
 		this.tag = tag
 	}
 
 	setAction(action: NeosFusionFormActionNode) {
 		this.action = action
-		this.action["parent"] = this
+		this.action.parent = this
 	}
 
 	setController(controller: NeosFusionFormControllerNode) {
 		this.controller = controller
-		this.controller["parent"] = this
+		this.controller.parent = this
 	}
 }

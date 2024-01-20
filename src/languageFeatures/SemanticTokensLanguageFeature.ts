@@ -158,7 +158,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 			if (node.getNode().translationShortHandNode !== undefined) return undefined
 			return {
 				position: node.getBegin(),
-				length: node.getNode()["value"].length + 2, // offset for quotes
+				length: node.getNode().value.length + 2, // offset for quotes
 				type: 'string',
 				modifier: 'declaration'
 			}
@@ -168,7 +168,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 	protected generateLiteralNumberTokens(languageFeatureContext: LanguageFeatureContext) {
 		return this.generateForType(LiteralNumberNode, languageFeatureContext, node => ({
 			position: node.getBegin(),
-			length: node.getNode()["value"].length,
+			length: node.getNode().value.length,
 			type: 'number',
 			modifier: 'declaration'
 		}))
@@ -177,7 +177,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 	protected generateLiteralNullTokens(languageFeatureContext: LanguageFeatureContext) {
 		return this.generateForType(LiteralNullNode, languageFeatureContext, node => ({
 			position: node.getBegin(),
-			length: node.getNode()["value"].length,
+			length: node.getNode().value.length,
 			type: 'variable',
 			modifier: 'declaration'
 		}))
@@ -186,7 +186,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 	protected generateObjectPathTokens(languageFeatureContext: LanguageFeatureContext) {
 		return this.generateForType(ObjectPathNode, languageFeatureContext, node => ({
 			position: node.getBegin(),
-			length: node.getNode()["value"].length,
+			length: node.getNode().value.length,
 			type: 'property',
 			modifier: 'declaration'
 		}))
@@ -217,7 +217,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 		const semanticTokenConstructs: SemanticTokenConstruct[] = []
 		for (const prototypePathSegment of prototypePathSegments) {
 			const node = prototypePathSegment.getNode()
-			if (!(node["parent"] instanceof LiteralStringNode)) continue
+			if (!(node.parent instanceof LiteralStringNode)) continue
 			semanticTokenConstructs.push({
 				position: prototypePathSegment.getBegin(),
 				length: node.identifier.length,
@@ -236,7 +236,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 		const semanticTokenConstructs: SemanticTokenConstruct[] = []
 		for (const prototypePathSegment of prototypePathSegments) {
 			const node = prototypePathSegment.getNode()
-			if (!(node["parent"] instanceof TagNode)) continue
+			if (!(node.parent instanceof TagNode)) continue
 
 			semanticTokenConstructs.push({
 				position: prototypePathSegment.getBegin(),
@@ -259,7 +259,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 			const tagNode = findParent(tagAttributeNode.getNode(), TagNode)
 			if (tagNode === undefined) continue
 
-			for (const statement of NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], languageFeatureContext.workspace, true)) {
+			for (const statement of NodeService.getInheritedPropertiesByPrototypeName(tagNode.name, languageFeatureContext.workspace, true)) {
 				const identifier = getObjectIdentifier(statement.statement)
 
 				if (tagAttributeNode.getNode().name === identifier) {

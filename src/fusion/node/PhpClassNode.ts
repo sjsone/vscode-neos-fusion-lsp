@@ -16,7 +16,7 @@ export class PhpClassNode extends AbstractNode {
 		this.parent = objectNode
 
 		if (this.method) this.method.eelHelper = this
-		if (this.method) this.method["parent"] = this
+		if (this.method) this.method.parent = this
 	}
 
 }

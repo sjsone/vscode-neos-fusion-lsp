@@ -10,7 +10,7 @@ export class XlfFileChangeHandler extends AbstractFileChangeHandler {
 
 	public async handleChanged(fileEvent: FileEvent) {
 		clearLineDataCacheForFile(fileEvent.uri)
-		for (const workspace of this.languageServer["fusionWorkspaces"]) {
+		for (const workspace of this.languageServer.fusionWorkspaces) {
 			const translationFile = workspace.getTranslationFileByUri(fileEvent.uri)
 			if (!translationFile) continue
 			translationFile.parse().catch(error => this.logError("handleFileChanged", error))

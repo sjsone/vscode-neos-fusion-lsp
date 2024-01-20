@@ -31,10 +31,10 @@ export class LinePositionedNode<T extends AbstractNode> {
 		this.node = node
 		this.node.linePositionedNode = this
 
-		if (node["position"] !== undefined && text !== undefined && textUri !== undefined) {
-			const begin = node["position"].begin ?? (node["position"]).begin
+		if (node.position !== undefined && text !== undefined && textUri !== undefined) {
+			const begin = node.position.begin ?? (node.position).begin
 			this.start = getLineNumberOfChar(text, begin, textUri)
-			this.end = getLineNumberOfChar(text, node["position"].end, textUri)
+			this.end = getLineNumberOfChar(text, node.position.end, textUri)
 		}
 	}
 

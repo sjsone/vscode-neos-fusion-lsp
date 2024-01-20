@@ -27,13 +27,13 @@ export class XLIFFTranslationFile extends Logger {
 	protected data: any
 	public readonly uri: string
 
-	protected transUnits: Map<string, TransUnit> = new Map
+	public transUnits: Map<string, TransUnit> = new Map
 
 	constructor(
-		protected readonly neosPackage: NeosPackage,
+		public readonly neosPackage: NeosPackage,
 		protected readonly filePath: string,
 		public readonly language: string,
-		protected readonly sourceParts: string[]
+		public readonly sourceParts: string[]
 	) {
 		const sourcePath = `${neosPackage.getPackageName()}:${sourceParts.join('.')}`
 		super(`<${language}>${sourcePath}`)

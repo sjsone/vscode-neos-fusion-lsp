@@ -11,7 +11,7 @@ export class PhpFileChangeHandler extends AbstractFileChangeHandler {
 	public async handleChanged(fileEvent: FileEvent) {
 		clearLineDataCacheForFile(fileEvent.uri)
 		this.logVerbose(`handle change of file: ${fileEvent.uri}`)
-		for (const workspace of this.languageServer["fusionWorkspaces"]) {
+		for (const workspace of this.languageServer.fusionWorkspaces) {
 			for (const neosPackage of workspace.neosWorkspace.getPackages().values()) {
 				const helper = neosPackage.getEelHelpers().find(helper => helper.uri === fileEvent.uri)
 				if (!helper) continue

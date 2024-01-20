@@ -130,7 +130,7 @@ export class CompletionCapability extends AbstractCapability {
 		const tagNode = findParent(attributeNode, TagNode)
 		if (tagNode !== undefined) {
 			const labels: string[] = []
-			for (const statement of NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace)) {
+			for (const statement of NodeService.getInheritedPropertiesByPrototypeName(tagNode.name, workspace)) {
 				const label = getObjectIdentifier(statement.statement)
 				if (!labels.includes(label)) labels.push(label)
 			}
@@ -143,13 +143,13 @@ export class CompletionCapability extends AbstractCapability {
 
 	protected getObjectStatementCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectStatement>) {
 		const node = foundNode.getNode()
-		if (node.operation === null || node.operation["position"].begin !== node.operation["position"].end) return []
+		if (node.operation === null || node.operation.position.begin !== node.operation.position.end) return []
 		return [BuiltInCompletions.prototypeCompletion, ...this.getPropertyDefinitionSegments(node, workspace)]
 	}
 
 	protected getFusionPropertyCompletionsForObjectPath(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {
 		const node = foundNode.getNode()
-		const objectNode = node["parent"]
+		const objectNode = node.parent
 		if (!(objectNode instanceof ObjectNode)) return []
 
 
@@ -170,7 +170,7 @@ export class CompletionCapability extends AbstractCapability {
 			]
 		}
 
-		if ((objectNode.path[0]["value"] !== "this" && objectNode.path[0]["value"] !== "props") || objectNode.path.length === 1) {
+		if ((objectNode.path[0].value !== "this" && objectNode.path[0].value !== "props") || objectNode.path.length === 1) {
 			// TODO: handle context properties
 			return []
 		}
@@ -217,7 +217,7 @@ export class CompletionCapability extends AbstractCapability {
 
 	protected getFusionPropertyCompletionsForObjectNode(fusionWorkspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectNode>): CompletionItem[] {
 		const node = foundNode.getNode()
-		if (node.path[0]["value"] !== "props") return []
+		if (node.path[0].value !== "props") return []
 		if (node.path.length !== 1) return []
 
 		return this.getPropertyDefinitionSegments(node, fusionWorkspace)
@@ -225,9 +225,9 @@ export class CompletionCapability extends AbstractCapability {
 
 	protected getEelHelperCompletionsForObjectPath(fusionWorkspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {
 		const node = foundNode.getNode()
-		const objectNode = <ObjectNode>node["parent"]
+		const objectNode = <ObjectNode>node.parent
 		const linePositionedObjectNode = objectNode.linePositionedNode
-		const fullPath = objectNode["path"].map(part => part["value"]).join(".")
+		const fullPath = objectNode.path.map(part => part.value).join(".")
 		const completions: CompletionItem[] = []
 
 		const eelHelpers = fusionWorkspace.neosWorkspace.getEelHelperTokens()
@@ -265,7 +265,7 @@ export class CompletionCapability extends AbstractCapability {
 	protected getResourceUriCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<ResourceUriNode>): CompletionItem[] {
 		const node = foundNode.getNode()
 
-		const identifierMatch = /resource:\/\/(.*?)\//.exec(node["identifier"])
+		const identifierMatch = /resource:\/\/(.*?)\//.exec(node.identifier)
 		if (identifierMatch === null) {
 			return Array.from(workspace.neosWorkspace.getPackages().values()).map((neosPackage: NeosPackage) => {
 				return {
@@ -281,7 +281,7 @@ export class CompletionCapability extends AbstractCapability {
 		const neosPackage = workspace.neosWorkspace.getPackage(packageName)
 		if (!neosPackage) return []
 
-		const nextPath = NodePath.join(neosPackage["path"], "Resources", node.getRelativePath())
+		const nextPath = NodePath.join(neosPackage.path, "Resources", node.getRelativePath())
 		if (!NodeFs.existsSync(nextPath)) return []
 
 		const completions: CompletionItem[] = []
@@ -311,7 +311,7 @@ export class CompletionCapability extends AbstractCapability {
 		if (!shortHandIdentifier.packageName) {
 			const completions = new Map<string, CompletionItem>()
 			for (const translationFile of workspace.translationFiles) {
-				const packageName = translationFile["neosPackage"].getPackageName()
+				const packageName = translationFile.neosPackage.getPackageName()
 				if (!completions.has(packageName)) completions.set(packageName, {
 					label: packageName,
 					kind: CompletionItemKind.Module,
@@ -328,8 +328,8 @@ export class CompletionCapability extends AbstractCapability {
 		if (!shortHandIdentifier.sourceName) {
 			const completions = new Map<string, CompletionItem>()
 			for (const translationFile of workspace.translationFiles) {
-				if (translationFile["neosPackage"].getPackageName() !== shortHandIdentifier.packageName) continue
-				const source = translationFile["sourceParts"].join('.')
+				if (translationFile.neosPackage.getPackageName() !== shortHandIdentifier.packageName) continue
+				const source = translationFile.sourceParts.join('.')
 				if (!completions.has(source)) completions.set(source, {
 					label: source,
 					kind: CompletionItemKind.Class,
@@ -343,9 +343,9 @@ export class CompletionCapability extends AbstractCapability {
 		if (!shortHandIdentifier.translationIdentifier) {
 			const completions = new Map<string, CompletionItem>()
 			for (const translationFile of workspace.translationFiles) {
-				if (translationFile["neosPackage"].getPackageName() !== shortHandIdentifier.packageName) continue
-				if (translationFile["sourceParts"].join('.') !== shortHandIdentifier.sourceName) continue
-				for (const transUnit of translationFile["transUnits"].values()) {
+				if (translationFile.neosPackage.getPackageName() !== shortHandIdentifier.packageName) continue
+				if (translationFile.sourceParts.join('.') !== shortHandIdentifier.sourceName) continue
+				for (const transUnit of translationFile.transUnits.values()) {
 					if (!completions.has(transUnit.id)) completions.set(transUnit.id, {
 						label: transUnit.id,
 						kind: CompletionItemKind.Class,
