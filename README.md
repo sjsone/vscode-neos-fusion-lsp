@@ -26,7 +26,7 @@
 
 ## How to Use
 
-1. [Install the extension](vscode:extension/SimonSchmidt.vscode-neos-fusion-lsp)
+1. [Install the extension](https://marketplace.visualstudio.com/items?itemName=SimonSchmidt.vscode-neos-fusion-lsp)
 
 ## Functionality
 
