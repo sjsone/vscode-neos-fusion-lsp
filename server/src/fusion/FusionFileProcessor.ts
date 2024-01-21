@@ -21,6 +21,8 @@ import { LinePositionedNode } from '../common/LinePositionedNode'
 import { Logger } from '../common/Logging'
 import { NodeService } from '../common/NodeService'
 import { findParent, getObjectIdentifier } from '../common/util'
+import { NeosWorkspace } from '../neos/NeosWorkspace'
+import { ParsedFusionFile } from './ParsedFusionFile'
 import { ActionUriActionNode } from './node/ActionUriActionNode'
 import { ActionUriControllerNode } from './node/ActionUriControllerNode'
 import { ActionUriDefinitionNode } from './node/ActionUriDefinitionNode'
@@ -28,7 +30,6 @@ import { FqcnNode } from './node/FqcnNode'
 import { NeosFusionFormActionNode } from './node/NeosFusionFormActionNode'
 import { NeosFusionFormControllerNode } from './node/NeosFusionFormControllerNode'
 import { NeosFusionFormDefinitionNode } from './node/NeosFusionFormDefinitionNode'
-import { ParsedFusionFile } from './ParsedFusionFile'
 import { PhpClassMethodNode } from './node/PhpClassMethodNode'
 import { PhpClassNode } from './node/PhpClassNode'
 import { ResourceUriNode } from './node/ResourceUriNode'
@@ -62,7 +63,21 @@ export class FusionFileProcessor extends Logger {
 	}
 
 	protected processEelObjectNode(node: ObjectNode, text: string) {
-		const eelHelperTokens = this.parsedFusionFile.workspace.neosWorkspace.getEelHelperTokens()
+		for (const {
+			eelHelperNode,
+			eelHelperMethodNode,
+			eelHelperIdentifier
+		} of FusionFileProcessor.ResolveEelHelpersForObjectNode(node, this.parsedFusionFile.workspace.neosWorkspace)) {
+			this.parsedFusionFile.addNode(eelHelperMethodNode, text)
+			this.parsedFusionFile.addNode(eelHelperNode, text)
+
+			this.processTranslations(eelHelperIdentifier, eelHelperMethodNode, text)
+			this.processPropTypesFqcn(eelHelperIdentifier, eelHelperMethodNode, text)
+		}
+	}
+
+	static * ResolveEelHelpersForObjectNode(node: ObjectNode, neosWorkspace: NeosWorkspace) {
+		const eelHelperTokens = neosWorkspace.getEelHelperTokens()
 
 		const currentPath: ObjectPathNode[] = []
 		for (const part of node.path) {
@@ -82,19 +97,21 @@ export class FusionFileProcessor extends Logger {
 			const eelHelperMethodNodePosition = new NodePosition(methodNode.position.begin, methodNode.position.begin + methodNode.value.length)
 			const eelHelperMethodNode = new PhpClassMethodNode(methodNode.value, part, eelHelperMethodNodePosition)
 
-			const { position, eelHelperIdentifier } = this.createEelHelperIdentifierAndPositionFromPath(currentPath)
+			const { position, eelHelperIdentifier } = FusionFileProcessor.createEelHelperIdentifierAndPositionFromPath(currentPath)
 			for (const eelHelper of eelHelperTokens) {
 				if (eelHelper.name !== eelHelperIdentifier) continue
 
 				const method = eelHelper.methods.find(method => method.valid(methodNode.value))
 				if (!method) continue
 
-				this.parsedFusionFile.addNode(eelHelperMethodNode, text)
 				const eelHelperNode = new PhpClassNode(eelHelperIdentifier, eelHelperMethodNode, node, position)
-				this.parsedFusionFile.addNode(eelHelperNode, text)
 
-				this.processTranslations(eelHelperIdentifier, eelHelperMethodNode, text)
-				this.processPropTypesFqcn(eelHelperIdentifier, eelHelperMethodNode, text)
+				yield {
+					method,
+					eelHelperNode,
+					eelHelperMethodNode,
+					eelHelperIdentifier
+				}
 			}
 		}
 	}
@@ -130,7 +147,7 @@ export class FusionFileProcessor extends Logger {
 		this.parsedFusionFile.addNode(fqcnNode, text)
 	}
 
-	protected createEelHelperIdentifierAndPositionFromPath(path: ObjectPathNode[]) {
+	protected static createEelHelperIdentifierAndPositionFromPath(path: ObjectPathNode[]) {
 		const position = new NodePosition(-1, -1)
 		const nameParts = []
 		for (const method of path) {
