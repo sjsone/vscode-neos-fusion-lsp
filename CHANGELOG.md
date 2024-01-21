@@ -13,6 +13,22 @@
   - Autocompletion and Hover for the `Configuration.setting()` EEL-Helper
 - Integration of the WIP [`ts-fusion-runtime`](https://www.npmjs.com/package/ts-fusion-runtime) to correctly resolve Fusion properties
 
+## 🚀 0.3.??
+
+- feature: WIP Signature Help
+- feature: Controller and Actions in `Routing.fusion` if they are in the following format:
+
+    ```neosfusion
+    Neos.Neos.LoginController {
+      index = Neos.Neos:View.Login {
+          site = ${site}
+          styles = ${styles}
+          username = ${username}
+          flashMessages = ${flashMessages}
+      }
+    }
+    ```
+
 ## 🚀 0.3.12
 
 - feature: new Icons for Fusion Files ([@typerunningwild](https://www.instagram.com/typerunningwild))
