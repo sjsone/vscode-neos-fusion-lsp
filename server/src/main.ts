@@ -16,6 +16,7 @@ import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFe
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { RenameCapability } from './capabilities/RenameCapability'
 import { RenamePrepareCapability } from './capabilities/RenamePrepareCapability'
+import { SignatureHelpCapability } from './capabilities/SignatureHelpCapability'
 
 export type FusionDocument = TextDocument
 
@@ -44,6 +45,7 @@ connection.onWorkspaceSymbol(params => languageserver.runCapability(WorkspaceSym
 connection.onCodeLens(params => languageserver.runCapability(CodeLensCapability, params))
 connection.onPrepareRename(params => languageserver.runCapability(RenamePrepareCapability, params))
 connection.onRenameRequest(params => languageserver.runCapability(RenameCapability, params))
+connection.onSignatureHelp(params => languageserver.runCapability(SignatureHelpCapability, params))
 connection.onCodeAction(params => languageserver.onCodeAction(params))
 
 connection.languages.semanticTokens.on(params => languageserver.runLanguageFeature(SemanticTokensLanguageFeature, params))

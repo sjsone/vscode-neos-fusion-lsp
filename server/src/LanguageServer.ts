@@ -43,6 +43,7 @@ import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFe
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { FusionDocument } from './main'
 import { AbstractLanguageFeatureParams } from './languageFeatures/LanguageFeatureContext'
+import { SignatureHelpCapability } from './capabilities/SignatureHelpCapability'
 
 
 const CodeActions = [
@@ -84,6 +85,7 @@ export class LanguageServer extends Logger {
 		this.addFunctionalityInstance(CodeLensCapability)
 		this.addFunctionalityInstance(RenamePrepareCapability)
 		this.addFunctionalityInstance(RenameCapability)
+		this.addFunctionalityInstance(SignatureHelpCapability)
 
 		this.addFunctionalityInstance(InlayHintLanguageFeature)
 		this.addFunctionalityInstance(SemanticTokensLanguageFeature)
@@ -160,6 +162,10 @@ export class LanguageServer extends Logger {
 				definitionProvider: true,
 				codeLensProvider: {
 					resolveProvider: false
+				},
+				signatureHelpProvider: {
+					triggerCharacters: ["("],
+					retriggerCharacters: [","]
 				},
 				renameProvider: {
 					prepareProvider: true
