@@ -34,6 +34,8 @@ import { PhpClassMethodNode } from './node/PhpClassMethodNode'
 import { PhpClassNode } from './node/PhpClassNode'
 import { ResourceUriNode } from './node/ResourceUriNode'
 import { TranslationShortHandNode } from './node/TranslationShortHandNode'
+import { RoutingControllerNode } from './node/RoutingControllerNode'
+import { RoutingActionNode } from './node/RoutingActionNode'
 
 type PostProcess = () => void
 export class FusionFileProcessor extends Logger {
@@ -45,15 +47,34 @@ export class FusionFileProcessor extends Logger {
 		this.parsedFusionFile = parsedFusionFile
 	}
 
-	processNodesByType(nodeType: any, objectTree: FusionFile, text: string) {
-		for (const node of objectTree.nodesByType.get(nodeType) ?? []) {
-			if (node instanceof ObjectNode) this.processEelObjectNode(node, text)
-			if (node instanceof TagNode) this.processTagNameNode(node, text)
-			if (node instanceof TagAttributeNode) this.processTagAttributeNode(node, text)
-			if (node instanceof ObjectStatement) this.processObjectStatement(node, text)
-			if (node instanceof FusionObjectValue) this.processFusionObjectValue(node, text)
-			if (node instanceof LiteralStringNode) this.processLiteralStringNode(node, text)
-			this.parsedFusionFile.addNode(node, text)
+	processNodes(objectTree: FusionFile, text: string) {
+		for (const nodes of objectTree.nodesByType.values()) {
+			for (const node of nodes) {
+				if (node instanceof ObjectNode) this.processEelObjectNode(node, text)
+				if (node instanceof TagNode) this.processTagNameNode(node, text)
+				if (node instanceof TagAttributeNode) this.processTagAttributeNode(node, text)
+				if (node instanceof ObjectStatement) this.processObjectStatement(node, text)
+				if (node instanceof FusionObjectValue) this.processFusionObjectValue(node, text)
+				if (node instanceof LiteralStringNode) this.processLiteralStringNode(node, text)
+				this.parsedFusionFile.addNode(node, text)
+			}
+		}
+
+		if (this.parsedFusionFile.uri.endsWith("Routing.fusion")) {
+			for (const rootStatement of objectTree.statementList.statements) {
+				if (!(rootStatement instanceof ObjectStatement)) continue
+
+				const routingControllerNode = new RoutingControllerNode(rootStatement, getObjectIdentifier(rootStatement))
+				this.parsedFusionFile.addNode(routingControllerNode, text)
+
+				if (!rootStatement.block?.statementList.statements) continue
+				for (const actionStatement of rootStatement.block.statementList.statements) {
+					if (!(actionStatement instanceof ObjectStatement)) continue
+					if (actionStatement.path.segments.length !== 1) continue
+					const routingActionNode = new RoutingActionNode(routingControllerNode, actionStatement, getObjectIdentifier(actionStatement))
+					this.parsedFusionFile.addNode(routingActionNode, text)
+				}
+			}
 		}
 	}
 

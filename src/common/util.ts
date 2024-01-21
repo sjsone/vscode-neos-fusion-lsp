@@ -22,6 +22,8 @@ import { PhpClassMethodNode } from '../fusion/node/PhpClassMethodNode'
 import { PhpClassNode } from '../fusion/node/PhpClassNode'
 import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
 import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
+import { RoutingActionNode } from '../fusion/node/RoutingActionNode'
+import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
 
 export interface LineDataCacheEntry {
     lineLengths: number[]
@@ -222,18 +224,18 @@ export function getObjectIdentifier(objectStatement: ObjectStatement): string {
 }
 
 export function getNodeWeight(node: any) {
-    switch (true) {
-        case node instanceof TranslationShortHandNode: return 60
-        case node instanceof FusionObjectValue: return 50
-        case node instanceof PhpClassMethodNode: return 40
-        case node instanceof PhpClassNode: return 30
-        case node instanceof FqcnNode: return 20
-        case node instanceof PrototypePathSegment: return 18
-        case node instanceof ResourceUriNode: return 16
-        case node instanceof ObjectPathNode: return 15
-        case node instanceof ObjectStatement: return 10
-        default: return 0
-    }
+    if (node instanceof TranslationShortHandNode) return 60
+    if (node instanceof FusionObjectValue) return 50
+    if (node instanceof PhpClassMethodNode) return 40
+    if (node instanceof PhpClassNode) return 30
+    if (node instanceof FqcnNode) return 20
+    if (node instanceof PrototypePathSegment) return 18
+    if (node instanceof ResourceUriNode) return 16
+    if (node instanceof ObjectPathNode) return 15
+    if (node instanceof ObjectStatement) return 10
+    if (node instanceof RoutingActionNode) return 9
+    if (node instanceof RoutingControllerNode) return 8
+    return 0
 }
 
 export enum SemanticCommentType {

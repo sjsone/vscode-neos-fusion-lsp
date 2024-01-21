@@ -90,9 +90,7 @@ export class ParsedFusionFile extends Logger {
 			}
 			this.fusionFileProcessor.readStatementList(objectTree.statementList, text)
 
-			for (const nodeType of objectTree.nodesByType.keys()) {
-				this.fusionFileProcessor.processNodesByType(nodeType, objectTree, text)
-			}
+			this.fusionFileProcessor.processNodes(objectTree, text)
 			const fileName = NodePath.basename(uriToPath(this.uri))
 			if (fileName.startsWith("Routing") && fileName.endsWith(".fusion")) this.handleFusionRouting(text)
 			this.logVerbose("finished")

@@ -59,6 +59,7 @@ export abstract class AbstractCapability extends AbstractFunctionality {
 				this.logDebug(`Could not find node for line/column: ${line}/${column}`)
 				return null
 			}
+
 			context.foundNodeByLine = foundNodeByLine
 		}
 
