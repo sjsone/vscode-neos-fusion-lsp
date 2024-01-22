@@ -238,30 +238,6 @@ export function getNodeWeight(node: any) {
     return 0
 }
 
-export enum SemanticCommentType {
-    Ignore = "ignore",
-    IgnoreBlock = "ignore-block",
-    NoAutoincludeNeeded = "no-autoinclude-needed"
-}
-
-export interface ParsedSemanticComment {
-    type: SemanticCommentType
-    arguments: string[]
-}
-
-export function parseSemanticComment(comment: string): undefined | ParsedSemanticComment {
-    const semanticCommentRegex = /^ *@fusion-([a-zA-Z0-9_-]+) *(?:\[(.*)\])?$/
-
-    const matches = semanticCommentRegex.exec(comment)
-    if (!matches) return undefined
-
-    const rawArguments = matches[2]
-    return {
-        type: <SemanticCommentType>matches[1],
-        arguments: rawArguments ? rawArguments.split(',').filter(Boolean).map(arg => arg.trim()) : []
-    }
-}
-
 export function checkSemanticCommentIgnoreArguments(propertyName: string, ignoredNames: string[]): boolean {
     if (ignoredNames.length === 0) return true
 

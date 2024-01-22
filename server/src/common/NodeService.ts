@@ -11,7 +11,7 @@ import { StatementList } from 'ts-fusion-parser/out/fusion/nodes/StatementList'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
 import { ValueCopy } from 'ts-fusion-parser/out/fusion/nodes/ValueCopy'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
-import { abstractNodeToString, checkSemanticCommentIgnoreArguments, findParent, findUntil, getObjectIdentifier, parseSemanticComment, SemanticCommentType } from './util'
+import { abstractNodeToString, checkSemanticCommentIgnoreArguments, findParent, findUntil, getObjectIdentifier } from './util'
 import { AbstractPathValue } from 'ts-fusion-parser/out/fusion/nodes/AbstractPathValue'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { Comment } from 'ts-fusion-parser/out/common/Comment'
@@ -19,6 +19,7 @@ import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
 import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 import { LinePositionedNode } from './LinePositionedNode'
+import { SemanticCommentService, SemanticCommentType } from './SemanticCommentService'
 
 export class ExternalObjectStatement {
 	constructor(
@@ -345,7 +346,7 @@ class NodeService {
 	}
 
 	public affectsCommentTheProperty(propertyName: string, commentNode: Comment, type: SemanticCommentType) {
-		const parsedSemanticComment = parseSemanticComment(commentNode.value.trim())
+		const parsedSemanticComment = SemanticCommentService.parseSemanticComment(commentNode.value.trim())
 		if (!parsedSemanticComment) return false
 		if (parsedSemanticComment.type !== type) return false
 

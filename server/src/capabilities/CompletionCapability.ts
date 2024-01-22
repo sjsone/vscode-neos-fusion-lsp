@@ -20,6 +20,7 @@ import { NeosPackage } from '../neos/NeosPackage'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
+import { SemanticCommentType } from '../common/SemanticCommentService'
 
 const BuiltInCompletions = {
 	prototypeCompletion: {
@@ -365,7 +366,7 @@ export class CompletionCapability extends AbstractCapability {
 		const node = foundNode.getNode()
 		if (!node.value?.trim().startsWith("@")) return []
 
-		for (const semanticComment of ['@fusion-ignore', '@fusion-ignore-block']) {
+		for (const semanticComment of [SemanticCommentType.Ignore, SemanticCommentType.IgnoreBlock]) {
 			const label = node.prefix === "//" ? `// ${semanticComment}` : `<!-- ${semanticComment} -->`
 
 			completions.push({
