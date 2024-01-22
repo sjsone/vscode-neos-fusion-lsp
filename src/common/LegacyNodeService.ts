@@ -77,7 +77,7 @@ class LegacyNodeService {
 		return undefined
 	}
 
-	public * findPropertyDefinitionSegments(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace, includeOverwrites: boolean = false) {
+	public * findPropertyDefinitionSegments(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace, includeOverwrites = false) {
 		const objectStatement = objectNode instanceof ObjectStatement ? objectNode : findParent(objectNode, ObjectStatement) // [props.foo]
 		if (!objectStatement) return
 
@@ -201,7 +201,7 @@ class LegacyNodeService {
 		} while (traverseUpwards && statementList && !(statementList["parent"] instanceof FusionFile))
 	}
 
-	public findPropertyDefinitionSegment(objectNode: ObjectNode, workspace?: FusionWorkspace, includeOverwrites: boolean = false) {
+	public findPropertyDefinitionSegment(objectNode: ObjectNode, workspace?: FusionWorkspace, includeOverwrites = false) {
 		for (const segmentOrExternalStatement of this.findPropertyDefinitionSegments(objectNode, workspace, includeOverwrites)) {
 			if (segmentOrExternalStatement instanceof ExternalObjectStatement) {
 				if (segmentOrExternalStatement.statement.path.segments[0]["identifier"] === objectNode.path[1]["value"]) return segmentOrExternalStatement
@@ -267,13 +267,13 @@ class LegacyNodeService {
 		return result
 	}
 
-	public * getInheritedPropertiesByPrototypeName(name: string, workspace: FusionWorkspace, includeOverwrites: boolean = false, debug: boolean = false): Generator<ExternalObjectStatement, void, unknown> {
+	public * getInheritedPropertiesByPrototypeName(name: string, workspace: FusionWorkspace, includeOverwrites = false, debug = false): Generator<ExternalObjectStatement, void, unknown> {
 		for (const otherParsedFile of workspace.parsedFiles) {
 			yield* this.getInheritedPropertiesByPrototypeNameFromParsedFile(name, otherParsedFile, workspace, includeOverwrites, debug)
 		}
 	}
 
-	protected * getInheritedPropertiesByPrototypeNameFromParsedFile(name: string, parsedFile: ParsedFusionFile, workspace: FusionWorkspace, includeOverwrites: boolean = false, debug: boolean = false) {
+	protected * getInheritedPropertiesByPrototypeNameFromParsedFile(name: string, parsedFile: ParsedFusionFile, workspace: FusionWorkspace, includeOverwrites = false, debug = false) {
 		const prototypeNodes = [...parsedFile.prototypeCreations]
 		if (includeOverwrites) prototypeNodes.push(...parsedFile.prototypeOverwrites)
 		for (const positionedNode of prototypeNodes) {
@@ -281,7 +281,7 @@ class LegacyNodeService {
 		}
 	}
 
-	protected * getInheritedPropertiesByPrototypeNameFromPrototypePathSegments(name: string, workspace: FusionWorkspace, parsedFile: ParsedFusionFile, positionedNode: LinePositionedNode<PrototypePathSegment>, includeOverwrites: boolean = false, debug: boolean = false) {
+	protected * getInheritedPropertiesByPrototypeNameFromPrototypePathSegments(name: string, workspace: FusionWorkspace, parsedFile: ParsedFusionFile, positionedNode: LinePositionedNode<PrototypePathSegment>, includeOverwrites = false, debug = false) {
 		if (positionedNode.getNode().identifier !== name) return
 		const objectStatement = findParent(positionedNode.getNode(), ObjectStatement)
 		if (!objectStatement) return

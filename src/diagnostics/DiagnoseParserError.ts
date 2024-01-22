@@ -6,7 +6,7 @@ import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 export const diagnoseParserError = (parsedFusionFile: ParsedFusionFile) => {
 	const diagnostics: Diagnostic[] = []
 
-	const ignoredErrors = parsedFusionFile.ignoredErrorsByParser;
+	const ignoredErrors = parsedFusionFile.ignoredErrorsByParser
 
 	if (ignoredErrors.length === 0) return diagnostics
 

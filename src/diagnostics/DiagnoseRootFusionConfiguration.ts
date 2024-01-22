@@ -22,10 +22,10 @@ export function diagnoseRootFusionConfiguration(parsedFusionFile: ParsedFusionFi
 	const neosPackage = workspace.neosWorkspace.getPackageByUri(parsedFusionFile.uri)
 	if (!neosPackage) return []
 
-	if (neosPackage["composerJson"]?.type === 'neos-site') return []
+	if (neosPackage.composerJson?.type === 'neos-site') return []
 
 	// TODO: Check not only in Package configuration but in the merged configuration ('neos_context' branch)
-	const isInAutoInclude = neosPackage["configuration"].get(["Neos", "Neos", "fusion", "autoInclude", neosPackage.getPackageName()]) === true
+	const isInAutoInclude = neosPackage.configuration.get(["Neos", "Neos", "fusion", "autoInclude", neosPackage.getPackageName()]) === true
 	if (isInAutoInclude) return []
 
 	if (noAutoincludeNeeded(parsedFusionFile)) return []

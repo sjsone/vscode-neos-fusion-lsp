@@ -44,6 +44,7 @@ import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokens
 import { FusionDocument } from './main'
 import { ParsedYaml } from './neos/FlowConfigurationFile'
 import { AbstractLanguageFeatureParams } from './languageFeatures/LanguageFeatureContext'
+import { SignatureHelpCapability } from './capabilities/SignatureHelpCapability'
 
 
 const CodeActions = [
@@ -65,7 +66,7 @@ export class LanguageServer extends Logger {
 
 	protected connection: _Connection
 	protected documents: TextDocuments<FusionDocument>
-	protected fusionWorkspaces: FusionWorkspace[] = []
+	public fusionWorkspaces: FusionWorkspace[] = []
 	protected clientCapabilityService!: ClientCapabilityService
 
 	protected functionalityInstances: Map<new (...args: any[]) => AbstractFunctionality, AbstractFunctionality> = new Map()
@@ -85,6 +86,7 @@ export class LanguageServer extends Logger {
 		this.addFunctionalityInstance(CodeLensCapability)
 		this.addFunctionalityInstance(RenamePrepareCapability)
 		this.addFunctionalityInstance(RenameCapability)
+		this.addFunctionalityInstance(SignatureHelpCapability)
 
 		this.addFunctionalityInstance(InlayHintLanguageFeature)
 		this.addFunctionalityInstance(SemanticTokensLanguageFeature)
@@ -179,6 +181,10 @@ export class LanguageServer extends Logger {
 				definitionProvider: true,
 				codeLensProvider: {
 					resolveProvider: false
+				},
+				signatureHelpProvider: {
+					triggerCharacters: ["("],
+					retriggerCharacters: [","]
 				},
 				renameProvider: {
 					prepareProvider: true

@@ -10,7 +10,7 @@ export interface LinePosition {
 declare module 'ts-fusion-parser/out/common/AbstractNode' {
 	interface AbstractNode {
 		// FIXME: do not use @ts-ignore
-		// @ts-ignore
+		// @ts-expect-error Because `this` cannot be resolved correctly by Typescript
 		linePositionedNode: LinePositionedNode<typeof this>;
 	}
 }
@@ -31,10 +31,10 @@ export class LinePositionedNode<T extends AbstractNode> {
 		this.node = node
 		this.node.linePositionedNode = this
 
-		if (node["position"] !== undefined && text !== undefined && textUri !== undefined) {
-			const begin = node["position"].begin ?? (node["position"]).begin
+		if (node.position !== undefined && text !== undefined && textUri !== undefined) {
+			const begin = node.position.begin ?? (node.position).begin
 			this.start = getLineNumberOfChar(text, begin, textUri)
-			this.end = getLineNumberOfChar(text, node["position"].end, textUri)
+			this.end = getLineNumberOfChar(text, node.position.end, textUri)
 		}
 	}
 

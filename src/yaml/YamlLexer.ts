@@ -20,8 +20,8 @@ import {
 export class YamlLexer {
     private input: string
     private currentPos: number
-    private currentIndent: number = 0
-    private indentLocked: boolean = false
+    private currentIndent = 0
+    private indentLocked = false
     private lastIndentType?: string
     protected inLine: boolean
 
@@ -52,7 +52,7 @@ export class YamlLexer {
     protected tokenizeNumber() {
         const position = this.currentPos
         let value = ""
-        while (this.currentPos < this.input.length && this.input[this.currentPos].match(/[0-9\.]/)) {
+        while (this.currentPos < this.input.length && this.input[this.currentPos].match(/[0-9.]/)) {
             value += this.input[this.currentPos]
             this.currentPos++
         }
@@ -67,7 +67,7 @@ export class YamlLexer {
 
     protected tokenizeComplexString(rest: string) {
         const position = this.currentPos
-        let value = rest.match(/^([<>a-zA-Z0-9\\\/\._\-!:]+?):[ |\n]{1}/m)![1]
+        const value = rest.match(/^([<>a-zA-Z0-9\\/._\-!:]+?):[ |\n]{1}/m)![1]
         this.currentPos += value.length
         return { inLine: this.inLine, indent: this.getIndent(), position, type: "complex_string", value } as ComplexStringToken
     }
@@ -76,7 +76,7 @@ export class YamlLexer {
         const position = this.currentPos
 
         let value = ""
-        while (this.currentPos < this.input.length && this.input[this.currentPos].match(/[a-zA-Z0-9\/!*&\\\._\-]/)) {
+        while (this.currentPos < this.input.length && this.input[this.currentPos].match(/[a-zA-Z0-9/!*&\\._-]/)) {
             value += this.input[this.currentPos]
             this.currentPos++
         }
@@ -183,10 +183,10 @@ export class YamlLexer {
             } else if (char === "~") {
                 this.inLine = true
                 yield this.tokenizeTilde()
-            } else if ((rest.match(/^([<>a-zA-Z0-9\\\/\._\-!:]+?):[ |\n]{1}/m)?.[1]) !== undefined) {
+            } else if ((rest.match(/^([<>a-zA-Z0-9\\/._\-!:]+?):[ |\n]{1}/m)?.[1]) !== undefined) {
                 this.inLine = true
                 yield this.tokenizeComplexString(rest)
-            } else if (char.match(/[a-zA-Z!*&\/\\]/)) {
+            } else if (char.match(/[a-zA-Z!*&/\\]/)) {
                 this.inLine = true
                 yield this.tokenizeImplicitString()
             } else if (char === '"' || char === "'") {
@@ -198,7 +198,7 @@ export class YamlLexer {
             } else if (char === "#") {
                 this.inLine = true
                 yield this.tokenizeComment()
-            } else if (char.match(/[\[\]\{\},]/)) {
+            } else if (char.match(/[[]{},]/)) {
                 this.inLine = true
                 yield this.tokenizeSymbol(char)
             } else if (char === "\n") {

@@ -1,6 +1,6 @@
-import { FileChangeType, FileEvent } from 'vscode-languageserver';
-import { AbstractFileChangeHandler } from './AbstractFileChangeHandler';
-import { uriToPath } from '../common/util';
+import { FileChangeType, FileEvent } from 'vscode-languageserver'
+import { AbstractFileChangeHandler } from './AbstractFileChangeHandler'
+import { uriToPath } from '../common/util'
 
 export class FusionFileChangeHandler extends AbstractFileChangeHandler {
 	canHandleFileEvent(fileEvent: FileEvent): boolean {
@@ -23,7 +23,7 @@ export class FusionFileChangeHandler extends AbstractFileChangeHandler {
 	}
 
 	public async handleChanged(fileEvent: FileEvent) {
-		throw new Error('Method not implemented.');
+		throw new Error('Method not implemented.')
 	}
 
 	public async handleDeleted(fileEvent: FileEvent): Promise<void> {

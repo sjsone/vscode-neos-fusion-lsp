@@ -1,6 +1,6 @@
-import { FileChangeType, FileEvent } from 'vscode-languageserver';
-import { AbstractFunctionality } from '../common/AbstractFunctionality';
-import { clearLineDataCacheForFile } from '../common/util';
+import { FileChangeType, FileEvent } from 'vscode-languageserver'
+import { AbstractFunctionality } from '../common/AbstractFunctionality'
+import { clearLineDataCacheForFile } from '../common/util'
 
 export abstract class AbstractFileChangeHandler extends AbstractFunctionality {
 	abstract canHandleFileEvent(fileEvent: FileEvent): boolean

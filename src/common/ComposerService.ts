@@ -31,8 +31,8 @@ class ComposerService {
 			return list
 		}, [])
 
-		const remaining = packagesPaths.filter(item => !sortedPackagePaths.includes(item));
-		return remaining.concat(sortedPackagePaths);
+		const remaining = packagesPaths.filter(item => !sortedPackagePaths.includes(item))
+		return remaining.concat(sortedPackagePaths)
 	}
 
 	getComposerJsonByPath(path: string) {
@@ -43,7 +43,7 @@ class ComposerService {
 		return this.parsedComposerJsonByName[name]
 	}
 
-	protected buildTreeLevels(tree: any, treeLevels: any[] = [], currentLevel: number = 0) {
+	protected buildTreeLevels(tree: any, treeLevels: any[] = [], currentLevel = 0) {
 		if (treeLevels[currentLevel] === undefined) treeLevels[currentLevel] = []
 
 		for (const name of Object.keys(tree)) {

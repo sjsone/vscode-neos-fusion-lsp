@@ -1,22 +1,22 @@
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement';
-import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment';
-import { RuntimeConfiguration } from 'ts-fusion-runtime';
-import { FusionWorkspace } from '../fusion/FusionWorkspace';
-import { MergedArrayTreeService } from './MergedArrayTreeService';
-import { findParent } from './util';
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
+import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
+import { RuntimeConfiguration } from 'ts-fusion-runtime'
+import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { MergedArrayTreeService } from './MergedArrayTreeService'
+import { findParent } from './util'
 
 class NodeService {
 
-	public getFusionContextUntilNode(node: AbstractNode, workspace: FusionWorkspace, debug: boolean = false) {
-		const startTimePathResolving = performance.now();
+	public getFusionContextUntilNode(node: AbstractNode, workspace: FusionWorkspace, debug = false) {
+		const startTimePathResolving = performance.now()
 
 		const baseNode = node instanceof PathSegment ? findParent(node, ObjectStatement)["parent"] : node
 
 		if (debug) console.log("before buildPathForNode")
 		const pathForNode = MergedArrayTreeService.buildPathForNode(baseNode)
 		if (debug) console.log("pathForNode", pathForNode)
-		const runtimeConfiguration = new RuntimeConfiguration(workspace.mergedArrayTree);
+		const runtimeConfiguration = new RuntimeConfiguration(workspace.mergedArrayTree)
 		// if (debug) console.log("runtimeConfiguration", runtimeConfiguration['fusionConfiguration']['__prototypes']['Otter.Demo:Molecule.Hero'])
 
 		const relevantTree = pathForNode.map((pathPart, index) => ({
@@ -40,7 +40,7 @@ class NodeService {
 			const atPrivateNextInPath = relevantTree[relevantTreePartIndex + 1]?.pathPart === "__meta" && relevantTree[relevantTreePartIndex + 2]?.pathPart === "private"
 
 			let thisFusionContext = {}
-			let privateFusionContext = {}
+			const privateFusionContext = {}
 
 			if (partConfiguration.__meta) {
 				if (partConfiguration.__meta.context && typeof partConfiguration.__meta.context === "object") {
@@ -112,5 +112,5 @@ class NodeService {
 
 
 const nodeService = new NodeService
-export { nodeService as NodeService, NodeService as NodeServiceClass };
+export { nodeService as NodeService, NodeService as NodeServiceClass }
 

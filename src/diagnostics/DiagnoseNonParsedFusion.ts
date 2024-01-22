@@ -10,7 +10,7 @@ export function diagnoseNonParsedFusion(parsedFusionFile: ParsedFusionFile) {
 	if (!tagNodes) return diagnostics
 
 	for (const tagNode of tagNodes) {
-		const tagNodeName = tagNode.getNode()["name"].toLowerCase()
+		const tagNodeName = tagNode.getNode().name.toLowerCase()
 		if (tagNodeName !== "script") continue
 
 		diagnostics.push({

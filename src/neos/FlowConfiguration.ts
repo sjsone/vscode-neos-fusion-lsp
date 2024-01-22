@@ -14,8 +14,8 @@ enum FlowConfigurationType {
 }
 
 export class FlowConfiguration extends Logger {
-	protected settingsConfiguration: ParsedYaml
-	protected nodeTypeDefinitions: NodeTypeDefinition[]
+	public settingsConfiguration: ParsedYaml
+	public nodeTypeDefinitions: NodeTypeDefinition[]
 	protected configurationFiles: FlowConfigurationFile[] = []
 
 	protected constructor(protected neosWorkspace: NeosWorkspace, protected folderPath: string, protected types: FlowConfigurationType[]) {
@@ -141,14 +141,14 @@ export class FlowConfiguration extends Logger {
 	}
 
 	static ForPackage(neosPackage: NeosPackage) {
-		const configuration = new FlowConfiguration(neosPackage["neosWorkspace"], neosPackage["path"], [FlowConfigurationType.Configuration, FlowConfigurationType.NodeTypes]);
+		const configuration = new FlowConfiguration(neosPackage["neosWorkspace"], neosPackage["path"], [FlowConfigurationType.Configuration, FlowConfigurationType.NodeTypes])
 		configuration.initialize()
 		neosPackage["neosWorkspace"]["configurationManager"]["configurations"].push(configuration)
 		return configuration
 	}
 
 	static ForPath(neosWorkspace: NeosWorkspace, folderPath: string) {
-		const configuration = new FlowConfiguration(neosWorkspace, folderPath, [FlowConfigurationType.Configuration]);
+		const configuration = new FlowConfiguration(neosWorkspace, folderPath, [FlowConfigurationType.Configuration])
 		configuration.initialize()
 		neosWorkspace.configurationManager["configurations"].push(configuration)
 		return configuration
