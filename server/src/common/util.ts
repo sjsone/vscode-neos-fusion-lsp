@@ -168,7 +168,7 @@ export function mergeObjects(source: { [key: string]: any }, target: { [key: str
             target[key] = val
         }
     }
-    return target // we're replacing in-situ, so this is more for chaining than anything else
+    return target
 }
 
 export function findParent<T extends new (...args: any) => AbstractNode>(node: AbstractNode, parentType: T) {
