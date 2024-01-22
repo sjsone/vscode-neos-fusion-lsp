@@ -2,7 +2,7 @@ import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { NodePosition } from 'ts-fusion-parser/out/common/NodePosition'
 
 export class ResourceUriNode extends AbstractNode {
-	protected identifier: string
+	public identifier: string
 	protected namespace!: string
 	protected relativePath!: string
 

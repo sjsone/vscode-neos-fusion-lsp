@@ -71,7 +71,7 @@ export class FusionWorkspace extends Logger {
         const packagesRootPaths = configuration.folders.packages.filter(path => NodeFs.existsSync(path))
         const filteredPackagesRootPaths = packagesRootPaths.filter(packagePath => !ignoreFolders.find(ignoreFolder => packagePath.startsWith(NodePath.join(workspacePath, ignoreFolder))))
 
-        const packagesPaths = []
+        const packagesPaths: string[] = []
 
         for (const filteredPackagesRootPath of filteredPackagesRootPaths) {
             for (const folder of NodeFs.readdirSync(filteredPackagesRootPath, { withFileTypes: true })) {
@@ -100,7 +100,7 @@ export class FusionWorkspace extends Logger {
         const incrementPerPackage = 100 / packagesPaths.length
 
         for (const neosPackage of this.neosWorkspace.getPackages().values()) {
-            const packagePath = neosPackage["path"]
+            const packagePath = neosPackage.path
             this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
                 message: `Package: ${packagePath}`
             }).catch(error => this.logError("init", error))
@@ -122,7 +122,7 @@ export class FusionWorkspace extends Logger {
         }
 
         // TODO: use correct package include order instead of guessing
-        const sortOrder: string[] = ['neos-framework', 'neos-package', 'neos-site', 'library'];
+        const sortOrder: string[] = ['neos-framework', 'neos-package', 'neos-site', 'library']
         const possibleNeosFusionPackages = Array.from(this.neosWorkspace.getPackages().values()).sort((a, b) => {
             const typeOrder = sortOrder.indexOf(a["composerJson"]["type"]) - sortOrder.indexOf(b["composerJson"]["type"])
             if (typeOrder === 0) {
@@ -158,6 +158,8 @@ export class FusionWorkspace extends Logger {
             if (!contextPathAndFilename) return undefined
 
             const neosPackage = this.neosWorkspace.getPackage(uri.hostname)
+            if (!neosPackage) return undefined
+
             return NodePath.join(neosPackage["path"], "NodeTypes", uri.pathname)
         })
 
@@ -188,14 +190,14 @@ export class FusionWorkspace extends Logger {
     }
 
     buildMergedArrayTree() {
-        const startTimeFullMergedArrayTree = performance.now();
+        const startTimeFullMergedArrayTree = performance.now()
         this.languageServer.sendBusyCreate('parsingFusionMergedArrayTree', {
             busy: true,
         })
 
 
         this.mergedArrayTree = this.fusionParser.parseRootFusionFiles()
-        this.logVerbose(`Elapsed time FULL MAT: ${performance.now() - startTimeFullMergedArrayTree} milliseconds`);
+        this.logVerbose(`Elapsed time FULL MAT: ${performance.now() - startTimeFullMergedArrayTree} milliseconds`)
         this.languageServer.sendBusyDispose('parsingFusionMergedArrayTree')
     }
 
@@ -273,8 +275,8 @@ export class FusionWorkspace extends Logger {
         return this.parsedFiles.find(file => file.uri.endsWith(contextPathAndFilename))
     }
 
-    getNodesByType<T extends new (...args: unknown[]) => AbstractNode>(type: T): Array<{ uri: string, nodes: LinePositionedNode<InstanceType<T>>[] }> {
-        const nodes = []
+    getNodesByType<T extends new (...args: any[]) => AbstractNode>(type: T) {
+        const nodes: { uri: string, nodes: LinePositionedNode<InstanceType<T>>[] }[] = []
         for (const file of this.parsedFiles) {
             const fileNodes = file.nodesByType.get(type)
             if (fileNodes) nodes.push({

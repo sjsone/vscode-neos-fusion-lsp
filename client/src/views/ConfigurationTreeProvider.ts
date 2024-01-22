@@ -6,7 +6,7 @@ import {
 	TreeDataProvider,
 	TreeItem,
 	TreeItemCollapsibleState
-} from 'vscode';
+} from 'vscode'
 
 export interface NeosConfigurationNode {
 	path: string[];
@@ -32,12 +32,12 @@ export class ConfigurationTreeProvider implements TreeDataProvider<NeosConfigura
 		this.flowConfigurationModel.updated.event(() => this.refresh())
 	}
 
-	private onDidChangeTreeDataEventEmitter: EventEmitter<undefined> = new EventEmitter<undefined>();
-	readonly onDidChangeTreeData: Event<void | NeosConfigurationNode | NeosConfigurationNode[]> = this.onDidChangeTreeDataEventEmitter.event;
+	private onDidChangeTreeDataEventEmitter: EventEmitter<undefined> = new EventEmitter<undefined>()
+	readonly onDidChangeTreeData: Event<void | NeosConfigurationNode | NeosConfigurationNode[]> = this.onDidChangeTreeDataEventEmitter.event
 
 	public refresh(): any {
 		this.log("Refreshing...")
-		this.onDidChangeTreeDataEventEmitter.fire(undefined);
+		this.onDidChangeTreeDataEventEmitter.fire(undefined)
 	}
 
 	getTreeItem(element: NeosConfigurationNode): TreeItem | Thenable<TreeItem> {

@@ -24,6 +24,8 @@ import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
 import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
 import { Position } from 'vscode-languageserver'
 import { FlowConfigurationPathPartNode } from '../fusion/FlowConfigurationPathPartNode'
+import { RoutingActionNode } from '../fusion/node/RoutingActionNode'
+import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
 
 export interface LineDataCacheEntry {
     lineLengths: number[]
@@ -32,7 +34,7 @@ export interface LineDataCacheEntry {
 
 const lineDataCache: Map<string, LineDataCacheEntry> = new Map
 
-const whitespaceRegex = /^[ \t]+/;
+const whitespaceRegex = /^[ \t]+/
 
 export function clearLineDataCacheForFile(textUri: string) {
     if (lineDataCache.has(textUri)) lineDataCache.delete(textUri)
@@ -55,7 +57,7 @@ export function buildEntryForLineDataCache(lines: string[]): LineDataCacheEntry 
     const lineIndents = []
 
     for (const line of lines) {
-        const match = RegExp(whitespaceRegex).exec(line);
+        const match = RegExp(whitespaceRegex).exec(line)
         lineIndents.push(match ? match[0] : '')
         lineLengths.push(line.length)
     }
@@ -84,7 +86,7 @@ export function getLineNumberOfChar(data: string, index: number, textUri: string
     return { line: i, character: column } as Position
 }
 
-export function* getFiles(dir: string, withExtension = ".fusion", recursive: boolean = true): Generator<string> {
+export function* getFiles(dir: string, withExtension = ".fusion", recursive = true): Generator<string> {
     const directoryEntries = NodeFs.readdirSync(dir, { withFileTypes: true })
     for (const dirent of directoryEntries) {
         if (dirent.isSymbolicLink()) continue
@@ -142,7 +144,7 @@ export function pathToUri(path: string) {
 export function getPrototypeNameFromNode(node: AbstractNode) {
     if (node instanceof FusionObjectValue) return node.value
     if (node instanceof PrototypePathSegment) return node.identifier
-    if (node instanceof FusionObjectValue) return node["value"]
+    if (node instanceof FusionObjectValue) return node.value
     return null
 }
 
@@ -174,72 +176,72 @@ export function mergeObjects(source: unknown, target: unknown) {
 }
 
 export function findParent<T extends new (...args: any) => AbstractNode>(node: AbstractNode, parentType: T) {
-    let parent = node["parent"]
+    let parent = node.parent
     while (parent) {
         if (parent instanceof parentType) return <InstanceType<T>>parent
-        parent = parent["parent"]
+        parent = (parent as AbstractNode).parent
     }
     return undefined
 }
 
 export function findUntil<T extends AbstractNode>(node: any, condition: (parent: AbstractNode) => boolean): T | undefined {
-    let parent = node["parent"]
+    let parent = node.parent
     while (parent) {
         if (condition(parent)) {
             return parent
         }
-        parent = parent["parent"]
+        parent = parent.parent
     }
     return undefined
 }
 
 export function abstractNodeToString(node: AbstractEelNode | AbstractNode): string | undefined {
     // TODO: This should be node.toString() but for now...
-    if (node instanceof StringValue) return `"${node["value"]}"`
-    if (node instanceof LiteralStringNode) return node["quotationType"] + node["value"] + node["quotationType"]
-    if (node instanceof LiteralNumberNode) return node["value"]
-    if (node instanceof FusionObjectValue) return node["value"]
+    if (node instanceof StringValue) return `"${node.value}"`
+    if (node instanceof LiteralStringNode) return node.quotationType + node.value + node.quotationType
+    if (node instanceof LiteralNumberNode) return node.value
+    if (node instanceof FusionObjectValue) return node.value
     if (node instanceof EelExpressionValue) {
         if (Array.isArray(node.nodes)) return undefined
         return `\${${abstractNodeToString(<AbstractEelNode>node.nodes)}}`
     }
 
-    if (node instanceof MetaPathSegment) return "@" + node["identifier"]
-    if (node instanceof PathSegment) return node["identifier"]
-    if (node instanceof PrototypePathSegment) return `prototype(${node["identifier"]})`
+    if (node instanceof MetaPathSegment) return "@" + node.identifier
+    if (node instanceof PathSegment) return node.identifier
+    if (node instanceof PrototypePathSegment) return `prototype(${node.identifier})`
     if (node instanceof ObjectFunctionPathNode) {
-        return `${node["value"]}(${node["args"].map(abstractNodeToString).join(", ")})`
+        return `${node.value}(${node.args.map(abstractNodeToString).join(", ")})`
     }
-    if (node instanceof ObjectPathNode) return node["value"]
+    if (node instanceof ObjectPathNode) return node.value
     if (node instanceof ObjectNode) {
-        return node["path"].map(abstractNodeToString).join(".")
+        return node.path.map(abstractNodeToString).join(".")
     }
     if (node instanceof OperationNode) {
-        return `${abstractNodeToString(node["leftHand"])} ${node["operation"]} ${abstractNodeToString(node["rightHand"])}`
+        return `${abstractNodeToString(node.leftHand)} ${node.operation} ${abstractNodeToString(node.rightHand)}`
     }
 
     return undefined
 }
 
 export function getObjectIdentifier(objectStatement: ObjectStatement): string {
-    return objectStatement.path.segments.map(segment => `${segment instanceof MetaPathSegment ? '@' : ''}${segment["identifier"]}`).join(".")
+    return objectStatement.path.segments.map(segment => `${segment instanceof MetaPathSegment ? '@' : ''}${segment.identifier}`).join(".")
 }
 
 export function getNodeWeight(node: any) {
-    switch (true) {
-        case node instanceof TranslationShortHandNode: return 600
-        case node instanceof FusionObjectValue: return 500
-        case node instanceof PhpClassMethodNode: return 400
-        case node instanceof PhpClassNode: return 300
-        case node instanceof FqcnNode: return 200
-        case node instanceof PrototypePathSegment: return 180
-        case node instanceof FlowConfigurationPathPartNode: return 170
-        case node instanceof ResourceUriNode: return 160
-        case node instanceof ObjectPathNode: return 150
-        case node instanceof ObjectNode: return 140
-        case node instanceof ObjectStatement: return 100
-        default: return 0
-    }
+    if (node instanceof TranslationShortHandNode) return 600
+    if (node instanceof FusionObjectValue) return 500
+    if (node instanceof PhpClassMethodNode) return 400
+    if (node instanceof PhpClassNode) return 300
+    if (node instanceof FqcnNode) return 200
+    if (node instanceof PrototypePathSegment) return 180
+    if (node instanceof FlowConfigurationPathPartNode) return 170
+    if (node instanceof ResourceUriNode) return 160
+    if (node instanceof ObjectPathNode) return 150
+    if (node instanceof ObjectNode) return 140
+    if (node instanceof ObjectStatement) return 100
+    if (node instanceof RoutingActionNode) return 9
+    if (node instanceof RoutingControllerNode) return 8
+    return 0
 }
 
 export enum SemanticCommentType {

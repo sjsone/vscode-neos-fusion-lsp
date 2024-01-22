@@ -1,7 +1,7 @@
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { NodePositionInterface } from "ts-fusion-parser/out/common/NodePositionInterface";
-import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode';
-import { FlowConfigurationPathPartNode } from './FlowConfigurationPathPartNode';
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { NodePositionInterface } from "ts-fusion-parser/out/common/NodePositionInterface"
+import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode'
+import { FlowConfigurationPathPartNode } from './FlowConfigurationPathPartNode'
 
 export class FlowConfigurationPathNode extends AbstractNode {
 	protected path: FlowConfigurationPathPartNode[] = []

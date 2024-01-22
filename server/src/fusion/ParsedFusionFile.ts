@@ -51,7 +51,7 @@ export class ParsedFusionFile extends Logger {
 	public prototypeOverwrites: LinePositionedNode<PrototypePathSegment>[] = []
 	public prototypeExtends: LinePositionedNode<AbstractNode>[] = []
 
-	public fusionFile: FusionFile
+	public fusionFile!: FusionFile
 	public nodesByLine: { [key: string]: LinePositionedNode<AbstractNode>[] } = {}
 	public nodesByType: Map<new (...args: unknown[]) => AbstractNode, LinePositionedNode<AbstractNode>[]> = new Map()
 
@@ -93,9 +93,8 @@ export class ParsedFusionFile extends Logger {
 			}
 			this.fusionFileProcessor.readStatementList(this.fusionFile.statementList, text)
 
-			for (const nodeType of this.fusionFile.nodesByType.keys()) {
-				this.fusionFileProcessor.processNodesByType(nodeType, this.fusionFile, text)
-			}
+			this.fusionFileProcessor.processNodes(this.fusionFile, text)
+
 			const fileName = NodePath.basename(filePath)
 			if (fileName.startsWith("Routing") && fileName.endsWith(".fusion")) this.handleFusionRouting(text)
 			this.logVerbose("finished")
@@ -103,7 +102,7 @@ export class ParsedFusionFile extends Logger {
 		} catch (e) {
 			if (e instanceof Error) {
 				// this.logError("Caught: ", e.message, e.stack)
-				this.logError("    Error: ", e.message)
+				this.logError("    Error: ", e.message, e.stack)
 			}
 
 			return false
@@ -124,7 +123,7 @@ export class ParsedFusionFile extends Logger {
 	}
 
 	addNode(node: AbstractNode, text: string) {
-		if (node["position"] === undefined) return
+		if (node.position === undefined) return
 		const nodeByLine = new LinePositionedNode(node, text, this.uri)
 
 		for (let line = nodeByLine.getBegin().line; line <= nodeByLine.getEnd().line; line++) {
@@ -156,7 +155,7 @@ export class ParsedFusionFile extends Logger {
 	}
 
 	protected extractPackageAndControllerNameFromFusionRoute(segments: AbstractPathSegment[]) {
-		const fusionRoute = segments.map(s => s["identifier"]).join('.')
+		const fusionRoute = segments.map(s => s.identifier).join('.')
 		const ownPackageNameWithDot = this.neosPackage.getPackageName() + '.'
 
 		if (fusionRoute.startsWith(ownPackageNameWithDot)) {
@@ -172,9 +171,8 @@ export class ParsedFusionFile extends Logger {
 		}
 
 
-		const packageName = segments.slice(0, 2).map(s => s["identifier"]).join('.')
-
-		const fullControllerName = segments.slice(2).map(s => s["identifier"]).join('/')
+		const packageName = segments.slice(0, 2).map(s => s.identifier).join('.')
+		const fullControllerName = segments.slice(2).map(s => s.identifier).join('/')
 		const controllerName = fullControllerName.replace(/(Controller)$/, "")
 
 		return {

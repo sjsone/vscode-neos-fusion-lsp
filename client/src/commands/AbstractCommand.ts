@@ -1,4 +1,4 @@
-import { Extension } from '../Extension';
+import { Extension } from '../Extension'
 
 export type AbstractCommandConstructor<T extends AbstractCommand = AbstractCommand> = { Identifier: string } & (new (...args: any[]) => T);
 

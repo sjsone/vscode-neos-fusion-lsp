@@ -7,7 +7,7 @@ import { LegacyNodeService } from '../common/LegacyNodeService'
 
 export async function diagnoseTranslationShortHand(parsedFusionFile: ParsedFusionFile) {
 	const diagnostics: Diagnostic[] = []
-	const workspace = parsedFusionFile.neosPackage["neosWorkspace"]["fusionWorkspace"]
+	const workspace = parsedFusionFile.neosPackage.neosWorkspace.fusionWorkspace
 	const translationShortHandNodes = parsedFusionFile.getNodesByType(TranslationShortHandNode)
 	if (translationShortHandNodes === undefined) return diagnostics
 

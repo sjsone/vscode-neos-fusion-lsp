@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
-import { AbstractCommand } from './AbstractCommand';
+import * as vscode from 'vscode'
+import { AbstractCommand } from './AbstractCommand'
 
 export class PutContentIntoClipboard extends AbstractCommand {
 	static Identifier = "neos-fusion-lsp.putContentIntoClipboard"

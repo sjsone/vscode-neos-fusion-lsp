@@ -1,7 +1,7 @@
-import { FileChangeType, FileEvent } from 'vscode-languageserver';
-import { AbstractFileChangeHandler } from './AbstractFileChangeHandler';
-import { clearLineDataCacheForFile, uriToPath } from '../common/util';
-import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile';
+import { FileChangeType, FileEvent } from 'vscode-languageserver'
+import { AbstractFileChangeHandler } from './AbstractFileChangeHandler'
+import { clearLineDataCacheForFile, uriToPath } from '../common/util'
+import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile'
 
 export class XlfFileChangeHandler extends AbstractFileChangeHandler {
 	canHandleFileEvent(fileEvent: FileEvent): boolean {
@@ -10,7 +10,7 @@ export class XlfFileChangeHandler extends AbstractFileChangeHandler {
 
 	public async handleChanged(fileEvent: FileEvent) {
 		clearLineDataCacheForFile(fileEvent.uri)
-		for (const workspace of this.languageServer["fusionWorkspaces"]) {
+		for (const workspace of this.languageServer.fusionWorkspaces) {
 			const translationFile = workspace.getTranslationFileByUri(fileEvent.uri)
 			if (!translationFile) continue
 			translationFile.parse().catch(error => this.logError("handleFileChanged", error))

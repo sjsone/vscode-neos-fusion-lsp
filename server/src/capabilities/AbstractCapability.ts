@@ -4,7 +4,7 @@ import { CapabilityContext, WorkspacesCapabilityContext } from './CapabilityCont
 import { AbstractFunctionality } from '../common/AbstractFunctionality'
 
 export abstract class AbstractCapability extends AbstractFunctionality {
-	protected noPositionedNode: boolean = false
+	protected noPositionedNode = false
 
 	public execute(params: TextDocumentPositionParams | WorkspaceSymbolParams) {
 		try {
@@ -23,7 +23,7 @@ export abstract class AbstractCapability extends AbstractFunctionality {
 	protected buildContextFromParams(params: TextDocumentPositionParams | WorkspaceSymbolParams): null | CapabilityContext<AbstractNode> {
 		if (!('textDocument' in params)) {
 			return {
-				workspaces: this.languageServer["fusionWorkspaces"],
+				workspaces: this.languageServer.fusionWorkspaces,
 				params
 			} as WorkspacesCapabilityContext
 		}
@@ -59,6 +59,7 @@ export abstract class AbstractCapability extends AbstractFunctionality {
 				this.logDebug(`Could not find node for line/column: ${line}/${column}`)
 				return null
 			}
+
 			context.foundNodeByLine = foundNodeByLine
 		}
 

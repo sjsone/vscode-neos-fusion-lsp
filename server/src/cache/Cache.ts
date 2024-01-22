@@ -63,18 +63,18 @@ export class Cache<T> extends Logger {
 
 	public clearByTag(tag: CacheTag): void {
 		if (this.tagKeys.has(tag)) {
-			this.logVerbose(`clearing by tag "${tag}"`);
-			const tagKeys = this.tagKeys.get(tag)!;
+			this.logVerbose(`clearing by tag "${tag}"`)
+			const tagKeys = this.tagKeys.get(tag)!
 			for (const key of tagKeys) {
-				this.cacheStore.delete(key);
+				this.cacheStore.delete(key)
 				if (this.keyTags.has(key)) {
-					const keyTags = this.keyTags.get(key)!;
-					const index = keyTags.indexOf(tag);
-					if (index !== -1) keyTags.splice(index, 1);
-					if (keyTags.length === 0) this.keyTags.delete(key);
+					const keyTags = this.keyTags.get(key)!
+					const index = keyTags.indexOf(tag)
+					if (index !== -1) keyTags.splice(index, 1)
+					if (keyTags.length === 0) this.keyTags.delete(key)
 				}
 			}
-			this.tagKeys.delete(tag);
+			this.tagKeys.delete(tag)
 		}
 	}
 

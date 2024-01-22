@@ -1,6 +1,6 @@
-import { EventEmitter } from "events";
-import { ExtensionContext, OutputChannel, QuickPickItem, QuickPickItemKind, StatusBarAlignment, commands, window } from 'vscode';
-import { LanguageClient } from 'vscode-languageclient/node';
+import { EventEmitter } from "events"
+import { ExtensionContext, OutputChannel, QuickPickItem, QuickPickItemKind, StatusBarAlignment, commands, window } from 'vscode'
+import { LanguageClient } from 'vscode-languageclient/node'
 
 class NeosStatusBarItem {
 	static ChangedContextEvent = "changedcontext"
@@ -13,7 +13,7 @@ class NeosStatusBarItem {
 		this.statusBarItem.color = '#00ADEE'
 		this.updateText("Development")
 
-		const showStatusBarActionsQuickPickCommandId = 'fusion-lsp.showStatusBarActionsQuickPick';
+		const showStatusBarActionsQuickPickCommandId = 'fusion-lsp.showStatusBarActionsQuickPick'
 		subscriptions.push(commands.registerCommand(showStatusBarActionsQuickPickCommandId, async () => {
 			const reloadQuickPickItem = {
 				label: "$(search-refresh) Reload",
@@ -61,7 +61,7 @@ class NeosStatusBarItem {
 		this.statusBarItem.command = showStatusBarActionsQuickPickCommandId
 
 		this.statusBarItem.show()
-		subscriptions.push(this.statusBarItem);
+		subscriptions.push(this.statusBarItem)
 	}
 
 	protected async handleSetConfiguration(client: LanguageClient) {
@@ -111,4 +111,4 @@ class NeosStatusBarItem {
 }
 
 const neosStatusBarItem = new NeosStatusBarItem
-export { neosStatusBarItem as NeosStatusBarItem, NeosStatusBarItem as NeosStatusBarItemClass };
+export { neosStatusBarItem as NeosStatusBarItem, NeosStatusBarItem as NeosStatusBarItemClass }

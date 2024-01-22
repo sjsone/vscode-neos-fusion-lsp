@@ -20,10 +20,10 @@ function hasObjectNodeApplicableObjectStatement(node: ObjectNode) {
 
 function hasObjectNodeApplicablePath(node: ObjectNode) {
 	// TODO: allow more diagnostics 
-	const pathBegin = node.path[0]["value"]
+	const pathBegin = node.path[0].value
 	if (pathBegin !== "props" && pathBegin !== "private") return false
 	if (node.path.length === 1) return false
-	if (node.path[1]["value"] === "content") return false
+	if (node.path[1].value === "content") return false
 
 	return true
 }
@@ -31,7 +31,7 @@ function hasObjectNodeApplicablePath(node: ObjectNode) {
 export function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 	const diagnostics: Diagnostic[] = []
 
-	let debug = false
+	const debug = false
 
 	const positionedObjectNodes = parsedFusionFile.getNodesByType(ObjectNode)
 	if (positionedObjectNodes === undefined) return diagnostics
@@ -60,7 +60,7 @@ export function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 			if (!(objectPathPart in fusionContext)) {
 				// TODO: check if there is a better way. Currently not found stuff is ignored: `prop.thing.notFound`
 				found = objectPathParts.indexOf(objectPathPart) > 1
-				break;
+				break
 			}
 			found = true
 			fusionContext = fusionContext[objectPathPart]

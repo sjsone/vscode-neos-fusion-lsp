@@ -9,7 +9,7 @@ import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/Prototyp
 class MergedArrayTreeService {
 
 	public buildPathForNode(node: AbstractNode): string[] {
-		let nodePath: string[] = []
+		const nodePath: string[] = []
 		let foundNode: AbstractNode | undefined = node
 		do {
 			nodePath.unshift(...this.abstractNodeToMergedArrayTreePath(foundNode))

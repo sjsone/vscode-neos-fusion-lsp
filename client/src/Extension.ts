@@ -35,9 +35,7 @@ export class Extension {
 	protected context: ExtensionContext | undefined = undefined
 	protected flowConfigurationModel = new FlowConfigurationTreeModel
 
-	protected languageStatusBarItems: {
-		[name: string]: AbstractLanguageStatusBarItem,
-	} = {}
+	protected languageStatusBarItems: { [name: string]: undefined | AbstractLanguageStatusBarItem } = { reload: undefined }
 
 	constructor() {
 		this.outputChannel = Window.createOutputChannel('Neos Fusion LSP')
@@ -63,9 +61,17 @@ export class Extension {
 		if (workspace.getConfiguration().get("neosFusionLsp.extensions.modify", false)) {
 			const preferenceService = new PreferenceService(this.outputChannel)
 
+			const modifier = (value: string[] | null) => {
+				if (!value) return null
+				if (value.includes("fusion")) {
+					return null
+				}
+				return [...value, "fusion"]
+			}
+
 			preferenceService.modify({
 				path: "auto-close-tag.activationOnLanguage",
-				modifier: (value: string[]) => !value.includes("fusion") ? [...value, "fusion"] : null
+				modifier
 			})
 		}
 
@@ -88,7 +94,7 @@ export class Extension {
 
 		Window.createTreeView('neosConfiguration', {
 			treeDataProvider: new ConfigurationTreeProvider(this.flowConfigurationModel),
-		});
+		})
 	}
 
 	protected onDidOpenTextDocument(document: TextDocument) {
@@ -111,7 +117,7 @@ export class Extension {
 	}
 
 	protected registerCommand(command: AbstractCommandConstructor) {
-		this.context.subscriptions.push(commands.registerCommand(command.Identifier, (...args: any[]) => (new command(this)).callback(...args)));
+		this.context!.subscriptions.push(commands.registerCommand(command.Identifier, (...args: any[]) => (new command(this)).callback(...args)))
 	}
 
 	public deactivate() {
@@ -146,10 +152,10 @@ export class Extension {
 		return folder
 	}
 
-	public startClient(folder: WorkspaceFolder, inspect: boolean = false) {
-		const module = this.context.asAbsolutePath(path.join('server', 'out', 'main.js'))
+	public startClient(folder: WorkspaceFolder, inspect = false) {
+		const module = this.context!.asAbsolutePath(path.join('server', 'out', 'main.js'))
 
-		const runOptions = { execArgv: [] }
+		const runOptions = { execArgv: [] as string[] }
 
 		console.log("start in inspect", inspect)
 		if (inspect) {
@@ -186,7 +192,7 @@ export class Extension {
 
 		client.onNotification('custom/busy/create', ({ id, configuration }) => {
 			if (id in this.languageStatusBarItems) {
-				this.languageStatusBarItems[id].item.busy = true
+				this.languageStatusBarItems[id]!.item.busy = true
 			}
 		})
 
@@ -195,7 +201,7 @@ export class Extension {
 
 		client.onNotification('custom/busy/dispose', ({ id }) => {
 			if (id in this.languageStatusBarItems) {
-				this.languageStatusBarItems[id].item.busy = false
+				this.languageStatusBarItems[id]!.item.busy = false
 			}
 		})
 		client.onNotification('custom/progressNotification/finish', ({ id }) => progressNotificationService.finish(id))

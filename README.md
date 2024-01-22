@@ -1,13 +1,32 @@
-# 🚀 NEOS Fusion & AFX
 
-🚧 This package is **WIP**. 🚧
+<h1 align="center">
+  <br>
+  <a href="https://github.com/sjsone/vscode-neos-fusion-lsp"><img src="https://raw.githubusercontent.com/sjsone/vscode-neos-fusion-lsp/main/images/logo.png" alt="NEOS Fusion & AFX" width="200"></a>
+  <br>
+  NEOS Fusion & AFX Language Server
+  <br>
+</h1>
 
-📦 [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=SimonSchmidt.vscode-neos-fusion-lsp)
+<h4 align="center">A language Server built for the NEOS CMS. Currently only for VSCode.</h4>
+
+<p align="center">
+  <a href="https://marketplace.visualstudio.com/items?itemName=SimonSchmidt.vscode-neos-fusion-lsp">📦 VSCode Marketplace</a> •
+  <a href="#how-to-use">How To Use</a> •
+  <a href="#Functionality">Functionality</a> •
+  <a href="#FAQ">FAQ</a>
+</p>
+
+> [!WARNING]  
+> 🚧 This package is still WIP 🚧
 
 <p float="left">
   <img width="45%" src="https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/goto_definition.gif?raw=true" alt="animated" />
   <img width="45%" src="https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/goto_eel_helper_method.gif?raw=true" alt="animated" />
 </p>
+
+## How to Use
+
+1. [Install the extension](https://marketplace.visualstudio.com/items?itemName=SimonSchmidt.vscode-neos-fusion-lsp)
 
 ## Functionality
 
@@ -73,8 +92,6 @@ It is based on the definition capability. Because the definition capability does
 
 ![goto image](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/diagnostics_example.gif?raw=true)
 
-
-
 If you want to ignore an Error or Warning you can use a `@fusion-ignore`  -comment in the line before:
 
  ![goto image](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/fusion_ignore_property.png?raw=true)
@@ -113,15 +130,15 @@ Some comments have optional parameters which is a simple comma separated list:
 
 With this comment the next line will be ignored from fusion property diagnostics, so no error, warning or info reporting.
 
-It also works on EEL-Helper-Argument Diagnostics. 
+It also works on EEL-Helper-Argument Diagnostics.
 
-If placed above a Tag in AFX the attributes will be affected as well. Even if they are in the lines below. 
+If placed above a Tag in AFX the attributes will be affected as well. Even if they are in the lines below.
 
 #### Parameters
 
-If no arguments are provided every property-warning will be ignored. 
+If no arguments are provided every property-warning will be ignored.
 
-Every argument is treated as an property path. 
+Every argument is treated as an property path.
 
 In this example everything in `props.user` will be ignored but `props.noProperty` not.
 
@@ -132,13 +149,13 @@ test = ${props.user.notExisitingProperty && props.noProperty}
 
 ### `@fusion-ignore-block`
 
-With this comment every fusion property diagnostic in the block and below will be ignored. 
+With this comment every fusion property diagnostic in the block and below will be ignored.
 
 #### Parameters
 
-If no arguments are provided every property-warning will be ignored. 
+If no arguments are provided every property-warning will be ignored.
 
-Every argument is treated as an property path. 
+Every argument is treated as an property path.
 
 Works the same as `@fusion-ignore`.
 
@@ -148,7 +165,7 @@ In the Explorer-View the outline is filled with symbols found in the current doc
 
 ![outline](https://github.com/sjsone/vscode-neos-fusion-lsp/blob/main/images/outline.png?raw=true)
 
-## 🚧 Semantic Token Highlighting 
+## 🚧 Semantic Token Highlighting
 
 The language server currently highlights  `controller` and `action` properties in `Neos.Fusion:ActionUri` and  `Neos.Fusion:UriBuilder` . Even if the action cannot be found.  
 

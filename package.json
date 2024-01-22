@@ -367,8 +367,8 @@
         "compile-without-minify": "cd client && yarn run esbuild && cd ../server && yarn run esbuild-without-minify && cd ..",
         "watch-client": "cd client && yarn run esbuild-watch",
         "watch-server": "cd server && yarn run esbuild-watch",
-        "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
-        "lint-fix": "eslint --fix ./client/src ./server/src --ext .ts,.tsx",
+        "lint": "eslint ./client/src ./server/src --ext .ts",
+        "lint-fix": "eslint --fix ./client/src ./server/src --ext .ts",
         "postinstall": "cd client && yarn install && cd ../server && yarn install && cd ..",
         "create-pre-release": "VERSION=\"$(node utility.js --pre)\"; git tag -a \"v${VERSION}-pre\" -m \"Pre-Release Version ${VERSION}\"; git push origin \"v${VERSION}-pre\"; git commit -a -m \" Version ${VERSION}\"; git push origin; ",
         "create-patch-release": "VERSION=\"$(node utility.js --patch)\"; git tag -a \"v${VERSION}\" -m \"Version ${VERSION}\"; git push origin \"v${VERSION}\"; git commit -a -m \" Version ${VERSION}\"; git push origin; ",
@@ -378,13 +378,15 @@
     "devDependencies": {
         "@types/mocha": "^5.2.0",
         "@types/node": "^16.11.7",
-        "@typescript-eslint/eslint-plugin": "^5.55.0",
-        "@typescript-eslint/parser": "^5.55.0",
+        "@typescript-eslint/eslint-plugin": "^6.19.0",
+        "@typescript-eslint/parser": "^6.19.0",
         "esbuild": "^0.17.12",
-        "eslint": "^8.36.0",
+        "eslint": "^8.56.0",
         "typescript": "^5.0.2"
     },
-    "dependencies": {},
+    "dependencies": {
+        "ts-fusion-parser": "^0.1.39"
+    },
     "repository": {
         "type": "git",
         "url": "git+ssh://git@github.com/sjsone/vscode-neos-fusion-lsp.git"

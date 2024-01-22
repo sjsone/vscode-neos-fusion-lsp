@@ -1,5 +1,5 @@
-import { FileEvent } from 'vscode-languageserver';
-import { AbstractFileChangeHandler } from './AbstractFileChangeHandler';
+import { FileEvent } from 'vscode-languageserver'
+import { AbstractFileChangeHandler } from './AbstractFileChangeHandler'
 
 export class YamlFileChangeHandler extends AbstractFileChangeHandler {
 	canHandleFileEvent(fileEvent: FileEvent): boolean {
@@ -20,7 +20,7 @@ export class YamlFileChangeHandler extends AbstractFileChangeHandler {
 	}
 
 	protected async handleNodeTypeFileChanged() {
-		for (const fusionWorkspace of this.languageServer["fusionWorkspaces"]) {
+		for (const fusionWorkspace of this.languageServer.fusionWorkspaces) {
 			for (const neosPackage of fusionWorkspace.neosWorkspace.getPackages().values()) {
 				neosPackage.readConfiguration()
 			}
@@ -28,6 +28,6 @@ export class YamlFileChangeHandler extends AbstractFileChangeHandler {
 			fusionWorkspace.neosWorkspace.configurationManager.rebuildConfiguration()
 			fusionWorkspace.languageServer.sendFlowConfiguration(fusionWorkspace.neosWorkspace.configurationManager['mergedConfiguration'])
 		}
-		await Promise.all(this.languageServer["fusionWorkspaces"].map(workspace => workspace.diagnoseAllFusionFiles()))
+		await Promise.all(this.languageServer.fusionWorkspaces.map(workspace => workspace.diagnoseAllFusionFiles()))
 	}
 }

@@ -48,13 +48,13 @@ export class ProgressNotificationService {
 	update(id: string, payload: ProgressPayload) {
 		if (!this.progressNotifications.has(id)) return undefined
 		const progressNotification = this.progressNotifications.get(id)
-		progressNotification.update(payload)
+		progressNotification?.update(payload)
 	}
 
 	finish(id: string) {
 		if (!this.progressNotifications.has(id)) return undefined
 		const progressNotification = this.progressNotifications.get(id)
-		progressNotification.finish()
+		progressNotification?.finish()
 	}
 
 	finishAll() {

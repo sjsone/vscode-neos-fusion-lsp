@@ -24,6 +24,22 @@ The MergedArrayTree has already been put to use in the Diagnostic and Completion
 Another big feature is everything connected to the Configuration. It is now possible to not only change the used `FLOW_CONTEXT` but to also view the Configuration in the new NEOS-ViewContainer.
 > This is still experimental.
 
+## 🚀 0.3.??
+
+- feature: WIP Signature Help
+- feature: Controller and Actions in `Routing.fusion` if they are in the following format:
+
+    ```neosfusion
+    Neos.Neos.LoginController {
+      index = Neos.Neos:View.Login {
+          site = ${site}
+          styles = ${styles}
+          username = ${username}
+          flashMessages = ${flashMessages}
+      }
+    }
+    ```
+
 ## 🚀 0.3.12
 
 - feature: new Icons for Fusion Files ([@typerunningwild](https://www.instagram.com/typerunningwild))

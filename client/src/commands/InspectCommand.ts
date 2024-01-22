@@ -1,5 +1,5 @@
-import { WorkspaceFolder } from 'vscode';
-import { ReloadCommand } from './ReloadCommand';
+import { WorkspaceFolder } from 'vscode'
+import { ReloadCommand } from './ReloadCommand'
 
 export class InspectCommand extends ReloadCommand {
 	static Identifier = "neos-fusion-lsp.inspect"

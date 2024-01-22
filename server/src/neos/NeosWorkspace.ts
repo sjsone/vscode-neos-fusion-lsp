@@ -50,7 +50,7 @@ export class NeosWorkspace extends Logger {
 			return neosPackage
 		} catch (error) {
 			if (error instanceof Error) {
-				if ("code" in error && error["code"] === 'ENOENT') {
+				if ("code" in error && error.code === 'ENOENT') {
 					this.logError('File not found!', packagePath)
 					this.logError("    Error: ", error)
 				} else {
@@ -75,7 +75,7 @@ export class NeosWorkspace extends Logger {
 	getPackageByUri(uri: string): NeosPackage | undefined {
 		const uriPath = uriToPath(uri)
 		for (const neosPackage of this.packages.values()) {
-			if (uriPath.startsWith(neosPackage["path"])) return neosPackage
+			if (uriPath.startsWith(neosPackage.path)) return neosPackage
 		}
 
 		return undefined
