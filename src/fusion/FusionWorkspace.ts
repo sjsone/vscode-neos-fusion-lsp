@@ -14,6 +14,7 @@ import { NeosPackage } from '../neos/NeosPackage'
 import { NeosWorkspace } from '../neos/NeosWorkspace'
 import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile'
 import { ParsedFusionFile } from './ParsedFusionFile'
+import { PackageJsonNotFoundError } from '../error/PackageJsonNotFoundError'
 
 export class FusionWorkspace extends Logger {
     public uri: string
@@ -75,7 +76,13 @@ export class FusionWorkspace extends Logger {
 
         this.neosWorkspace = new NeosWorkspace(this, workspacePath, this.name)
         for (const packagePath of packagesPaths) {
-            this.neosWorkspace.addPackage(packagePath)
+            try {
+                this.neosWorkspace.addPackage(packagePath)
+            } catch (error) {
+                if (error instanceof PackageJsonNotFoundError) {
+                    this.logError(`No Package.json found for ${packagePath}`)
+                } else throw error
+            }
         }
         this.neosWorkspace.initEelHelpers()
 
