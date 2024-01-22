@@ -17,7 +17,7 @@ import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignme
 import { ActionUriPartTypes } from '../common/ActionUriService'
 import { LinePosition, LinePositionedNode } from '../common/LinePositionedNode'
 import { NodeService } from '../common/NodeService'
-import { findParent, getObjectIdentifier, parseSemanticComment } from '../common/util'
+import { findParent, getObjectIdentifier } from '../common/util'
 import { ActionUriDefinitionNode } from '../fusion/node/ActionUriDefinitionNode'
 import { NeosFusionFormDefinitionNode } from '../fusion/node/NeosFusionFormDefinitionNode'
 import { PhpClassMethodNode } from '../fusion/node/PhpClassMethodNode'
@@ -28,6 +28,7 @@ import { FqcnNode } from '../fusion/node/FqcnNode'
 import { SemanticTokensParams } from 'vscode-languageserver'
 import { RoutingActionNode } from '../fusion/node/RoutingActionNode'
 import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
+import { SemanticCommentService } from '../common/SemanticCommentService'
 
 export interface SemanticTokenConstruct {
 	position: LinePosition
@@ -306,7 +307,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 			const node = commentNode.getNode()
 			const commentValue = node.value
 
-			const parsedSemanticComment = parseSemanticComment(node.value.trim())
+			const parsedSemanticComment = SemanticCommentService.parseSemanticComment(node.value.trim())
 			if (!parsedSemanticComment) continue
 
 			const begin = commentNode.getBegin()
