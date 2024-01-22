@@ -1,4 +1,4 @@
-import { Logger } from './Logging';
+import { Logger } from './Logging'
 
 export enum SemanticCommentType {
 	Ignore = "ignore",
