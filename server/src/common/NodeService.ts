@@ -36,7 +36,6 @@ export interface FoundApplyPropsResult {
 class NodeService {
 
 	public doesPrototypeOverrideProps(name: string): boolean {
-		// TODO: use this.isPrototypeOneOf ? 
 		return !["Neos.Fusion:Case", "Neos.Fusion:Loop", "Neos.Neos:ImageUri", "Neos.Neos:NodeUri"].includes(name)
 	}
 
@@ -232,7 +231,6 @@ class NodeService {
 				if (segmentOrExternalStatement.statement.path.segments[0].identifier === objectNode.path[1].value) return segmentOrExternalStatement
 			}
 			if (!(segmentOrExternalStatement instanceof PathSegment)) continue
-			// TODO: Decide what to do with "renderer"
 			if (segmentOrExternalStatement.identifier === "renderer") continue
 
 			if (objectNode.path.length > 1 && segmentOrExternalStatement.identifier === objectNode.path[1].value) {
