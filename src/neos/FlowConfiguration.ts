@@ -14,8 +14,8 @@ enum FlowConfigurationType {
 }
 
 export class FlowConfiguration extends Logger {
-	public settingsConfiguration: ParsedYaml
-	public nodeTypeDefinitions: NodeTypeDefinition[]
+	public settingsConfiguration!: ParsedYaml
+	public nodeTypeDefinitions!: NodeTypeDefinition[]
 	protected configurationFiles: FlowConfigurationFile[] = []
 
 	protected constructor(protected neosWorkspace: NeosWorkspace, protected folderPath: string, protected types: FlowConfigurationType[]) {
@@ -123,7 +123,7 @@ export class FlowConfiguration extends Logger {
 		if (configurationFile.isOfType(FlowConfigurationFileType.Settings)) {
 			const parsedYaml = configurationFile.parseYaml()
 			if (parsedYaml) try {
-				const mergedConfiguration = <ParsedYaml>mergeObjects(parsedYaml, this.settingsConfiguration)
+				const mergedConfiguration = <ParsedYaml>mergeObjects(<any>parsedYaml, <any>this.settingsConfiguration)
 				this.settingsConfiguration = mergedConfiguration ?? this.settingsConfiguration
 				if (LogService.isLogLevel(LoggingLevel.Debug)) Logger.LogNameAndLevel(LoggingLevel.Debug.toUpperCase(), 'FlowConfiguration:FromFolder', 'Read configuration from: ' + configurationFile["path"])
 			} catch (e) {

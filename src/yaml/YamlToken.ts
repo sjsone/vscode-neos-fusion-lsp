@@ -1,3 +1,5 @@
+import { Range } from 'vscode-languageserver'
+
 export type YamlToken = ColonToken | DashToken | NumberToken | TildeToken | ComplexStringToken | AliasToken | AnchorToken | TagToken | StringToken | StringBlockToken | CommentToken | SymbolToken | NewlineToken | SpaceToken
 
 export enum YamlTokenType {
@@ -25,6 +27,7 @@ interface AbstractYamlToken {
     value?: any
     position: number,
     indent: number
+    range?: Range
 }
 
 export interface ColonToken extends AbstractYamlToken {
