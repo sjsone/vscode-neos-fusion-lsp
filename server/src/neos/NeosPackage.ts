@@ -6,6 +6,7 @@ import { FlowConfiguration } from './FlowConfiguration'
 import { NeosPackageNamespace } from './NeosPackageNamespace'
 import { NeosWorkspace } from './NeosWorkspace'
 import { ComposerService } from '../common/ComposerService'
+import { PackageJsonNotFoundError } from '../error/PackageJsonNotFoundError'
 
 export interface EELHelperToken {
 	name: string,
