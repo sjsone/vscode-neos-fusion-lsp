@@ -7,6 +7,7 @@ import { pathToUri } from '../common/util'
 import { YamlLexer } from '../yaml/YamlLexer'
 import { AbstractListYamlNode, AbstractYamlNode, DocumentNode } from '../yaml/YamlNodes'
 import { YamlParser } from '../yaml/YamlParser'
+import { YamlTokenType } from '../yaml/YamlToken'
 
 export type ParsedYaml = string | null | number | boolean | { [key: string]: ParsedYaml }
 
@@ -40,13 +41,20 @@ export class FlowConfigurationFile extends Logger {
 		const fileName = NodePath.basename(path)
 		super(fileName.replace(".yaml", ""))
 
+		// this.logDebug(`Created ${path}`)
+		this.logInfo(`Created ${path.replace("/Users/simon/devel/neos9/", "")}`)
+
 		this.path = path
 		this.uri = pathToUri(path)
 
 		if (fileName.startsWith("Settings")) this.type = FlowConfigurationFileType.Settings
 		if (fileName.startsWith("NodeTypes")) this.type = FlowConfigurationFileType.NodeTypes
 
-		// this.logInfo("Created", this.type, this.path)
+		if (this.type === FlowConfigurationFileType.Unknown) {
+			this.logError(`Type is ${FlowConfigurationFileType.Unknown}!!!`)
+		} else {
+			this.logDebug(`type ${this.type}`)
+		}
 
 		const rawContext = this.path.slice(this.path.indexOf("Configuration/") + "Configuration/".length, this.path.indexOf(fileName))
 		this.context = rawContext.split(NodePath.sep).filter(Boolean).join("/")
@@ -59,7 +67,7 @@ export class FlowConfigurationFile extends Logger {
 
 		let pointer = this.parsedYaml
 		for (const part of path) {
-			pointer = pointer[part]
+			pointer = (<any>pointer)[part]
 			if (pointer === undefined) return undefined
 		}
 		return pointer
@@ -105,7 +113,7 @@ export class FlowConfigurationFile extends Logger {
 
 			for (const yamlToken of yamlLexer.tokenize()) {
 				if (yamlToken.indent !== 0) continue
-				if (yamlToken.type !== "complexstring" && yamlToken.type !== "string") continue
+				if (yamlToken.type !== YamlTokenType.ComplexString && yamlToken.type !== YamlTokenType.String) continue
 
 				const match = /^[0-9a-zA-Z.]+(?::[0-9a-zA-Z.]+$)/m.exec(yamlToken.value)
 				if (match === null) continue
@@ -134,6 +142,7 @@ export class FlowConfigurationFile extends Logger {
 	protected getNodeByPathInListNode(listNode: AbstractListYamlNode, path: string[]): undefined | AbstractYamlNode {
 		let node: AbstractYamlNode = listNode
 		for (const part of path) {
+			if (!(node instanceof AbstractListYamlNode)) return undefined
 			if (!(part in node["nodes"])) return undefined
 			node = node["nodes"][part]
 		}

@@ -1,7 +1,7 @@
 import { SpaceToken, YamlToken, YamlTokenType } from "./YamlToken"
 
 export abstract class AbstractYamlNode {
-    protected type: YamlTokenType
+    protected type!: YamlTokenType
     protected parent?: AbstractYamlNode
     protected token: YamlToken
 
@@ -20,7 +20,7 @@ export abstract class AbstractListYamlNode extends AbstractYamlNode {
 }
 
 export class ListYamlNode extends AbstractListYamlNode {
-    protected type: YamlTokenType.List
+    protected type!: YamlTokenType.List
     protected name: string
     constructor(token: YamlToken, name: string) {
         super(token)
