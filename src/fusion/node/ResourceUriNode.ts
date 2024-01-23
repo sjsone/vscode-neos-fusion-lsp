@@ -10,9 +10,7 @@ export class ResourceUriNode extends AbstractNode {
 		super(position)
 		this.identifier = identifier
 
-		// TODO: refactor to use better RegEx (with named matches)
 		const matches = /resource:\/\/(.*?)(\/.*)/.exec(this.identifier)
-
 		if (matches !== null) {
 			this.namespace = matches[1]
 			this.relativePath = matches[2]

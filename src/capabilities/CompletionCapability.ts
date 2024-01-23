@@ -24,6 +24,7 @@ import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
 import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue'
+import { SemanticCommentType } from '../common/SemanticCommentService'
 
 const BuiltInCompletions = {
 	prototypeCompletion: {
@@ -406,7 +407,7 @@ export class CompletionCapability extends AbstractCapability {
 		const node = foundNode.getNode()
 		if (!node.value?.trim().startsWith("@")) return []
 
-		for (const semanticComment of ['@fusion-ignore', '@fusion-ignore-block']) {
+		for (const semanticComment of [SemanticCommentType.Ignore, SemanticCommentType.IgnoreBlock]) {
 			const label = node.prefix === "//" ? `// ${semanticComment}` : `<!-- ${semanticComment} -->`
 
 			completions.push({

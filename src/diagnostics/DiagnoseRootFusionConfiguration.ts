@@ -1,19 +1,17 @@
 import { DiagnosticSeverity, Position, Range } from 'vscode-languageserver'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { Comment } from 'ts-fusion-parser/out/common/Comment'
-import { SemanticCommentType, parseSemanticComment } from '../common/util'
+import { SemanticCommentService, SemanticCommentType } from '../common/SemanticCommentService'
 
 const noAutoincludeNeeded = (parsedFusionFile: ParsedFusionFile) => {
 	const comments = parsedFusionFile.getNodesByType(Comment)
 	if (comments) for (const comment of comments) {
-		const semanticComment = parseSemanticComment(comment.getNode().value)
-		if (!semanticComment) continue
-		if (semanticComment.type === SemanticCommentType.NoAutoincludeNeeded) return true
+		const semanticComment = SemanticCommentService.parseSemanticComment(comment.getNode().value)
+		if (semanticComment?.type === SemanticCommentType.NoAutoincludeNeeded) return true
 	}
 	return false
 }
 
-// TODO: make this diagnostic configurable in the settings
 export function diagnoseRootFusionConfiguration(parsedFusionFile: ParsedFusionFile) {
 	if (!parsedFusionFile.uri.endsWith("Fusion/Root.fusion")) return []
 

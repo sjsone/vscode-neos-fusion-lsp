@@ -17,7 +17,7 @@ import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignme
 import { ActionUriPartTypes } from '../common/ActionUriService'
 import { LinePosition, LinePositionedNode } from '../common/LinePositionedNode'
 import { LegacyNodeService } from '../common/LegacyNodeService'
-import { findParent, getObjectIdentifier, parseSemanticComment } from '../common/util'
+import { findParent, getObjectIdentifier } from '../common/util'
 import { ActionUriDefinitionNode } from '../fusion/node/ActionUriDefinitionNode'
 import { NeosFusionFormDefinitionNode } from '../fusion/node/NeosFusionFormDefinitionNode'
 import { PhpClassMethodNode } from '../fusion/node/PhpClassMethodNode'
@@ -27,6 +27,9 @@ import { LanguageFeatureContext } from './LanguageFeatureContext'
 import { FqcnNode } from '../fusion/node/FqcnNode'
 import { NodeService } from '../common/NodeService'
 import { SemanticTokensParams } from 'vscode-languageserver'
+import { RoutingActionNode } from '../fusion/node/RoutingActionNode'
+import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
+import { SemanticCommentService } from '../common/SemanticCommentService'
 
 export interface SemanticTokenConstruct {
 	position: LinePosition
@@ -80,6 +83,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 		const semanticTokenConstructs: SemanticTokenConstruct[] = []
 
 		semanticTokenConstructs.push(...this.generateActionUriTokens(languageFeatureContext))
+		semanticTokenConstructs.push(...this.generateRoutingTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generateLiteralStringTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generateLiteralNumberTokens(languageFeatureContext))
 		semanticTokenConstructs.push(...this.generateLiteralNullTokens(languageFeatureContext))
@@ -130,6 +134,22 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 		}
 
 		return semanticTokenConstructs
+	}
+
+	protected * generateRoutingTokens(languageFeatureContext: LanguageFeatureContext) {
+		yield* this.generateForType(RoutingActionNode, languageFeatureContext, node => ({
+			position: node.getBegin(),
+			length: node.getNode().name.length,
+			type: 'method',
+			modifier: 'declaration'
+		}))
+
+		yield* this.generateForType(RoutingControllerNode, languageFeatureContext, node => ({
+			position: node.getBegin(),
+			length: node.getNode().name.length,
+			type: 'class',
+			modifier: 'declaration'
+		}))
 	}
 
 	protected * getSemanticTokenConstructsFromObjectStatement(objectStatement: ObjectStatement) {
@@ -288,7 +308,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 			const node = commentNode.getNode()
 			const commentValue = node.value
 
-			const parsedSemanticComment = parseSemanticComment(node.value.trim())
+			const parsedSemanticComment = SemanticCommentService.parseSemanticComment(node.value.trim())
 			if (!parsedSemanticComment) continue
 
 			const begin = commentNode.getBegin()
@@ -365,15 +385,14 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 		}))
 	}
 
-	protected generateForType<T extends AbstractNode>(type: new (...args: any) => T, languageFeatureContext: LanguageFeatureContext, createConstructCallback: (node: LinePositionedNode<T>) => undefined | SemanticTokenConstruct) {
+	protected * generateForType<T extends AbstractNode>(type: new (...args: any) => T, languageFeatureContext: LanguageFeatureContext, createConstructCallback: (node: LinePositionedNode<T>) => undefined | SemanticTokenConstruct) {
 		const nodes = languageFeatureContext.parsedFile.getNodesByType(type)
-		if (!nodes) return []
+		if (!nodes) return
 
-		return nodes.reduce((prev, current) => {
-			const value = createConstructCallback(current)
-			if (value) prev.push(value)
-			return prev
-		}, [] as SemanticTokenConstruct[])
+		for (const node of nodes) {
+			const value = createConstructCallback(node)
+			if (value) yield value
+		}
 	}
 
 	protected getTypesAndModifier(identifier: string): { type: TokenTypes, modifier: TokenModifiers } {

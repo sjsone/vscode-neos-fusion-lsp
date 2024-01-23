@@ -18,8 +18,8 @@ import { ValueCopy } from 'ts-fusion-parser/out/fusion/nodes/ValueCopy'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { LinePositionedNode } from './LinePositionedNode'
-import { abstractNodeToString, checkSemanticCommentIgnoreArguments, findParent, findUntil, getObjectIdentifier, parseSemanticComment, SemanticCommentType } from './util'
-import { AbstractStatement } from 'ts-fusion-parser/out/fusion/nodes/AbstractStatement'
+import { abstractNodeToString, checkSemanticCommentIgnoreArguments, findParent, findUntil, getObjectIdentifier } from './util'
+import { SemanticCommentService, SemanticCommentType } from './SemanticCommentService'
 
 export class ExternalObjectStatement {
 	constructor(
@@ -189,7 +189,7 @@ class LegacyNodeService {
 				})
 				parentIdentifiersRenderer = true
 				if (rendererPrototype instanceof ObjectStatement && rendererPrototype.operation instanceof ValueAssignment) {
-					parentIdentifiersRenderer = this.doesPrototypeOverrideProps(rendererPrototype.operation.pathValue["value"])
+					parentIdentifiersRenderer = this.doesPrototypeOverrideProps((<any>rendererPrototype.operation.pathValue)["value"])
 				}
 			}
 
@@ -321,7 +321,7 @@ class LegacyNodeService {
 	}
 
 	public affectsCommentTheProperty(propertyName: string, commentNode: Comment, type: SemanticCommentType) {
-		const parsedSemanticComment = parseSemanticComment(commentNode.value.trim())
+		const parsedSemanticComment = SemanticCommentService.parseSemanticComment(commentNode.value.trim())
 		if (!parsedSemanticComment) return false
 		if (parsedSemanticComment.type !== type) return false
 

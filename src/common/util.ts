@@ -157,22 +157,20 @@ export function isPrototypeDeprecated(workspace: FusionWorkspace, prototypeName:
     return deprecated
 }
 
-// TODO: use generics
-export function mergeObjects(source: unknown, target: unknown) {
-    // TODO: rewrite mergeObjects
+export function mergeObjects(source: { [key: string]: any }, target: { [key: string]: any }) {
     // PERF: mergeObject is somewhat slow
-    // https://gist.github.com/ahtcx/0cd94e62691f539160b32ecda18af3d6?permalink_comment_id=3889214#gistcomment-3889214
-    for (const [key, val] of Object.entries(source)) {
-        if (val !== null && typeof val === `object`) {
-            if (target[key] === undefined) {
-                target[key] = new val["__proto__"].constructor()
-            }
+    for (const key in source) {
+        const val = source[key]
+        if (val === null) {
+            target[key] = null
+        } else if (typeof val === "object") {
+            target[key] ??= new (Object.getPrototypeOf(val)).constructor()
             mergeObjects(val, target[key])
         } else {
             target[key] = val
         }
     }
-    return target // we're replacing in-situ, so this is more for chaining than anything else
+    return target
 }
 
 export function findParent<T extends new (...args: any) => AbstractNode>(node: AbstractNode, parentType: T) {
@@ -242,30 +240,6 @@ export function getNodeWeight(node: any) {
     if (node instanceof RoutingActionNode) return 9
     if (node instanceof RoutingControllerNode) return 8
     return 0
-}
-
-export enum SemanticCommentType {
-    Ignore = "ignore",
-    IgnoreBlock = "ignore-block",
-    NoAutoincludeNeeded = "no-autoinclude-needed"
-}
-
-export interface ParsedSemanticComment {
-    type: SemanticCommentType
-    arguments: string[]
-}
-
-export function parseSemanticComment(comment: string): undefined | ParsedSemanticComment {
-    const semanticCommentRegex = /^ *@fusion-([a-zA-Z0-9_-]+) *(?:\[(.*)\])?$/
-
-    const matches = semanticCommentRegex.exec(comment)
-    if (!matches) return undefined
-
-    const rawArguments = matches[2]
-    return {
-        type: <SemanticCommentType>matches[1],
-        arguments: rawArguments ? rawArguments.split(',').filter(Boolean).map(arg => arg.trim()) : []
-    }
 }
 
 export function checkSemanticCommentIgnoreArguments(propertyName: string, ignoredNames: string[]): boolean {

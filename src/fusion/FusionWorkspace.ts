@@ -19,6 +19,7 @@ import { NeosWorkspace } from '../neos/NeosWorkspace'
 import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile'
 import { LanguageServerFusionParser } from './LanguageServerFusionParser'
 import { ParsedFusionFile } from './ParsedFusionFile'
+import { PackageJsonNotFoundError } from '../error/PackageJsonNotFoundError'
 
 export class FusionWorkspace extends Logger {
     public uri: string
@@ -91,7 +92,13 @@ export class FusionWorkspace extends Logger {
 
         this.neosWorkspace = new NeosWorkspace(this)
         for (const packagePath of ComposerService.getSortedPackagePaths(packagesPaths)) {
-            this.neosWorkspace.addPackage(packagePath)
+            try {
+                this.neosWorkspace.addPackage(packagePath)
+            } catch (error) {
+                if (error instanceof PackageJsonNotFoundError) {
+                    this.logError(`No Package.json found for ${packagePath}`)
+                } else throw error
+            }
         }
 
         this.neosWorkspace.init(this.selectedFlowContextName)
