@@ -9,7 +9,7 @@
         "theme": "dark"
     },
     "license": "AGPL-3.0-or-later",
-    "version": "0.4.1",
+    "version": "0.4.5",
     "categories": [
         "Programming Languages"
     ],
@@ -339,13 +339,13 @@
         },
         "viewsContainers": {
             "activitybar": [
-              {
-                "id": "neos",
-                "title": "NEOS",
-                "icon": "icons/view_container-neos.svg"
-              }
+                {
+                    "id": "neos",
+                    "title": "NEOS",
+                    "icon": "icons/view_container-neos.svg"
+                }
             ]
-          },
+        },
         "views": {
             "neos": [
                 {
@@ -358,7 +358,7 @@
             {
                 "view": "neosConfiguration",
                 "contents": "No Configuration loaded.\nOpen any file to start the Language Server"
-              }
+            }
         ]
     },
     "scripts": {
