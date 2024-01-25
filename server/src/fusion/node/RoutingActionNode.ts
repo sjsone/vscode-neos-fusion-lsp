@@ -1,6 +1,13 @@
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { RoutingControllerNode } from './RoutingControllerNode'
+import { stat } from 'fs'
+
+declare module 'ts-fusion-parser/out/fusion/nodes/ObjectStatement' {
+	interface ObjectStatement {
+		routingActionNode: undefined | RoutingActionNode
+	}
+}
 
 export class RoutingActionNode extends AbstractNode {
 	statement: ObjectStatement
@@ -18,6 +25,7 @@ export class RoutingActionNode extends AbstractNode {
 		super({ begin: begin!, end })
 		this.parent = parent
 		this.statement = statement
+		statement.routingControllerNode = this
 		this.name = name
 	}
 }
