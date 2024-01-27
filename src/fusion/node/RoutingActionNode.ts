@@ -1,7 +1,6 @@
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { RoutingControllerNode } from './RoutingControllerNode'
-import { stat } from 'fs'
 
 declare module 'ts-fusion-parser/out/fusion/nodes/ObjectStatement' {
 	interface ObjectStatement {
