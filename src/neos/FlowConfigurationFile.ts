@@ -45,7 +45,13 @@ export class FlowConfigurationFile extends Logger {
 		this.path = path
 		this.uri = pathToUri(path)
 
+		this.resolveType(fileName)
 
+		const rawContext = this.path.slice(this.path.indexOf("Configuration/") + "Configuration/".length, this.path.indexOf(fileName))
+		this.context = rawContext.split(NodePath.sep).filter(Boolean).join("/")
+	}
+
+	protected resolveType(fileName: string) {
 		if (this.type === FlowConfigurationFileType.Unknown) {
 			if (fileName.startsWith("Settings")) this.type = FlowConfigurationFileType.Settings
 			if (fileName.startsWith("NodeTypes")) this.type = FlowConfigurationFileType.NodeTypes
@@ -56,17 +62,11 @@ export class FlowConfigurationFile extends Logger {
 			if (fileName.startsWith("Views")) this.type = FlowConfigurationFileType.Views
 		}
 
-
 		if (this.type === FlowConfigurationFileType.Unknown) {
 			this.logError(`Type is ${FlowConfigurationFileType.Unknown}!!!`)
 		} else {
 			this.logDebug(`type ${this.type}`)
 		}
-
-		const rawContext = this.path.slice(this.path.indexOf("Configuration/") + "Configuration/".length, this.path.indexOf(fileName))
-		this.context = rawContext.split(NodePath.sep).filter(Boolean).join("/")
-
-		// this.logInfo(`context "${this.context}"`)
 	}
 
 	public getValueByPath(path: string[]) {
