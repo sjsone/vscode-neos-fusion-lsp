@@ -136,6 +136,71 @@
                         "default": true,
                         "description": "Enable diagnostics feature."
                     },
+                    "neosFusionLsp.diagnostics.enabledDiagnostics": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                            "FusionProperties": {
+                                "type": "boolean"
+                            },
+                            "ResourceUris": {
+                                "type": "boolean"
+                            },
+                            "TagNames": {
+                                "type": "boolean"
+                            },
+                            "EelHelperArguments": {
+                                "type": "boolean"
+                            },
+                            "PrototypeNames": {
+                                "type": "boolean"
+                            },
+                            "EmptyEel": {
+                                "type": "boolean"
+                            },
+                            "ActionUri": {
+                                "type": "boolean"
+                            },
+                            "NodeTypeDefinitions": {
+                                "type": "boolean"
+                            },
+                            "NonParsedFusion": {
+                                "type": "boolean"
+                            },
+                            "RootFusionConfiguration": {
+                                "type": "boolean"
+                            },
+                            "TranslationShortHand": {
+                                "type": "boolean"
+                            },
+                            "ParserError": {
+                                "type": "boolean"
+                            },
+                            "AfxWithDollarEel": {
+                                "type": "boolean"
+                            },
+                            "DuplicateStatements": {
+                                "type": "boolean"
+                            }
+                        },
+                        "default": {
+                            "FusionProperties": true,
+                            "ResourceUris": true,
+                            "TagNames": true,
+                            "EelHelperArguments": true,
+                            "PrototypeNames": true,
+                            "EmptyEel": true,
+                            "ActionUri": true,
+                            "NodeTypeDefinitions": true,
+                            "NonParsedFusion": true,
+                            "RootFusionConfiguration": true,
+                            "TranslationShortHand": true,
+                            "ParserError": true,
+                            "AfxWithDollarEel": true,
+                            "DuplicateStatements": true
+                        },
+                        "description": "Set which diagnostic is enabled"
+                    },
                     "neosFusionLsp.diagnostics.ignoreNodeTypes": {
                         "type": "array",
                         "order": 1,
