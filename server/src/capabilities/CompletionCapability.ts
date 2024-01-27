@@ -45,43 +45,30 @@ export class CompletionCapability extends AbstractCapability {
 		const completions: CompletionItem[] = []
 		if (foundNodeByLine) {
 			const foundNode = foundNodeByLine.getNode()
-			console.log(`Type: ${foundNode.constructor.name}`)
-			switch (true) {
-				case foundNode instanceof PathSegment:
-					completions.push(BuiltInCompletions.prototypeCompletion)
-					break
-				case foundNode instanceof TagNode:
-					completions.push(...this.getTagNodeCompletions(workspace, <LinePositionedNode<TagNode>>foundNodeByLine))
-					break
-				case foundNode instanceof TagAttributeNode:
-					completions.push(...this.getTagAttributeNodeCompletions(workspace, <LinePositionedNode<TagAttributeNode>>foundNodeByLine))
-					break
-				case foundNode instanceof ObjectStatement:
-					completions.push(...this.getObjectStatementCompletions(workspace, parsedFile, <LinePositionedNode<ObjectStatement>>foundNodeByLine))
-					break
-				case foundNode instanceof FusionObjectValue:
-				case foundNode instanceof PrototypePathSegment:
-					completions.push(...this.getPrototypeCompletions(workspace, <LinePositionedNode<FusionObjectValue | PrototypePathSegment>>foundNodeByLine))
-					break
-				case foundNode instanceof ObjectNode:
-					completions.push(...this.getFusionPropertyCompletionsForObjectNode(workspace, <LinePositionedNode<ObjectNode>>foundNodeByLine))
-					break
-				case foundNode instanceof ObjectPathNode:
-					completions.push(...this.getEelHelperCompletionsForObjectPath(workspace, <LinePositionedNode<ObjectPathNode>>foundNodeByLine))
-					completions.push(...this.getFusionPropertyCompletionsForObjectPath(workspace, <LinePositionedNode<ObjectPathNode>>foundNodeByLine))
-					break
-				case foundNode instanceof ResourceUriNode:
-					completions.push(...this.getResourceUriCompletions(workspace, <LinePositionedNode<ResourceUriNode>>foundNodeByLine))
-					break
-				case foundNode instanceof TranslationShortHandNode:
-					completions.push(...this.getTranslationShortHandCompletions(workspace, <LinePositionedNode<TranslationShortHandNode>>foundNodeByLine))
-					break
-				case foundNode instanceof Comment:
-					completions.push(...this.getSemanticCommentCompletions(<LinePositionedNode<Comment>>foundNodeByLine))
-					break
-				default:
-				// stub
-			}
+			if (foundNode instanceof PathSegment)
+				completions.push(BuiltInCompletions.prototypeCompletion)
+			if (foundNode instanceof TagNode)
+				completions.push(...this.getTagNodeCompletions(workspace, <LinePositionedNode<TagNode>>foundNodeByLine))
+			if (foundNode instanceof TagAttributeNode)
+				completions.push(...this.getTagAttributeNodeCompletions(workspace, <LinePositionedNode<TagAttributeNode>>foundNodeByLine))
+			if (foundNode instanceof ObjectStatement)
+				completions.push(...this.getObjectStatementCompletions(workspace, parsedFile, <LinePositionedNode<ObjectStatement>>foundNodeByLine))
+			if (foundNode instanceof FusionObjectValue)
+				completions.push(...this.getPrototypeCompletions(workspace, <LinePositionedNode<FusionObjectValue | PrototypePathSegment>>foundNodeByLine))
+			if (foundNode instanceof PrototypePathSegment)
+				completions.push(...this.getPrototypeCompletions(workspace, <LinePositionedNode<FusionObjectValue | PrototypePathSegment>>foundNodeByLine))
+			if (foundNode instanceof ObjectNode)
+				completions.push(...this.getFusionPropertyCompletionsForObjectNode(workspace, <LinePositionedNode<ObjectNode>>foundNodeByLine))
+			if (foundNode instanceof ObjectPathNode)
+				completions.push(...this.getEelHelperCompletionsForObjectPath(workspace, <LinePositionedNode<ObjectPathNode>>foundNodeByLine))
+			if (foundNode instanceof ObjectPathNode)
+				completions.push(...this.getFusionPropertyCompletionsForObjectPath(workspace, <LinePositionedNode<ObjectPathNode>>foundNodeByLine))
+			if (foundNode instanceof ResourceUriNode)
+				completions.push(...this.getResourceUriCompletions(workspace, <LinePositionedNode<ResourceUriNode>>foundNodeByLine))
+			if (foundNode instanceof TranslationShortHandNode)
+				completions.push(...this.getTranslationShortHandCompletions(workspace, <LinePositionedNode<TranslationShortHandNode>>foundNodeByLine))
+			if (foundNode instanceof Comment)
+				completions.push(...this.getSemanticCommentCompletions(<LinePositionedNode<Comment>>foundNodeByLine))
 		}
 
 		this.logVerbose(`Found ${completions.length} completions `)
