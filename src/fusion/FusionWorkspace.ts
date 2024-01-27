@@ -9,7 +9,7 @@ import { LinePositionedNode } from '../common/LinePositionedNode'
 import { LogService, Logger } from '../common/Logging'
 import { TranslationService } from '../common/TranslationService'
 import { getFiles, pathToUri, uriToPath } from '../common/util'
-import { diagnose } from '../diagnostics/ParsedFusionFileDiagnostics'
+import { ParsedFusionFileDiagnostics } from '../diagnostics/ParsedFusionFileDiagnostics'
 import { NeosPackage } from '../neos/NeosPackage'
 import { NeosWorkspace } from '../neos/NeosWorkspace'
 import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile'
@@ -21,6 +21,7 @@ export class FusionWorkspace extends Logger {
     public name: string
     public languageServer: LanguageServer
     protected configuration!: ExtensionConfiguration
+    protected parsedFusionFileDiagnostics!: ParsedFusionFileDiagnostics
 
     public neosWorkspace!: NeosWorkspace
 
@@ -50,6 +51,7 @@ export class FusionWorkspace extends Logger {
         this.configuration = configuration
         this.clear()
         this.languageServer.sendProgressNotificationCreate("fusion_workspace_init", "Fusion")
+        this.parsedFusionFileDiagnostics = new ParsedFusionFileDiagnostics(configuration.diagnostics)
         const workspacePath = uriToPath(this.uri)
 
         const ignoreFolders = configuration.folders.ignore
@@ -227,7 +229,7 @@ export class FusionWorkspace extends Logger {
         this.logDebug(`<${randomDiagnoseRun}> Will diagnose ${this.filesToDiagnose.length} files`)
         this.languageServer.sendBusyCreate('diagnostics')
         await Promise.all(this.filesToDiagnose.map(async parsedFile => {
-            const diagnostics = await diagnose(parsedFile)
+            const diagnostics = await this.parsedFusionFileDiagnostics.diagnose(parsedFile)
             if (diagnostics) await this.languageServer.sendDiagnostics({
                 uri: parsedFile.uri,
                 diagnostics
