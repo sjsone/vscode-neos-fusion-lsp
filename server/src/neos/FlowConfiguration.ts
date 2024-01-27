@@ -91,7 +91,7 @@ export class FlowConfiguration extends Logger {
 		if (!NodeFs.existsSync(nodeTypeDefinitionsFolderPath)) return
 
 		for (const nodeTypeFilePath of getFiles(nodeTypeDefinitionsFolderPath, ".yaml")) {
-			const configurationFile = new FlowConfigurationFile(nodeTypeFilePath)
+			const configurationFile = new FlowConfigurationFile(nodeTypeFilePath, FlowConfigurationFileType.NodeTypes)
 			this.nodeTypeDefinitions.push(...configurationFile.parseNodeTypeDefinitions())
 			this.configurationFiles.push(configurationFile)
 		}
