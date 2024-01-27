@@ -378,14 +378,11 @@
     "devDependencies": {
         "@types/mocha": "^5.2.0",
         "@types/node": "^16.11.7",
-        "@typescript-eslint/eslint-plugin": "^6.19.0",
-        "@typescript-eslint/parser": "^6.19.0",
-        "esbuild": "^0.17.12",
+        "@typescript-eslint/eslint-plugin": "^6.19.1",
+        "@typescript-eslint/parser": "^6.19.1",
+        "esbuild": "^0.19.12",
         "eslint": "^8.56.0",
-        "typescript": "^5.0.2"
-    },
-    "dependencies": {
-        "ts-fusion-parser": "^0.1.39"
+        "typescript": "^5.3.3"
     },
     "repository": {
         "type": "git",
@@ -394,5 +391,8 @@
     "bugs": {
         "url": "https://github.com/sjsone/vscode-neos-fusion-lsp/issues"
     },
-    "homepage": "https://github.com/sjsone/vscode-neos-fusion-lsp#readme"
+    "homepage": "https://github.com/sjsone/vscode-neos-fusion-lsp#readme",
+    "dependencies": {
+        "vscode-languageclient": "^9.0.1"
+    }
 }
