@@ -256,6 +256,14 @@ export class LanguageServer extends Logger {
 		this.logVerbose("Configuration: " + JSON.stringify(configuration))
 		for (const fusionWorkspace of this.fusionWorkspaces) {
 			fusionWorkspace.init(configuration)
+
+
+			this.connection.onNotification("custom/prototypeUsage/get", ({ uri }) => {
+				this.logInfo(`Building prototypeUsage for ${uri}`)
+
+				fusionWorkspace.buildPrototypeUsageTree(uri)
+
+			})
 		}
 
 		clearLineDataCache()

@@ -20,6 +20,7 @@ import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile'
 import { LanguageServerFusionParser } from './LanguageServerFusionParser'
 import { ParsedFusionFile } from './ParsedFusionFile'
 import { PackageJsonNotFoundError } from '../error/PackageJsonNotFoundError'
+import { PrototypeUsageService } from '../common/PrototypeUsageService'
 
 export class FusionWorkspace extends Logger {
     public uri: string
@@ -298,6 +299,13 @@ export class FusionWorkspace extends Logger {
 
     getTranslationFileByUri(uri: string) {
         return this.translationFiles.find(file => file.uri === uri)
+    }
+
+    buildPrototypeUsageTree(uri: string) {
+        const file = this.getParsedFileByUri(uri)
+        if (!file) return undefined
+
+        PrototypeUsageService.buildPrototypeUsageTree(file, this.mergedArrayTree)
     }
 
     public async diagnoseAllFusionFiles() {

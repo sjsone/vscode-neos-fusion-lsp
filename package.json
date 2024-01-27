@@ -417,12 +417,22 @@
                     "id": "neosConfiguration",
                     "name": "🧪-Experimental-🧪 Configuration"
                 }
+            ],
+            "explorer": [
+                {
+                    "id": "prototypeUsage",
+                    "name": "Prototype Usage"
+                }
             ]
         },
         "viewsWelcome": [
             {
                 "view": "neosConfiguration",
                 "contents": "No Configuration loaded.\nOpen any file to start the Language Server"
+            },
+            {
+                "view": "prototypeUsage",
+                "contents": "Test"
             }
         ]
     },

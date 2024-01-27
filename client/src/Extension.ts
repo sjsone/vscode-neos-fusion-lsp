@@ -1,7 +1,6 @@
 import * as path from 'path'
 import {
 	ExtensionContext,
-	LanguageStatusItem,
 	OutputChannel,
 	TextDocument,
 	Uri,
@@ -23,9 +22,10 @@ import { InspectCommand } from './commands/InspectCommand'
 import { PutContentIntoClipboard } from './commands/PutContentIntoClipboard'
 import { ReloadCommand } from './commands/ReloadCommand'
 import { AbstractLanguageStatusBarItem } from './languageStatusBarItems/AbstractLanguageStatusBarItem'
-import { Reload } from './languageStatusBarItems/Reload'
 import { Diagnostics } from './languageStatusBarItems/Diagnostics'
+import { Reload } from './languageStatusBarItems/Reload'
 import { ConfigurationTreeProvider, FlowConfigurationTreeModel } from './views/ConfigurationTreeProvider'
+import { PrototypeUsageTreeModel, PrototypeUsageTreeProvider } from './views/PrototypeUsageTreeProvider'
 
 
 export class Extension {
@@ -34,6 +34,7 @@ export class Extension {
 	protected sortedWorkspaceFolders: string[] | undefined = undefined
 	protected context: ExtensionContext | undefined = undefined
 	protected flowConfigurationModel = new FlowConfigurationTreeModel
+	protected prototypeUsageModel = new PrototypeUsageTreeModel
 
 	protected languageStatusBarItems: { [name: string]: undefined | AbstractLanguageStatusBarItem } = { reload: undefined }
 
@@ -95,6 +96,10 @@ export class Extension {
 		Window.createTreeView('neosConfiguration', {
 			treeDataProvider: new ConfigurationTreeProvider(this.flowConfigurationModel),
 		})
+
+		Window.createTreeView('prototypeUsage', {
+			treeDataProvider: new PrototypeUsageTreeProvider(this.prototypeUsageModel),
+		})
 	}
 
 	protected onDidOpenTextDocument(document: TextDocument) {
@@ -110,9 +115,16 @@ export class Extension {
 		const startClientInInspectMode = workspace.getConfiguration().get("neosFusionLsp.logging.inspect", false)
 		const startedClient = this.startClient(outerMostWorkspaceFolder, startClientInInspectMode)
 
-		NeosStatusBarItem.init(this.context, startedClient, this.outputChannel)
+		NeosStatusBarItem.init(this.context!, startedClient, this.outputChannel)
 		NeosStatusBarItem.addListener(NeosStatusBarItemClass.ChangedContextEvent, (selectedContextName) => {
 			startedClient.sendNotification('custom/flowContext/set', { selectedContextName })
+		})
+
+		Window.onDidChangeActiveTextEditor(textEditor => {
+			if (!textEditor) return
+			if (textEditor.document.uri.scheme !== "file") return
+
+			startedClient.sendNotification('custom/prototypeUsage/get', { uri: textEditor.document.uri.toString() })
 		})
 	}
 
@@ -232,7 +244,7 @@ export class Extension {
 	protected stopAllRunningInterfaceItems(progressNotificationService?: ProgressNotificationService) {
 		progressNotificationService?.finishAll()
 		for (const id in this.languageStatusBarItems) {
-			this.languageStatusBarItems[id].item.busy = false
+			this.languageStatusBarItems[id]!.item.busy = false
 		}
 	}
 }
