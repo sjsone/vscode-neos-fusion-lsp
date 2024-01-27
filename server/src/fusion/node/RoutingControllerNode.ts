@@ -1,7 +1,5 @@
-import { stat } from 'fs'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
-import { LinePositionedNode } from '../../common/LinePositionedNode'
 import { FusionWorkspace } from '../FusionWorkspace'
 import { ParsedFusionFile } from '../ParsedFusionFile'
 
