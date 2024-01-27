@@ -364,7 +364,7 @@ export class DefinitionCapability extends AbstractCapability {
 	getRoutingControllerNode(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<RoutingControllerNode>, context: ParsedFileCapabilityContext<RoutingControllerNode>): null | LocationLink {
 		const node = foundNodeByLine.getNode()
 
-		const classDefinition = this.getClassDefinitionFromRoutingControllerNode(parsedFile, workspace, node.linePositionedNode)
+		const classDefinition = RoutingControllerNode.getClassDefinitionFromRoutingControllerNode(parsedFile, workspace, node)
 		if (!classDefinition) return null
 
 		return {
@@ -378,7 +378,7 @@ export class DefinitionCapability extends AbstractCapability {
 	getRoutingActionNode(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<RoutingActionNode>, context: ParsedFileCapabilityContext<RoutingActionNode>): null | Location {
 		const node = foundNodeByLine.getNode()
 
-		const classDefinition = this.getClassDefinitionFromRoutingControllerNode(parsedFile, workspace, node.parent.linePositionedNode)
+		const classDefinition = RoutingControllerNode.getClassDefinitionFromRoutingControllerNode(parsedFile, workspace, node.parent)
 		if (!classDefinition) return null
 
 		const actionName = node.name + "Action"
@@ -394,21 +394,5 @@ export class DefinitionCapability extends AbstractCapability {
 		return null
 	}
 
-	protected getClassDefinitionFromRoutingControllerNode(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<RoutingControllerNode>) {
-		const node = foundNodeByLine.getNode()
 
-		const incorrectFqcn = node.name.replaceAll(".", "\\")
-
-		for (const neosPackage of workspace.neosWorkspace.getPackages().values()) {
-			for (const namespaceName of neosPackage.namespaces.keys()) {
-				if (!incorrectFqcn.startsWith(namespaceName)) continue
-
-				const fqcn = incorrectFqcn.replace(namespaceName, namespaceName + "Controller\\")
-				const classDefinition = neosPackage.getClassDefinitionFromFullyQualifiedClassName(fqcn)
-				if (classDefinition) return classDefinition
-			}
-		}
-
-		return undefined
-	}
 }

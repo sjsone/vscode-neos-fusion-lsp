@@ -25,6 +25,8 @@ import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityCont
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
 import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue'
 import { SemanticCommentType } from '../common/SemanticCommentService'
+import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 
 const BuiltInCompletions = {
 	prototypeCompletion: {
@@ -43,7 +45,7 @@ export class CompletionCapability extends AbstractCapability {
 	}
 
 	protected run(context: CapabilityContext<AbstractNode>) {
-		const { workspace, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
+		const { workspace, foundNodeByLine, parsedFile } = <ParsedFileCapabilityContext<AbstractNode>>context
 		const completions: CompletionItem[] = []
 		if (foundNodeByLine) {
 			const foundNode = foundNodeByLine.getNode()
@@ -59,7 +61,7 @@ export class CompletionCapability extends AbstractCapability {
 					completions.push(...this.getTagAttributeNodeCompletions(workspace, <LinePositionedNode<TagAttributeNode>>foundNodeByLine))
 					break
 				case foundNode instanceof ObjectStatement:
-					completions.push(...this.getObjectStatementCompletions(workspace, <LinePositionedNode<ObjectStatement>>foundNodeByLine))
+					completions.push(...this.getObjectStatementCompletions(workspace, parsedFile, <LinePositionedNode<ObjectStatement>>foundNodeByLine))
 					break
 				case foundNode instanceof FusionObjectValue:
 				case foundNode instanceof PrototypePathSegment:
@@ -149,14 +151,36 @@ export class CompletionCapability extends AbstractCapability {
 		return completions
 	}
 
-	protected getObjectStatementCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectStatement>) {
+	protected getObjectStatementCompletions(workspace: FusionWorkspace, parsedFile: ParsedFusionFile, foundNode: LinePositionedNode<ObjectStatement>) {
 		const node = foundNode.getNode()
+
+
+		const routingActionsCompletions = this.getObjectStatementRoutingActionsCompletions(workspace, parsedFile, node)
+		if (routingActionsCompletions) return routingActionsCompletions
 
 		if (!(node.operation === null || node.operation.position.begin !== node.operation.position.end)) {
 			return []
 		}
 
 		return [BuiltInCompletions.prototypeCompletion, ...this.getPropertyDefinitionSegments(node, workspace)]
+	}
+
+	protected getObjectStatementRoutingActionsCompletions(workspace: FusionWorkspace, parsedFile: ParsedFusionFile, node: ObjectStatement) {
+		if (!(node.parent?.parent?.parent instanceof ObjectStatement)) return undefined
+
+		const routingControllerNode = node.parent?.parent?.parent.routingControllerNode
+		if (!routingControllerNode) return undefined
+
+		const classDefinition = RoutingControllerNode.getClassDefinitionFromRoutingControllerNode(parsedFile, workspace, routingControllerNode)
+		if (!classDefinition) return undefined
+
+		return classDefinition.methods.map(method => {
+			return {
+				label: method.name,
+				insertText: method.name,
+				kind: CompletionItemKind.Method
+			}
+		})
 	}
 
 	protected getFusionPropertyCompletionsForObjectPath(workspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {
