@@ -15,6 +15,7 @@ import { diagnoseRootFusionConfiguration } from './DiagnoseRootFusionConfigurati
 import { diagnoseTagNames } from './DiagnoseTagNames'
 import { diagnoseTranslationShortHand } from './DiagnoseTranslationShortHand'
 import { diagnoseAfxWithDollarEel } from './DiagnoseAfxWithDollarEel'
+import { diagnoseDuplicateStatements } from './DuplicateStatementDiagnostic'
 
 export async function diagnose(parsedFusionFile: ParsedFusionFile) {
 	const diagnostics: Diagnostic[] = []
@@ -32,7 +33,8 @@ export async function diagnose(parsedFusionFile: ParsedFusionFile) {
 		diagnoseRootFusionConfiguration,
 		diagnoseTranslationShortHand,
 		diagnoseParserError,
-		diagnoseAfxWithDollarEel
+		diagnoseAfxWithDollarEel,
+		diagnoseDuplicateStatements
 	]
 
 	for (const diagnoseFunction of diagnoseFunctions) {

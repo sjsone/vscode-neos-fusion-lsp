@@ -81,16 +81,16 @@ export class ParsedFusionFile extends Logger {
 				this.logVerbose("    read text from file")
 			}
 
-			const objectTree = ObjectTreeParser.parse(text, undefined, fusionParserOptions)
-			this.ignoredErrorsByParser = objectTree.errors
+			const fusionFile = ObjectTreeParser.parse(text, undefined, fusionParserOptions)
+			this.ignoredErrorsByParser = fusionFile.errors
 			for (const ignoredError of this.ignoredErrorsByParser) {
 				if (!(ignoredError instanceof ParserError)) continue
 
 				ignoredError.linePosition = getLineNumberOfChar(text, ignoredError.getPosition(), this.uri)
 			}
-			this.fusionFileProcessor.readStatementList(objectTree.statementList, text)
+			this.fusionFileProcessor.readStatementList(fusionFile.statementList, text)
 
-			this.fusionFileProcessor.processNodes(objectTree, text)
+			this.fusionFileProcessor.processNodes(fusionFile, text)
 			const fileName = NodePath.basename(uriToPath(this.uri))
 			if (fileName.startsWith("Routing") && fileName.endsWith(".fusion")) this.handleFusionRouting(text)
 			this.logVerbose("finished")
