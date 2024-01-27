@@ -21,6 +21,37 @@ export enum DeprecationsDiagnosticLevels {
 export enum DeprecationConfigurationSpecialType {
     Ignore = "{ignore}"
 }
+
+export interface ExtensionConfigurationDiagnostics {
+    enabled: boolean,
+    enabledDiagnostics: {
+        [key: string]: boolean;
+
+        FusionProperties: boolean,
+        ResourceUris: boolean,
+        TagNames: boolean,
+        EelHelperArguments: boolean,
+        PrototypeNames: boolean,
+        EmptyEel: boolean,
+        ActionUri: boolean,
+        NodeTypeDefinitions: boolean,
+        NonParsedFusion: boolean,
+        RootFusionConfiguration: boolean,
+        TranslationShortHand: boolean,
+        ParserError: boolean,
+        AfxWithDollarEel: boolean,
+        DuplicateStatements: boolean,
+    },
+    ignore: {
+        folders: string[]
+    },
+    alwaysDiagnoseChangedFile: boolean,
+    levels: {
+        deprecations: DeprecationsDiagnosticLevels
+    },
+    ignoreNodeTypes: string[]
+}
+
 export interface ExtensionConfiguration {
     folders: {
         // TODO: workspace root / maybe multiple roots to support multi-workspaces 
@@ -35,17 +66,7 @@ export interface ExtensionConfiguration {
     logging: {
         level: LoggingLevel
     },
-    diagnostics: {
-        enabled: boolean,
-        ignore: {
-            folders: string[]
-        },
-        alwaysDiagnoseChangedFile: boolean,
-        levels: {
-            deprecations: DeprecationsDiagnosticLevels
-        },
-        ignoreNodeTypes: string[]
-    },
+    diagnostics: ExtensionConfigurationDiagnostics,
     code: {
         deprecations: {
             fusion: {
