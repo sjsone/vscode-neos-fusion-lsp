@@ -17,6 +17,7 @@ export enum FlowConfigurationFileType {
 	Objects = 'objects',
 	Policy = 'policy',
 	Routes = 'routes',
+	Caches = 'caches',
 	Views = 'views',
 	Unknown = 'unknown',
 }
@@ -28,27 +29,33 @@ export interface NodeTypeDefinition {
 }
 
 export class FlowConfigurationFile extends Logger {
-	protected path: string
 	protected uri: string
-	protected type: FlowConfigurationFileType = FlowConfigurationFileType.Unknown
 	protected context: string
 	protected parsedYaml?: ParsedYaml
 	protected nodeTypeDefinitions: NodeTypeDefinition[] = []
 
 	protected positionedParsedYaml?: DocumentNode
 
-	constructor(path: string) {
+	constructor(protected path: string, protected type: FlowConfigurationFileType = FlowConfigurationFileType.Unknown) {
 		const fileName = NodePath.basename(path)
 		super(fileName.replace(".yaml", ""))
 
-		// this.logDebug(`Created ${path}`)
-		this.logInfo(`Created ${path.replace("/Users/simon/devel/neos9/", "")}`)
+		this.logDebug(`Created ${path}`)
 
 		this.path = path
 		this.uri = pathToUri(path)
 
-		if (fileName.startsWith("Settings")) this.type = FlowConfigurationFileType.Settings
-		if (fileName.startsWith("NodeTypes")) this.type = FlowConfigurationFileType.NodeTypes
+
+		if (this.type === FlowConfigurationFileType.Unknown) {
+			if (fileName.startsWith("Settings")) this.type = FlowConfigurationFileType.Settings
+			if (fileName.startsWith("NodeTypes")) this.type = FlowConfigurationFileType.NodeTypes
+			if (fileName.startsWith("Objects")) this.type = FlowConfigurationFileType.Objects
+			if (fileName.startsWith("Policy")) this.type = FlowConfigurationFileType.Policy
+			if (fileName.startsWith("Routes")) this.type = FlowConfigurationFileType.Routes
+			if (fileName.startsWith("Caches")) this.type = FlowConfigurationFileType.Caches
+			if (fileName.startsWith("Views")) this.type = FlowConfigurationFileType.Views
+		}
+
 
 		if (this.type === FlowConfigurationFileType.Unknown) {
 			this.logError(`Type is ${FlowConfigurationFileType.Unknown}!!!`)
