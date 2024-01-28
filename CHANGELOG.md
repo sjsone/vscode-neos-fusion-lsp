@@ -7,11 +7,12 @@
 
 ## 🪐🔭 *Upcoming*
 
-## 🧪 0.4.1
+## 🧪 0.4.5
 
 - feature: new NEOS Tab in Sidebar
 - feature: NEOS-Status bar item with new CommandMenu (to left hand side in the bottom status bar)
 - feature: Completion- and Hover-Capabilities for the `Configuration.setting()` EEL-Helper
+- fix: close all Notifications when server is closing
 
 ### ✨ Merged Array Tree
 
