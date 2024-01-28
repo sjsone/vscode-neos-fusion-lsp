@@ -15,8 +15,11 @@
 
 ## 🚀 0.3.??
 
+- feature: Additional `$` before an EEL-Expression inside AFX will now be diagnosed
+- feature: duplicated statements get diagnosed
+- feature: Diagnostics can now be separately enabled/disabled
 - feature: WIP Signature Help
-- feature: Controller and Actions in `Routing.fusion` if they are in the following format:
+- feature: Definitions of Controller and Actions in `Routing.fusion`. Actions are suggested. Works only if they are in the following format:
 
     ```neosfusion
     Neos.Neos.LoginController {
@@ -28,6 +31,11 @@
       }
     }
     ```
+
+- feature: When NodeTypes get created by the QuickAction. The new file will be put into a folder structure following the prototype name. Works only when `NodeTypes` folder is present.
+- fix: Server not crashing anymore when package has no `composer.json` file
+- fix: changing an YAML-File no longer leads to *all* fusion files being diagnosed
+- fix: regression in which the "Create NodeType" QuickAction did not show up
 
 ## 🚀 0.3.12
 
