@@ -153,7 +153,7 @@ export class CompletionCapability extends AbstractCapability {
 		return classDefinition.methods.map(method => {
 			return {
 				label: method.name,
-				insertText: method.name,
+				insertText: method.name.replace("Action", ""),
 				kind: CompletionItemKind.Method
 			}
 		})
