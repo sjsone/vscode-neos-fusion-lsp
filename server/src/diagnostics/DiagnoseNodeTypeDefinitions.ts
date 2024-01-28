@@ -1,4 +1,4 @@
-import { Diagnostic, DiagnosticSeverity, Location } from 'vscode-languageserver'
+import { Diagnostic, DiagnosticSeverity, Location, DiagnosticRelatedInformation } from 'vscode-languageserver'
 import { LegacyNodeService } from '../common/LegacyNodeService'
 import { NodeService } from '../common/NodeService'
 import { getPrototypeNameFromNode } from '../common/util'
@@ -38,12 +38,13 @@ export function diagnoseNodeTypeDefinitions(parsedFusionFile: ParsedFusionFile) 
 		if (!nodeTypeDefinition) {
 			const range = creation.getPositionAsRange()
 			const location = Location.create(parsedFusionFile.uri, range)
+
 			diagnostics.push({
 				severity: DiagnosticSeverity.Error,
 				range: range,
 				message: `Could not find NodeType Definition for \`${prototypeName}\``,
 				source: CommonDiagnosticHelper.Source,
-				// relatedInformation: [DiagnosticRelatedInformation.create(location, "test")],
+				relatedInformation: [DiagnosticRelatedInformation.create(location, "")],
 				data: {
 					nodeTypeName: prototypeName,
 					documentation: {
