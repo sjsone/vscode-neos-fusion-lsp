@@ -5,6 +5,7 @@ import { Parser } from 'ts-fusion-runtime'
 import { MergedArrayTree } from 'ts-fusion-runtime/out/core/MergedArrayTree'
 import { NeosPackage } from '../neos/NeosPackage'
 import { FusionWorkspace } from './FusionWorkspace'
+import { ParserError } from 'ts-fusion-parser/out/common/ParserError'
 
 export class LanguageServerFusionParser extends Parser {
 
@@ -28,8 +29,14 @@ export class LanguageServerFusionParser extends Parser {
 		for (const file of files) {
 			const fusionFile = this.getFusionFile(NodeFs.readFileSync(file).toString(), file)
 			// const startTimeMergedArrayTree = performance.now();
-			mergedArrayTree = this.getMergedArrayTreeVisitor(mergedArrayTree).visitFusionFile(<any>fusionFile)
-			mergedArrayTree.buildPrototypeHierarchy()
+			try {
+				mergedArrayTree = this.getMergedArrayTreeVisitor(mergedArrayTree).visitFusionFile(<any>fusionFile)
+				mergedArrayTree.buildPrototypeHierarchy()
+			} catch (error) {
+				if (!(error instanceof Error)) throw new Error(`Caught Non-Error: ${error}`)
+				const parsedFusionFile = this.getParsedFusionFile(file)
+				parsedFusionFile.ignoredErrorsByParser.push(new ParserError(error.message, 0))
+			}
 			// console.log(`Elapsed time MAT: ${performance.now() - startTimeMergedArrayTree} milliseconds`);
 		}
 
@@ -38,15 +45,18 @@ export class LanguageServerFusionParser extends Parser {
 		return tree
 	}
 
-
-	protected getFusionFile(sourceCode: string, contextPathAndFilename: string | undefined, options?: FusionParserOptions): FusionFile {
-		if (!contextPathAndFilename) return super.getFusionFile(sourceCode, contextPathAndFilename, options)
-
+	protected getParsedFusionFile(contextPathAndFilename: string, sourceCode: string | undefined = undefined) {
 		const sanitizedContextPathAndFilename = contextPathAndFilename.replace(":", "%3A")
 
 		const parsedFile = this.fusionWorkspace.getParsedFileByContextPathAndFilename(sanitizedContextPathAndFilename)
 		if (!parsedFile) throw Error(`TODO: handle unknown but expected ParsedFusionFile: ${contextPathAndFilename}/${sanitizedContextPathAndFilename} // \n ${sourceCode}`)
 
-		return parsedFile.fusionFile
+		return parsedFile
+	}
+
+
+	protected getFusionFile(sourceCode: string, contextPathAndFilename: string | undefined, options?: FusionParserOptions): FusionFile {
+		if (!contextPathAndFilename) return super.getFusionFile(sourceCode, contextPathAndFilename, options)
+		return this.getParsedFusionFile(contextPathAndFilename, sourceCode).fusionFile
 	}
 }
