@@ -22,8 +22,6 @@ export class FlowConfiguration extends Logger {
 		super(NodePath.basename(folderPath))
 		this.folderPath = folderPath
 		this.neosWorkspace = neosWorkspace
-
-		// this.logDebug("Created", folderPath)
 	}
 
 	protected initialize() {
@@ -31,10 +29,8 @@ export class FlowConfiguration extends Logger {
 		this.nodeTypeDefinitions = []
 		this.configurationFiles = []
 
-		for (const type of this.types) {
-			if (type === FlowConfigurationType.Configuration) this.readConfigurationsFromConfigurationFolder()
-			if (type === FlowConfigurationType.NodeTypes) this.readNodeTypeDefinitionsFromNodeTypesFolder()
-		}
+		if (this.types.includes(FlowConfigurationType.NodeTypes)) this.readNodeTypeDefinitionsFromNodeTypesFolder()
+		this.readConfigurationsFromConfigurationFolder()
 	}
 
 	get<T extends ParsedYaml>(path: string | string[], settingsConfiguration = this.settingsConfiguration): T | undefined {
@@ -108,13 +104,20 @@ export class FlowConfiguration extends Logger {
 			settingsFolderPaths.push(NodePath.join(lastPart, contextPathPart))
 		}
 
+		const includeNodeTypes = this.types.includes(FlowConfigurationType.NodeTypes)
+
 		for (const settingsFolderPath of settingsFolderPaths) {
-			if (!NodeFs.existsSync(settingsFolderPath)) return
+			if (!NodeFs.existsSync(settingsFolderPath)) continue
 
 			for (const configurationFilePath of getFiles(settingsFolderPath, ".yaml", false)) {
 				const configurationFile = new FlowConfigurationFile(configurationFilePath)
-				this.updateConfigurationsFromFlowConfigurationFile(configurationFile)
-				this.configurationFiles.push(configurationFile)
+				if (configurationFile.isOfType(FlowConfigurationFileType.NodeTypes) && includeNodeTypes) {
+					this.nodeTypeDefinitions.push(...configurationFile.parseNodeTypeDefinitions())
+					this.configurationFiles.push(configurationFile)
+				} else {
+					this.updateConfigurationsFromFlowConfigurationFile(configurationFile)
+					this.configurationFiles.push(configurationFile)
+				}
 			}
 		}
 	}
