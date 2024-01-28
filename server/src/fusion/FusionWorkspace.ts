@@ -8,7 +8,7 @@ import { LanguageServer } from '../LanguageServer'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { LogService, Logger } from '../common/Logging'
 import { TranslationService } from '../common/TranslationService'
-import { getFiles, pathToUri, uriToPath } from '../common/util'
+import { getFiles, pathToUri, uriToFsPath, uriToPath } from '../common/util'
 import { ParsedFusionFileDiagnostics } from '../diagnostics/ParsedFusionFileDiagnostics'
 import { NeosPackage } from '../neos/NeosPackage'
 import { NeosWorkspace } from '../neos/NeosWorkspace'
@@ -220,7 +220,11 @@ export class FusionWorkspace extends Logger {
     }
 
     public async diagnoseAllFusionFiles() {
-        this.filesToDiagnose = Array.from(this.parsedFiles)
+        this.filesToDiagnose = this.parsedFiles.filter(parsedFile => {
+            const filePath = uriToPath(parsedFile.uri)
+            const inIgnoredFolder = this.configuration.diagnostics.ignore.folders.find(path => filePath.startsWith(NodePath.resolve(uriToPath(this.uri), path)))
+            return inIgnoredFolder === undefined
+        })
         return this.processFilesToDiagnose()
     }
 
