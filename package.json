@@ -1,7 +1,7 @@
 {
     "name": "vscode-neos-fusion-lsp-server",
     "description": "Neos Fusion Language Server",
-    "version": "0.4.5-beta1",
+    "version": "0.4.5-beta3",
     "author": "Simon J. Schmidt",
     "license": "MIT",
     "publisher": "SimonSchmidt",
@@ -20,7 +20,7 @@
     },
     "scripts": {
         "esbuild-base": "esbuild ./src/main.ts --bundle --outfile=out/main.js --format=cjs --platform=node --keep-names",
-        "esbuild": "yarn run esbuild-base --minify",
+        "esbuild": "yarn run esbuild-base",
         "esbuild-without-minify": "yarn run esbuild-base --sourcemap",
         "esbuild-watch": "yarn run esbuild-base --sourcemap --watch"
     }
