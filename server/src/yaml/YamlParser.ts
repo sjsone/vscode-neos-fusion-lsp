@@ -37,7 +37,7 @@ export class YamlParser {
             const start = getLineNumberOfChar(data, token["position"], uri)
             const end: Position = {
                 line: start.line,
-                character: start.character + token.value?.length ?? 0
+                character: start.character + (token.value?.length ?? 0)
             }
             token["range"] = { start, end }
             if (token.type === YamlTokenType.Newline) {
