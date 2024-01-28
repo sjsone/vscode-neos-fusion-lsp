@@ -64,7 +64,20 @@ const getNewFilePath = (packagePath: string, prototypeName: string) => {
 	const nodeTypeFolderPath = NodePath.join(packagePath, "NodeTypes")
 	const configurationFolderPath = NodePath.join(packagePath, "Configuration")
 	const nodeTypeFolderExists = NodeFs.existsSync(nodeTypeFolderPath)
-	const nodeTypeName = prototypeName.split(":").pop()
+	const nodeTypeName = prototypeName.split(":").pop()!
 
-	return nodeTypeFolderExists ? NodePath.join(nodeTypeFolderPath, `${nodeTypeName}.yaml`) : NodePath.join(configurationFolderPath, `NodeTypes.${nodeTypeName}.yaml`)
+	if (nodeTypeFolderExists) return buildNewFilePathForNodeTypesFolder(nodeTypeName, nodeTypeFolderPath)
+
+	return buildNewFilePathForConfigurationFolder(nodeTypeName, configurationFolderPath)
+}
+
+const buildNewFilePathForNodeTypesFolder = (nodeTypeName: string, nodeTypeFolderPath: string) => {
+	const subFolders = nodeTypeName.split(".")
+	const fileName = subFolders.pop()!
+
+	return NodePath.join(nodeTypeFolderPath, ...subFolders, `${fileName}.yaml`)
+}
+
+const buildNewFilePathForConfigurationFolder = (nodeTypeName: string, configurationFolderPath: string) => {
+	return NodePath.join(configurationFolderPath, `NodeTypes.${nodeTypeName}.yaml`)
 }
