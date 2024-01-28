@@ -130,18 +130,7 @@ export class FusionWorkspace extends Logger {
             }).catch(error => this.logError("init", error))
         }
 
-        // TODO: use correct package include order instead of guessing
-        const sortOrder: string[] = ['neos-framework', 'neos-package', 'neos-site', 'library']
-        const possibleNeosFusionPackages = Array.from(this.neosWorkspace.getPackages().values()).sort((a, b) => {
-            const typeOrder = sortOrder.indexOf(a["composerJson"]["type"]) - sortOrder.indexOf(b["composerJson"]["type"])
-            if (typeOrder === 0) {
-                if (a["path"].includes("DistributionPackages")) return 1
-                if (b["path"].includes("DistributionPackages")) return -1
-                return (<string>a["composerJson"]["name"]).localeCompare(b["composerJson"]["name"])
-            }
-
-            return typeOrder
-        })
+        const possibleNeosFusionPackages = this.orderNeosPackages(Array.from(this.neosWorkspace.getPackages().values()))
 
         for (const neosPackage of possibleNeosFusionPackages) {
             // TODO: introduce something like a "FusionRootContext" for each root file and associate ParsedFusionFiles with these "FusionRootContexts"
@@ -196,6 +185,19 @@ export class FusionWorkspace extends Logger {
         this.languageServer.sendProgressNotificationFinish("fusion_workspace_init").catch(error => this.logError("init", error))
 
         this.processFilesToDiagnose().catch(error => this.logError("init", error))
+    }
+
+    protected orderNeosPackages(packages: NeosPackage[]) {
+        // TODO: use correct package include order instead of guessing
+
+        const sortOrderType = ["neos-framework", "neos-package", "neos-site", "library"];
+        return packages.sort((a, b) => {
+            const pathAIndex = a["path"].includes("DistributionPackages") ? 1 : 0
+            const pathBIndex = b["path"].includes("DistributionPackages") ? 1 : 0
+            if (pathAIndex !== pathBIndex) return pathAIndex - pathBIndex
+
+            return sortOrderType.indexOf(a["composerJson"]["type"]) - sortOrderType.indexOf(b["composerJson"]["type"]);
+        })
     }
 
     buildMergedArrayTree() {
