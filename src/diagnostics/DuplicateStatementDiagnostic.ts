@@ -5,6 +5,7 @@ import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver'
 import { getObjectIdentifier } from '../common/util'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { CommonDiagnosticHelper } from './CommonDiagnosticHelper'
+import { ValueCopy } from 'ts-fusion-parser/out/fusion/nodes/ValueCopy'
 
 
 export function diagnoseDuplicateStatements(parsedFusionFile: ParsedFusionFile) {
@@ -21,6 +22,7 @@ export function diagnoseDuplicateStatements(parsedFusionFile: ParsedFusionFile) 
 		for (const statement of statementList.statements) {
 			if (!(statement instanceof ObjectStatement)) continue
 			if (statement.operation instanceof ValueUnset) continue
+			if (statement.operation instanceof ValueCopy) continue
 
 			const objectIdentifier = getObjectIdentifier(statement)
 			if (!statementIdentifiers.includes(objectIdentifier)) {
