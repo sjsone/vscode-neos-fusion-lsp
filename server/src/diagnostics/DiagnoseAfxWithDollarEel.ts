@@ -30,7 +30,7 @@ export function diagnoseAfxWithDollarEel(parsedFusionFile: ParsedFusionFile): Di
 			diagnostics.push({
 				severity: DiagnosticSeverity.Warning,
 				range,
-				message: `${"`$`"} before an EEL-Expression is not needed inside AFX`,
+				message: `\`$\` before an EEL-Expression is not needed inside AFX`,
 				source: CommonDiagnosticHelper.Source,
 			})
 		}
