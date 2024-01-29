@@ -190,13 +190,13 @@ export class FusionWorkspace extends Logger {
     protected orderNeosPackages(packages: NeosPackage[]) {
         // TODO: use correct package include order instead of guessing
 
-        const sortOrderType = ["neos-framework", "neos-package", "neos-site", "library"];
+        const sortOrderType = ["neos-framework", "neos-package", "neos-site", "library"]
         return packages.sort((a, b) => {
             const pathAIndex = a["path"].includes("DistributionPackages") ? 1 : 0
             const pathBIndex = b["path"].includes("DistributionPackages") ? 1 : 0
             if (pathAIndex !== pathBIndex) return pathAIndex - pathBIndex
 
-            return sortOrderType.indexOf(a["composerJson"]["type"]) - sortOrderType.indexOf(b["composerJson"]["type"]);
+            return sortOrderType.indexOf(a["composerJson"]["type"]) - sortOrderType.indexOf(b["composerJson"]["type"])
         })
     }
 
