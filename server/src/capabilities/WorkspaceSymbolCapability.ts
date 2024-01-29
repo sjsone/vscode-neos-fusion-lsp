@@ -13,10 +13,9 @@ export class WorkspaceSymbolCapability extends AbstractCapability {
 		for (const workspace of workspaces) {
 			for (const parsedFile of workspace.parsedFiles) {
 				symbols.push(...this.getSymbolsFromParsedFile(parsedFile))
-
-				// TODO: Make NodeTypes WorkspaceSymbols configurable in settings
-				symbols.push(...this.getSymbolsFromNodeTypes(workspace))
 			}
+			// TODO: Make NodeTypes WorkspaceSymbols configurable in settings
+			symbols.push(...this.getSymbolsFromNodeTypes(workspace))
 		}
 
 		return symbols
