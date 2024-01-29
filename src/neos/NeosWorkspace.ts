@@ -38,7 +38,7 @@ export class NeosWorkspace extends Logger {
 
 	getPackage(packageName: string) {
 		for (const neosPackage of this.packages.values()) {
-			if (neosPackage.getPackageName() === packageName) return neosPackage
+			if (neosPackage.hasName(packageName)) return neosPackage
 		}
 		return undefined
 	}
