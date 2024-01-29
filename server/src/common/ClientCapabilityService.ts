@@ -1,4 +1,4 @@
-import { ClientCapabilities } from 'vscode-languageserver';
+import { ClientCapabilities } from 'vscode-languageserver'
 
 export class ClientCapabilityService {
 	constructor(
@@ -6,7 +6,8 @@ export class ClientCapabilityService {
 	) { }
 
 	get(path: string) {
-		return path.split(".").reduce((prev, cur) => prev === undefined ? undefined : prev[cur], this.clientCapabilities)
+		const pathParts = <Array<keyof ClientCapabilities>>path.split(".")
+		return pathParts.reduce((prev, cur) => prev === undefined ? undefined : prev[cur], this.clientCapabilities)
 	}
 
 	has(path: string) {

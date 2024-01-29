@@ -1,6 +1,6 @@
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode';
-import { ShortHandIdentifier, XLIFFService } from '../../common/XLIFFService';
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode'
+import { ShortHandIdentifier, XLIFFService } from '../../common/XLIFFService'
 
 declare module 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode' {
 	interface LiteralStringNode {
@@ -14,8 +14,8 @@ export class TranslationShortHandNode extends AbstractNode {
 	constructor(
 		public literalStringNode: LiteralStringNode
 	) {
-		super(literalStringNode["position"], literalStringNode["parent"])
-		literalStringNode["translationShortHandNode"] = this
+		super(literalStringNode.position, literalStringNode.parent)
+		literalStringNode.translationShortHandNode = this
 	}
 
 	getShortHandIdentifier() {
@@ -24,6 +24,6 @@ export class TranslationShortHandNode extends AbstractNode {
 	}
 
 	getValue() {
-		return this.literalStringNode["value"]
+		return this.literalStringNode.value
 	}
 }

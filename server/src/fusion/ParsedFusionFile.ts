@@ -72,7 +72,7 @@ export class ParsedFusionFile extends Logger {
 		this.logVerbose("Created", uri)
 	}
 
-	init(text: string = undefined) {
+	init(text?: string) {
 		try {
 			this.clearCaches()
 			this.logVerbose("init")
@@ -81,18 +81,16 @@ export class ParsedFusionFile extends Logger {
 				this.logVerbose("    read text from file")
 			}
 
-			const objectTree = ObjectTreeParser.parse(text, undefined, fusionParserOptions)
-			this.ignoredErrorsByParser = objectTree.errors
-			for(const ignoredError of this.ignoredErrorsByParser) {
-				if(!(ignoredError instanceof ParserError)) continue
+			const fusionFile = ObjectTreeParser.parse(text, undefined, fusionParserOptions)
+			this.ignoredErrorsByParser = fusionFile.errors
+			for (const ignoredError of this.ignoredErrorsByParser) {
+				if (!(ignoredError instanceof ParserError)) continue
 
-				ignoredError['linePosition'] = getLineNumberOfChar(text, ignoredError.getPosition(), this.uri)
+				ignoredError.linePosition = getLineNumberOfChar(text, ignoredError.getPosition(), this.uri)
 			}
-			this.fusionFileProcessor.readStatementList(objectTree.statementList, text)
+			this.fusionFileProcessor.readStatementList(fusionFile.statementList, text)
 
-			for (const nodeType of objectTree.nodesByType.keys()) {
-				this.fusionFileProcessor.processNodesByType(nodeType, objectTree, text)
-			}
+			this.fusionFileProcessor.processNodes(fusionFile, text)
 			const fileName = NodePath.basename(uriToPath(this.uri))
 			if (fileName.startsWith("Routing") && fileName.endsWith(".fusion")) this.handleFusionRouting(text)
 			this.logVerbose("finished")
@@ -121,7 +119,7 @@ export class ParsedFusionFile extends Logger {
 	}
 
 	addNode(node: AbstractNode, text: string) {
-		if (node["position"] === undefined) return
+		if (node.position === undefined) return
 		const nodeByLine = new LinePositionedNode(node, text, this.uri)
 
 		for (let line = nodeByLine.getBegin().line; line <= nodeByLine.getEnd().line; line++) {
@@ -153,7 +151,7 @@ export class ParsedFusionFile extends Logger {
 	}
 
 	protected extractPackageAndControllerNameFromFusionRoute(segments: AbstractPathSegment[]) {
-		const fusionRoute = segments.map(s => s["identifier"]).join('.')
+		const fusionRoute = segments.map(s => s.identifier).join('.')
 		const ownPackageNameWithDot = this.neosPackage.getPackageName() + '.'
 
 		if (fusionRoute.startsWith(ownPackageNameWithDot)) {
@@ -169,9 +167,9 @@ export class ParsedFusionFile extends Logger {
 		}
 
 
-		const packageName = segments.slice(0, 2).map(s => s["identifier"]).join('.')
+		const packageName = segments.slice(0, 2).map(s => s.identifier).join('.')
 
-		const fullControllerName = segments.slice(2).map(s => s["identifier"]).join('/')
+		const fullControllerName = segments.slice(2).map(s => s.identifier).join('/')
 		const controllerName = fullControllerName.replace(/(Controller)$/, "")
 
 		return {
@@ -194,10 +192,14 @@ export class ParsedFusionFile extends Logger {
 
 	protected addPrototypeInRoutes(node: PrototypePathSegment | FusionObjectValue) {
 		const prototypeName = getPrototypeNameFromNode(node)
+		if (!prototypeName) return
+
 		const actionObjectStatement = findParent(node, ObjectStatement)
+		if (!actionObjectStatement) return
 
 		const actionName = getObjectIdentifier(actionObjectStatement)
 		const controllerObjectStatement = findParent(actionObjectStatement, ObjectStatement)
+		if (!controllerObjectStatement) return
 
 		const controllerPathSegments = controllerObjectStatement.path.segments
 
@@ -244,7 +246,7 @@ export class ParsedFusionFile extends Logger {
 
 		const sortedKeys = Object.keys(foundNodesByWeight).sort((a, b) => parseInt(b) - parseInt(a))
 		if (sortedKeys.length === 0) return undefined
-		return foundNodesByWeight[sortedKeys[0]]
+		return foundNodesByWeight[parseInt(sortedKeys[0])]
 	}
 
 	clear() {

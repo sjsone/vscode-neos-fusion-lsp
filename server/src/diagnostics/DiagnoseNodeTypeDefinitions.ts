@@ -22,12 +22,12 @@ export function diagnoseNodeTypeDefinitions(parsedFusionFile: ParsedFusionFile) 
 	const neosPackage = workspace.neosWorkspace.getPackageByUri(parsedFusionFile.uri)
 	if (!neosPackage) return diagnostics
 
-	const nodeTypeDefinitions = neosPackage["configuration"]["nodeTypeDefinitions"]
+	const nodeTypeDefinitions = neosPackage.configuration.nodeTypeDefinitions
 	if (nodeTypeDefinitions.length === 0) return diagnostics
 
 	for (const creation of parsedFusionFile.prototypeCreations) {
 		const prototypeName = getPrototypeNameFromNode(creation.getNode())
-
+		if (!prototypeName) continue
 		if (contentPrototypeNames.includes(prototypeName)) continue
 		if (!isPrototypeOneOf(prototypeName, contentPrototypeNames, workspace)) continue
 		if (isPrototypeOneOf(prototypeName, workspace.getConfiguration().diagnostics.ignoreNodeTypes, workspace)) continue
@@ -37,12 +37,13 @@ export function diagnoseNodeTypeDefinitions(parsedFusionFile: ParsedFusionFile) 
 		if (!nodeTypeDefinition) {
 			const range = creation.getPositionAsRange()
 			const location = Location.create(parsedFusionFile.uri, range)
+
 			diagnostics.push({
 				severity: DiagnosticSeverity.Error,
 				range: range,
 				message: `Could not find NodeType Definition for \`${prototypeName}\``,
 				source: CommonDiagnosticHelper.Source,
-				relatedInformation: [DiagnosticRelatedInformation.create(location, "test")],
+				relatedInformation: [DiagnosticRelatedInformation.create(location, "")],
 				data: {
 					nodeTypeName: prototypeName,
 					documentation: {

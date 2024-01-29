@@ -8,23 +8,32 @@ export interface LinePosition {
 }
 
 declare module 'ts-fusion-parser/out/common/AbstractNode' {
-	interface AbstractNode { linePositionedNode: LinePositionedNode<typeof this>; }
+	interface AbstractNode {
+		// @ts-expect-error Because `this` cannot be resolved correctly by Typescript
+		linePositionedNode: LinePositionedNode<typeof this>;
+	}
+}
+
+declare module 'ts-fusion-parser/out/common/ParserError' {
+	interface ParserError {
+		linePosition: { line: number, character: number }
+	}
 }
 
 export class LinePositionedNode<T extends AbstractNode> {
 	protected node: T
 
-	protected start: LinePosition
-	protected end: LinePosition
+	protected start!: LinePosition
+	protected end!: LinePosition
 
-	constructor(node: T, text: string = undefined, textUri: string = undefined) {
+	constructor(node: T, text?: string, textUri?: string) {
 		this.node = node
 		this.node.linePositionedNode = this
 
-		if (node["position"] !== undefined && text !== undefined && textUri !== undefined) {
-			const begin = node["position"].begin ?? (node["position"]).begin
+		if (node.position !== undefined && text !== undefined && textUri !== undefined) {
+			const begin = node.position.begin ?? (node.position).begin
 			this.start = getLineNumberOfChar(text, begin, textUri)
-			this.end = getLineNumberOfChar(text, node["position"].end, textUri)
+			this.end = getLineNumberOfChar(text, node.position.end, textUri)
 		}
 	}
 

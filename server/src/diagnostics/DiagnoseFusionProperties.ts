@@ -18,10 +18,10 @@ function hasObjectNodeApplicableObjectStatement(node: ObjectNode) {
 }
 
 function hasObjectNodeApplicablePath(node: ObjectNode) {
-	const pathBegin = node.path[0]["value"]
+	const pathBegin = node.path[0].value
 	if (pathBegin !== "props") return false
 	if (node.path.length === 1) return false
-	if (node.path[1]["value"] === "content") return false
+	if (node.path[1].value === "content") return false
 
 	return true
 }
@@ -41,7 +41,7 @@ export function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 		if (!hasObjectNodeApplicableObjectStatement(node)) continue
 		if (!hasObjectNodeApplicablePath(node)) continue
 
-		const definition = definitionCapability.getPropertyDefinitions(this, parsedFusionFile.workspace, node.path[0].linePositionedNode)
+		const definition = definitionCapability.getPropertyDefinitions(parsedFusionFile, parsedFusionFile.workspace, node.path[0].linePositionedNode)
 		if (definition) continue
 
 		if (NodeService.isNodeAffectedByIgnoreComment(node, parsedFusionFile)) continue
@@ -54,7 +54,7 @@ export function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 			data: {
 				quickAction: 'ignorable',
 				commentType: findParent(node, DslExpressionValue) ? 'afx' : 'fusion',
-				affectedNodeRange: NodeService.getAffectedNodeBySemanticComment(node).linePositionedNode.getPositionAsRange()
+				affectedNodeRange: NodeService.getAffectedNodeBySemanticComment(node)!.linePositionedNode.getPositionAsRange()
 			}
 		}
 

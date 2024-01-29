@@ -1,8 +1,8 @@
-import { CodeAction, CodeActionKind, CodeActionParams, Command } from 'vscode-languageserver';
-import { LanguageServer } from '../LanguageServer';
+import { CodeAction, CodeActionKind, CodeActionParams, Command } from 'vscode-languageserver'
+import { LanguageServer } from '../LanguageServer'
 
 export const openDocumentationAction = (languageServer: LanguageServer, params: CodeActionParams) => {
-	const codeActions: CodeAction[] = [];
+	const codeActions: CodeAction[] = []
 
 	for (const diagnostic of params.context.diagnostics) {
 		if (diagnostic.data?.documentation?.uri === undefined) continue

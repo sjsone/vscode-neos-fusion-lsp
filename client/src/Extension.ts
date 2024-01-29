@@ -1,14 +1,13 @@
 import * as path from 'path'
 import {
 	ExtensionContext,
-	LanguageStatusItem,
 	OutputChannel,
 	TextDocument,
 	Uri,
 	window as Window,
 	workspace as Workspace,
 	WorkspaceFolder,
-	commands, languages,
+	commands,
 	workspace
 } from 'vscode'
 
@@ -20,6 +19,9 @@ import { ProgressNotificationService } from './ProgressNotificationService'
 import { AbstractCommandConstructor } from './commands/AbstractCommand'
 import { InspectCommand } from './commands/InspectCommand'
 import { ReloadCommand } from './commands/ReloadCommand'
+import { AbstractLanguageStatusBarItem } from './languageStatusBarItems/AbstractLanguageStatusBarItem'
+import { Reload } from './languageStatusBarItems/Reload'
+import { Diagnostics } from './languageStatusBarItems/Diagnostics'
 import { PreferenceService } from './PreferenceService'
 import { ProgressNotificationService } from './ProgressNotificationService'
 import { StatusItemService } from './StatusItemService'
@@ -32,9 +34,7 @@ export class Extension {
 	protected sortedWorkspaceFolders: string[] | undefined = undefined
 	protected context: ExtensionContext | undefined = undefined
 
-	protected languageStatusBarItems: {
-		reload: LanguageStatusItem
-	} = { reload: undefined }
+	protected languageStatusBarItems: { [name: string]: undefined | AbstractLanguageStatusBarItem } = { reload: undefined }
 
 	constructor() {
 		this.outputChannel = Window.createOutputChannel('Neos Fusion LSP')
@@ -45,14 +45,9 @@ export class Extension {
 	}
 
 	protected createLanguageStatusItems() {
-		const documentSelector = { scheme: 'file', language: 'fusion' }
-		this.languageStatusBarItems.reload = languages.createLanguageStatusItem("fusion.reload", documentSelector)
-		this.languageStatusBarItems.reload.name = "reload"
-		this.languageStatusBarItems.reload.text = "Reload Fusion language server"
-		this.languageStatusBarItems.reload.command = {
-			title: "reload",
-			command: "neos-fusion-lsp.reload",
-			tooltip: "Reload the Fusion Language Server"
+		for (const itemConstructor of [Reload, Diagnostics]) {
+			const statusItem = new itemConstructor()
+			this.languageStatusBarItems[statusItem.getName()] = statusItem
 		}
 	}
 
@@ -65,9 +60,17 @@ export class Extension {
 		if (workspace.getConfiguration().get("neosFusionLsp.extensions.modify", false)) {
 			const preferenceService = new PreferenceService(this.outputChannel)
 
+			const modifier = (value: string[] | null) => {
+				if (!value) return null
+				if (value.includes("fusion")) {
+					return null
+				}
+				return [...value, "fusion"]
+			}
+
 			preferenceService.modify({
 				path: "auto-close-tag.activationOnLanguage",
-				modifier: (value: string[]) => !value.includes("fusion") ? [...value, "fusion"] : null
+				modifier
 			})
 		}
 
@@ -114,7 +117,7 @@ export class Extension {
 	}
 
 	protected registerCommand(command: AbstractCommandConstructor) {
-		this.context.subscriptions.push(commands.registerCommand(command.Identifier, (...args: any[]) => (new command(this)).callback(...args)));
+		this.context!.subscriptions.push(commands.registerCommand(command.Identifier, (...args: any[]) => (new command(this)).callback(...args)))
 	}
 
 	public deactivate() {
@@ -149,10 +152,10 @@ export class Extension {
 		return folder
 	}
 
-	public startClient(folder: WorkspaceFolder, inspect: boolean = false) {
-		const module = this.context.asAbsolutePath(path.join('server', 'out', 'main.js'))
+	public startClient(folder: WorkspaceFolder, inspect = false) {
+		const module = this.context!.asAbsolutePath(path.join('server', 'out', 'main.js'))
 
-		const runOptions = { execArgv: [] }
+		const runOptions = { execArgv: [] as string[] }
 
 		console.log("start in inspect", inspect)
 		if (inspect) {
@@ -187,12 +190,20 @@ export class Extension {
 		const progressNotificationService = new ProgressNotificationService()
 		const client = new LanguageClient('vscode-neos-fusion-lsp', 'LSP For Neos Fusion (and AFX)', serverOptions, clientOptions)
 
-		client.onNotification('custom/busy/create', () => this.languageStatusBarItems.reload.busy = true)
+		client.onNotification('custom/busy/create', ({ id }) => {
+			if (id in this.languageStatusBarItems) {
+				this.languageStatusBarItems[id]!.item.busy = true
+			}
+		})
 		client.onNotification('custom/progressNotification/create', ({ id, title }) => progressNotificationService.create(id, title))
 
 		client.onNotification('custom/progressNotification/update', ({ id, payload }) => progressNotificationService.update(id, payload))
 
-		client.onNotification('custom/busy/dispose', () => this.languageStatusBarItems.reload.busy = false)
+		client.onNotification('custom/busy/dispose', ({ id }) => {
+			if (id in this.languageStatusBarItems) {
+				this.languageStatusBarItems[id]!.item.busy = false
+			}
+		})
 		client.onNotification('custom/progressNotification/finish', ({ id }) => progressNotificationService.finish(id))
 
 		client.start()

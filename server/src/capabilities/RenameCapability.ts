@@ -1,14 +1,14 @@
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue';
-import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment';
-import { TextDocumentEdit, TextEdit } from 'vscode-languageserver';
-import { LinePositionedNode } from '../common/LinePositionedNode';
-import { getPrototypeNameFromNode } from '../common/util';
-import { FusionWorkspace } from '../fusion/FusionWorkspace';
-import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
-import { AbstractCapability } from './AbstractCapability';
-import { ParsedFileCapabilityContext } from './CapabilityContext';
-import { RenamePrepareCapability } from './RenamePrepareCapability';
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
+import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
+import { TextDocumentEdit, TextEdit } from 'vscode-languageserver'
+import { LinePositionedNode } from '../common/LinePositionedNode'
+import { getPrototypeNameFromNode } from '../common/util'
+import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
+import { AbstractCapability } from './AbstractCapability'
+import { ParsedFileCapabilityContext } from './CapabilityContext'
+import { RenamePrepareCapability } from './RenamePrepareCapability'
 
 
 
@@ -16,7 +16,7 @@ export class RenameCapability extends AbstractCapability {
 	protected run<N extends AbstractNode>(capabilityContext: ParsedFileCapabilityContext<N>) {
 		console.log("RenameCapability", capabilityContext.foundNodeByLine)
 
-		const node = capabilityContext.foundNodeByLine.getNode()
+		const node = capabilityContext.foundNodeByLine!.getNode()
 		if (!RenamePrepareCapability.canNodeBeRenamed(node)) return undefined
 
 		const textDocumentEdits = this.renamePrototypeName((capabilityContext.params as any).newName, <any>capabilityContext.foundNodeByLine!, capabilityContext.workspace)
@@ -28,7 +28,7 @@ export class RenameCapability extends AbstractCapability {
 	}
 
 	protected renamePrototypeName(newName: string, foundNodeByLine: LinePositionedNode<PrototypePathSegment | FusionObjectValue>, workspace: FusionWorkspace) {
-		const textDocumentEdits = []
+		const textDocumentEdits: TextDocumentEdit[] = []
 
 		const goToPrototypeName = getPrototypeNameFromNode(foundNodeByLine.getNode())
 		if (goToPrototypeName === "") {
@@ -45,7 +45,7 @@ export class RenameCapability extends AbstractCapability {
 		}
 
 		for (const otherParsedFile of workspace.parsedFiles) {
-			const textEdits = []
+			const textEdits: TextEdit[] = []
 			for (const otherNode of getNodesOfOtherParsedFile(otherParsedFile)) {
 				if (getPrototypeNameFromNode(otherNode.getNode()) !== goToPrototypeName) continue
 				textEdits.push(TextEdit.replace(otherNode.getPositionAsRange(), newName))

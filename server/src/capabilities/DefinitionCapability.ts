@@ -31,6 +31,9 @@ import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNod
 import { ClassDefinition } from '../neos/NeosPackageNamespace'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
+import { RoutingActionNode } from '../fusion/node/RoutingActionNode'
+import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
+import { toNamespacedPath } from 'path'
 
 export interface ActionUriDefinition {
 	package: string
@@ -41,9 +44,9 @@ export interface ActionUriDefinition {
 export class DefinitionCapability extends AbstractCapability {
 
 	protected run(context: CapabilityContext<AbstractNode>) {
-		// TODO: `I18n.translate('Neos.RedirectHandler.Ui:Modules:action.export')` resolve translation id to `.xlf` file or even `trans-unit`
-
 		const { workspace, parsedFile, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
+		if (!foundNodeByLine) return null
+
 		const node = foundNodeByLine.getNode()
 
 		this.logVerbose(`node type "${foundNodeByLine.getNode().constructor.name}"`)
@@ -68,6 +71,10 @@ export class DefinitionCapability extends AbstractCapability {
 				return this.getControllerActionDefinition(parsedFile, workspace, <LinePositionedNode<ObjectStatement>>foundNodeByLine, <ParsedFileCapabilityContext<AbstractNode>>context)
 			case node instanceof TagAttributeNode:
 				return this.getTagAttributeDefinition(parsedFile, workspace, <LinePositionedNode<TagAttributeNode>>foundNodeByLine, <ParsedFileCapabilityContext<TagAttributeNode>>context)
+			case node instanceof RoutingControllerNode:
+				return this.getRoutingControllerNode(parsedFile, workspace, <LinePositionedNode<RoutingControllerNode>>foundNodeByLine, <ParsedFileCapabilityContext<RoutingControllerNode>>context)
+			case node instanceof RoutingActionNode:
+				return this.getRoutingActionNode(parsedFile, workspace, <LinePositionedNode<RoutingActionNode>>foundNodeByLine, <ParsedFileCapabilityContext<RoutingActionNode>>context)
 		}
 
 		return null
@@ -112,7 +119,7 @@ export class DefinitionCapability extends AbstractCapability {
 
 		for (const otherParsedFile of workspace.parsedFiles) {
 			for (const otherNode of [...otherParsedFile.prototypeCreations, ...otherParsedFile.prototypeOverwrites]) {
-				if (otherNode.getNode()["identifier"] !== goToPrototypeName) continue
+				if (otherNode.getNode().identifier !== goToPrototypeName) continue
 				locations.push({
 					targetUri: otherParsedFile.uri,
 					targetRange: otherNode.getPositionAsRange(),
@@ -127,11 +134,11 @@ export class DefinitionCapability extends AbstractCapability {
 
 	getPropertyDefinitions(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<AbstractNode>): null | Location[] {
 		const node = <PathSegment | ObjectPathNode>foundNodeByLine.getNode()
-		const objectNode = node["parent"]
+		const objectNode = node.parent
 		if (!(objectNode instanceof ObjectNode)) return null
 
-		const isThisProperty = objectNode.path[0]["value"] === "this"
-		const isPropsProperty = objectNode.path[0]["value"] === "props"
+		const isThisProperty = objectNode.path[0].value === "this"
+		const isPropsProperty = objectNode.path[0].value === "props"
 
 		if ((!isThisProperty && !isPropsProperty) || objectNode.path.length === 1) {
 			// TODO: handle context properties
@@ -144,11 +151,16 @@ export class DefinitionCapability extends AbstractCapability {
 			if (isObjectNodeInDsl) return null
 
 			const objectStatement = findParent(objectNode, ObjectStatement)
+			if (!objectStatement) return null
+
 			const prototypeName = NodeService.findPrototypeName(objectStatement)
+			if (!prototypeName) return null
 
 			for (const property of NodeService.getInheritedPropertiesByPrototypeName(prototypeName, workspace)) {
+				if (!property.uri) continue
+
 				const firstPropertyPathSegment = property.statement.path.segments[0]
-				if (firstPropertyPathSegment["identifier"] === objectNode.path[1]["value"]) {
+				if (firstPropertyPathSegment.identifier === objectNode.path[1].value) {
 					return [{
 						uri: property.uri,
 						range: firstPropertyPathSegment.linePositionedNode.getPositionAsRange()
@@ -177,7 +189,7 @@ export class DefinitionCapability extends AbstractCapability {
 		}]
 
 		return [{
-			uri: segment.uri,
+			uri: segment.uri!,
 			range: segment.statement.path.segments[0].linePositionedNode.getPositionAsRange()
 		}]
 	}
@@ -214,14 +226,20 @@ export class DefinitionCapability extends AbstractCapability {
 	}
 
 	getFqcnDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<FqcnNode>) {
-		const classDefinition: ClassDefinition = foundNodeByLine.getNode()["classDefinition"]
+		const classDefinition: ClassDefinition = foundNodeByLine.getNode().classDefinition
 		if (classDefinition === undefined) return null
 
 		return [{
 			targetUri: classDefinition.uri,
 			targetRange: classDefinition.position,
 			targetSelectionRange: classDefinition.position,
-			originSelectionRange: foundNodeByLine.getPositionAsRange()
+			originSelectionRange: {
+				start: foundNodeByLine.getBegin(),
+				end: {
+					character: foundNodeByLine.getBegin().character + foundNodeByLine.getNode().realLength,
+					line: foundNodeByLine.getBegin().line
+				}
+			}
 		}]
 	}
 
@@ -259,10 +277,12 @@ export class DefinitionCapability extends AbstractCapability {
 		if (!(node.operation instanceof ValueAssignment)) return null
 
 		const foundNodes = parsedFile.getNodesByPosition(context.params.position)
+		if (!foundNodes) return null
+
 		const actionUriPartNode = <LinePositionedNode<ActionUriActionNode | ActionUriControllerNode>>foundNodes.find(positionedNode => (positionedNode.getNode() instanceof ActionUriActionNode || positionedNode.getNode() instanceof ActionUriControllerNode))
 		if (actionUriPartNode === undefined) return null
 
-		const actionUriDefinitionNode = actionUriPartNode.getNode()["parent"]
+		const actionUriDefinitionNode = actionUriPartNode.getNode().parent
 		const definitionTargetName = actionUriPartNode.getNode() instanceof ActionUriControllerNode ? ActionUriPartTypes.Controller : ActionUriPartTypes.Action
 		return ActionUriService.resolveActionUriDefinitionNode(node, actionUriDefinitionNode, definitionTargetName, workspace, parsedFile)
 	}
@@ -271,6 +291,8 @@ export class DefinitionCapability extends AbstractCapability {
 	getTagAttributeDefinition(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<TagAttributeNode>, context: ParsedFileCapabilityContext<TagAttributeNode>): null | LocationLink[] {
 		const node = foundNodeByLine.getNode()
 		const tagNode = findParent(node, TagNode)
+		if (!tagNode) return []
+
 		const locationLinks: LocationLink[] = []
 		const nodePositionBegin = foundNodeByLine.getBegin()
 		const originSelectionRange = {
@@ -281,8 +303,10 @@ export class DefinitionCapability extends AbstractCapability {
 			}
 		}
 
-		for (const property of NodeService.getInheritedPropertiesByPrototypeName(tagNode["name"], workspace, true)) {
+		for (const property of NodeService.getInheritedPropertiesByPrototypeName(tagNode.name, workspace, true)) {
 			if (getObjectIdentifier(property.statement) !== node.name) continue
+			if (!property.uri) continue
+
 			locationLinks.push({
 				targetUri: property.uri,
 				targetRange: property.statement.linePositionedNode.getPositionAsRange(),
@@ -292,10 +316,11 @@ export class DefinitionCapability extends AbstractCapability {
 		}
 
 		const foundNodes = parsedFile.getNodesByPosition(context.params.position)
+		if (!foundNodes) return locationLinks
 
 		const neosFusionFormPartNode = <LinePositionedNode<NeosFusionFormActionNode | NeosFusionFormControllerNode>>foundNodes.find(positionedNode => (positionedNode.getNode() instanceof NeosFusionFormActionNode || positionedNode.getNode() instanceof NeosFusionFormControllerNode))
 		if (neosFusionFormPartNode !== undefined) {
-			const neosFusionFormDefinitionNode = neosFusionFormPartNode.getNode()["parent"]
+			const neosFusionFormDefinitionNode = neosFusionFormPartNode.getNode().parent
 
 			const definitionTargetName = neosFusionFormPartNode.getNode() instanceof NeosFusionFormActionNode ? ActionUriPartTypes.Action : ActionUriPartTypes.Controller
 
@@ -303,7 +328,41 @@ export class DefinitionCapability extends AbstractCapability {
 			if (resolvedDefinition) locationLinks.push(...resolvedDefinition)
 		}
 
-
 		return locationLinks
 	}
+
+	getRoutingControllerNode(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<RoutingControllerNode>, context: ParsedFileCapabilityContext<RoutingControllerNode>): null | LocationLink {
+		const node = foundNodeByLine.getNode()
+
+		const classDefinition = RoutingControllerNode.getClassDefinitionFromRoutingControllerNode(parsedFile, workspace, node)
+		if (!classDefinition) return null
+
+		return {
+			targetUri: classDefinition.uri,
+			originSelectionRange: node.linePositionedNode.getPositionAsRange(),
+			targetRange: classDefinition.position,
+			targetSelectionRange: classDefinition.position
+		}
+	}
+
+	getRoutingActionNode(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<RoutingActionNode>, context: ParsedFileCapabilityContext<RoutingActionNode>): null | Location {
+		const node = foundNodeByLine.getNode()
+
+		const classDefinition = RoutingControllerNode.getClassDefinitionFromRoutingControllerNode(parsedFile, workspace, node.parent)
+		if (!classDefinition) return null
+
+		const actionName = node.name + "Action"
+		for (const method of classDefinition.methods) {
+			if (method.name !== actionName) continue
+
+			return {
+				uri: classDefinition.uri,
+				range: method.position
+			}
+		}
+
+		return null
+	}
+
+
 }

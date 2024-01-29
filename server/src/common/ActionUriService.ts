@@ -27,7 +27,6 @@ class ActionUriService extends Logger {
 
 	public hasPrototypeNameActionUri(prototypeName: string, workspace: FusionWorkspace) {
 		const actionUriBasePrototypes = ["Neos.Fusion:ActionUri", "Neos.Fusion:UriBuilder", "Neos.Neos:Plugin"]
-		// TODO: cache prototypes which have prototypeActionUris
 		for (const actionUriBasePrototype of actionUriBasePrototypes) {
 			if (NodeService.isPrototypeOneOf(prototypeName, actionUriBasePrototype, workspace)) return true
 		}
@@ -36,7 +35,7 @@ class ActionUriService extends Logger {
 	}
 
 	public resolveFusionFormDefinitionNode(tagAttributeNode: TagAttributeNode, neosFusionFormDefinitionNode: NeosFusionFormDefinitionNode, definitionTargetName: ActionUriPartTypes, workspace: FusionWorkspace, parsedFile: ParsedFusionFile) {
-		let actionUriDefinition = this.buildBaseActionUriDefinitionFromFusionFormDefinitionNode(neosFusionFormDefinitionNode)
+		const actionUriDefinition = this.buildBaseActionUriDefinitionFromFusionFormDefinitionNode(neosFusionFormDefinitionNode)
 		// TODO: implement tryToCompleteActionUriDefinitionPackage for `NeosFusionFormDefinitionNode`
 		// actionUriDefinition = this.tryToCompleteActionUriDefinitionPackage(tagAttributeNode, workspace, parsedFile, actionUriDefinition)
 		this.logDebug("Found Action URI Definition: ", actionUriDefinition)
@@ -51,7 +50,7 @@ class ActionUriService extends Logger {
 
 		const className = actionUriDefinition.controller.replace("/", "\\") + 'Controller'
 
-		for (const namespace of neosPackage["namespaces"].values()) {
+		for (const namespace of neosPackage.namespaces.values()) {
 			const range = tagAttributeNode.linePositionedNode.getPositionAsRange()
 			const definition = this.searchInNamespaceForControllerActionDefinition(range, definitionTargetName, namespace, className, actionUriDefinition.action)
 			if (definition) return definition
@@ -76,7 +75,7 @@ class ActionUriService extends Logger {
 
 		const className = actionUriDefinition.controller.replace("/", "\\") + 'Controller'
 
-		for (const namespace of neosPackage["namespaces"].values()) {
+		for (const namespace of neosPackage.namespaces.values()) {
 			const originSelectionRange = (<ValueAssignment>objectStatement.operation).pathValue.linePositionedNode.getPositionAsRange()
 			const definition = this.searchInNamespaceForControllerActionDefinition(originSelectionRange, definitionTargetName, namespace, className, actionUriDefinition.action)
 			if (definition) return definition
@@ -86,7 +85,7 @@ class ActionUriService extends Logger {
 	}
 
 	protected searchInNamespaceForControllerActionDefinition(originSelectionRange: Range, definitionTargetName: ActionUriPartTypes, namespace: NeosPackageNamespace, className: string, actionName: string) {
-		const fqcnParts = namespace["name"].split("\\").filter(Boolean)
+		const fqcnParts = namespace.name.split("\\").filter(Boolean)
 		fqcnParts.push('Controller')
 		fqcnParts.push(className)
 		const fqcn = fqcnParts.join('\\')
@@ -123,13 +122,13 @@ class ActionUriService extends Logger {
 	}
 
 	protected buildBaseActionUriDefinitionFromActionUriDefinitionNode(actionUriDefinitionNode: ActionUriDefinitionNode) {
-		let actionUriDefinition = {
-			package: null as string,
-			controller: actionUriDefinitionNode.controller?.name?.value ?? null as string,
-			action: actionUriDefinitionNode.action?.name?.value ?? null as string
+		const actionUriDefinition = {
+			package: <string><unknown>null,
+			controller: actionUriDefinitionNode.controller?.name?.value ?? <string><unknown>null,
+			action: actionUriDefinitionNode.action?.name?.value ?? <string><unknown>null
 		}
 
-		for (const statement of actionUriDefinitionNode.statement.block.statementList.statements) {
+		for (const statement of actionUriDefinitionNode.statement.block!.statementList.statements) {
 			if (!(statement instanceof ObjectStatement)) continue
 			if (!(statement.operation instanceof ValueAssignment)) continue
 			if (!(statement.operation.pathValue instanceof StringValue)) continue
@@ -142,18 +141,18 @@ class ActionUriService extends Logger {
 	}
 
 	protected buildBaseActionUriDefinitionFromFusionFormDefinitionNode(neosFusionFormDefinitionNode: NeosFusionFormDefinitionNode) {
-		let actionUriDefinition = {
-			package: null as string,
-			controller: neosFusionFormDefinitionNode.controller?.tagAttribute ? this.getTagAttributeValue(neosFusionFormDefinitionNode.controller?.tagAttribute) : null as string,
-			action: neosFusionFormDefinitionNode.action?.tagAttribute ? this.getTagAttributeValue(neosFusionFormDefinitionNode.action?.tagAttribute) : null as string
+		const actionUriDefinition = {
+			package: <string><unknown>null,
+			controller: neosFusionFormDefinitionNode.controller?.tagAttribute ? this.getTagAttributeValue(neosFusionFormDefinitionNode.controller?.tagAttribute) : <string><unknown>null,
+			action: neosFusionFormDefinitionNode.action?.tagAttribute ? this.getTagAttributeValue(neosFusionFormDefinitionNode.action?.tagAttribute) : <string><unknown>null
 		}
 
-		for (const attribute of neosFusionFormDefinitionNode.tag["attributes"]) {
+		for (const attribute of neosFusionFormDefinitionNode.tag.attributes) {
 			if (!(attribute instanceof TagAttributeNode)) continue
 			if (typeof attribute.value !== "string") continue
 			if (attribute.name !== "form.target.package") continue
 
-			actionUriDefinition.package = this.getTagAttributeValue(attribute)
+			actionUriDefinition.package = <string><unknown>this.getTagAttributeValue(attribute)
 		}
 
 		return actionUriDefinition

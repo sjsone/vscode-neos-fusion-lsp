@@ -12,9 +12,10 @@ module.exports = {
 	],
 	rules: {
 		'semi': [2, "never"],
-		'@typescript-eslint/no-unused-vars': 0,
-		'@typescript-eslint/no-explicit-any': 0,
-		'@typescript-eslint/explicit-module-boundary-types': 0,
-		'@typescript-eslint/no-non-null-assertion': 0,
+		'@typescript-eslint/no-unused-vars': "off",
+		'@typescript-eslint/no-explicit-any': "off",
+		'@typescript-eslint/explicit-module-boundary-types': "off",
+		'@typescript-eslint/no-non-null-assertion': "off",
+		'@typescript-eslint/no-namespace': "off"
 	}
 };

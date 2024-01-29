@@ -17,7 +17,7 @@ export interface ClassDefinition {
 }
 
 export class NeosPackageNamespace {
-	protected name: string
+	public name: string
 	protected path: string
 
 	protected fileUriCache: Map<string, string> = new Map()
@@ -52,7 +52,7 @@ export class NeosPackageNamespace {
 		return fileUri
 	}
 
-	getClassDefinitionFromFilePathAndClassName(filePath: string, className: string, pathParts: string[]): ClassDefinition {
+	getClassDefinitionFromFilePathAndClassName(filePath: string, className: string, pathParts: string[]): undefined | ClassDefinition {
 		const phpFileSource = NodeFs.readFileSync(filePath).toString()
 
 		const namespace = this.name + pathParts.join("\\")
@@ -79,7 +79,7 @@ export class NeosPackageNamespace {
 			const fullDefinition = match[1]
 			// const isStatic = !!match[2]
 			const name = match[3]
-			const rawParameters = match[4] + ')'
+			const rawParameters = (match[4] ?? '').trim() + ')'
 
 			const parameters = this.parseMethodParameters(rawParameters)
 
@@ -108,9 +108,9 @@ export class NeosPackageNamespace {
 		}
 	}
 
-	getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName: string): ClassDefinition {
+	getClassDefinitionFromFullyQualifiedClassName(fullyQualifiedClassName: string): undefined | ClassDefinition {
 		if (this.fqcnCache.has(fullyQualifiedClassName)) {
-			const { possibleFilePath, className, pathParts } = this.fqcnCache.get(fullyQualifiedClassName)
+			const { possibleFilePath, className, pathParts } = this.fqcnCache.get(fullyQualifiedClassName)!
 			if (!NodeFs.existsSync(possibleFilePath)) return undefined
 			return this.getClassDefinitionFromFilePathAndClassName(possibleFilePath, className, pathParts)
 		}
@@ -118,7 +118,7 @@ export class NeosPackageNamespace {
 		const path = fullyQualifiedClassName.replace(this.name, "")
 
 		const pathParts = path.split("\\")
-		const className = pathParts.pop()
+		const className = pathParts.pop()!
 		const possibleFilePath = NodePath.join(this.path, ...pathParts, className + ".php")
 
 		this.fqcnCache.set(fullyQualifiedClassName, { possibleFilePath, className, pathParts })
@@ -128,7 +128,7 @@ export class NeosPackageNamespace {
 	}
 
 	protected parseMethodParameters(rawParameters: string): PhpMethodParameter[] {
-		const parametersRegex = /(\w+ )?(\.\.\.\s*?)?(\$\w*)( ?= ?.*?)?(?:[,\)])/g
+		const parametersRegex = /(\w+ )?(\.\.\.\s*?)?(\$\w*)( ?= ?.*?)?(?:[,)])/g
 		let match = parametersRegex.exec(rawParameters)
 		const parameters = []
 		let runAwayPrevention = 0
@@ -154,7 +154,8 @@ export class NeosPackageNamespace {
 			const fullDocBlock = reversedDescriptionMatch[1].split('').reverse().join('')
 			const docLineRegex = /^\s*\* *(@\w+)?(.+)?$/gm
 			let docLineMatch = docLineRegex.exec(fullDocBlock)
-			while (docLineMatch && docLineMatch[2]) {
+			let runAwayPrevention = 0
+			while (docLineMatch?.[2] && runAwayPrevention++ < 1000) {
 				descriptionParts.push(docLineMatch[2])
 				// docLineMatch[1] => "@return", "@param", ...
 				docLineMatch = docLineRegex.exec(fullDocBlock)

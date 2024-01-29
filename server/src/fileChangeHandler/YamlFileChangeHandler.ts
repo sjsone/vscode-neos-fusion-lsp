@@ -1,5 +1,5 @@
-import { FileEvent } from 'vscode-languageserver';
-import { AbstractFileChangeHandler } from './AbstractFileChangeHandler';
+import { FileEvent } from 'vscode-languageserver'
+import { AbstractFileChangeHandler } from './AbstractFileChangeHandler'
 
 export class YamlFileChangeHandler extends AbstractFileChangeHandler {
 	canHandleFileEvent(fileEvent: FileEvent): boolean {
@@ -19,12 +19,12 @@ export class YamlFileChangeHandler extends AbstractFileChangeHandler {
 	}
 
 	protected async handleNodeTypeFileChanged() {
-		for (const workspace of this.languageServer["fusionWorkspaces"]) {
+		for (const workspace of this.languageServer.fusionWorkspaces) {
 			for (const neosPackage of workspace.neosWorkspace.getPackages().values()) {
 				neosPackage.readConfiguration()
 			}
 		}
-		await Promise.all(this.languageServer["fusionWorkspaces"].map(workspace => workspace.diagnoseAllFusionFiles()))
+		await Promise.all(this.languageServer.fusionWorkspaces.map(workspace => workspace.diagnoseAllFusionFiles()))
 	}
 
 }

@@ -6,6 +6,7 @@ import { EelHelperMethod } from '../eel/EelHelperMethod'
 import { FlowConfiguration } from './FlowConfiguration'
 import { NeosPackageNamespace } from './NeosPackageNamespace'
 import { NeosWorkspace } from './NeosWorkspace'
+import { PackageJsonNotFoundError } from '../error/PackageJsonNotFoundError'
 
 export interface EELHelperToken {
 	name: string,
@@ -23,19 +24,20 @@ export interface EELHelperToken {
 }
 
 export class NeosPackage extends Logger {
-	protected path: string
-	protected neosWorkspace: NeosWorkspace
+	public path: string
+	public neosWorkspace: NeosWorkspace
 
-	protected composerJson: any
+	public composerJson: any
 
-	protected namespaces: Map<string, NeosPackageNamespace> = new Map()
-	protected configuration: FlowConfiguration
+	public namespaces: Map<string, NeosPackageNamespace> = new Map()
+	public configuration!: FlowConfiguration
 	protected eelHelpers: EELHelperToken[] = []
 
 	protected debug: boolean
 
 	constructor(path: string, neosWorkspace: NeosWorkspace) {
 		const composerJsonFilePath = NodePath.join(path, "composer.json")
+		if (!NodeFs.existsSync(composerJsonFilePath)) throw new PackageJsonNotFoundError("")
 		const composerJson = JSON.parse(NodeFs.readFileSync(composerJsonFilePath).toString())
 
 		super(composerJson.name)
@@ -66,9 +68,9 @@ export class NeosPackage extends Logger {
 	}
 
 	public initEelHelper() {
-		if (this.configuration["settingsConfiguration"] === null) return undefined
+		if (this.configuration.settingsConfiguration === null) return undefined
 
-		const defaultNeosFusionContext = this.configuration.get<{}>("Neos.Fusion.defaultContext")
+		const defaultNeosFusionContext = this.configuration.get<{ [key: string]: any }>("Neos.Fusion.defaultContext")
 		if (!defaultNeosFusionContext) return undefined
 
 		this.logVerbose("Found EEL-Helpers:")
@@ -98,7 +100,7 @@ export class NeosPackage extends Logger {
 
 	extractFqcnAndStaticMethodFromDefaultContextEntry(path: string) {
 		const staticMethodRegex = /^(.*?)(?:::(.*))?$/
-		const match = staticMethodRegex.exec(this.trimLeadingBackslash(path))
+		const match = staticMethodRegex.exec(this.trimLeadingBackslash(path))!
 		return {
 			fqcn: match[1],
 			staticMethod: match[2]
@@ -123,11 +125,8 @@ export class NeosPackage extends Logger {
 		return undefined
 	}
 
-	// TODO: refactor method. No "packageName" needed
-	getResourceUriPath(packageName: string, relativePath: string) {
-		if (this.getPackageName() === packageName) {
-			return NodePath.join(this.path, "Resources", relativePath)
-		}
+	getResourceUriPath(relativePath: string) {
+		return NodePath.join(this.path, "Resources", relativePath)
 	}
 
 	getTranslationsBasePath() {
@@ -138,14 +137,13 @@ export class NeosPackage extends Logger {
 		return this.eelHelpers
 	}
 
-	getName() {
+	getName(): string {
 		return this.composerJson.name
 	}
 
 	getPackageName() {
 		const packageKey = this.composerJson.extra?.neos?.["package-key"]
-		const name = this.getName()
-		return packageKey ?? name.split("/").map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('.')
+		return packageKey ?? this.getName().split(/[/-]+/).map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('.')
 	}
 
 	hasName(name: string) {

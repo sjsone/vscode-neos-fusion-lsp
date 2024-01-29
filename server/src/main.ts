@@ -1,8 +1,6 @@
 import { TextDocument } from "vscode-languageserver-textdocument"
 import {
-    Position,
     ProposedFeatures,
-    Range,
     TextDocuments,
     createConnection
 } from "vscode-languageserver/node"
@@ -18,12 +16,11 @@ import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFe
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { RenameCapability } from './capabilities/RenameCapability'
 import { RenamePrepareCapability } from './capabilities/RenamePrepareCapability'
+import { SignatureHelpCapability } from './capabilities/SignatureHelpCapability'
 
-export interface FusionDocument extends TextDocument { }
+export type FusionDocument = TextDocument
 
-// TODO: define and handle some arguments like [`showDefaultConfiguration`, `showDefaultInitialization`, `--logFile`, ...] to improve usability as a standalone server
-
-// INFO: https://github.com/microsoft/vscode/issues/135453
+// INFO: everything is debounced https://github.com/microsoft/vscode/issues/135453
 
 const connection = createConnection(ProposedFeatures.all)
 const documents: TextDocuments<FusionDocument> = new TextDocuments(TextDocument)
@@ -32,12 +29,11 @@ const languageserver = new LanguageServer(connection, documents)
 
 
 connection.onInitialize(params => languageserver.onInitialize(params))
-connection.onDidChangeConfiguration(params => languageserver.onDidChangeConfiguration(params))
+connection.onDidChangeConfiguration(params => { languageserver.onDidChangeConfiguration(params) })
 
 documents.onDidOpen(event => languageserver.onDidOpen(event))
 documents.onDidChangeContent(change => languageserver.onDidChangeContent(change))
-connection.onDidChangeWatchedFiles(params => languageserver.onDidChangeWatchedFiles(params))
-
+connection.onDidChangeWatchedFiles(params => { languageserver.onDidChangeWatchedFiles(params) })
 
 connection.onDefinition(params => languageserver.runCapability(DefinitionCapability, params))
 connection.onReferences(params => languageserver.runCapability(ReferenceCapability, params))
@@ -49,11 +45,12 @@ connection.onWorkspaceSymbol(params => languageserver.runCapability(WorkspaceSym
 connection.onCodeLens(params => languageserver.runCapability(CodeLensCapability, params))
 connection.onPrepareRename(params => languageserver.runCapability(RenamePrepareCapability, params))
 connection.onRenameRequest(params => languageserver.runCapability(RenameCapability, params))
+connection.onSignatureHelp(params => languageserver.runCapability(SignatureHelpCapability, params))
+connection.onCodeAction(params => languageserver.onCodeAction(params))
 
 connection.languages.semanticTokens.on(params => languageserver.runLanguageFeature(SemanticTokensLanguageFeature, params))
 connection.languages.inlayHint.on(params => languageserver.runLanguageFeature(InlayHintLanguageFeature, params))
 
-connection.onCodeAction(params => languageserver.onCodeAction(params))
 
 
 documents.listen(connection)

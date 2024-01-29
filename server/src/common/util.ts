@@ -15,24 +15,24 @@ import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
 import { URI } from 'vscode-uri'
-import { uriToFsPath } from 'vscode-uri/lib/umd/uri'
 import { DeprecationConfigurationSpecialType } from '../ExtensionConfiguration'
-import { FqcnNode } from '../fusion/node/FqcnNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { FqcnNode } from '../fusion/node/FqcnNode'
 import { PhpClassMethodNode } from '../fusion/node/PhpClassMethodNode'
 import { PhpClassNode } from '../fusion/node/PhpClassNode'
 import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
 import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
+import { RoutingActionNode } from '../fusion/node/RoutingActionNode'
+import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
 
 export interface LineDataCacheEntry {
     lineLengths: number[]
     lineIndents: string[]
 }
 
-// TODO: use a real cache [cache-branch]
 const lineDataCache: Map<string, LineDataCacheEntry> = new Map
 
-const whitespaceRegex = /^[ \t]+/;
+const whitespaceRegex = /^[ \t]+/
 
 export function clearLineDataCacheForFile(textUri: string) {
     if (lineDataCache.has(textUri)) lineDataCache.delete(textUri)
@@ -55,7 +55,7 @@ export function buildEntryForLineDataCache(lines: string[]): LineDataCacheEntry 
     const lineIndents = []
 
     for (const line of lines) {
-        const match = RegExp(whitespaceRegex).exec(line);
+        const match = RegExp(whitespaceRegex).exec(line)
         lineIndents.push(match ? match[0] : '')
         lineLengths.push(line.length)
     }
@@ -72,7 +72,7 @@ export function clearLineDataCache() {
 
 export function getLineNumberOfChar(data: string, index: number, textUri: string) {
     if (!lineDataCache.has(textUri)) setLinesFromLineDataCacheForFile(textUri, data.split('\n'))
-    const entry = lineDataCache.get(textUri)
+    const entry = lineDataCache.get(textUri)!
     let totalLength = 0
     let column = index
     let i = 0
@@ -97,6 +97,40 @@ export function* getFiles(dir: string, withExtension = ".fusion"): Generator<str
     }
 }
 
+const isWindows = typeof process !== 'undefined' && process.platform === 'win32'
+enum CharCode {
+    Slash = 47,
+    A = 65,
+    a = 97,
+    Z = 90,
+    z = 122,
+    Colon = 58,
+}
+
+export function uriToFsPath(uri: URI, keepDriveLetterCasing: boolean): string {
+    let value: string
+    if (uri.authority && uri.path.length > 1 && uri.scheme === 'file') {
+        // unc path: file://shares/c$/far/boo
+        value = `//${uri.authority}${uri.path}`
+    } else if (
+        uri.path.charCodeAt(0) === CharCode.Slash
+        && (uri.path.charCodeAt(1) >= CharCode.A && uri.path.charCodeAt(1) <= CharCode.Z || uri.path.charCodeAt(1) >= CharCode.a && uri.path.charCodeAt(1) <= CharCode.z)
+        && uri.path.charCodeAt(2) === CharCode.Colon
+    ) {
+        if (!keepDriveLetterCasing) {
+            // windows drive letter: file:///c:/far/boo
+            value = uri.path[1].toLowerCase() + uri.path.substring(2)
+        } else {
+            value = uri.path.substring(1)
+        }
+    } else {
+        // other path
+        value = uri.path
+    }
+
+    return isWindows ? value.replace(/\//g, '\\') : value
+}
+
 export function uriToPath(uri: string) {
     return uriToFsPath(URI.parse(uri), false)
 }
@@ -108,7 +142,7 @@ export function pathToUri(path: string) {
 export function getPrototypeNameFromNode(node: AbstractNode) {
     if (node instanceof FusionObjectValue) return node.value
     if (node instanceof PrototypePathSegment) return node.identifier
-    if (node instanceof FusionObjectValue) return node["value"]
+    if (node instanceof FusionObjectValue) return node.value
     return null
 }
 
@@ -121,110 +155,86 @@ export function isPrototypeDeprecated(workspace: FusionWorkspace, prototypeName:
     return deprecated
 }
 
-export function mergeObjects(source: unknown, target: unknown) {
-    // https://gist.github.com/ahtcx/0cd94e62691f539160b32ecda18af3d6?permalink_comment_id=3889214#gistcomment-3889214
-    for (const [key, val] of Object.entries(source)) {
-        if (val !== null && typeof val === `object`) {
-            if (target[key] === undefined) {
-                target[key] = new val["__proto__"].constructor()
-            }
+export function mergeObjects(source: { [key: string]: any }, target: { [key: string]: any }) {
+    for (const key in source) {
+        const val = source[key]
+        if (val === null) {
+            target[key] = null
+        } else if (typeof val === "object") {
+            target[key] ??= new (Object.getPrototypeOf(val)).constructor()
             mergeObjects(val, target[key])
         } else {
             target[key] = val
         }
     }
-    return target // we're replacing in-situ, so this is more for chaining than anything else
+    return target
 }
 
 export function findParent<T extends new (...args: any) => AbstractNode>(node: AbstractNode, parentType: T) {
-    let parent = node["parent"]
+    let parent = node.parent
     while (parent) {
         if (parent instanceof parentType) return <InstanceType<T>>parent
-        parent = parent["parent"]
+        parent = (parent as AbstractNode).parent
     }
     return undefined
 }
 
 export function findUntil<T extends AbstractNode>(node: any, condition: (parent: AbstractNode) => boolean): T | undefined {
-    let parent = node["parent"]
+    let parent = node.parent
     while (parent) {
         if (condition(parent)) {
             return parent
         }
-        parent = parent["parent"]
+        parent = parent.parent
     }
     return undefined
 }
 
 export function abstractNodeToString(node: AbstractEelNode | AbstractNode): string | undefined {
     // TODO: This should be node.toString() but for now...
-    if (node instanceof StringValue) return `"${node["value"]}"`
-    if (node instanceof LiteralStringNode) return node["quotationType"] + node["value"] + node["quotationType"]
-    if (node instanceof LiteralNumberNode || node instanceof FusionObjectValue) return node["value"]
+    if (node instanceof StringValue) return `"${node.value}"`
+    if (node instanceof LiteralStringNode) return node.quotationType + node.value + node.quotationType
+    if (node instanceof LiteralNumberNode) return node.value
+    if (node instanceof FusionObjectValue) return node.value
     if (node instanceof EelExpressionValue) {
         if (Array.isArray(node.nodes)) return undefined
         return `\${${abstractNodeToString(<AbstractEelNode>node.nodes)}}`
     }
 
-    if (node instanceof MetaPathSegment) return "@" + node["identifier"]
-    if (node instanceof PathSegment) return node["identifier"]
-    if (node instanceof PrototypePathSegment) return `prototype(${node["identifier"]})`
+    if (node instanceof MetaPathSegment) return "@" + node.identifier
+    if (node instanceof PathSegment) return node.identifier
+    if (node instanceof PrototypePathSegment) return `prototype(${node.identifier})`
     if (node instanceof ObjectFunctionPathNode) {
-        return `${node["value"]}(${node["args"].map(abstractNodeToString).join(", ")})`
+        return `${node.value}(${node.args.map(abstractNodeToString).join(", ")})`
     }
-    if (node instanceof ObjectPathNode) return node["value"]
+    if (node instanceof ObjectPathNode) return node.value
     if (node instanceof ObjectNode) {
-        return node["path"].map(abstractNodeToString).join(".")
+        return node.path.map(abstractNodeToString).join(".")
     }
     if (node instanceof OperationNode) {
-        return `${abstractNodeToString(node["leftHand"])} ${node["operation"]} ${abstractNodeToString(node["rightHand"])}`
+        return `${abstractNodeToString(node.leftHand)} ${node.operation} ${abstractNodeToString(node.rightHand)}`
     }
 
     return undefined
 }
 
 export function getObjectIdentifier(objectStatement: ObjectStatement): string {
-    return objectStatement.path.segments.map(segment => `${segment instanceof MetaPathSegment ? '@' : ''}${segment["identifier"]}`).join(".")
+    return objectStatement.path.segments.map(segment => `${segment instanceof MetaPathSegment ? '@' : ''}${segment.identifier}`).join(".")
 }
 
 export function getNodeWeight(node: any) {
-    switch (true) {
-        case node instanceof TranslationShortHandNode: return 60
-        case node instanceof FusionObjectValue: return 50
-        case node instanceof PhpClassMethodNode: return 40
-        case node instanceof PhpClassNode: return 30
-        case node instanceof FqcnNode: return 20
-        case node instanceof PrototypePathSegment: return 18
-        case node instanceof ResourceUriNode: return 16
-        case node instanceof ObjectPathNode: return 15
-        case node instanceof ObjectStatement: return 10
-        default: return 0
-    }
-}
-
-// TODO: Put the SemanticComment stuff into Service
-
-export enum SemanticCommentType {
-    Ignore = "ignore",
-    IgnoreBlock = "ignore-block"
-}
-
-export interface ParsedSemanticComment {
-    type: SemanticCommentType
-    arguments: string[]
-}
-
-export function parseSemanticComment(comment: string): ParsedSemanticComment {
-    const semanticCommentRegex = /^ *@fusion-([a-zA-Z0-9_-]+) *(?:\[(.*)\])?$/
-
-    const matches = semanticCommentRegex.exec(comment)
-    if (!matches) return undefined
-
-    const rawArguments = matches[2]
-    return {
-        type: <SemanticCommentType>matches[1],
-        arguments: rawArguments ? rawArguments.split(',').filter(Boolean).map(arg => arg.trim()) : []
-    }
+    if (node instanceof TranslationShortHandNode) return 60
+    if (node instanceof FusionObjectValue) return 50
+    if (node instanceof PhpClassMethodNode) return 40
+    if (node instanceof PhpClassNode) return 30
+    if (node instanceof FqcnNode) return 20
+    if (node instanceof PrototypePathSegment) return 18
+    if (node instanceof ResourceUriNode) return 16
+    if (node instanceof ObjectPathNode) return 15
+    if (node instanceof ObjectStatement) return 10
+    if (node instanceof RoutingActionNode) return 9
+    if (node instanceof RoutingControllerNode) return 8
+    return 0
 }
 
 export function checkSemanticCommentIgnoreArguments(propertyName: string, ignoredNames: string[]): boolean {

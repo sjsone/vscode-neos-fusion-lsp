@@ -11,6 +11,8 @@ export class ReferenceCapability extends AbstractCapability {
 
 	protected run(context: CapabilityContext<AbstractNode>): any {
 		const { workspace, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
+		if (!foundNodeByLine) return null
+
 		const node = foundNodeByLine.getNode()
 		this.logVerbose(`Found node type "${node.constructor.name}"`)
 
@@ -27,7 +29,7 @@ export class ReferenceCapability extends AbstractCapability {
 
 		for (const otherParsedFile of workspace.parsedFiles) {
 			for (const nodeType of [PrototypePathSegment, FusionObjectValue]) {
-				const otherNodes = otherParsedFile.getNodesByType(<any>nodeType) || []
+				const otherNodes = otherParsedFile.getNodesByType(<any>nodeType) ?? []
 				for (const otherNode of otherNodes) {
 					if (getPrototypeNameFromNode(otherNode.getNode()) !== name) continue
 					locations.push({

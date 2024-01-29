@@ -8,20 +8,22 @@ import { LanguageServer } from '../LanguageServer'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { LogService, Logger } from '../common/Logging'
 import { TranslationService } from '../common/TranslationService'
-import { getFiles, pathToUri, uriToPath } from '../common/util'
-import { diagnose } from '../diagnostics/ParsedFusionFileDiagnostics'
+import { getFiles, pathToUri, uriToFsPath, uriToPath } from '../common/util'
+import { ParsedFusionFileDiagnostics } from '../diagnostics/ParsedFusionFileDiagnostics'
 import { NeosPackage } from '../neos/NeosPackage'
 import { NeosWorkspace } from '../neos/NeosWorkspace'
 import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile'
 import { ParsedFusionFile } from './ParsedFusionFile'
+import { PackageJsonNotFoundError } from '../error/PackageJsonNotFoundError'
 
 export class FusionWorkspace extends Logger {
     public uri: string
     public name: string
     public languageServer: LanguageServer
-    protected configuration: ExtensionConfiguration
+    protected configuration!: ExtensionConfiguration
+    protected parsedFusionFileDiagnostics!: ParsedFusionFileDiagnostics
 
-    public neosWorkspace: NeosWorkspace
+    public neosWorkspace!: NeosWorkspace
 
     public parsedFiles: ParsedFusionFile[] = []
     public filesWithErrors: string[] = []
@@ -49,6 +51,7 @@ export class FusionWorkspace extends Logger {
         this.configuration = configuration
         this.clear()
         this.languageServer.sendProgressNotificationCreate("fusion_workspace_init", "Fusion")
+        this.parsedFusionFileDiagnostics = new ParsedFusionFileDiagnostics(configuration.diagnostics)
         const workspacePath = uriToPath(this.uri)
 
         const ignoreFolders = configuration.folders.ignore
@@ -75,7 +78,13 @@ export class FusionWorkspace extends Logger {
 
         this.neosWorkspace = new NeosWorkspace(this, workspacePath, this.name)
         for (const packagePath of packagesPaths) {
-            this.neosWorkspace.addPackage(packagePath)
+            try {
+                this.neosWorkspace.addPackage(packagePath)
+            } catch (error) {
+                if (error instanceof PackageJsonNotFoundError) {
+                    this.logError(`No Package.json found for ${packagePath}`)
+                } else throw error
+            }
         }
         this.neosWorkspace.initEelHelpers()
 
@@ -83,7 +92,7 @@ export class FusionWorkspace extends Logger {
         const incrementPerPackage = 100 / packagesPaths.length
 
         for (const neosPackage of this.neosWorkspace.getPackages().values()) {
-            const packagePath = neosPackage["path"]
+            const packagePath = neosPackage.path
             this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
                 message: `Package: ${packagePath}`
             }).catch(error => this.logError("init", error))
@@ -108,12 +117,7 @@ export class FusionWorkspace extends Logger {
             parsedFile.runPostProcessing()
         }
 
-
         this.logInfo(`Successfully parsed ${this.parsedFiles.length} fusion files. `)
-
-        if(usingWorkspaceAsPackageFallback && this.parsedFiles.length === 0) {
-            
-        }
 
         // TODO: if this.parsedFiles.length === 0 show error message with link to TBD-setting "workspace root"
         // TODO: if no package has a composer.json show error message with link to TBD-setting "workspace root"
@@ -152,7 +156,7 @@ export class FusionWorkspace extends Logger {
         }
     }
 
-    initParsedFile(parsedFile: ParsedFusionFile, text: string = undefined) {
+    initParsedFile(parsedFile: ParsedFusionFile, text?: string) {
         if (this.filesWithErrors.includes(parsedFile.uri)) return false
 
         try {
@@ -199,16 +203,14 @@ export class FusionWorkspace extends Logger {
         return this.parsedFiles.find(file => file.uri === uri)
     }
 
-    getNodesByType<T extends new (...args: unknown[]) => AbstractNode>(type: T): Array<{ uri: string, nodes: LinePositionedNode<InstanceType<T>>[] }> {
-        const nodes = []
+    getNodesByType<T extends AbstractNode>(type: new (...args: any[]) => T): Array<{ uri: string, nodes: LinePositionedNode<T>[] }> {
+        const nodes: Array<{ uri: string, nodes: LinePositionedNode<T>[] }> = []
         for (const file of this.parsedFiles) {
             const fileNodes = file.nodesByType.get(type)
-            if (fileNodes) {
-                nodes.push({
-                    uri: file.uri,
-                    nodes: fileNodes
-                })
-            }
+            if (fileNodes) nodes.push({
+                uri: file.uri,
+                nodes: <any>fileNodes
+            })
         }
         return nodes
     }
@@ -218,22 +220,28 @@ export class FusionWorkspace extends Logger {
     }
 
     public async diagnoseAllFusionFiles() {
-        // TODO: Create Diagnose class with concurrency (no need to diagnose the same files at the same time)
-        this.filesToDiagnose = Array.from(this.parsedFiles)
+        this.filesToDiagnose = this.parsedFiles.filter(parsedFile => {
+            const filePath = uriToPath(parsedFile.uri)
+            const inIgnoredFolder = this.configuration.diagnostics.ignore.folders.find(path => filePath.startsWith(NodePath.resolve(uriToPath(this.uri), path)))
+            return inIgnoredFolder === undefined
+        })
         return this.processFilesToDiagnose()
     }
 
     protected async processFilesToDiagnose() {
         const randomDiagnoseRun = Math.round(Math.random() * 100)
         this.logDebug(`<${randomDiagnoseRun}> Will diagnose ${this.filesToDiagnose.length} files`)
+        this.languageServer.sendBusyCreate('diagnostics')
         await Promise.all(this.filesToDiagnose.map(async parsedFile => {
-            const diagnostics = await diagnose(parsedFile)
+            const diagnostics = await this.parsedFusionFileDiagnostics.diagnose(parsedFile)
             if (diagnostics) await this.languageServer.sendDiagnostics({
                 uri: parsedFile.uri,
                 diagnostics
             })
         }))
+
         this.logDebug(`<${randomDiagnoseRun}>...finished`)
+        this.languageServer.sendBusyDispose('diagnostics')
 
         this.filesToDiagnose = []
     }

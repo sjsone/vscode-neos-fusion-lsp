@@ -16,7 +16,7 @@ export namespace IgnorableDiagnostic {
 			quickAction: "ignorable"
 		}
 		return diagnostic
-	};
+	}
 
 	/**
 	 * Checks whether the given literal conforms to the {@link IgnorableDiagnostic} interface.

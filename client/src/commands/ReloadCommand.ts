@@ -1,5 +1,5 @@
-import { Uri, workspace as Workspace, WorkspaceFolder } from 'vscode';
-import { AbstractCommand } from './AbstractCommand';
+import { Uri, workspace as Workspace, WorkspaceFolder } from 'vscode'
+import { AbstractCommand } from './AbstractCommand'
 
 export class ReloadCommand extends AbstractCommand {
 	static Identifier = "neos-fusion-lsp.reload"

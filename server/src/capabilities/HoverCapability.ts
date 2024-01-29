@@ -28,6 +28,7 @@ export class HoverCapability extends AbstractCapability {
 
 	public async run(context: CapabilityContext<AbstractNode>) {
 		const { workspace, parsedFile, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
+		if (!foundNodeByLine) return null
 
 		const markdown = await this.getMarkdownByNode(foundNodeByLine, parsedFile, workspace)
 		if (markdown === null) return null
@@ -43,38 +44,28 @@ export class HoverCapability extends AbstractCapability {
 		// return `Type: ${node.constructor.name}`
 		this.logVerbose(`FoundNode: ` + node.constructor.name)
 
-		switch (true) {
-			case node instanceof TranslationShortHandNode:
-				return this.getMarkdownForTranslationShortHandNode(workspace, <LinePositionedNode<TranslationShortHandNode>>foundNodeByLine)
-			case node instanceof FusionObjectValue:
-			case node instanceof PrototypePathSegment:
-				return this.getMarkdownForPrototypeName(workspace, <FusionObjectValue | PrototypePathSegment>node, parsedFile)
-			case node instanceof PathSegment:
-				return `property **${node["identifier"]}**`
-			case node instanceof PhpClassNode:
-				return `EEL-Helper **${node["identifier"]}**`
-			case node instanceof ObjectFunctionPathNode:
-				return `EEL-Function **${node["value"]}**`
-			case node instanceof ObjectPathNode:
-				return this.getMarkdownForObjectPath(workspace, <LinePositionedNode<ObjectPathNode>>foundNodeByLine)
-			case node instanceof PhpClassMethodNode:
-				return this.getMarkdownForEelHelperMethod(<PhpClassMethodNode>node, workspace)
-			case node instanceof ResourceUriNode:
-				return this.getMarkdownForResourceUri(<ResourceUriNode>node, workspace)
-			default:
-				return null
-		}
+		if (node instanceof TranslationShortHandNode) return this.getMarkdownForTranslationShortHandNode(workspace, <LinePositionedNode<TranslationShortHandNode>>foundNodeByLine)
+		if (node instanceof FusionObjectValue) return this.getMarkdownForPrototypeName(workspace, <FusionObjectValue | PrototypePathSegment>node)
+		if (node instanceof PrototypePathSegment) return this.getMarkdownForPrototypeName(workspace, <FusionObjectValue | PrototypePathSegment>node, parsedFile)
+		if (node instanceof PathSegment) return `property **${node.identifier}**`
+		if (node instanceof PhpClassNode) return `EEL-Helper **${node.identifier}**`
+		if (node instanceof ObjectFunctionPathNode) return `EEL-Function **${node.value}**`
+		if (node instanceof ObjectPathNode) return this.getMarkdownForObjectPath(workspace, <LinePositionedNode<ObjectPathNode>>foundNodeByLine)
+		if (node instanceof PhpClassMethodNode) return this.getMarkdownForEelHelperMethod(node, workspace)
+		if (node instanceof ResourceUriNode) return this.getMarkdownForResourceUri(node, workspace)
+
+		return null
 	}
 
 	protected * createStatementNamesFromPrototypeNode(prototypeName: string, positionedPrototypeNode: LinePositionedNode<PrototypePathSegment>) {
 		const prototypeNode = positionedPrototypeNode.getNode()
-		if (prototypeNode["identifier"] !== prototypeName) return
+		if (prototypeNode.identifier !== prototypeName) return
 
 		const otherObjectStatement = findParent(prototypeNode, ObjectStatement)
-		if (!otherObjectStatement.block) return
+		if (!otherObjectStatement?.block) return
 
 		for (const statement of <ObjectStatement[]>otherObjectStatement.block.statementList.statements) {
-			let statementName = statement["path"].segments.map(abstractNodeToString).filter(Boolean).join(".")
+			let statementName = statement.path.segments.map(abstractNodeToString).filter(Boolean).join(".")
 			if (statement.operation instanceof ValueAssignment) {
 				statementName += ` = ${abstractNodeToString(statement.operation.pathValue)}`
 			}
@@ -108,7 +99,7 @@ export class HoverCapability extends AbstractCapability {
 			if (a.isSource && !b.isSource) return -1
 			if (!a.isSource && b.isSource) return 1
 			return 0
-		});
+		})
 
 		return translationMarkdowns.map(translationMarkdowns => translationMarkdowns.markdown).join("\n")
 	}
@@ -161,10 +152,10 @@ export class HoverCapability extends AbstractCapability {
 
 	getMarkdownForObjectPath(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<ObjectPathNode>) {
 		const node = foundNodeByLine.getNode()
-		const objectNode = node["parent"]
+		const objectNode = node.parent
 		if (!(objectNode instanceof ObjectNode)) return null
 
-		if ((objectNode.path[0]["value"] !== "this" && objectNode.path[0]["value"] !== "props") || objectNode.path.length < 2) return null
+		if ((objectNode.path[0].value !== "this" && objectNode.path[0].value !== "props") || objectNode.path.length < 2) return null
 
 		let segment = NodeService.findPropertyDefinitionSegment(objectNode, workspace, true)
 		if (segment instanceof ExternalObjectStatement) {
@@ -176,7 +167,7 @@ export class HoverCapability extends AbstractCapability {
 			if (!(statement.operation instanceof ValueAssignment)) return null
 
 			const stringified = abstractNodeToString(statement.operation.pathValue)
-			const name = node["value"]
+			const name = node.value
 			if (stringified !== undefined) {
 				return [
 					`EEL **${name}**`,
@@ -187,7 +178,7 @@ export class HoverCapability extends AbstractCapability {
 			}
 		}
 
-		return `EEL **${node["value"]}**`
+		return `EEL **${node.value}**`
 	}
 
 	getMarkdownForEelHelperMethod(node: PhpClassMethodNode, workspace: FusionWorkspace) {

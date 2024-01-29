@@ -1,31 +1,30 @@
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { LiteralArrayNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralArrayNode';
-import { BoolValue } from 'ts-fusion-parser/out/fusion/nodes/BoolValue';
-import { CharValue } from 'ts-fusion-parser/out/fusion/nodes/CharValue';
-import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue';
-import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue';
-import { FloatValue } from 'ts-fusion-parser/out/fusion/nodes/FloatValue';
-import { FusionFile } from 'ts-fusion-parser/out/fusion/nodes/FusionFile';
-import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue';
-import { IntValue } from 'ts-fusion-parser/out/fusion/nodes/IntValue';
-import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/nodes/MetaPathSegment';
-import { NullValue } from 'ts-fusion-parser/out/fusion/nodes/NullValue';
-import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement';
-import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment';
-import { StatementList } from 'ts-fusion-parser/out/fusion/nodes/StatementList';
-import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue';
-import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment';
-import { ValueUnset } from 'ts-fusion-parser/out/fusion/nodes/ValueUnset';
-import { DocumentSymbol, SymbolKind } from 'vscode-languageserver';
-import { LinePositionedNode } from '../common/LinePositionedNode';
-import { findParent, getObjectIdentifier } from '../common/util';
-import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
-import { AbstractCapability } from './AbstractCapability';
-import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext';
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { LiteralArrayNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralArrayNode'
+import { BoolValue } from 'ts-fusion-parser/out/fusion/nodes/BoolValue'
+import { CharValue } from 'ts-fusion-parser/out/fusion/nodes/CharValue'
+import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue'
+import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue'
+import { FloatValue } from 'ts-fusion-parser/out/fusion/nodes/FloatValue'
+import { FusionFile } from 'ts-fusion-parser/out/fusion/nodes/FusionFile'
+import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
+import { IntValue } from 'ts-fusion-parser/out/fusion/nodes/IntValue'
+import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/nodes/MetaPathSegment'
+import { NullValue } from 'ts-fusion-parser/out/fusion/nodes/NullValue'
+import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
+import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
+import { StatementList } from 'ts-fusion-parser/out/fusion/nodes/StatementList'
+import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
+import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
+import { ValueUnset } from 'ts-fusion-parser/out/fusion/nodes/ValueUnset'
+import { DocumentSymbol, SymbolKind } from 'vscode-languageserver'
+import { LinePositionedNode } from '../common/LinePositionedNode'
+import { findParent, getObjectIdentifier } from '../common/util'
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
+import { AbstractCapability } from './AbstractCapability'
+import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 
-// TODO: Implement cache
 export class DocumentSymbolCapability extends AbstractCapability {
-	protected noPositionedNode: boolean = true
+	protected noPositionedNode = true
 
 	protected alreadyParsedPrototypes: AbstractNode[] = []
 
@@ -59,7 +58,7 @@ export class DocumentSymbolCapability extends AbstractCapability {
 
 			const parentStatementList = findParent(node, StatementList)
 			if (!parentStatementList) continue
-			if (!(parentStatementList["parent"] instanceof FusionFile)) continue
+			if (!(parentStatementList.parent instanceof FusionFile)) continue
 
 			const symbol = this.createDocumentSymbolFromPositionedNode(prototypeOverwrite, undefined, SymbolKind.Interface)
 			if (symbol) yield symbol
@@ -75,8 +74,8 @@ export class DocumentSymbolCapability extends AbstractCapability {
 			const parentStatementList = findParent(node, StatementList)
 
 			if (!parentStatementList) continue
-			if (!(parentStatementList["parent"] instanceof FusionFile)) continue
-			if (node["block"] !== undefined) continue
+			if (!(parentStatementList.parent instanceof FusionFile)) continue
+			if (node.block !== undefined) continue
 			if (!(node.path.segments[0] instanceof PrototypePathSegment)) continue
 
 			const symbol = this.createDocumentSymbolFromPositionedNode(objectStatement)
@@ -101,7 +100,7 @@ export class DocumentSymbolCapability extends AbstractCapability {
 		return DocumentSymbol.create(node.identifier, detail, kind, range, range, symbols)
 	}
 
-	protected createDocumentSymbolFromPositionedObjectStatement(node: ObjectStatement) {
+	protected createDocumentSymbolFromPositionedObjectStatement(node: ObjectStatement): null | DocumentSymbol {
 		const firstSegment = node.path.segments[0]
 		const range = firstSegment.linePositionedNode.getPositionAsRange()
 
@@ -123,7 +122,7 @@ export class DocumentSymbolCapability extends AbstractCapability {
 		return DocumentSymbol.create(getObjectIdentifier(node), detail, kind, range, range, symbols)
 	}
 
-	protected createDocumentSymbolFromPositionedNode(positionedNode: LinePositionedNode<AbstractNode>, detail: string = '', kind: SymbolKind = SymbolKind.Class) {
+	protected createDocumentSymbolFromPositionedNode(positionedNode: LinePositionedNode<AbstractNode>, detail = '', kind: SymbolKind = SymbolKind.Class) {
 		const node = positionedNode.getNode()
 
 		if (node instanceof PrototypePathSegment) {
@@ -157,6 +156,8 @@ export class DocumentSymbolCapability extends AbstractCapability {
 
 		if (value instanceof NullValue) return { detail: 'NULL', kind: SymbolKind.Null }
 		if (value instanceof BoolValue) return { detail: value.value ? 'true' : 'false', kind: SymbolKind.Boolean }
+
+		return { detail: undefined, kind: SymbolKind.Variable }
 	}
 
 	protected getKindAndDetailForEelExpressionValue(value: EelExpressionValue) {

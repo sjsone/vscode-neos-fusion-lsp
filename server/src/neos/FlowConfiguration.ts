@@ -6,7 +6,6 @@ import { Logger, LogService } from '../common/Logging'
 import { getFiles, mergeObjects, pathToUri } from '../common/util'
 import { LoggingLevel } from '../ExtensionConfiguration'
 import { YamlLexer } from '../yaml/YamlLexer'
-import { error } from 'console'
 
 export type ParsedYaml = string | null | number | boolean | { [key: string]: ParsedYaml }
 
@@ -17,8 +16,8 @@ export interface NodeTypeDefinition {
 }
 
 export class FlowConfiguration extends Logger {
-	protected settingsConfiguration: ParsedYaml
-	protected nodeTypeDefinitions: NodeTypeDefinition[]
+	public settingsConfiguration: ParsedYaml
+	public nodeTypeDefinitions: NodeTypeDefinition[]
 
 	protected constructor(settingsConfiguration: ParsedYaml, nodeTypeDefinitions: NodeTypeDefinition[]) {
 		super()
@@ -26,11 +25,11 @@ export class FlowConfiguration extends Logger {
 		this.nodeTypeDefinitions = nodeTypeDefinitions
 	}
 
-	get<T extends ParsedYaml>(path: string | string[], settingsConfiguration = this.settingsConfiguration): T {
+	get<T extends ParsedYaml>(path: string | string[], settingsConfiguration = this.settingsConfiguration): T | undefined {
 		if (settingsConfiguration === undefined || settingsConfiguration === null) return undefined
 		if (!Array.isArray(path)) path = path.split(".")
-		const key = path.shift()
-		const value = settingsConfiguration[key]
+		const key = path.shift()!
+		const value = (<{ [key: string]: any }>settingsConfiguration)[key]
 		if (path.length === 0) return value
 		if (value === undefined || value === null) return undefined
 		return (typeof value === 'object' && typeof value !== 'function') ? this.get(path, value) : undefined
@@ -51,9 +50,6 @@ export class FlowConfiguration extends Logger {
 			nodeTypeDefinitions.push(...settingsAndNodeTypes.nodeTypeDefinitions)
 		}
 
-		// if (LogService.isLogLevel(LoggingLevel.Verbose)) {
-		// Logger.LogNameAndLevel(LoggingLevel.Verbose.toUpperCase(), 'FlowConfiguration:FromFolder', 'Created FlowConfiguration from: ' + folderPath)
-		// }
 		return new FlowConfiguration(settings, nodeTypeDefinitions)
 	}
 
@@ -67,15 +63,19 @@ export class FlowConfiguration extends Logger {
 				const configurationFileYaml = NodeFs.readFileSync(configurationFilePath).toString()
 				const parsedYaml = parseYaml(configurationFileYaml)
 
-				try {
-					const mergedConfiguration = <ParsedYaml>mergeObjects(parsedYaml, configuration)
-					configuration = mergedConfiguration ? mergedConfiguration : configuration
+				if (parsedYaml) try {
+					const mergedConfiguration = <ParsedYaml>mergeObjects(parsedYaml, <any>configuration)
+					configuration = mergedConfiguration ?? configuration
 					if (LogService.isLogLevel(LoggingLevel.Debug)) {
 						Logger.LogNameAndLevel(LoggingLevel.Debug.toUpperCase(), 'FlowConfiguration:FromFolder', 'Read configuration from: ' + configurationFilePath)
 					}
-				} catch (e) {
-					if (e instanceof Error) {
-						Logger.LogNameAndLevel(LoggingLevel.Error.toUpperCase(), 'FlowConfiguration:FromFolder', "trying to read configuration: ", configuration, error)
+				} catch (error) {
+					if (error instanceof Error) {
+						Logger.LogNameAndLevel(
+							LoggingLevel.Error.toUpperCase(),
+							'FlowConfiguration:FromFolder',
+							"trying to read configuration from: ", configurationFilePath, configuration, error
+						)
 					}
 				}
 			}
@@ -91,7 +91,7 @@ export class FlowConfiguration extends Logger {
 	protected static ReadNodeTypesFolderConfiguration(nodeTypeDefinitionsFolderPath: string): NodeTypeDefinition[] {
 		const nodeTypeDefinitions: NodeTypeDefinition[] = []
 
-		for (const nodeTypeFilePath of <string[]>getFiles(nodeTypeDefinitionsFolderPath, ".yaml")) {
+		for (const nodeTypeFilePath of getFiles(nodeTypeDefinitionsFolderPath, ".yaml")) {
 			nodeTypeDefinitions.push(...FlowConfiguration.ReadNodeTypeConfiguration(nodeTypeFilePath))
 		}
 
@@ -107,7 +107,7 @@ export class FlowConfiguration extends Logger {
 			const yamlLexer = new YamlLexer(configurationFileYaml, nodeTypeFilePath)
 			for (const yamlToken of yamlLexer.tokenize()) {
 				if (yamlToken.indent !== 0) continue
-				if (yamlToken.type !== "complexstring" && yamlToken.type !== "string") continue
+				if (yamlToken.type !== "complex_string" && yamlToken.type !== "string") continue
 
 				const match = /^[0-9a-zA-Z.]+(?::[0-9a-zA-Z.]+$)/m.exec(yamlToken.value)
 				if (match === null) continue

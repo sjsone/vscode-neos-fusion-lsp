@@ -1,6 +1,6 @@
-import { FileChangeType, FileEvent } from 'vscode-languageserver';
-import { AbstractFileChangeHandler } from './AbstractFileChangeHandler';
-import { uriToPath } from '../common/util';
+import { FileChangeType, FileEvent } from 'vscode-languageserver'
+import { AbstractFileChangeHandler } from './AbstractFileChangeHandler'
+import { uriToPath } from '../common/util'
 
 export class FusionFileChangeHandler extends AbstractFileChangeHandler {
 	canHandleFileEvent(fileEvent: FileEvent): boolean {
@@ -15,12 +15,14 @@ export class FusionFileChangeHandler extends AbstractFileChangeHandler {
 		}
 
 		const neosPackage = workspace.neosWorkspace.getPackageByUri(fileEvent.uri)
+		if (!neosPackage) return
+
 		workspace.addParsedFileFromPath(uriToPath(fileEvent.uri), neosPackage)
 		this.logDebug(`Added new ParsedFusionFile ${fileEvent.uri}`)
 	}
 
 	public async handleChanged(fileEvent: FileEvent) {
-		throw new Error('Method not implemented.');
+		throw new Error('Method not implemented.')
 	}
 
 	public async handleDeleted(fileEvent: FileEvent): Promise<void> {

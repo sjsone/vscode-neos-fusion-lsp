@@ -13,10 +13,55 @@
   - Autocompletion and Hover for the `Configuration.setting()` EEL-Helper
 - Integration of the WIP [`ts-fusion-runtime`](https://www.npmjs.com/package/ts-fusion-runtime) to correctly resolve Fusion properties
 
+## 🚀 0.3.??
+
+- feature: Additional `$` before an EEL-Expression inside AFX will now be diagnosed
+- feature: duplicated statements get diagnosed
+- feature: Diagnostics can now be separately enabled/disabled
+- feature: WIP Signature Help
+- feature: Definitions of Controller and Actions in `Routing.fusion`. Actions are suggested. Works only if they are in the following format:
+
+    ```neosfusion
+    Neos.Neos.LoginController {
+      index = Neos.Neos:View.Login {
+          site = ${site}
+          styles = ${styles}
+          username = ${username}
+          flashMessages = ${flashMessages}
+      }
+    }
+    ```
+
+- feature: When NodeTypes get created by the QuickAction. The new file will be put into a folder structure following the prototype name. Works only when `NodeTypes` folder is present.
+- fix: Server not crashing anymore when package has no `composer.json` file
+- fix: changing an YAML-File no longer leads to *all* fusion files being diagnosed
+- fix: regression in which the "Create NodeType" QuickAction did not show up
+
+## 🚀 0.3.12
+
+- feature: new Icons for Fusion Files ([@typerunningwild](https://www.instagram.com/typerunningwild))
+
+## 🚀 0.3.10
+
+- feature: `@fusion-no-autoinclude-needed` can be used in `Fusion/Root.fusion` files when they are deliberately not auto-included by the configuration
+- fix: FQCNs in fusion are now highlighted correctly
+
+## 🧪 0.3.9
+
+- `ts-fusion-parser`: updated to fix issue with closed AFX-Tags
+
+## 🧪 0.3.7
+
+- feature: added builtin `prototype` auto-suggestion
+- feature: New action to create Abstract NodeTypes (thanks to Benjamin-K)
+- improvement: handling of FQCN in FlowQuery `[instanceof ...]`
+- improvement: small improvements to logging errors
+- fix: double completion items in AFX
+
 ## 🧪 0.3.5
 
 - Diagnostics now show where the fusion parser stopped on an error
-- Definition of classes now work in `PropTypes.instanceof` 
+- Definition of classes now work in `PropTypes.instanceof`
 
 ## 🧪 0.3.1
 

@@ -1,25 +1,25 @@
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { AbstractLiteralNode } from 'ts-fusion-parser/out/dsl/eel/nodes/AbstractLiteralNode';
-import { LiteralArrayNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralArrayNode';
-import { LiteralNullNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNullNode';
-import { LiteralNumberNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNumberNode';
-import { LiteralObjectEntryNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralObjectEntryNode';
-import { LiteralObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralObjectNode';
-import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode';
-import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode';
-import { InlayHint, InlayHintKind, MarkupKind } from 'vscode-languageserver/node';
-import { InlayHintDepth } from '../ExtensionConfiguration';
-import { EelHelperMethod } from '../eel/EelHelperMethod';
-import { FusionWorkspace } from '../fusion/FusionWorkspace';
-import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { AbstractLiteralNode } from 'ts-fusion-parser/out/dsl/eel/nodes/AbstractLiteralNode'
+import { LiteralArrayNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralArrayNode'
+import { LiteralNullNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNullNode'
+import { LiteralNumberNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNumberNode'
+import { LiteralObjectEntryNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralObjectEntryNode'
+import { LiteralObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralObjectNode'
+import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode'
+import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
+import { InlayHint, InlayHintKind, InlayHintParams, MarkupKind } from 'vscode-languageserver/node'
+import { InlayHintDepth } from '../ExtensionConfiguration'
+import { EelHelperMethod } from '../eel/EelHelperMethod'
+import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue';
 import { uriToPath } from '../common/util';
 import { pathToFileURL } from 'url';
-import { PhpClassMethodNode } from '../fusion/node/PhpClassMethodNode';
-import { AbstractLanguageFeature } from './AbstractLanguageFeature';
-import { LanguageFeatureContext } from './LanguageFeatureContext';
+import { PhpClassMethodNode } from '../fusion/node/PhpClassMethodNode'
+import { AbstractLanguageFeature } from './AbstractLanguageFeature'
+import { LanguageFeatureContext } from './LanguageFeatureContext'
 
-export class InlayHintLanguageFeature extends AbstractLanguageFeature {
+export class InlayHintLanguageFeature extends AbstractLanguageFeature<InlayHintParams> {
 
 	protected run({ parsedFile, workspace }: LanguageFeatureContext) {
 		if (workspace.getConfiguration().inlayHint.depth === InlayHintDepth.Disabled) return null
@@ -56,7 +56,7 @@ export class InlayHintLanguageFeature extends AbstractLanguageFeature {
 		if (!(node.pathNode instanceof ObjectFunctionPathNode)) return
 
 		// TODO: improve spread parameter label 
-		let spreadParameterIndex = undefined
+		let spreadParameterIndex: undefined | number = undefined
 		for (const index in node.pathNode.args) {
 			const arg = node.pathNode.args[index]
 			if (!this.canShowInlayHintForArgumentNode(workspace, arg)) continue
@@ -64,19 +64,22 @@ export class InlayHintLanguageFeature extends AbstractLanguageFeature {
 			let parameter = method.parameters[index]
 			if (!parameter && spreadParameterIndex === undefined) continue
 			if (parameter?.spread) {
-				spreadParameterIndex = index
+				spreadParameterIndex = parseInt(index)
 			} else if (spreadParameterIndex !== undefined) {
 				parameter = method.parameters[spreadParameterIndex]
 			}
 
 			const linePositionedArg = arg.linePositionedNode
 			const isSpread = parameter.spread
-			const spreadOffset = isSpread ? parseInt(index) - spreadParameterIndex : 0
+			const spreadOffset = isSpread ? parseInt(index) - spreadParameterIndex! : 0
 			const showParameterName = !isSpread || spreadOffset < 1
 			const parameterName = parameter.name.replace("$", "")
 
+			const labelPrefix = isSpread ? '...' : ''
+			const label = showParameterName ? parameterName : ''
+			const labelSuffix = isSpread ? `[${spreadOffset}]` : ''
 			yield {
-				label: `${isSpread ? '...' : ''}${showParameterName ? parameterName : ''}${isSpread ? `[${spreadOffset}]` : ''}:`,
+				label: `${labelPrefix}${label}${labelSuffix}:`,
 				kind: InlayHintKind.Parameter,
 				tooltip: {
 					kind: MarkupKind.Markdown,

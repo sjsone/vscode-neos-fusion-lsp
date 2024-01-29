@@ -20,11 +20,10 @@ export { logServiceInstance as LogService, LogService as LogServiceClass }
 
 export class Logger {
 	private loggerLogName: string
-	private loggingEnabled: boolean = true
+	private loggingEnabled = true
 
 	static LogNameAndLevel = (level: string, name: string, ...things: any[]) => {
 		console.log(`[${level.padStart(7, " ")}] <${(new Date()).toISOString()}> [${name}]`, ...things)
-		// TODO: Added log-to-file capability (NodeUtil.inspect(thing))
 	}
 
 	constructor(suffix: string | undefined = undefined) {

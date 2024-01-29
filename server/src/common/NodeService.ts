@@ -11,7 +11,7 @@ import { StatementList } from 'ts-fusion-parser/out/fusion/nodes/StatementList'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
 import { ValueCopy } from 'ts-fusion-parser/out/fusion/nodes/ValueCopy'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
-import { abstractNodeToString, checkSemanticCommentIgnoreArguments, findParent, findUntil, getObjectIdentifier, parseSemanticComment, SemanticCommentType } from './util'
+import { abstractNodeToString, checkSemanticCommentIgnoreArguments, findParent, findUntil, getObjectIdentifier } from './util'
 import { AbstractPathValue } from 'ts-fusion-parser/out/fusion/nodes/AbstractPathValue'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { Comment } from 'ts-fusion-parser/out/common/Comment'
@@ -19,6 +19,7 @@ import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
 import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 import { LinePositionedNode } from './LinePositionedNode'
+import { SemanticCommentService, SemanticCommentType } from './SemanticCommentService'
 
 export class ExternalObjectStatement {
 	constructor(
@@ -35,7 +36,6 @@ export interface FoundApplyPropsResult {
 class NodeService {
 
 	public doesPrototypeOverrideProps(name: string): boolean {
-		// TODO: use this.isPrototypeOneOf ? 
 		return !["Neos.Fusion:Case", "Neos.Fusion:Loop", "Neos.Neos:ImageUri", "Neos.Neos:NodeUri"].includes(name)
 	}
 
@@ -77,18 +77,19 @@ class NodeService {
 	}
 
 	public isPrototypeOneOf(prototypeName: string, oneOf: string, workspace: FusionWorkspace) {
-		// TODO: cache
 		if (prototypeName === oneOf) return true
 
 		for (const parsedFile of workspace.parsedFiles) {
 			for (const prototypeCreation of [...parsedFile.prototypeCreations, ...parsedFile.prototypeOverwrites]) {
 				const objectStatement = findParent(prototypeCreation.getNode(), ObjectStatement)
+				if (!objectStatement) continue
+
 				const prototype = objectStatement.path.segments[0]
 				if (!(prototype instanceof PrototypePathSegment)) continue
 				if (prototype.identifier !== prototypeName) continue
 
 				if (!(objectStatement.operation instanceof ValueCopy)) continue
-				const copiedPrototype = objectStatement.operation["assignedObjectPath"].objectPath.segments[0]
+				const copiedPrototype = objectStatement.operation.assignedObjectPath.objectPath.segments[0]
 				if (!(copiedPrototype instanceof PrototypePathSegment)) continue
 				if (copiedPrototype.identifier === oneOf) return true
 				if (this.isPrototypeOneOf(copiedPrototype.identifier, oneOf, workspace)) return true
@@ -98,10 +99,12 @@ class NodeService {
 		return false
 	}
 
-	public * findPropertyDefinitionSegments(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace, includeOverwrites: boolean = false) {
+	public * findPropertyDefinitionSegments(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace, includeOverwrites = false) {
 		const objectStatement = objectNode instanceof ObjectStatement ? objectNode : findParent(objectNode, ObjectStatement) // [props.foo]
+		if (!objectStatement) return
 
 		let statementList = findParent(objectNode, StatementList)
+		if (!statementList) return
 
 		// TODO: get object identifier and match it runtime-like against the property definition to check if it resolves 
 		const isObjectStatementRenderer = (
@@ -118,16 +121,16 @@ class NodeService {
 			if (parentObjectStatement) {
 				const prototypeName = this.getPrototypeNameFromObjectStatement(objectStatement)
 				if (prototypeName) {
-					yield* this.getInheritedPropertiesByPrototypeName(prototypeName, workspace, includeOverwrites)
+					yield* this.getInheritedPropertiesByPrototypeName(prototypeName, workspace!, includeOverwrites)
 				}
 			}
 		}
 
 		const parentPrototypeName = this.findPrototypeName(objectStatement)
 		if (parentPrototypeName) {
-			const potentialSurroundingPrototypeName = this.findPrototypeName(findParent(objectStatement, ObjectStatement))
+			const potentialSurroundingPrototypeName = this.findPrototypeName(findParent(objectStatement, ObjectStatement)!)
 			if (potentialSurroundingPrototypeName) {
-				yield* this.getInheritedPropertiesByPrototypeName(parentPrototypeName, workspace, includeOverwrites)
+				yield* this.getInheritedPropertiesByPrototypeName(parentPrototypeName, workspace!, includeOverwrites)
 			}
 		}
 
@@ -136,7 +139,7 @@ class NodeService {
 		const dsl = findParent(objectNode, DslExpressionValue)
 		if (dsl !== undefined) {
 			const parentPrototypeName = this.findParentPrototypeName(statementList)
-			wasComingFromRenderer = getObjectIdentifier(findParent(dsl, ObjectStatement)) === "renderer" && this.doesPrototypeOverrideProps(parentPrototypeName)
+			wasComingFromRenderer = getObjectIdentifier(findParent(dsl, ObjectStatement)!) === "renderer" && this.doesPrototypeOverrideProps(parentPrototypeName)
 		}
 
 		let traverseUpwards = true
@@ -147,7 +150,7 @@ class NodeService {
 			if (!onlyWhenFoundApplyProps && wasComingFromRenderer) onlyWhenFoundApplyProps = true
 
 			const parentObjectNode = findParent(statementList, ObjectStatement)
-			const parentObjectIdentifier = parentObjectNode ? parentObjectNode.path.segments[0]["identifier"] : ""
+			const parentObjectIdentifier = parentObjectNode ? parentObjectNode.path.segments[0].identifier : ""
 			const isParentObjectMeta = parentObjectNode ? parentObjectNode.path.segments[0] instanceof MetaPathSegment : false
 			let foundApplyProps = false
 
@@ -155,14 +158,16 @@ class NodeService {
 			if (workspace !== undefined) {
 				const parentStatementList = findParent(statementList, StatementList)
 				if (parentStatementList) {
-					const willBeInPrototypeSegmentList = parentStatementList["parent"] instanceof FusionFile
+					const willBeInPrototypeSegmentList = parentStatementList.parent instanceof FusionFile
 					if (willBeInPrototypeSegmentList) {
 						const prototypeObjectStatement = findParent(statementList, ObjectStatement)
-						const operation = prototypeObjectStatement.operation
+						if (prototypeObjectStatement) {
+							const operation = prototypeObjectStatement.operation
 
-						const prototypeSegment = operation instanceof ValueCopy ? operation.assignedObjectPath.objectPath.segments[0] : prototypeObjectStatement.path.segments[0]
-						if (prototypeSegment instanceof PrototypePathSegment) {
-							statements.push(...this.getInheritedPropertiesByPrototypeName(prototypeSegment.identifier, workspace, includeOverwrites))
+							const prototypeSegment = operation instanceof ValueCopy ? operation.assignedObjectPath.objectPath.segments[0] : prototypeObjectStatement.path.segments[0]
+							if (prototypeSegment instanceof PrototypePathSegment) {
+								statements.push(...this.getInheritedPropertiesByPrototypeName(prototypeSegment.identifier, workspace, includeOverwrites))
+							}
 						}
 					}
 				}
@@ -192,7 +197,7 @@ class NodeService {
 			}
 
 			if (foundPropTypes !== undefined) {
-				for (const propType of foundPropTypes.block.statementList.statements) {
+				for (const propType of foundPropTypes.block!.statementList.statements) {
 					if (!(propType instanceof ObjectStatement)) continue
 					yield propType.path.segments[0]
 				}
@@ -207,8 +212,8 @@ class NodeService {
 					return true
 				})
 				parentIdentifiersRenderer = true
-				if (rendererPrototype instanceof ObjectStatement && rendererPrototype.operation instanceof ValueAssignment) {
-					parentIdentifiersRenderer = this.doesPrototypeOverrideProps(rendererPrototype.operation.pathValue["value"])
+				if (rendererPrototype instanceof ObjectStatement && rendererPrototype.operation instanceof ValueAssignment && "value" in rendererPrototype.operation.pathValue) {
+					parentIdentifiersRenderer = this.doesPrototypeOverrideProps(rendererPrototype.operation.pathValue.value as string)
 				}
 			}
 
@@ -217,19 +222,18 @@ class NodeService {
 
 			traverseUpwards = !onlyWhenFoundApplyProps || foundApplyProps
 			statementList = findParent(statementList, StatementList)
-		} while (traverseUpwards && statementList && !(statementList["parent"] instanceof FusionFile))
+		} while (traverseUpwards && statementList && !(statementList.parent instanceof FusionFile))
 	}
 
-	public findPropertyDefinitionSegment(objectNode: ObjectNode, workspace?: FusionWorkspace, includeOverwrites: boolean = false) {
+	public findPropertyDefinitionSegment(objectNode: ObjectNode, workspace?: FusionWorkspace, includeOverwrites = false) {
 		for (const segmentOrExternalStatement of this.findPropertyDefinitionSegments(objectNode, workspace, includeOverwrites)) {
 			if (segmentOrExternalStatement instanceof ExternalObjectStatement) {
-				if (segmentOrExternalStatement.statement.path.segments[0]["identifier"] === objectNode.path[1]["value"]) return segmentOrExternalStatement
+				if (segmentOrExternalStatement.statement.path.segments[0].identifier === objectNode.path[1].value) return segmentOrExternalStatement
 			}
 			if (!(segmentOrExternalStatement instanceof PathSegment)) continue
-			// TODO: Decide what to do with "renderer"
 			if (segmentOrExternalStatement.identifier === "renderer") continue
 
-			if (objectNode.path.length > 1 && segmentOrExternalStatement.identifier === objectNode.path[1]["value"]) {
+			if (objectNode.path.length > 1 && segmentOrExternalStatement.identifier === objectNode.path[1].value) {
 				return segmentOrExternalStatement
 			}
 		}
@@ -241,7 +245,7 @@ class NodeService {
 		if (pathValue instanceof EelExpressionValue) {
 			const appliedObjectNode = Array.isArray(pathValue.nodes) ? pathValue.nodes[0] : pathValue.nodes
 			if (!(appliedObjectNode instanceof ObjectNode)) return false
-			if (appliedObjectNode.path[0]["value"] === "props") return true
+			if (appliedObjectNode.path[0].value === "props") return true
 
 			return false
 		}
@@ -249,9 +253,9 @@ class NodeService {
 			// TODO: Allow more than just `Neos.Fusion:DataStructure` as @apply value
 			if (pathValue.value !== "Neos.Fusion:DataStructure") return false
 			const objectStatement = findParent(pathValue, ObjectStatement)
-			if (!objectStatement.block) return false
-			const applyStatements = []
-			applyStatements.push(...objectStatement.block.statementList.statements)
+			if (!objectStatement?.block) return false
+			const applyStatements: ObjectStatement[] = []
+			applyStatements.push(...objectStatement.block.statementList.statements as ObjectStatement[])
 			return applyStatements.length === 0 ? false : applyStatements
 		}
 
@@ -267,7 +271,8 @@ class NodeService {
 			appliedProps: false
 		}
 
-		const applyStatements = statement.operation instanceof ValueAssignment ? [statement] : statement.block.statementList.statements
+		const applyStatements = statement.operation instanceof ValueAssignment ? [statement] : statement.block?.statementList.statements
+		if (!applyStatements) return false
 		const foundStatements: any[] = []
 		for (const applyStatement of applyStatements) {
 			if (!(applyStatement instanceof ObjectStatement)) continue
@@ -286,13 +291,13 @@ class NodeService {
 		return result
 	}
 
-	public * getInheritedPropertiesByPrototypeName(name: string, workspace: FusionWorkspace, includeOverwrites: boolean = false, debug: boolean = false): Generator<ExternalObjectStatement, void, unknown> {
+	public * getInheritedPropertiesByPrototypeName(name: string, workspace: FusionWorkspace, includeOverwrites = false, debug = false): Generator<ExternalObjectStatement, void, unknown> {
 		for (const otherParsedFile of workspace.parsedFiles) {
 			yield* this.getInheritedPropertiesByPrototypeNameFromParsedFile(name, otherParsedFile, workspace, includeOverwrites, debug)
 		}
 	}
 
-	public * getInheritedPropertiesByPrototypeNameFromParsedFile(name: string, parsedFile: ParsedFusionFile, workspace: FusionWorkspace, includeOverwrites: boolean = false, debug: boolean = false) {
+	public * getInheritedPropertiesByPrototypeNameFromParsedFile(name: string, parsedFile: ParsedFusionFile, workspace: FusionWorkspace, includeOverwrites = false, debug = false) {
 		const prototypeNodes = [...parsedFile.prototypeCreations]
 		if (includeOverwrites) prototypeNodes.push(...parsedFile.prototypeOverwrites)
 		for (const positionedNode of prototypeNodes) {
@@ -300,9 +305,11 @@ class NodeService {
 		}
 	}
 
-	public * getInheritedPropertiesByPrototypeNameFromPrototypePathSegments(name: string, workspace: FusionWorkspace, parsedFile: ParsedFusionFile, positionedNode: LinePositionedNode<PrototypePathSegment>, includeOverwrites: boolean = false, debug: boolean = false) {
+	public * getInheritedPropertiesByPrototypeNameFromPrototypePathSegments(name: string, workspace: FusionWorkspace, parsedFile: ParsedFusionFile, positionedNode: LinePositionedNode<PrototypePathSegment>, includeOverwrites = false, debug = false) {
 		if (positionedNode.getNode().identifier !== name) return
 		const objectStatement = findParent(positionedNode.getNode(), ObjectStatement)
+		if (!objectStatement) return
+
 		const operation = objectStatement.operation
 		if (operation instanceof ValueCopy) {
 			const prototypeSegment = operation.assignedObjectPath.objectPath.segments[0]
@@ -317,7 +324,7 @@ class NodeService {
 
 	public * getMetaPropTypesAsExternalObjectStatements(objectStatement: ObjectStatement, parsedFile: ParsedFusionFile) {
 		let foundPropTypes: ObjectStatement | undefined = undefined
-		for (const statement of objectStatement.block.statementList.statements) {
+		for (const statement of objectStatement.block!.statementList.statements) {
 			if (!(statement instanceof ObjectStatement)) continue
 
 			const firstPathSegment = statement.path.segments[0]
@@ -329,16 +336,15 @@ class NodeService {
 			yield new ExternalObjectStatement(statement, parsedFile.uri)
 		}
 
-		if (foundPropTypes !== undefined) {
-			for (const propType of foundPropTypes.block.statementList.statements) {
-				if (!(propType instanceof ObjectStatement)) continue
-				yield new ExternalObjectStatement(propType, parsedFile.uri)
-			}
+		if (!foundPropTypes?.block) return
+		for (const propType of foundPropTypes.block.statementList.statements) {
+			if (!(propType instanceof ObjectStatement)) continue
+			yield new ExternalObjectStatement(propType, parsedFile.uri)
 		}
 	}
 
 	public affectsCommentTheProperty(propertyName: string, commentNode: Comment, type: SemanticCommentType) {
-		const parsedSemanticComment = parseSemanticComment(commentNode.value.trim())
+		const parsedSemanticComment = SemanticCommentService.parseSemanticComment(commentNode.value.trim())
 		if (!parsedSemanticComment) return false
 		if (parsedSemanticComment.type !== type) return false
 
@@ -352,7 +358,19 @@ class NodeService {
 
 	public getSemanticCommentsNodeIsAffectedBy(node: AbstractNode, parsedFusionFile: ParsedFusionFile) {
 		const objectStatementText = abstractNodeToString(node)
+		if (!objectStatementText) {
+			return {
+				foundIgnoreComment: undefined,
+				foundIgnoreBlockComment: undefined
+			}
+		}
 		const affectedNodeBySemanticComment = this.getAffectedNodeBySemanticComment(node)
+		if (!affectedNodeBySemanticComment) {
+			return {
+				foundIgnoreComment: undefined,
+				foundIgnoreBlockComment: undefined
+			}
+		}
 		const affectedLine = affectedNodeBySemanticComment.linePositionedNode.getBegin().line - 1
 
 		if (!parsedFusionFile.nodesByLine) {
@@ -371,11 +389,11 @@ class NodeService {
 		})
 
 		const fileComments = parsedFusionFile.getNodesByType(Comment) ?? []
-		const foundIgnoreBlockComment = (fileComments ? fileComments : []).find(positionedComment => {
+		const foundIgnoreBlockComment = (fileComments ?? []).find(positionedComment => {
 			const commentNode = positionedComment.getNode()
 			if (!this.affectsCommentTheProperty(objectStatementText, commentNode, SemanticCommentType.IgnoreBlock)) return false
 
-			const commentParent = commentNode["parent"]
+			const commentParent = commentNode.parent
 			return !!findUntil(node, parentNode => parentNode === commentParent)
 		})
 
@@ -386,7 +404,7 @@ class NodeService {
 	}
 
 	public getAffectedNodeBySemanticComment(node: AbstractNode) {
-		return node["parent"] instanceof TagAttributeNode ? findParent(node, TagNode) : node
+		return node.parent instanceof TagAttributeNode ? findParent(node, TagNode) : node
 	}
 }
 

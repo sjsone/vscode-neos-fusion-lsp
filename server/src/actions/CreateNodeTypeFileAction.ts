@@ -1,8 +1,8 @@
-import * as NodeFs from "fs";
-import * as NodePath from "path";
-import { CodeAction, CodeActionKind, CodeActionParams, CreateFile, Diagnostic, Position, TextDocumentEdit, TextEdit, WorkspaceEdit } from 'vscode-languageserver';
-import { LanguageServer } from '../LanguageServer';
-import { pathToUri } from '../common/util';
+import * as NodeFs from "fs"
+import * as NodePath from "path"
+import { CodeAction, CodeActionKind, CodeActionParams, CreateFile, Diagnostic, Position, TextDocumentEdit, TextEdit, WorkspaceEdit } from 'vscode-languageserver'
+import { LanguageServer } from '../LanguageServer'
+import { pathToUri } from '../common/util'
 
 const buildDocumentChanges = (fileUri: string, text: string) => [
 	CreateFile.create(fileUri, { ignoreIfExists: true }),
@@ -20,7 +20,7 @@ const buildCodeAction = (title: string, isPreferred: boolean, documentChanges: W
 })
 
 export const createNodeTypeFileAction = (languageServer: LanguageServer, params: CodeActionParams) => {
-	const codeActions: CodeAction[] = [];
+	const codeActions: CodeAction[] = []
 
 	for (const diagnostic of params.context.diagnostics) {
 		const nodeTypeName = diagnostic.data?.nodeTypeName
@@ -36,16 +36,13 @@ export const createNodeTypeFileAction = (languageServer: LanguageServer, params:
 		const neosPackage = workspace.neosWorkspace.getPackageByUri(uri)
 		if (!neosPackage) continue
 
-		const newFilePath = getNewFilePath(neosPackage["path"], nodeTypeName)
+		const newFilePath = getNewFilePath(neosPackage.path, nodeTypeName)
 		if (NodeFs.existsSync(newFilePath)) continue
 
 		const newFileUri = pathToUri(newFilePath)
 
-		// TODO: Make template editable/configurable
-		// TODO: Predict Mixins/SuperTypes
-
 		const template = workspace.getConfiguration().code.actions.createNodeTypeConfiguration.template
-		const variables = {
+		const variables: { [key: string]: string } = {
 			"{nodeTypeName}": nodeTypeName
 		}
 
@@ -67,7 +64,20 @@ const getNewFilePath = (packagePath: string, prototypeName: string) => {
 	const nodeTypeFolderPath = NodePath.join(packagePath, "NodeTypes")
 	const configurationFolderPath = NodePath.join(packagePath, "Configuration")
 	const nodeTypeFolderExists = NodeFs.existsSync(nodeTypeFolderPath)
-	const nodeTypeName = prototypeName.split(":").pop()
+	const nodeTypeName = prototypeName.split(":").pop()!
 
-	return nodeTypeFolderExists ? NodePath.join(nodeTypeFolderPath, `${nodeTypeName}.yaml`) : NodePath.join(configurationFolderPath, `NodeTypes.${nodeTypeName}.yaml`)
+	if (nodeTypeFolderExists) return buildNewFilePathForNodeTypesFolder(nodeTypeName, nodeTypeFolderPath)
+
+	return buildNewFilePathForConfigurationFolder(nodeTypeName, configurationFolderPath)
+}
+
+const buildNewFilePathForNodeTypesFolder = (nodeTypeName: string, nodeTypeFolderPath: string) => {
+	const subFolders = nodeTypeName.split(".")
+	const fileName = subFolders.pop()!
+
+	return NodePath.join(nodeTypeFolderPath, ...subFolders, `${fileName}.yaml`)
+}
+
+const buildNewFilePathForConfigurationFolder = (nodeTypeName: string, configurationFolderPath: string) => {
+	return NodePath.join(configurationFolderPath, `NodeTypes.${nodeTypeName}.yaml`)
 }

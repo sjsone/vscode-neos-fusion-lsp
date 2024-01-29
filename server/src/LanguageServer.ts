@@ -14,6 +14,7 @@ import {
 } from "vscode-languageserver/node"
 import { type ExtensionConfiguration } from './ExtensionConfiguration'
 import { addFusionIgnoreSemanticCommentAction } from './actions/AddFusionIgnoreSemanticCommentAction'
+import { addFusionNoAutoincludeNeededSemanticCommentAction } from './actions/AddFusionNoAutoincludeNeededSemanticCommentAction'
 import { createNodeTypeFileAction } from './actions/CreateNodeTypeFileAction'
 import { openDocumentationAction } from './actions/OpenDocumentationAction'
 import { openNeosDocumentationAction } from './actions/OpenNeosDocumentationAction'
@@ -42,16 +43,20 @@ import { AbstractLanguageFeature } from './languageFeatures/AbstractLanguageFeat
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { FusionDocument } from './main'
+import { AbstractLanguageFeatureParams } from './languageFeatures/LanguageFeatureContext'
+import { SignatureHelpCapability } from './capabilities/SignatureHelpCapability'
+
 
 const CodeActions = [
 	addFusionIgnoreSemanticCommentAction,
+	addFusionNoAutoincludeNeededSemanticCommentAction,
 	replaceDeprecatedQuickFixAction,
 	openDocumentationAction,
 	createNodeTypeFileAction,
 	openNeosDocumentationAction
 ]
 
-const FileChangeHandlerTypes: Array<new (...any) => AbstractFileChangeHandler> = [
+const FileChangeHandlerTypes: Array<new (...args: any[]) => AbstractFileChangeHandler> = [
 	FusionFileChangeHandler,
 	PhpFileChangeHandler,
 	XlfFileChangeHandler,
@@ -63,11 +68,11 @@ export class LanguageServer extends Logger {
 
 	protected connection: _Connection
 	protected documents: TextDocuments<FusionDocument>
-	protected fusionWorkspaces: FusionWorkspace[] = []
-	protected clientCapabilityService: ClientCapabilityService
+	public fusionWorkspaces: FusionWorkspace[] = []
+	protected clientCapabilityService!: ClientCapabilityService
 
-	protected functionalityInstances: Map<new (...args: unknown[]) => AbstractFunctionality, AbstractFunctionality> = new Map()
-	protected fileChangeHandlerInstances: Map<new (...args: unknown[]) => AbstractFileChangeHandler, AbstractFileChangeHandler> = new Map()
+	protected functionalityInstances: Map<new (...args: any[]) => AbstractFunctionality, AbstractFunctionality> = new Map()
+	protected fileChangeHandlerInstances: Map<new (...args: any[]) => AbstractFileChangeHandler, AbstractFileChangeHandler> = new Map()
 
 	constructor(connection: _Connection, documents: TextDocuments<FusionDocument>) {
 		super()
@@ -83,6 +88,7 @@ export class LanguageServer extends Logger {
 		this.addFunctionalityInstance(CodeLensCapability)
 		this.addFunctionalityInstance(RenamePrepareCapability)
 		this.addFunctionalityInstance(RenameCapability)
+		this.addFunctionalityInstance(SignatureHelpCapability)
 
 		this.addFunctionalityInstance(InlayHintLanguageFeature)
 		this.addFunctionalityInstance(SemanticTokensLanguageFeature)
@@ -93,20 +99,20 @@ export class LanguageServer extends Logger {
 		this.addFunctionalityInstance(YamlFileChangeHandler)
 	}
 
-	protected addFunctionalityInstance(type: new (...args: unknown[]) => AbstractFunctionality) {
+	protected addFunctionalityInstance(type: new (...args: any[]) => AbstractFunctionality) {
 		this.functionalityInstances.set(type, new type(this))
 	}
 
-	public getFunctionalityInstance<T extends AbstractFunctionality>(type: new (...args: unknown[]) => T): T | undefined {
+	public getFunctionalityInstance<T extends AbstractFunctionality>(type: new (...args: any[]) => T): T | undefined {
 		return <T | undefined>this.functionalityInstances.get(type)
 	}
 
-	public runCapability<T extends AbstractCapability>(type: new (...args: unknown[]) => T, params: any) {
+	public runCapability<T extends AbstractCapability>(type: new (...args: any[]) => T, params: any) {
 		const capability = this.getFunctionalityInstance<T>(type)
 		return capability ? capability.execute(params) : undefined
 	}
 
-	public runLanguageFeature<T extends AbstractLanguageFeature>(type: new (...args: unknown[]) => T, params: any) {
+	public runLanguageFeature<TT extends AbstractLanguageFeatureParams, T extends AbstractLanguageFeature<TT>>(type: new (...args: any[]) => T, params: any) {
 		const languageFeature = this.getFunctionalityInstance<T>(type)
 		return languageFeature ? languageFeature.execute(params) : undefined
 	}
@@ -136,7 +142,7 @@ export class LanguageServer extends Logger {
 
 		this.logInfo("params", JSON.stringify(params))
 
-		for (const workspaceFolder of params.workspaceFolders) {
+		for (const workspaceFolder of params.workspaceFolders ?? []) {
 			const fusionWorkspace = new FusionWorkspace(workspaceFolder.name, workspaceFolder.uri, this)
 			this.fusionWorkspaces.push(fusionWorkspace)
 
@@ -161,6 +167,10 @@ export class LanguageServer extends Logger {
 				definitionProvider: true,
 				codeLensProvider: {
 					resolveProvider: false
+				},
+				signatureHelpProvider: {
+					triggerCharacters: ["("],
+					retriggerCharacters: [","]
 				},
 				renameProvider: {
 					prepareProvider: true
@@ -215,7 +225,7 @@ export class LanguageServer extends Logger {
 		const configuration: ExtensionConfiguration = params.settings.neosFusionLsp
 		Object.freeze(configuration)
 
-		await this.sendBusyCreate('configuration', {
+		await this.sendBusyCreate('reload', {
 			busy: true,
 			text: "$(rocket)",
 			detail: "initializing language server",
@@ -231,16 +241,15 @@ export class LanguageServer extends Logger {
 
 		clearLineDataCache()
 
-		await this.sendBusyDispose('configuration')
+		await this.sendBusyDispose('reload')
 	}
 
 	public async onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams) {
-		// TODO: Update relevant ParsedFusionFiles but check if it was not a change the LSP does know of
 		for (const change of params.changes) {
 			this.logVerbose(`Watched: (${Object.keys(FileChangeType)[Object.values(FileChangeType).indexOf(change.type)]}) ${change.uri}`)
 			for (const fileChangeHandlerType of FileChangeHandlerTypes) {
 				const fileChangeHandler = this.getFunctionalityInstance(fileChangeHandlerType)
-				await fileChangeHandler.tryToHandle(change)
+				if (fileChangeHandler) await fileChangeHandler.tryToHandle(change)
 			}
 		}
 	}

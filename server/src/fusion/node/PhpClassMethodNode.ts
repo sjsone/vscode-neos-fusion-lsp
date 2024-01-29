@@ -6,7 +6,7 @@ import { PhpClassNode } from './PhpClassNode'
 
 export class PhpClassMethodNode extends AbstractNode {
 	public identifier: string
-	public eelHelper: PhpClassNode
+	public eelHelper!: PhpClassNode
 	public pathNode: ObjectFunctionPathNode | ObjectPathNode
 
 	constructor(identifier: string, pathNode: ObjectFunctionPathNode | ObjectPathNode, position: NodePosition) {
