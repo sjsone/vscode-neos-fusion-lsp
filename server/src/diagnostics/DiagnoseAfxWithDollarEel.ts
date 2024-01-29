@@ -18,24 +18,30 @@ export function diagnoseAfxWithDollarEel(parsedFusionFile: ParsedFusionFile): Di
 
 		const parentDslExpression = findParent(node, DslExpressionValue)
 		if (!parentDslExpression) continue
-		if (node.parent instanceof TagNode) {
-			for (const content of node.parent!.content) {
-				if (!(content instanceof TextNode)) continue
-				if (!content.text.endsWith("$")) continue
-				if (content.position.end !== node.position.begin) continue
 
-				const range = inlineEelNode.getPositionAsRange()
-				range.start.character -= 1
+		for (const content of getSiblings(node)) {
+			if (!(content instanceof TextNode)) continue
+			if (!content.text.endsWith("$")) continue
+			if (content.position.end !== node.position.begin) continue
 
-				diagnostics.push({
-					severity: DiagnosticSeverity.Warning,
-					range,
-					message: `${"`$`"} before an EEL-Expression is not needed inside AFX`,
-					source: CommonDiagnosticHelper.Source,
-				})
-			}
+			const range = inlineEelNode.getPositionAsRange()
+			range.start.character -= 1
+
+			diagnostics.push({
+				severity: DiagnosticSeverity.Warning,
+				range,
+				message: `${"`$`"} before an EEL-Expression is not needed inside AFX`,
+				source: CommonDiagnosticHelper.Source,
+			})
 		}
+
 	}
 
 	return diagnostics
+}
+
+const getSiblings = (node: InlineEelNode) => {
+	if (node.parent instanceof TagNode) return node.parent.content!
+	if (node.parent instanceof DslExpressionValue) return node.parent.htmlNodes
+	return []
 }
