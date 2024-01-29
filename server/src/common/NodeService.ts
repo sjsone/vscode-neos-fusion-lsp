@@ -11,10 +11,10 @@ class NodeService {
 	public getFusionContextUntilNode(node: AbstractNode, workspace: FusionWorkspace, debug = false) {
 		const startTimePathResolving = performance.now()
 
-		const baseNode = node instanceof PathSegment ? findParent(node, ObjectStatement)["parent"] : node
+		const baseNode = node instanceof PathSegment ? findParent(node, ObjectStatement)!["parent"] : node
 
 		if (debug) console.log("before buildPathForNode")
-		const pathForNode = MergedArrayTreeService.buildPathForNode(baseNode)
+		const pathForNode = MergedArrayTreeService.buildPathForNode(baseNode!)
 		if (debug) console.log("pathForNode", pathForNode)
 		const runtimeConfiguration = new RuntimeConfiguration(workspace.mergedArrayTree)
 		// if (debug) console.log("runtimeConfiguration", runtimeConfiguration['fusionConfiguration']['__prototypes']['Otter.Demo:Molecule.Hero'])
@@ -39,8 +39,8 @@ class NodeService {
 			const rendererNextInPath = relevantTree[relevantTreePartIndex + 1]?.pathPart === "renderer"
 			const atPrivateNextInPath = relevantTree[relevantTreePartIndex + 1]?.pathPart === "__meta" && relevantTree[relevantTreePartIndex + 2]?.pathPart === "private"
 
-			let thisFusionContext = {}
-			const privateFusionContext = {}
+			let thisFusionContext: { [key: string]: any } = {}
+			const privateFusionContext: { [key: string]: any } = {}
 
 			if (partConfiguration.__meta) {
 				if (partConfiguration.__meta.context && typeof partConfiguration.__meta.context === "object") {
