@@ -3,7 +3,6 @@ import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpress
 import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/nodes/MetaPathSegment'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver'
-import { DefinitionCapability } from '../capabilities/DefinitionCapability'
 import { LegacyNodeService } from '../common/LegacyNodeService'
 import { abstractNodeToString, findParent } from '../common/util'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
@@ -35,9 +34,6 @@ export function diagnoseFusionProperties(parsedFusionFile: ParsedFusionFile) {
 
 	const positionedObjectNodes = parsedFusionFile.getNodesByType(ObjectNode)
 	if (positionedObjectNodes === undefined) return diagnostics
-
-	// TODO: Put logic of DefinitionCapability in a Provider/Service instead of using a Capability 
-	const definitionCapability = new DefinitionCapability(parsedFusionFile.workspace.languageServer)
 
 	for (const positionedObjectNode of positionedObjectNodes) {
 		const node = positionedObjectNode.getNode()
