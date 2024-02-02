@@ -292,7 +292,12 @@ export class CompletionCapability extends AbstractCapability {
 				if (method.getNormalizedName() === "allowsCallOfMethod") continue
 				const fullName = eelHelper.name + "." + method.getNormalizedName()
 				if (!fullName.startsWith(fullPath)) continue
-				const completionItem = this.createCompletionItem(fullName, linePositionedObjectNode, CompletionItemKind.Method)
+				const newText = `${fullName}($1)`
+				const triggerParameterHintsCommand: Command = {
+					title: "Trigger Parameter Hints",
+					command: "editor.action.triggerParameterHints"
+				}
+				const completionItem = this.createCompletionItem(fullName, linePositionedObjectNode, CompletionItemKind.Method, newText, triggerParameterHintsCommand)
 				completionItem.detail = method.description
 				completions.push(completionItem)
 			}
@@ -301,20 +306,22 @@ export class CompletionCapability extends AbstractCapability {
 		return completions
 	}
 
-	protected createCompletionItem(label: string, linePositionedNode: LinePositionedNode<AbstractNode>, kind: CompletionItemKind): CompletionItem {
+	protected createCompletionItem(label: string, linePositionedNode: LinePositionedNode<AbstractNode>, kind: CompletionItemKind, newText: string | undefined = undefined, command: Command | undefined = undefined): CompletionItem {
 		return {
 			label,
 			kind,
-			insertTextMode: InsertTextMode.adjustIndentation,
 			insertText: label,
+			insertTextMode: InsertTextMode.adjustIndentation,
+			insertTextFormat: InsertTextFormat.Snippet,
 			textEdit: {
 				insert: linePositionedNode.getPositionAsRange(),
 				replace: {
 					start: linePositionedNode.getBegin(),
 					end: { line: linePositionedNode.getEnd().line, character: linePositionedNode.getEnd().character + label.length },
 				},
-				newText: label
-			}
+				newText: newText ?? label
+			},
+			command: command
 		}
 	}
 
