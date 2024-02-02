@@ -64,8 +64,6 @@ export class CompletionCapability extends AbstractCapability {
 			if (foundNode instanceof ObjectNode)
 				completions.push(...this.getFusionPropertyCompletionsForObjectNode(workspace, <LinePositionedNode<ObjectNode>>foundNodeByLine))
 			if (foundNode instanceof ObjectPathNode)
-				completions.push(...this.getEelHelperCompletionsForObjectPath(workspace, <LinePositionedNode<ObjectPathNode>>foundNodeByLine))
-			if (foundNode instanceof ObjectPathNode)
 				completions.push(...this.getFusionPropertyCompletionsForObjectPath(workspace, <LinePositionedNode<ObjectPathNode>>foundNodeByLine))
 			if (foundNode instanceof ResourceUriNode)
 				completions.push(...this.getResourceUriCompletions(workspace, <LinePositionedNode<ResourceUriNode>>foundNodeByLine))
@@ -259,6 +257,9 @@ export class CompletionCapability extends AbstractCapability {
 		const objectPathParts = node.path.map(segment => segment["value"])
 		let fusionContext = NodeService.getFusionContextUntilNode(node, workspace)
 
+		const lastObjectPathNode = node.path.slice().reverse().find(p => !p.incomplete)
+		if (lastObjectPathNode?.linePositionedNode) completions.push(...this.getEelHelperCompletionsForObjectPath(workspace, lastObjectPathNode.linePositionedNode, true))
+
 		for (const objectPathPart of objectPathParts) {
 			if (!(objectPathPart in fusionContext)) break
 			fusionContext = fusionContext[objectPathPart]
@@ -275,11 +276,14 @@ export class CompletionCapability extends AbstractCapability {
 		return completions
 	}
 
-	protected getEelHelperCompletionsForObjectPath(fusionWorkspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>): CompletionItem[] {
+	protected getEelHelperCompletionsForObjectPath(fusionWorkspace: FusionWorkspace, foundNode: LinePositionedNode<ObjectPathNode>, debug: boolean = false): CompletionItem[] {
 		const node = foundNode.getNode()
 		const objectNode = <ObjectNode>node.parent
 		const linePositionedObjectNode = objectNode.linePositionedNode
-		const fullPath = objectNode.path.map(part => part.value).join(".")
+		const fullPath = objectNode.path.reduce((parts, part) => {
+			if (!part.incomplete) parts.push(part.value)
+			return parts
+		}, [] as string[]).join(".")
 		const completions: CompletionItem[] = []
 
 		const eelHelpers = fusionWorkspace.neosWorkspace.getEelHelperTokens()
