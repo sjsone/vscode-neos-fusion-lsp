@@ -3,8 +3,8 @@ import { ExtensionContext, OutputChannel, QuickPickItem, QuickPickItemKind, Stat
 import { LanguageClient } from 'vscode-languageclient/node'
 
 class NeosStatusBarItem {
-	static ChangedContextEvent = "changedcontext"
-	protected selectedContextName: string
+	static readonly ChangedContextEvent = "changed_context"
+	protected selectedContextName!: string
 	protected statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 100)
 	protected eventEmitter = new EventEmitter
 

@@ -1,7 +1,6 @@
 import * as path from 'path'
 import {
 	ExtensionContext,
-	LanguageStatusItem,
 	OutputChannel,
 	TextDocument,
 	Uri,
@@ -23,8 +22,8 @@ import { InspectCommand } from './commands/InspectCommand'
 import { PutContentIntoClipboard } from './commands/PutContentIntoClipboard'
 import { ReloadCommand } from './commands/ReloadCommand'
 import { AbstractLanguageStatusBarItem } from './languageStatusBarItems/AbstractLanguageStatusBarItem'
-import { Reload } from './languageStatusBarItems/Reload'
 import { Diagnostics } from './languageStatusBarItems/Diagnostics'
+import { Reload } from './languageStatusBarItems/Reload'
 import { ConfigurationTreeProvider, FlowConfigurationTreeModel } from './views/ConfigurationTreeProvider'
 
 
@@ -110,7 +109,7 @@ export class Extension {
 		const startClientInInspectMode = workspace.getConfiguration().get("neosFusionLsp.logging.inspect", false)
 		const startedClient = this.startClient(outerMostWorkspaceFolder, startClientInInspectMode)
 
-		NeosStatusBarItem.init(this.context, startedClient, this.outputChannel)
+		NeosStatusBarItem.init(this.context!, startedClient, this.outputChannel)
 		NeosStatusBarItem.addListener(NeosStatusBarItemClass.ChangedContextEvent, (selectedContextName) => {
 			startedClient.sendNotification('custom/flowContext/set', { selectedContextName })
 		})
@@ -230,7 +229,7 @@ export class Extension {
 	protected stopAllRunningInterfaceItems(progressNotificationService?: ProgressNotificationService) {
 		progressNotificationService?.finishAll()
 		for (const id in this.languageStatusBarItems) {
-			this.languageStatusBarItems[id].item.busy = false
+			if (id in this.languageStatusBarItems) this.languageStatusBarItems[id]!.item.busy = false
 		}
 	}
 }
