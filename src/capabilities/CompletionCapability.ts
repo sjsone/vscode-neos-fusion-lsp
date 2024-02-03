@@ -37,9 +37,14 @@ const BuiltInCompletions = {
 
 export class CompletionCapability extends AbstractCapability {
 
-	static SuggestCommand: Command = {
+	static readonly SuggestCommand: Command = {
 		title: 'Trigger Suggest',
 		command: 'editor.action.triggerSuggest'
+	}
+
+	static readonly ParameterHintsCommand: Command = {
+		title: "Trigger Parameter Hints",
+		command: "editor.action.triggerParameterHints"
 	}
 
 	protected run(context: CapabilityContext<AbstractNode>) {
@@ -259,9 +264,13 @@ export class CompletionCapability extends AbstractCapability {
 		if (lastObjectPathNode?.linePositionedNode) completions.push(...this.getEelHelperCompletionsForObjectPath(workspace, lastObjectPathNode.linePositionedNode, true))
 
 		for (const objectPathPart of objectPathParts) {
-			if (!(objectPathPart in fusionContext)) break
+			if (!(objectPathPart in fusionContext)) {
+				if ("this" in fusionContext && !"this".startsWith(objectPathPart)) delete fusionContext.this
+				break
+			}
 			fusionContext = fusionContext[objectPathPart]
 		}
+
 		if (typeof fusionContext !== "object") return completions
 
 		for (const label of Object.keys(fusionContext)) {
@@ -291,11 +300,7 @@ export class CompletionCapability extends AbstractCapability {
 				const fullName = eelHelper.name + "." + method.getNormalizedName()
 				if (!fullName.startsWith(fullPath)) continue
 				const newText = `${fullName}($1)`
-				const triggerParameterHintsCommand: Command = {
-					title: "Trigger Parameter Hints",
-					command: "editor.action.triggerParameterHints"
-				}
-				const completionItem = this.createCompletionItem(fullName, linePositionedObjectNode, CompletionItemKind.Method, newText, triggerParameterHintsCommand)
+				const completionItem = this.createCompletionItem(fullName, linePositionedObjectNode, CompletionItemKind.Method, newText, CompletionCapability.ParameterHintsCommand)
 				completionItem.detail = method.description
 				completions.push(completionItem)
 			}
