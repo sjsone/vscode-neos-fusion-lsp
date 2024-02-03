@@ -5,13 +5,11 @@ import {
     createConnection
 } from "vscode-languageserver/node"
 import { LanguageServer } from './LanguageServer'
-import { CompletionCapability } from './capabilities/CompletionCapability'
 import { DefinitionCapability } from './capabilities/DefinitionCapability'
 import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
 import { HoverCapability } from './capabilities/HoverCapability'
 import { RenameCapability } from './capabilities/RenameCapability'
 import { RenamePrepareCapability } from './capabilities/RenamePrepareCapability'
-import { SignatureHelpCapability } from './capabilities/SignatureHelpCapability'
 import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
@@ -33,9 +31,9 @@ documents.onDidOpen(event => languageserver.onDidOpen(event))
 documents.onDidChangeContent(change => languageserver.onDidChangeContent(change))
 connection.onDidChangeWatchedFiles(params => { languageserver.onDidChangeWatchedFiles(params) })
 
-connection.onDefinition(params => languageserver.runCapability(DefinitionCapability, params))
+connection.onDefinition(params => languageserver.runElements("onDefinition", params))
 connection.onReferences(params => languageserver.runElements("onReferences", params))
-connection.onCompletion(params => languageserver.runCapability(CompletionCapability, params))
+connection.onCompletion(params => languageserver.runElements("onCompletion", params))
 connection.onCompletionResolve(item => item)
 connection.onHover(params => languageserver.runCapability(HoverCapability, params))
 connection.onDocumentSymbol(params => languageserver.runCapability(DocumentSymbolCapability, params))
@@ -43,7 +41,7 @@ connection.onWorkspaceSymbol(params => languageserver.runCapability(WorkspaceSym
 connection.onCodeLens(params => languageserver.runElements("onCodeLens", params))
 connection.onPrepareRename(params => languageserver.runCapability(RenamePrepareCapability, params))
 connection.onRenameRequest(params => languageserver.runCapability(RenameCapability, params))
-connection.onSignatureHelp(params => languageserver.runCapability(SignatureHelpCapability, params))
+connection.onSignatureHelp(params => languageserver.runElements("onSignatureHelp", params))
 connection.onCodeAction(params => languageserver.onCodeAction(params))
 
 connection.languages.semanticTokens.on(params => languageserver.runLanguageFeature(SemanticTokensLanguageFeature, params))

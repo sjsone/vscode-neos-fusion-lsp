@@ -19,13 +19,11 @@ import { createNodeTypeFileAction } from './actions/CreateNodeTypeFileAction'
 import { openDocumentationAction } from './actions/OpenDocumentationAction'
 import { replaceDeprecatedQuickFixAction } from './actions/ReplaceDeprecatedQuickFixAction'
 import { AbstractCapability } from './capabilities/AbstractCapability'
-import { CompletionCapability } from './capabilities/CompletionCapability'
 import { DefinitionCapability } from './capabilities/DefinitionCapability'
 import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
 import { HoverCapability } from './capabilities/HoverCapability'
 import { RenameCapability } from './capabilities/RenameCapability'
 import { RenamePrepareCapability } from './capabilities/RenamePrepareCapability'
-import { SignatureHelpCapability } from './capabilities/SignatureHelpCapability'
 import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
 import { AbstractFunctionality } from './common/AbstractFunctionality'
 import { ClientCapabilityService } from './common/ClientCapabilityService'
@@ -53,6 +51,10 @@ import { AbstractLanguageFeatureParams } from './languageFeatures/LanguageFeatur
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { FusionDocument } from './main'
 import { ParsedYaml } from './neos/FlowConfigurationFile'
+import { ElementHelper } from './elements/ElementHelper'
+import { AfxTagElement } from './elements/AfxTagElement'
+import { EelHelperElement } from './elements/EelHelperElement'
+import { FusionPropertyElement } from './elements/FusionPropertyElement'
 
 
 const CodeActions = [
@@ -86,10 +88,13 @@ export class LanguageServer extends Logger {
 		this.connection = connection
 		this.documents = documents
 
+		this.addElement(AfxTagElement)
 		this.addElement(NodeTypeElement)
 		this.addElement(CommentElement)
+		this.addElement(EelHelperElement)
 		this.addElement(FlowConfigurationElement)
 		this.addElement(FqcnElement)
+		this.addElement(FusionPropertyElement)
 		this.addElement(NodeTypeElement)
 		this.addElement(PrototypeElement)
 		this.addElement(ResourceUriElement)
@@ -97,13 +102,11 @@ export class LanguageServer extends Logger {
 		this.addElement(TranslationElement)
 
 		this.addFunctionalityInstance(DefinitionCapability)
-		this.addFunctionalityInstance(CompletionCapability)
 		this.addFunctionalityInstance(HoverCapability)
 		this.addFunctionalityInstance(DocumentSymbolCapability)
 		this.addFunctionalityInstance(WorkspaceSymbolCapability)
 		this.addFunctionalityInstance(RenamePrepareCapability)
 		this.addFunctionalityInstance(RenameCapability)
-		this.addFunctionalityInstance(SignatureHelpCapability)
 
 		this.addFunctionalityInstance(InlayHintLanguageFeature)
 		this.addFunctionalityInstance(SemanticTokensLanguageFeature)
@@ -114,7 +117,7 @@ export class LanguageServer extends Logger {
 		this.addFunctionalityInstance(YamlFileChangeHandler)
 	}
 
-	public async runElements(method: ElementMethod, params: ElementContextParams) {
+	public async runElements(method: ElementMethod, params: ElementContextParams): Promise<any> {
 		const results: any[] = []
 
 		try {
@@ -128,6 +131,7 @@ export class LanguageServer extends Logger {
 				if (!element.isResponsible(method, node)) continue
 
 				const result = await element[method]!(<any>context)
+				if (method === "onSignatureHelp") return result
 				if (Array.isArray(result)) results.push(...result)
 				else if (result) results.push(result)
 			}

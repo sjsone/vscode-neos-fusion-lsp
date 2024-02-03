@@ -10,6 +10,7 @@ export class EelHelperElement implements ElementInterface<ObjectFunctionPathNode
 	isResponsible(methodName: keyof ElementFunctionalityInterface<AbstractNode>, node: AbstractNode | undefined): boolean {
 		return node instanceof ObjectFunctionPathNode && node.parent instanceof ObjectNode
 	}
+
 	async onSignatureHelp(context: ElementContext<SignatureHelpParams, ObjectFunctionPathNode>): Promise<SignatureHelp | null | undefined> {
 		const node = context.foundNodeByLine!.getNode()
 
