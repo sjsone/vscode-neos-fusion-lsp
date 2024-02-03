@@ -30,7 +30,7 @@ Another big feature is everything connected to the Configuration. It is now poss
 > [!WARNING]
 > This is still experimental.
 
-## 🚀 0.3.??
+## 🚀 0.3.14
 
 - feature: Additional `$` before an EEL-Expression inside AFX will now be diagnosed
 - feature: duplicated statements get diagnosed
