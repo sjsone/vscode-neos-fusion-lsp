@@ -1,4 +1,5 @@
 import * as NodePath from 'path';
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
 import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionParams, Hover, HoverParams, LocationLink, Position } from 'vscode-languageserver';
 import * as YAML from 'yaml';
 import { CompletionCapability } from '../capabilities/CompletionCapability';
@@ -9,6 +10,10 @@ import { ElementHelper } from './ElementHelper';
 import { ElementInterface } from './ElementInterface';
 
 export class FlowConfigurationElement extends Logger implements ElementInterface<FlowConfigurationPathPartNode>  {
+	isResponsible(methodName: keyof ElementInterface<AbstractNode>, node: AbstractNode | undefined): boolean {
+		return node instanceof FlowConfigurationPathPartNode
+	}
+
 	async onCompletion(context: ElementContext<CompletionParams, FlowConfigurationPathPartNode>): Promise<CompletionItem[] | CompletionList | null | undefined> {
 		const partNode = context.foundNodeByLine!
 

@@ -6,6 +6,10 @@ import { SemanticCommentType } from '../common/SemanticCommentService';
 import { Comment } from 'ts-fusion-parser/out/common/Comment';
 
 export class CommentElement implements ElementInterface<Comment> {
+	isResponsible(methodName: keyof ElementInterface<AbstractNode>, node: AbstractNode | undefined): boolean {
+		return node instanceof Comment
+	}
+
 	async onCompletion(context: ElementContext<CompletionParams, Comment>): Promise<CompletionItem[] | CompletionList | null | undefined> {
 		const foundNode = context.foundNodeByLine!
 		const completions: CompletionItem[] = []

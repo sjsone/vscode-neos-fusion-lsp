@@ -3,6 +3,7 @@ import { ExtensionConfigurationDiagnostics, LoggingLevel } from '../ExtensionCon
 import { LogService, Logger } from '../common/Logging'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { diagnoseActionUri } from './DiagnoseActionUri'
+import { diagnoseAfxWithDollarEel } from './DiagnoseAfxWithDollarEel'
 import { diagnoseEelHelperArguments } from './DiagnoseEelHelperArguments'
 import { diagnoseEmptyEel } from './DiagnoseEmptyEel'
 import { diagnoseFusionProperties } from './DiagnoseFusionProperties'
@@ -13,8 +14,6 @@ import { diagnosePrototypeNames } from './DiagnosePrototypeNames'
 import { diagnoseResourceUris } from './DiagnoseResourceUris'
 import { diagnoseRootFusionConfiguration } from './DiagnoseRootFusionConfiguration'
 import { diagnoseTagNames } from './DiagnoseTagNames'
-import { diagnoseTranslationShortHand } from './DiagnoseTranslationShortHand'
-import { diagnoseAfxWithDollarEel } from './DiagnoseAfxWithDollarEel'
 import { diagnoseDuplicateStatements } from './DuplicateStatementDiagnostic'
 
 export class ParsedFusionFileDiagnostics extends Logger {
@@ -36,7 +35,7 @@ export class ParsedFusionFileDiagnostics extends Logger {
 		if (configuration.enabledDiagnostics.NodeTypeDefinitions) this.diagnoseFunctions.push(diagnoseNodeTypeDefinitions)
 		if (configuration.enabledDiagnostics.NonParsedFusion) this.diagnoseFunctions.push(diagnoseNonParsedFusion)
 		if (configuration.enabledDiagnostics.RootFusionConfiguration) this.diagnoseFunctions.push(diagnoseRootFusionConfiguration)
-		if (configuration.enabledDiagnostics.TranslationShortHand) this.diagnoseFunctions.push(diagnoseTranslationShortHand)
+		// if (configuration.enabledDiagnostics.TranslationShortHand) this.diagnoseFunctions.push(diagnoseTranslationShortHand)
 		if (configuration.enabledDiagnostics.ParserError) this.diagnoseFunctions.push(diagnoseParserError)
 		if (configuration.enabledDiagnostics.AfxWithDollarEel) this.diagnoseFunctions.push(diagnoseAfxWithDollarEel)
 		if (configuration.enabledDiagnostics.DuplicateStatements) this.diagnoseFunctions.push(diagnoseDuplicateStatements)

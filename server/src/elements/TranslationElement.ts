@@ -1,4 +1,4 @@
-import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Diagnostic, DiagnosticSeverity, Hover, HoverParams } from 'vscode-languageserver'
+import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionLink, DefinitionParams, Diagnostic, DiagnosticSeverity, Hover, HoverParams, LocationLink, Position, Range } from 'vscode-languageserver'
 import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
 import { ElementContext } from './ElementContext'
 import { ElementInterface } from './ElementInterface'
@@ -7,8 +7,13 @@ import { CompletionCapability } from '../capabilities/CompletionCapability'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { LegacyNodeService } from '../common/LegacyNodeService'
 import { IgnorableDiagnostic } from '../diagnostics/IgnorableDiagnostic'
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 
 export class TranslationElement implements ElementInterface<TranslationShortHandNode> {
+	isResponsible(methodName: keyof ElementInterface<AbstractNode>, node: AbstractNode | undefined): boolean {
+		return node instanceof TranslationShortHandNode
+	}
+
 	async onHover(context: ElementContext<HoverParams, TranslationShortHandNode>): Promise<Hover | null | undefined> {
 		const shortHandIdentifier = XLIFFService.readShortHandIdentifier(context.foundNodeByLine!.getNode().getValue())
 		const translationFiles = await XLIFFService.getMatchingTranslationFiles(context.workspace, shortHandIdentifier)
@@ -99,6 +104,33 @@ export class TranslationElement implements ElementInterface<TranslationShortHand
 		}
 
 		return []
+	}
+
+	async onDefinition(context: ElementContext<DefinitionParams, TranslationShortHandNode>): Promise<LocationLink[] | Definition | null | undefined> {
+		const shortHandIdentifier = XLIFFService.readShortHandIdentifier(context.foundNodeByLine!.getNode().getValue())
+		const translationFiles = await XLIFFService.getMatchingTranslationFiles(context.workspace, shortHandIdentifier)
+
+		const locations: DefinitionLink[] = []
+
+		for (const translationFile of translationFiles) {
+			const transUnit = await translationFile.getId(shortHandIdentifier.translationIdentifier)
+			if (!transUnit) continue
+
+			const position = transUnit.position
+			const range = Range.create(
+				position,
+				Position.create(position.line, position.character + transUnit.id.length + 5)
+			)
+
+			locations.push({
+				targetUri: translationFile.uri,
+				targetRange: range,
+				targetSelectionRange: range,
+				originSelectionRange: context.foundNodeByLine!.getPositionAsRange()
+			})
+
+		}
+		return locations
 	}
 
 	async diagnose(parsedFusionFile: ParsedFusionFile): Promise<Diagnostic[] | null | undefined> {

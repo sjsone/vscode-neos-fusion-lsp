@@ -37,7 +37,7 @@ import { ElementContext } from './ElementContext'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 
 
-export interface ElementInterface<N extends AbstractNode = AbstractNode> {
+export interface ElementFunctionalityInterface<N extends AbstractNode = AbstractNode> {
 	onHover?(context: ElementContext<HoverParams, N>): Promise<Hover | undefined | null>
 	onCompletion?(context: ElementContext<CompletionParams, N>): Promise<CompletionItem[] | CompletionList | undefined | null>
 	onSignatureHelp?(context: ElementContext<SignatureHelpParams, N>): Promise<SignatureHelp | undefined | null>
@@ -52,9 +52,16 @@ export interface ElementInterface<N extends AbstractNode = AbstractNode> {
 	onCodeAction?(context: ElementContext<CodeActionParams, N>): Promise<(Command | CodeAction)[] | undefined | null>
 	onCodeLens?(context: ElementContext<CodeLensParams, N>): Promise<CodeLens[] | undefined | null>
 	onRenameRequest?(context: ElementContext<RenameParams, N>): Promise<WorkspaceEdit | undefined | null>
+
+}
+
+export interface ElementInterface<N extends AbstractNode = AbstractNode> extends ElementFunctionalityInterface {
+	isResponsible(methodName: ElementMethod, node: AbstractNode | undefined): boolean
+
+
 	diagnose?(parsedFusionFile: ParsedFusionFile): Promise<Diagnostic[] | undefined | null>
 }
 
 type ParamTypes<T> = T extends (context: ElementContext<infer P, any>) => Promise<infer R> ? P : never;
-export type ElementContextParams = ParamTypes<ElementInterface[keyof ElementInterface]>;
-export type ElementMethod = keyof ElementInterface
+export type ElementContextParams = ParamTypes<ElementFunctionalityInterface[keyof ElementFunctionalityInterface]>;
+export type ElementMethod = keyof ElementFunctionalityInterface

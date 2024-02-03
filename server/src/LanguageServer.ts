@@ -19,19 +19,28 @@ import { createNodeTypeFileAction } from './actions/CreateNodeTypeFileAction'
 import { openDocumentationAction } from './actions/OpenDocumentationAction'
 import { replaceDeprecatedQuickFixAction } from './actions/ReplaceDeprecatedQuickFixAction'
 import { AbstractCapability } from './capabilities/AbstractCapability'
-import { CodeLensCapability } from './capabilities/CodeLensCapability'
 import { CompletionCapability } from './capabilities/CompletionCapability'
 import { DefinitionCapability } from './capabilities/DefinitionCapability'
 import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
 import { HoverCapability } from './capabilities/HoverCapability'
-import { ReferenceCapability } from './capabilities/ReferenceCapability'
 import { RenameCapability } from './capabilities/RenameCapability'
 import { RenamePrepareCapability } from './capabilities/RenamePrepareCapability'
+import { SignatureHelpCapability } from './capabilities/SignatureHelpCapability'
 import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
 import { AbstractFunctionality } from './common/AbstractFunctionality'
 import { ClientCapabilityService } from './common/ClientCapabilityService'
 import { LogService, Logger } from './common/Logging'
 import { clearLineDataCache, uriToPath } from './common/util'
+import { CommentElement } from './elements/CommentElement'
+import { ElementContext } from './elements/ElementContext'
+import { ElementContextParams, ElementInterface, ElementMethod } from './elements/ElementInterface'
+import { FlowConfigurationElement } from './elements/FlowConfigurationElement'
+import { FqcnElement } from './elements/FqcnElement'
+import { NodeTypeElement } from './elements/NodeTypeElement'
+import { PrototypeElement } from './elements/PrototypeElement'
+import { ResourceUriElement } from './elements/ResourceUriElement'
+import { RoutingElement } from './elements/RoutingElement'
+import { TranslationElement } from './elements/TranslationElement'
 import { AbstractFileChangeHandler } from './fileChangeHandler/AbstractFileChangeHandler'
 import { FusionFileChangeHandler } from './fileChangeHandler/FusionFileChangeHandler'
 import { PhpFileChangeHandler } from './fileChangeHandler/PhpFileChangeHandler'
@@ -40,14 +49,10 @@ import { YamlFileChangeHandler } from './fileChangeHandler/YamlFileChangeHandler
 import { FusionWorkspace } from './fusion/FusionWorkspace'
 import { AbstractLanguageFeature } from './languageFeatures/AbstractLanguageFeature'
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
+import { AbstractLanguageFeatureParams } from './languageFeatures/LanguageFeatureContext'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { FusionDocument } from './main'
 import { ParsedYaml } from './neos/FlowConfigurationFile'
-import { AbstractLanguageFeatureParams } from './languageFeatures/LanguageFeatureContext'
-import { SignatureHelpCapability } from './capabilities/SignatureHelpCapability'
-import { NodeTypeElement } from './elements/NodeTypeElement'
-import { ElementContextParams, ElementInterface, ElementMethod } from './elements/ElementInterface'
-import { ElementContext } from './elements/ElementContext'
 
 
 const CodeActions = [
@@ -82,14 +87,20 @@ export class LanguageServer extends Logger {
 		this.documents = documents
 
 		this.addElement(NodeTypeElement)
+		this.addElement(CommentElement)
+		this.addElement(FlowConfigurationElement)
+		this.addElement(FqcnElement)
+		this.addElement(NodeTypeElement)
+		this.addElement(PrototypeElement)
+		this.addElement(ResourceUriElement)
+		this.addElement(RoutingElement)
+		this.addElement(TranslationElement)
 
 		this.addFunctionalityInstance(DefinitionCapability)
 		this.addFunctionalityInstance(CompletionCapability)
 		this.addFunctionalityInstance(HoverCapability)
-		this.addFunctionalityInstance(ReferenceCapability)
 		this.addFunctionalityInstance(DocumentSymbolCapability)
 		this.addFunctionalityInstance(WorkspaceSymbolCapability)
-		this.addFunctionalityInstance(CodeLensCapability)
 		this.addFunctionalityInstance(RenamePrepareCapability)
 		this.addFunctionalityInstance(RenameCapability)
 		this.addFunctionalityInstance(SignatureHelpCapability)
@@ -110,8 +121,11 @@ export class LanguageServer extends Logger {
 			const context = ElementContext.createFromParams(this, params)
 			if (!context) return null
 
+			const node = context.foundNodeByLine?.getNode()
+
 			for (const element of this.elements) {
 				if (!(method in element)) continue
+				if (!element.isResponsible(method, node)) continue
 
 				const result = await element[method]!(<any>context)
 				if (Array.isArray(result)) results.push(...result)
@@ -124,8 +138,8 @@ export class LanguageServer extends Logger {
 		return results
 	}
 
-	protected addElement(element: new (languageServer: LanguageServer, ...args: any[]) => ElementInterface) {
-		this.elements.add(new element(this))
+	protected addElement(element: new (...args: any[]) => ElementInterface) {
+		this.elements.add(new element())
 	}
 
 	protected addFunctionalityInstance(type: new (...args: any[]) => AbstractFunctionality) {

@@ -5,6 +5,10 @@ import { NodeTypeService } from '../common/NodeTypeService'
 import { ElementContext } from './ElementContext'
 
 export class NodeTypeElement implements ElementInterface {
+	isResponsible(methodName: keyof ElementInterface<AbstractNode>, node: AbstractNode | undefined): boolean {
+		return true
+	}
+
 	async onCodeLens(context: ElementContext<CodeLensParams, AbstractNode>): Promise<CodeLens[] | null | undefined> {
 		return NodeTypeService.getNodeTypeDefinitionsFromFusionFile(context.workspace, context.parsedFile!).map(definition => ({
 			range: definition.creation.getPositionAsRange(),
