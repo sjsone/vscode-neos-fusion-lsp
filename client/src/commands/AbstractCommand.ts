@@ -4,7 +4,7 @@ export type AbstractCommandConstructor<T extends AbstractCommand = AbstractComma
 
 export abstract class AbstractCommand {
 	protected extension: Extension
-	static Identifier = "abstract_command"
+	static readonly Identifier: string = "abstract_command"
 
 	constructor(extension: Extension) {
 		this.extension = extension
