@@ -45,6 +45,9 @@ import { FusionDocument } from './main'
 import { ParsedYaml } from './neos/FlowConfigurationFile'
 import { AbstractLanguageFeatureParams } from './languageFeatures/LanguageFeatureContext'
 import { SignatureHelpCapability } from './capabilities/SignatureHelpCapability'
+import { NodeTypeElement } from './elements/NodeTypeElement'
+import { ElementInterface, ElementMethod } from './elements/ElementInterface'
+import { ElementContext } from './elements/ElementContext'
 
 
 const CodeActions = [
@@ -69,6 +72,7 @@ export class LanguageServer extends Logger {
 	public fusionWorkspaces: FusionWorkspace[] = []
 	protected clientCapabilityService!: ClientCapabilityService
 
+	protected elements: Set<ElementInterface> = new Set()
 	protected functionalityInstances: Map<new (...args: any[]) => AbstractFunctionality, AbstractFunctionality> = new Map()
 	protected fileChangeHandlerInstances: Map<new (...args: any[]) => AbstractFileChangeHandler, AbstractFileChangeHandler> = new Map()
 
@@ -76,6 +80,8 @@ export class LanguageServer extends Logger {
 		super()
 		this.connection = connection
 		this.documents = documents
+
+		this.addElement(NodeTypeElement)
 
 		this.addFunctionalityInstance(DefinitionCapability)
 		this.addFunctionalityInstance(CompletionCapability)
@@ -95,6 +101,31 @@ export class LanguageServer extends Logger {
 		this.addFunctionalityInstance(PhpFileChangeHandler)
 		this.addFunctionalityInstance(XlfFileChangeHandler)
 		this.addFunctionalityInstance(YamlFileChangeHandler)
+	}
+
+	public async runElements(method: ElementMethod, params: any) {
+		const results: any[] = []
+
+		try {
+			const context = ElementContext.createFromParams(this, params)
+			if (!context) return null
+
+			for (const element of this.elements) {
+				if (!(method in element)) continue
+
+				const result = await element[method]!(context)
+				if (Array.isArray(result)) results.push(...result)
+				else if (result) results.push(result)
+			}
+		} catch (error) {
+			this.logError(`Error trying to run element ${method}`, error)
+		}
+
+		return results
+	}
+
+	protected addElement(element: new (languageServer: LanguageServer, ...args: any[]) => ElementInterface) {
+		this.elements.add(new element(this))
 	}
 
 	protected addFunctionalityInstance(type: new (...args: any[]) => AbstractFunctionality) {
