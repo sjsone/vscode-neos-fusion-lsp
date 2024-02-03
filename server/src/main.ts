@@ -5,18 +5,16 @@ import {
     createConnection
 } from "vscode-languageserver/node"
 import { LanguageServer } from './LanguageServer'
-import { CodeLensCapability } from './capabilities/CodeLensCapability'
 import { CompletionCapability } from './capabilities/CompletionCapability'
 import { DefinitionCapability } from './capabilities/DefinitionCapability'
 import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
 import { HoverCapability } from './capabilities/HoverCapability'
-import { ReferenceCapability } from './capabilities/ReferenceCapability'
-import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
-import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
-import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { RenameCapability } from './capabilities/RenameCapability'
 import { RenamePrepareCapability } from './capabilities/RenamePrepareCapability'
 import { SignatureHelpCapability } from './capabilities/SignatureHelpCapability'
+import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
+import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
+import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 
 export type FusionDocument = TextDocument
 
@@ -36,7 +34,7 @@ documents.onDidChangeContent(change => languageserver.onDidChangeContent(change)
 connection.onDidChangeWatchedFiles(params => { languageserver.onDidChangeWatchedFiles(params) })
 
 connection.onDefinition(params => languageserver.runCapability(DefinitionCapability, params))
-connection.onReferences(params => languageserver.runCapability(ReferenceCapability, params))
+connection.onReferences(params => languageserver.runElements("onReferences", params))
 connection.onCompletion(params => languageserver.runCapability(CompletionCapability, params))
 connection.onCompletionResolve(item => item)
 connection.onHover(params => languageserver.runCapability(HoverCapability, params))

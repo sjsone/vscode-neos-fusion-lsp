@@ -1,12 +1,10 @@
 import * as NodeFs from 'fs'
 import * as NodePath from 'path'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
-import { Comment } from 'ts-fusion-parser/out/common/Comment'
 import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
 import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
-import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
@@ -15,16 +13,13 @@ import { ExternalObjectStatement, LegacyNodeService } from '../common/LegacyNode
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { NodeService } from '../common/NodeService'
 import { findParent, getObjectIdentifier } from '../common/util'
-import { FlowConfigurationPathPartNode } from '../fusion/FlowConfigurationPathPartNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
-import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
+import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
 import { NeosPackage } from '../neos/NeosPackage'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
-import { SemanticCommentType } from '../common/SemanticCommentService'
-import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
-import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 
 const BuiltInCompletions = {
 	prototypeCompletion: {
@@ -60,22 +55,12 @@ export class CompletionCapability extends AbstractCapability {
 				completions.push(...this.getTagAttributeNodeCompletions(workspace, <LinePositionedNode<TagAttributeNode>>foundNodeByLine))
 			if (foundNode instanceof ObjectStatement)
 				completions.push(...this.getObjectStatementCompletions(workspace, parsedFile, <LinePositionedNode<ObjectStatement>>foundNodeByLine))
-			if (foundNode instanceof FusionObjectValue)
-				completions.push(...this.getPrototypeCompletions(workspace, <LinePositionedNode<FusionObjectValue | PrototypePathSegment>>foundNodeByLine))
-			if (foundNode instanceof PrototypePathSegment)
-				completions.push(...this.getPrototypeCompletions(workspace, <LinePositionedNode<FusionObjectValue | PrototypePathSegment>>foundNodeByLine))
 			if (foundNode instanceof ObjectNode)
 				completions.push(...this.getFusionPropertyCompletionsForObjectNode(workspace, <LinePositionedNode<ObjectNode>>foundNodeByLine))
 			if (foundNode instanceof ObjectPathNode)
 				completions.push(...this.getFusionPropertyCompletionsForObjectPath(workspace, <LinePositionedNode<ObjectPathNode>>foundNodeByLine))
 			if (foundNode instanceof ResourceUriNode)
 				completions.push(...this.getResourceUriCompletions(workspace, <LinePositionedNode<ResourceUriNode>>foundNodeByLine))
-			if (foundNode instanceof FlowConfigurationPathPartNode)
-				completions.push(...this.getFlowConfigurationCompletions(workspace, <LinePositionedNode<FlowConfigurationPathPartNode>>foundNodeByLine))
-			if (foundNode instanceof TranslationShortHandNode)
-				completions.push(...this.getTranslationShortHandCompletions(workspace, <LinePositionedNode<TranslationShortHandNode>>foundNodeByLine))
-			if (foundNode instanceof Comment)
-				completions.push(...this.getSemanticCommentCompletions(<LinePositionedNode<Comment>>foundNodeByLine))
 		}
 
 		this.logVerbose(`Found ${completions.length} completions `)
@@ -189,65 +174,6 @@ export class CompletionCapability extends AbstractCapability {
 				label: segment.identifier,
 				kind: CompletionItemKind.Property
 			})
-		}
-
-		return completions
-	}
-
-	protected getPrototypeCompletions(fusionWorkspace: FusionWorkspace, foundNode: LinePositionedNode<FusionObjectValue | PrototypePathSegment>): CompletionItem[] {
-		const completions: CompletionItem[] = []
-
-		const foundNodes = fusionWorkspace.getNodesByType(PrototypePathSegment)
-		if (!foundNodes) return []
-
-		for (const fileNodes of foundNodes) {
-			for (const fileNode of fileNodes.nodes) {
-				const label = fileNode.getNode().identifier
-				if (!completions.find(completion => completion.label === label)) {
-					completions.push(this.createCompletionItem(label, foundNode, CompletionItemKind.Class))
-				}
-			}
-		}
-
-
-
-		return completions
-	}
-
-	protected getFlowConfigurationCompletions(fusionWorkspace: FusionWorkspace, partNode: LinePositionedNode<FlowConfigurationPathPartNode>): CompletionItem[] {
-		const completions: CompletionItem[] = []
-		const node = partNode.getNode()["parent"]
-		const partIndex = node["path"].indexOf(partNode.getNode())
-		if (partIndex === -1) return []
-
-		const pathParts = node["path"].slice(0, partIndex + 1)
-		const searchPath = pathParts.map(part => part["value"]).filter(Boolean)
-		this.logDebug("searching for ", searchPath)
-
-		for (const neosPackage of fusionWorkspace.neosWorkspace.getPackages().values()) {
-			for (const result of neosPackage["configuration"].search(searchPath)) {
-				if (typeof result.value === "string") {
-					completions.push(this.createCompletionItem(result.value, partNode, CompletionItemKind.Text))
-				}
-
-				if (typeof result.value === "object") {
-					for (const itemName in result.value) {
-						const value = result.value[itemName]
-						const isObject = typeof value === "object"
-
-						const label = (searchPath.length > 0 ? '.' : '') + itemName + (isObject ? '.' : '')
-						if (completions.find(completion => completion.label === label)) continue
-
-						let type: CompletionItemKind = CompletionItemKind.Value
-						if (typeof value === "string") type = CompletionItemKind.Text
-						if (isObject) type = CompletionItemKind.Class
-
-						const completion = this.createCompletionItem(label, partNode, type)
-						completion.command = CompletionCapability.SuggestCommand
-						completions.push(completion)
-					}
-				}
-			}
 		}
 
 		return completions
@@ -370,91 +296,4 @@ export class CompletionCapability extends AbstractCapability {
 		return completions
 	}
 
-	protected getTranslationShortHandCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<TranslationShortHandNode>): Iterable<CompletionItem> {
-		const node = foundNode.getNode()
-
-		const shortHandIdentifier = node.getShortHandIdentifier()
-		if (!shortHandIdentifier.packageName) {
-			const completions = new Map<string, CompletionItem>()
-			for (const translationFile of workspace.translationFiles) {
-				const packageName = translationFile.neosPackage.getPackageName()
-				if (!completions.has(packageName)) completions.set(packageName, {
-					label: packageName,
-					kind: CompletionItemKind.Module,
-					insertText: packageName + ':',
-					command: CompletionCapability.SuggestCommand
-				})
-			}
-			return completions.values()
-		}
-
-		const neosPackage = workspace.neosWorkspace.getPackage(shortHandIdentifier.packageName)
-		if (!neosPackage) return []
-
-		if (!shortHandIdentifier.sourceName) {
-			const completions = new Map<string, CompletionItem>()
-			for (const translationFile of workspace.translationFiles) {
-				if (translationFile.neosPackage.getPackageName() !== shortHandIdentifier.packageName) continue
-				const source = translationFile.sourceParts.join('.')
-				if (!completions.has(source)) completions.set(source, {
-					label: source,
-					kind: CompletionItemKind.Class,
-					insertText: source + ':',
-					command: CompletionCapability.SuggestCommand
-				})
-			}
-			return completions.values()
-		}
-
-		if (!shortHandIdentifier.translationIdentifier) {
-			const completions = new Map<string, CompletionItem>()
-			for (const translationFile of workspace.translationFiles) {
-				if (translationFile.neosPackage.getPackageName() !== shortHandIdentifier.packageName) continue
-				if (translationFile.sourceParts.join('.') !== shortHandIdentifier.sourceName) continue
-				for (const transUnit of translationFile.transUnits.values()) {
-					if (!completions.has(transUnit.id)) completions.set(transUnit.id, {
-						label: transUnit.id,
-						kind: CompletionItemKind.Class,
-						insertText: transUnit.id,
-					})
-				}
-			}
-			return completions.values()
-		}
-
-		return []
-	}
-
-	protected getSemanticCommentCompletions(foundNode: LinePositionedNode<Comment>): CompletionItem[] {
-		const completions: CompletionItem[] = []
-
-		const node = foundNode.getNode()
-		if (!node.value?.trim().startsWith("@")) return []
-
-		for (const semanticComment of [SemanticCommentType.Ignore, SemanticCommentType.IgnoreBlock]) {
-			const label = node.prefix === "//" ? `// ${semanticComment}` : `<!-- ${semanticComment} -->`
-
-			completions.push({
-				label,
-				kind: CompletionItemKind.Class,
-				insertTextMode: InsertTextMode.adjustIndentation,
-				insertText: label,
-				textEdit: {
-					insert: {
-						start: foundNode.getBegin(),
-						end: foundNode.getEnd(),
-					},
-					replace: {
-						start: foundNode.getBegin(),
-						end: { line: foundNode.getEnd().line, character: foundNode.getEnd().character + label.length },
-					},
-					newText: label
-				}
-			})
-		}
-
-
-
-		return completions
-	}
 }

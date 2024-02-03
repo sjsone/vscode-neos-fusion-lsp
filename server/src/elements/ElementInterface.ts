@@ -24,10 +24,12 @@ import {
 	ImplementationParams,
 	Location,
 	ReferenceParams,
+	RenameParams,
 	SignatureHelp,
 	SignatureHelpParams,
 	SymbolInformation,
 	TypeDefinitionParams,
+	WorkspaceEdit,
 	WorkspaceSymbol,
 	WorkspaceSymbolParams
 } from 'vscode-languageserver'
@@ -49,7 +51,7 @@ export interface ElementInterface<N extends AbstractNode = AbstractNode> {
 	onWorkspaceSymbol?(context: ElementContext<WorkspaceSymbolParams, N>): Promise<SymbolInformation[] | WorkspaceSymbol[] | undefined | null>
 	onCodeAction?(context: ElementContext<CodeActionParams, N>): Promise<(Command | CodeAction)[] | undefined | null>
 	onCodeLens?(context: ElementContext<CodeLensParams, N>): Promise<CodeLens[] | undefined | null>
-
+	onRenameRequest?(context: ElementContext<RenameParams, N>): Promise<WorkspaceEdit | undefined | null>
 	diagnose?(parsedFusionFile: ParsedFusionFile): Promise<Diagnostic[] | undefined | null>
 }
 

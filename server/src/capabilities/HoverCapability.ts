@@ -5,16 +5,12 @@ import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
-import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
-import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
-import * as YAML from 'yaml'
 import { ExternalObjectStatement, LegacyNodeService } from '../common/LegacyNodeService'
 import { LinePositionedNode } from '../common/LinePositionedNode'
-import { abstractNodeToString, findParent, getPrototypeNameFromNode } from '../common/util'
-import { FlowConfigurationPathPartNode } from '../fusion/FlowConfigurationPathPartNode'
+import { abstractNodeToString, findParent } from '../common/util'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { PhpClassMethodNode } from '../fusion/node/PhpClassMethodNode'
@@ -44,12 +40,6 @@ export class HoverCapability extends AbstractCapability {
 		// return `Type: ${node.constructor.name}`
 		this.logVerbose(`FoundNode: ` + node.constructor.name)
 
-		if (node instanceof FlowConfigurationPathPartNode)
-			return this.getMarkdownForFlowConfigurationPathNode(workspace, <FlowConfigurationPathPartNode>node)
-		if (node instanceof FusionObjectValue)
-			return this.getMarkdownForPrototypeName(workspace, <FusionObjectValue | PrototypePathSegment>node)
-		if (node instanceof PrototypePathSegment)
-			return this.getMarkdownForPrototypeName(workspace, <FusionObjectValue | PrototypePathSegment>node)
 		if (node instanceof PathSegment)
 			return `property **${node.identifier}**`
 		if (node instanceof PhpClassNode)
@@ -64,76 +54,6 @@ export class HoverCapability extends AbstractCapability {
 			return this.getMarkdownForResourceUri(<ResourceUriNode>node, workspace)
 
 		return null
-	}
-
-	protected * createStatementNamesFromPrototypeNode(prototypeName: string, positionedPrototypeNode: LinePositionedNode<PrototypePathSegment>) {
-		const prototypeNode = positionedPrototypeNode.getNode()
-		if (prototypeNode.identifier !== prototypeName) return
-
-		const otherObjectStatement = findParent(prototypeNode, ObjectStatement)
-		if (!otherObjectStatement?.block) return
-
-		for (const statement of <ObjectStatement[]>otherObjectStatement.block.statementList.statements) {
-			let statementName = statement.path.segments.map(abstractNodeToString).filter(Boolean).join(".")
-			if (statement.operation instanceof ValueAssignment) {
-				statementName += ` = ${abstractNodeToString(statement.operation.pathValue)}`
-			}
-			yield statementName
-		}
-	}
-
-	getMarkdownForFlowConfigurationPathNode(workspace: FusionWorkspace, partNode: FlowConfigurationPathPartNode) {
-		const node = partNode["parent"]
-
-		const partIndex = node["path"].indexOf(partNode)
-		if (partIndex === -1) return []
-
-		const pathParts = node["path"].slice(0, partIndex + 1)
-		const searchPath = pathParts.map(part => part["value"]).join(".")
-		this.logDebug("searching for ", searchPath)
-
-		const results: string[] = []
-		for (const result of workspace.neosWorkspace["configurationManager"].search(searchPath)) {
-			const fileUri = result.file["uri"]
-			const neosPackage = workspace.neosWorkspace.getPackageByUri(fileUri)
-			const packageName = neosPackage?.getPackageName() ?? 'Project Configuration'
-			results.push(`# [${packageName}] ${NodePath.basename(fileUri)}`)
-			results.push(YAML.stringify(result.value, undefined, 3))
-		}
-		if (results.length === 0) return `_no value found_`
-
-		return [
-			"```yaml",
-			...results,
-			"```"
-		].join("\n")
-	}
-
-	getMarkdownForPrototypeName(workspace: FusionWorkspace, node: FusionObjectValue | PrototypePathSegment) {
-		const prototypeName = getPrototypeNameFromNode(node)
-		if (prototypeName === null) return null
-
-		const statementsNames: string[] = []
-		for (const otherParsedFile of workspace.parsedFiles) {
-			const statementsNamesFromFile: string[] = []
-			for (const otherPositionedNode of [...otherParsedFile.prototypeCreations, ...otherParsedFile.prototypeOverwrites]) {
-				for (const statementName of this.createStatementNamesFromPrototypeNode(prototypeName, otherPositionedNode)) {
-					statementsNamesFromFile.push(statementName)
-				}
-			}
-			if (statementsNamesFromFile.length === 0) continue
-
-			const packageName = workspace.neosWorkspace.getPackageByUri(otherParsedFile.uri)?.getPackageName() ?? 'unknown package'
-			statementsNames.push(`// [${packageName}] ${NodePath.basename(otherParsedFile.uri)}`)
-			statementsNames.push(...statementsNamesFromFile)
-		}
-
-		const statementsNamesMarkdown = statementsNames.length > 0 ? "\n" + statementsNames.map(name => `  ${name}`).join("\n") + "\n" : " "
-		return [
-			"```",
-			`prototype(${prototypeName}) {${statementsNamesMarkdown}}`,
-			"```"
-		].join("\n")
 	}
 
 	getMarkdownForObjectPath(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<ObjectPathNode>) {
