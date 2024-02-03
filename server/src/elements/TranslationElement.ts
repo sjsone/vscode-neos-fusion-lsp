@@ -3,11 +3,11 @@ import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNod
 import { ElementContext } from './ElementContext'
 import { ElementInterface } from './ElementInterface'
 import { XLIFFService } from '../common/XLIFFService'
-import { CompletionCapability } from '../capabilities/CompletionCapability'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { LegacyNodeService } from '../common/LegacyNodeService'
 import { IgnorableDiagnostic } from '../diagnostics/IgnorableDiagnostic'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { ElementHelper } from './ElementHelper'
 
 export class TranslationElement implements ElementInterface<TranslationShortHandNode> {
 	isResponsible(methodName: keyof ElementInterface<AbstractNode>, node: AbstractNode | undefined): boolean {
@@ -63,7 +63,7 @@ export class TranslationElement implements ElementInterface<TranslationShortHand
 					label: packageName,
 					kind: CompletionItemKind.Module,
 					insertText: packageName + ':',
-					command: CompletionCapability.SuggestCommand
+					command: ElementHelper.SuggestCommand
 				})
 			}
 			return Array.from(completions.values())
@@ -81,7 +81,7 @@ export class TranslationElement implements ElementInterface<TranslationShortHand
 					label: source,
 					kind: CompletionItemKind.Class,
 					insertText: source + ':',
-					command: CompletionCapability.SuggestCommand
+					command: ElementHelper.SuggestCommand
 				})
 			}
 			return Array.from(completions.values())

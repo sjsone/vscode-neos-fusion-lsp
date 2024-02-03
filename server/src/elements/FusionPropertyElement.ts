@@ -25,15 +25,8 @@ const BuiltInCompletions = {
 }
 
 export class FusionPropertyElement implements ElementInterface<PathSegment | ObjectNode | ObjectPathNode | ObjectStatement> {
-	static readonly SuggestCommand: Command = {
-		title: 'Trigger Suggest',
-		command: 'editor.action.triggerSuggest'
-	}
 
-	static readonly ParameterHintsCommand: Command = {
-		title: "Trigger Parameter Hints",
-		command: "editor.action.triggerParameterHints"
-	}
+
 
 	isResponsible(methodName: keyof ElementFunctionalityInterface<AbstractNode>, node: AbstractNode | undefined): boolean {
 		return node instanceof PathSegment || node instanceof ObjectNode || node instanceof ObjectPathNode || node instanceof ObjectStatement
@@ -157,7 +150,7 @@ export class FusionPropertyElement implements ElementInterface<PathSegment | Obj
 				const fullName = eelHelper.name + "." + method.getNormalizedName()
 				if (!fullName.startsWith(fullPath)) continue
 				const newText = `${fullName}($1)`
-				const completionItem = ElementHelper.createCompletionItem(fullName, linePositionedObjectNode, CompletionItemKind.Method, newText, FusionPropertyElement.ParameterHintsCommand)
+				const completionItem = ElementHelper.createCompletionItem(fullName, linePositionedObjectNode, CompletionItemKind.Method, newText, ElementHelper.ParameterHintsCommand)
 				completionItem.detail = method.description
 				completions.push(completionItem)
 			}

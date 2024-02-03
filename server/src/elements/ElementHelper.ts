@@ -3,6 +3,16 @@ import { CompletionItemKind, Command, CompletionItem, InsertTextMode, InsertText
 import { LinePositionedNode } from '../common/LinePositionedNode';
 
 export class ElementHelper {
+	static readonly SuggestCommand: Command = {
+		title: 'Trigger Suggest',
+		command: 'editor.action.triggerSuggest'
+	}
+
+	static readonly ParameterHintsCommand: Command = {
+		title: "Trigger Parameter Hints",
+		command: "editor.action.triggerParameterHints"
+	}
+
 	static createCompletionItem(label: string, linePositionedNode: LinePositionedNode<AbstractNode>, kind: CompletionItemKind, newText: string | undefined = undefined, command: Command | undefined = undefined): CompletionItem {
 		return {
 			label,

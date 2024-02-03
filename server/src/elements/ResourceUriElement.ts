@@ -2,7 +2,6 @@ import * as NodeFs from 'fs';
 import * as NodePath from 'path';
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
 import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionParams, Hover, HoverParams, LocationLink } from 'vscode-languageserver';
-import { CompletionCapability } from '../capabilities/CompletionCapability';
 import { Logger } from '../common/Logging';
 import { pathToUri } from '../common/util';
 import { ResourceUriNode } from '../fusion/node/ResourceUriNode';
@@ -54,7 +53,7 @@ export class ResourceUriElement extends Logger implements ElementInterface<Resou
 					label: neosPackage.getPackageName(),
 					kind: CompletionItemKind.Module,
 					insertText: neosPackage.getPackageName() + '/',
-					command: CompletionCapability.SuggestCommand
+					command: ElementHelper.SuggestCommand
 				}
 			})
 		}
@@ -79,7 +78,7 @@ export class ResourceUriElement extends Logger implements ElementInterface<Resou
 				label: thing.name,
 				kind: CompletionItemKind.Folder,
 				insertText: thing.name + '/',
-				command: CompletionCapability.SuggestCommand
+				command: ElementHelper.SuggestCommand
 			})
 		}
 
