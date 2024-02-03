@@ -2,7 +2,7 @@ import { Uri, workspace as Workspace, WorkspaceFolder } from 'vscode'
 import { AbstractCommand } from './AbstractCommand'
 
 export class ReloadCommand extends AbstractCommand {
-	static Identifier = "neos-fusion-lsp.reload"
+	static readonly Identifier = "neos-fusion-lsp.reload"
 
 	public async callback() {
 		const uris = Array.from(this.extension.getClients().keys())

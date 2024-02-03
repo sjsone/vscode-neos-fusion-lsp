@@ -114,9 +114,7 @@ export class Extension {
 		if (this.sortedWorkspaceFolders === void 0) {
 			this.sortedWorkspaceFolders = Workspace.workspaceFolders ? Workspace.workspaceFolders.map(folder => {
 				let result = folder.uri.toString()
-				if (result.charAt(result.length - 1) !== '/') {
-					result = result + '/'
-				}
+				if (!result.endsWith('/')) result = result + '/'
 				return result
 			}).sort((a, b) => a.length - b.length) : []
 		}
