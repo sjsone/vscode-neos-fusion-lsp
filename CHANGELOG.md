@@ -49,6 +49,7 @@ Another big feature is everything connected to the Configuration. It is now poss
     ```
 
 - feature: When NodeTypes get created by the QuickAction. The new file will be put into a folder structure following the prototype name. Works only when `NodeTypes` folder is present.
+- perf: getting Workspace Symbols (CMD⌘ + T) is now faster
 - fix: Server not crashing anymore when package has no `composer.json` file
 - fix: changing an YAML-File no longer leads to *all* fusion files being diagnosed
 - fix: regression in which the "Create NodeType" QuickAction did not show up
