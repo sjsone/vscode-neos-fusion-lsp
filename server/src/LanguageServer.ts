@@ -46,7 +46,7 @@ import { ParsedYaml } from './neos/FlowConfigurationFile'
 import { AbstractLanguageFeatureParams } from './languageFeatures/LanguageFeatureContext'
 import { SignatureHelpCapability } from './capabilities/SignatureHelpCapability'
 import { NodeTypeElement } from './elements/NodeTypeElement'
-import { ElementInterface, ElementMethod } from './elements/ElementInterface'
+import { ElementContextParams, ElementInterface, ElementMethod } from './elements/ElementInterface'
 import { ElementContext } from './elements/ElementContext'
 
 
@@ -103,7 +103,7 @@ export class LanguageServer extends Logger {
 		this.addFunctionalityInstance(YamlFileChangeHandler)
 	}
 
-	public async runElements(method: ElementMethod, params: any) {
+	public async runElements(method: ElementMethod, params: ElementContextParams) {
 		const results: any[] = []
 
 		try {
@@ -113,7 +113,7 @@ export class LanguageServer extends Logger {
 			for (const element of this.elements) {
 				if (!(method in element)) continue
 
-				const result = await element[method]!(context)
+				const result = await element[method]!(<any>context)
 				if (Array.isArray(result)) results.push(...result)
 				else if (result) results.push(result)
 			}

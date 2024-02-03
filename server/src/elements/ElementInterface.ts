@@ -51,7 +51,8 @@ export interface ElementInterface<N extends AbstractNode = AbstractNode> {
 	onCodeLens?(context: ElementContext<CodeLensParams, N>): Promise<CodeLens[] | undefined | null>
 
 	diagnose?(parsedFusionFile: ParsedFusionFile): Promise<Diagnostic[] | undefined | null>
-
 }
 
+type ParamTypes<T> = T extends (context: ElementContext<infer P, any>) => Promise<infer R> ? P : never;
+export type ElementContextParams = ParamTypes<ElementInterface[keyof ElementInterface]>;
 export type ElementMethod = keyof ElementInterface

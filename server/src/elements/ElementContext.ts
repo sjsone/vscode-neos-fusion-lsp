@@ -3,7 +3,7 @@ import { LinePositionedNode } from '../common/LinePositionedNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { LanguageServer } from '../LanguageServer'
-import { TextDocumentPositionParams } from 'vscode-languageserver'
+import { ElementContextParams } from './ElementInterface'
 
 
 export interface ElementContext<Params, Node extends AbstractNode> {
@@ -13,7 +13,7 @@ export interface ElementContext<Params, Node extends AbstractNode> {
 	params: Params
 }
 export namespace ElementContext {
-	export const createFromParams = <Params extends TextDocumentPositionParams>(languageServer: LanguageServer, params: Params): null | ElementContext<Params, AbstractNode> => {
+	export const createFromParams = <Params extends ElementContextParams>(languageServer: LanguageServer, params: Params): null | ElementContext<Params, AbstractNode> => {
 		if (!('textDocument' in params)) {
 			return null
 		}
