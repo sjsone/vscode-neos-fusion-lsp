@@ -1,17 +1,17 @@
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode';
-import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode';
-import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionParams, InsertTextMode, LocationLink } from 'vscode-languageserver';
-import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService';
-import { LegacyNodeService } from '../common/LegacyNodeService';
-import { LinePositionedNode } from '../common/LinePositionedNode';
-import { findParent, getObjectIdentifier } from '../common/util';
-import { NeosFusionFormActionNode } from '../fusion/node/NeosFusionFormActionNode';
-import { NeosFusionFormControllerNode } from '../fusion/node/NeosFusionFormControllerNode';
-import { ElementContext } from './ElementContext';
-import { ElementFunctionalityInterface, ElementInterface } from './ElementInterface';
-import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment';
-import { FusionWorkspace } from '../fusion/FusionWorkspace';
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
+import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
+import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionParams, InsertTextMode, LocationLink } from 'vscode-languageserver'
+import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService'
+import { LegacyNodeService } from '../common/LegacyNodeService'
+import { LinePositionedNode } from '../common/LinePositionedNode'
+import { findParent, getObjectIdentifier } from '../common/util'
+import { NeosFusionFormActionNode } from '../fusion/node/NeosFusionFormActionNode'
+import { NeosFusionFormControllerNode } from '../fusion/node/NeosFusionFormControllerNode'
+import { ElementContext } from './ElementContext'
+import { ElementFunctionalityInterface, ElementInterface } from './ElementInterface'
+import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
+import { FusionWorkspace } from '../fusion/FusionWorkspace'
 
 export class AfxTagElement implements ElementInterface<TagAttributeNode | TagNode> {
 

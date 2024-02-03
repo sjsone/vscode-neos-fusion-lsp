@@ -1,19 +1,19 @@
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode';
-import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode';
-import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement';
-import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment';
-import { Command, CompletionItem, CompletionItemKind, CompletionList, CompletionParams, InsertTextFormat } from 'vscode-languageserver';
-import { ExternalObjectStatement, LegacyNodeService } from '../common/LegacyNodeService';
-import { LinePositionedNode } from '../common/LinePositionedNode';
-import { NodeService } from '../common/NodeService';
-import { findParent } from '../common/util';
-import { FusionWorkspace } from '../fusion/FusionWorkspace';
-import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
-import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode';
-import { ElementContext } from './ElementContext';
-import { ElementHelper } from './ElementHelper';
-import { ElementFunctionalityInterface, ElementInterface } from './ElementInterface';
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
+import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
+import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
+import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
+import { Command, CompletionItem, CompletionItemKind, CompletionList, CompletionParams, InsertTextFormat } from 'vscode-languageserver'
+import { ExternalObjectStatement, LegacyNodeService } from '../common/LegacyNodeService'
+import { LinePositionedNode } from '../common/LinePositionedNode'
+import { NodeService } from '../common/NodeService'
+import { findParent } from '../common/util'
+import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
+import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
+import { ElementContext } from './ElementContext'
+import { ElementHelper } from './ElementHelper'
+import { ElementFunctionalityInterface, ElementInterface } from './ElementInterface'
 
 const BuiltInCompletions = {
 	prototypeCompletion: {

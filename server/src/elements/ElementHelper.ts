@@ -1,6 +1,6 @@
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { CompletionItemKind, Command, CompletionItem, InsertTextMode, InsertTextFormat, Hover } from 'vscode-languageserver';
-import { LinePositionedNode } from '../common/LinePositionedNode';
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { CompletionItemKind, Command, CompletionItem, InsertTextMode, InsertTextFormat, Hover } from 'vscode-languageserver'
+import { LinePositionedNode } from '../common/LinePositionedNode'
 
 export class ElementHelper {
 	static readonly SuggestCommand: Command = {

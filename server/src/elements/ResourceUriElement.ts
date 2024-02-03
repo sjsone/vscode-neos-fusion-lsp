@@ -1,14 +1,14 @@
-import * as NodeFs from 'fs';
-import * as NodePath from 'path';
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionParams, Hover, HoverParams, LocationLink } from 'vscode-languageserver';
-import { Logger } from '../common/Logging';
-import { pathToUri } from '../common/util';
-import { ResourceUriNode } from '../fusion/node/ResourceUriNode';
-import { NeosPackage } from '../neos/NeosPackage';
-import { ElementContext } from './ElementContext';
-import { ElementHelper } from './ElementHelper';
-import { ElementInterface } from './ElementInterface';
+import * as NodeFs from 'fs'
+import * as NodePath from 'path'
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionParams, Hover, HoverParams, LocationLink } from 'vscode-languageserver'
+import { Logger } from '../common/Logging'
+import { pathToUri } from '../common/util'
+import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
+import { NeosPackage } from '../neos/NeosPackage'
+import { ElementContext } from './ElementContext'
+import { ElementHelper } from './ElementHelper'
+import { ElementInterface } from './ElementInterface'
 
 export class ResourceUriElement extends Logger implements ElementInterface<ResourceUriNode> {
 	isResponsible(methodName: keyof ElementInterface<AbstractNode>, node: AbstractNode | undefined): boolean {

@@ -1,13 +1,13 @@
-import * as NodePath from 'path';
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionParams, Hover, HoverParams, LocationLink, Position } from 'vscode-languageserver';
-import * as YAML from 'yaml';
-import { CompletionCapability } from '../capabilities/CompletionCapability';
-import { Logger } from '../common/Logging';
-import { FlowConfigurationPathPartNode } from '../fusion/FlowConfigurationPathPartNode';
-import { ElementContext } from './ElementContext';
-import { ElementHelper } from './ElementHelper';
-import { ElementInterface } from './ElementInterface';
+import * as NodePath from 'path'
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionParams, Hover, HoverParams, LocationLink, Position } from 'vscode-languageserver'
+import * as YAML from 'yaml'
+import { CompletionCapability } from '../capabilities/CompletionCapability'
+import { Logger } from '../common/Logging'
+import { FlowConfigurationPathPartNode } from '../fusion/FlowConfigurationPathPartNode'
+import { ElementContext } from './ElementContext'
+import { ElementHelper } from './ElementHelper'
+import { ElementInterface } from './ElementInterface'
 
 export class FlowConfigurationElement extends Logger implements ElementInterface<FlowConfigurationPathPartNode>  {
 	isResponsible(methodName: keyof ElementInterface<AbstractNode>, node: AbstractNode | undefined): boolean {

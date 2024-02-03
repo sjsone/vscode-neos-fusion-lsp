@@ -1,14 +1,14 @@
-import { DefinitionParams, Definition, LocationLink, Location } from 'vscode-languageserver';
-import { ElementContext } from './ElementContext';
-import { ElementInterface } from './ElementInterface';
-import { ParsedFileCapabilityContext } from '../capabilities/CapabilityContext';
-import { LinePositionedNode } from '../common/LinePositionedNode';
-import { FusionWorkspace } from '../fusion/FusionWorkspace';
-import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
-import { RoutingActionNode } from '../fusion/node/RoutingActionNode';
-import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode';
-import { Logger } from '../common/Logging';
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
+import { DefinitionParams, Definition, LocationLink, Location } from 'vscode-languageserver'
+import { ElementContext } from './ElementContext'
+import { ElementInterface } from './ElementInterface'
+import { ParsedFileCapabilityContext } from '../capabilities/CapabilityContext'
+import { LinePositionedNode } from '../common/LinePositionedNode'
+import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
+import { RoutingActionNode } from '../fusion/node/RoutingActionNode'
+import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
+import { Logger } from '../common/Logging'
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 
 export class RoutingElement extends Logger implements ElementInterface<RoutingControllerNode | RoutingActionNode> {
 	isResponsible(methodName: keyof ElementInterface<AbstractNode>, node: AbstractNode | undefined): boolean {

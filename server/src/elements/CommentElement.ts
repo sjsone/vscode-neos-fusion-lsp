@@ -1,9 +1,9 @@
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { CompletionParams, CompletionItem, CompletionList, CompletionItemKind, InsertTextMode } from 'vscode-languageserver';
-import { ElementContext } from './ElementContext';
-import { ElementInterface } from './ElementInterface';
-import { SemanticCommentType } from '../common/SemanticCommentService';
-import { Comment } from 'ts-fusion-parser/out/common/Comment';
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { CompletionParams, CompletionItem, CompletionList, CompletionItemKind, InsertTextMode } from 'vscode-languageserver'
+import { ElementContext } from './ElementContext'
+import { ElementInterface } from './ElementInterface'
+import { SemanticCommentType } from '../common/SemanticCommentService'
+import { Comment } from 'ts-fusion-parser/out/common/Comment'
 
 export class CommentElement implements ElementInterface<Comment> {
 	isResponsible(methodName: keyof ElementInterface<AbstractNode>, node: AbstractNode | undefined): boolean {

@@ -3,17 +3,15 @@ import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/Objec
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { ParameterInformation, SignatureHelp, SignatureHelpParams } from 'vscode-languageserver'
 import { FusionFileProcessor } from '../fusion/FusionFileProcessor'
-import { AbstractCapability } from './AbstractCapability'
-import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
+import { ElementContext } from './ElementContext'
+import { ElementFunctionalityInterface, ElementInterface } from './ElementInterface'
 
-export class SignatureHelpCapability extends AbstractCapability {
-
-	protected run(context: CapabilityContext): SignatureHelp | undefined | null {
-		const { workspace, parsedFile, foundNodeByLine } = <ParsedFileCapabilityContext<AbstractNode>>context
-		const node = foundNodeByLine?.getNode()
-
-		if (!(node instanceof ObjectFunctionPathNode)) return undefined
-		if (!(node.parent instanceof ObjectNode)) return undefined
+export class EelHelperElement implements ElementInterface<ObjectFunctionPathNode> {
+	isResponsible(methodName: keyof ElementFunctionalityInterface<AbstractNode>, node: AbstractNode | undefined): boolean {
+		return node instanceof ObjectFunctionPathNode && node.parent instanceof ObjectNode
+	}
+	async onSignatureHelp(context: ElementContext<SignatureHelpParams, ObjectFunctionPathNode>): Promise<SignatureHelp | null | undefined> {
+		const node = context.foundNodeByLine!.getNode()
 
 		const signatureHelp: SignatureHelp = {
 			signatures: [],
@@ -25,7 +23,7 @@ export class SignatureHelpCapability extends AbstractCapability {
 			method,
 			eelHelperNode,
 			eelHelperMethodNode,
-		} of FusionFileProcessor.ResolveEelHelpersForObjectNode(node.parent, workspace.neosWorkspace)) {
+		} of FusionFileProcessor.ResolveEelHelpersForObjectNode(<ObjectNode>node.parent!, context.workspace.neosWorkspace)) {
 			const parameters: ParameterInformation[] = []
 			for (const parameter of method.parameters) {
 				const name = parameter.name.replace("$", "")

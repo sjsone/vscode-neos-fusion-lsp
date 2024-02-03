@@ -1,16 +1,16 @@
-import * as NodePath from 'path';
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue';
-import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement';
-import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment';
-import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment';
-import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionLink, DefinitionParams, Hover, HoverParams, Location, LocationLink, ReferenceParams } from 'vscode-languageserver';
-import { LinePositionedNode } from '../common/LinePositionedNode';
-import { Logger } from '../common/Logging';
-import { abstractNodeToString, findParent, getPrototypeNameFromNode } from '../common/util';
-import { ElementContext } from './ElementContext';
-import { ElementHelper } from './ElementHelper';
-import { ElementInterface } from './ElementInterface';
+import * as NodePath from 'path'
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
+import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
+import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
+import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
+import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionLink, DefinitionParams, Hover, HoverParams, Location, LocationLink, ReferenceParams } from 'vscode-languageserver'
+import { LinePositionedNode } from '../common/LinePositionedNode'
+import { Logger } from '../common/Logging'
+import { abstractNodeToString, findParent, getPrototypeNameFromNode } from '../common/util'
+import { ElementContext } from './ElementContext'
+import { ElementHelper } from './ElementHelper'
+import { ElementInterface } from './ElementInterface'
 
 export class PrototypeElement extends Logger implements ElementInterface<FusionObjectValue | PrototypePathSegment> {
 	isResponsible(methodName: keyof ElementInterface<AbstractNode>, node: AbstractNode | undefined): boolean {

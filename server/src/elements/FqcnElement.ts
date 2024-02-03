@@ -1,9 +1,9 @@
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { Definition, DefinitionParams, LocationLink } from 'vscode-languageserver';
-import { FqcnNode } from '../fusion/node/FqcnNode';
-import { ClassDefinition } from '../neos/NeosPackageNamespace';
-import { ElementContext } from './ElementContext';
-import { ElementInterface } from './ElementInterface';
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { Definition, DefinitionParams, LocationLink } from 'vscode-languageserver'
+import { FqcnNode } from '../fusion/node/FqcnNode'
+import { ClassDefinition } from '../neos/NeosPackageNamespace'
+import { ElementContext } from './ElementContext'
+import { ElementInterface } from './ElementInterface'
 
 export class FqcnElement implements ElementInterface<FqcnNode> {
 	isResponsible(methodName: keyof ElementInterface<AbstractNode>, node: AbstractNode | undefined): boolean {
