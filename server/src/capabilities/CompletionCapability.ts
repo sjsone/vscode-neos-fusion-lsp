@@ -22,8 +22,6 @@ import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNod
 import { NeosPackage } from '../neos/NeosPackage'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
-import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
-import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue'
 import { SemanticCommentType } from '../common/SemanticCommentService'
 import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
