@@ -1,5 +1,3 @@
-import * as NodeFs from 'fs'
-import * as NodePath from 'path'
 
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
@@ -15,7 +13,6 @@ import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { PhpClassMethodNode } from '../fusion/node/PhpClassMethodNode'
 import { PhpClassNode } from '../fusion/node/PhpClassNode'
-import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 
@@ -50,8 +47,6 @@ export class HoverCapability extends AbstractCapability {
 			return this.getMarkdownForObjectPath(workspace, <LinePositionedNode<ObjectPathNode>>foundNodeByLine)
 		if (node instanceof PhpClassMethodNode)
 			return this.getMarkdownForEelHelperMethod(<PhpClassMethodNode>node, workspace)
-		if (node instanceof ResourceUriNode)
-			return this.getMarkdownForResourceUri(<ResourceUriNode>node, workspace)
 
 		return null
 	}
@@ -109,17 +104,5 @@ export class HoverCapability extends AbstractCapability {
 		}
 
 		return header
-	}
-
-	getMarkdownForResourceUri(node: ResourceUriNode, workspace: FusionWorkspace) {
-		if (!node.canBeFound()) return null
-		const path = workspace.neosWorkspace.getResourceUriPath(node.getNamespace(), node.getRelativePath())
-		if (!path || !NodeFs.existsSync(path)) return `**Could not find Resource**`
-
-		const basename = NodePath.basename(path)
-		const isImage = (/\.(gif|jpe?g|tiff?|png|webp|bmp|svg|ico|icns)$/i).test(basename)
-
-		if (isImage) return `![${basename}](${path})`
-		return `Resource: ${basename}`
 	}
 }

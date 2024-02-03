@@ -1,5 +1,3 @@
-import * as NodeFs from 'fs'
-import * as NodePath from 'path'
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
 import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
@@ -15,9 +13,7 @@ import { NodeService } from '../common/NodeService'
 import { findParent, getObjectIdentifier } from '../common/util'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
-import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
 import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
-import { NeosPackage } from '../neos/NeosPackage'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 
@@ -59,8 +55,6 @@ export class CompletionCapability extends AbstractCapability {
 				completions.push(...this.getFusionPropertyCompletionsForObjectNode(workspace, <LinePositionedNode<ObjectNode>>foundNodeByLine))
 			if (foundNode instanceof ObjectPathNode)
 				completions.push(...this.getFusionPropertyCompletionsForObjectPath(workspace, <LinePositionedNode<ObjectPathNode>>foundNodeByLine))
-			if (foundNode instanceof ResourceUriNode)
-				completions.push(...this.getResourceUriCompletions(workspace, <LinePositionedNode<ResourceUriNode>>foundNodeByLine))
 		}
 
 		this.logVerbose(`Found ${completions.length} completions `)
@@ -253,47 +247,4 @@ export class CompletionCapability extends AbstractCapability {
 			command: command
 		}
 	}
-
-	protected getResourceUriCompletions(workspace: FusionWorkspace, foundNode: LinePositionedNode<ResourceUriNode>): CompletionItem[] {
-		const node = foundNode.getNode()
-
-		const identifierMatch = /resource:\/\/(.*?)\//.exec(node.identifier)
-		if (identifierMatch === null) {
-			return Array.from(workspace.neosWorkspace.getPackages().values()).map((neosPackage: NeosPackage) => {
-				return {
-					label: neosPackage.getPackageName(),
-					kind: CompletionItemKind.Module,
-					insertText: neosPackage.getPackageName() + '/',
-					command: CompletionCapability.SuggestCommand
-				}
-			})
-		}
-		const packageName = identifierMatch[1]
-
-		const neosPackage = workspace.neosWorkspace.getPackage(packageName)
-		if (!neosPackage) return []
-
-		const nextPath = NodePath.join(neosPackage.path, "Resources", node.getRelativePath())
-		if (!NodeFs.existsSync(nextPath)) return []
-
-		const completions: CompletionItem[] = []
-		const thingsInFolder = NodeFs.readdirSync(nextPath, { withFileTypes: true })
-		for (const thing of thingsInFolder) {
-			if (thing.isFile()) completions.push({
-				label: thing.name,
-				kind: CompletionItemKind.File,
-				insertText: thing.name,
-			})
-
-			if (thing.isDirectory()) completions.push({
-				label: thing.name,
-				kind: CompletionItemKind.Folder,
-				insertText: thing.name + '/',
-				command: CompletionCapability.SuggestCommand
-			})
-		}
-
-		return completions
-	}
-
 }

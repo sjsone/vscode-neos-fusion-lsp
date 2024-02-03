@@ -1,4 +1,3 @@
-import * as NodeFs from 'fs'
 
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
@@ -15,7 +14,7 @@ import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService
 import { LegacyNodeService } from '../common/LegacyNodeService'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { XLIFFService } from '../common/XLIFFService'
-import { findParent, getObjectIdentifier, pathToUri } from '../common/util'
+import { findParent, getObjectIdentifier } from '../common/util'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { ActionUriActionNode } from '../fusion/node/ActionUriActionNode'
@@ -25,7 +24,6 @@ import { NeosFusionFormActionNode } from '../fusion/node/NeosFusionFormActionNod
 import { NeosFusionFormControllerNode } from '../fusion/node/NeosFusionFormControllerNode'
 import { PhpClassMethodNode } from '../fusion/node/PhpClassMethodNode'
 import { PhpClassNode } from '../fusion/node/PhpClassNode'
-import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
 import { RoutingActionNode } from '../fusion/node/RoutingActionNode'
 import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
 import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
@@ -60,8 +58,6 @@ export class DefinitionCapability extends AbstractCapability {
 				return this.getEelHelperDefinitions(workspace, <LinePositionedNode<PhpClassNode>>foundNodeByLine)
 			case node instanceof FqcnNode:
 				return this.getFqcnDefinitions(workspace, <LinePositionedNode<FqcnNode>>foundNodeByLine)
-			case node instanceof ResourceUriNode:
-				return this.getResourceUriPathNodeDefinition(workspace, <LinePositionedNode<ResourceUriNode>>foundNodeByLine)
 			case node instanceof ObjectStatement:
 				return this.getControllerActionDefinition(parsedFile, workspace, <LinePositionedNode<ObjectStatement>>foundNodeByLine, <ParsedFileCapabilityContext<AbstractNode>>context)
 			case node instanceof TagAttributeNode:
@@ -208,34 +204,6 @@ export class DefinitionCapability extends AbstractCapability {
 					line: foundNodeByLine.getBegin().line
 				}
 			}
-		}]
-	}
-
-	getResourceUriPathNodeDefinition(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<ResourceUriNode>) {
-		const node = foundNodeByLine.getNode()
-		if (!node.canBeFound()) {
-			this.logDebug("ResourceURI cannot be found")
-			return null
-		}
-		const path = workspace.neosWorkspace.getResourceUriPath(node.getNamespace(), node.getRelativePath())
-		if (!path || !NodeFs.existsSync(path)) {
-			this.logDebug(`Resource path path is "${path}" with node.namespace "${node.getNamespace()}" and node.relativePath "${node.getRelativePath()}"`)
-			return null
-		}
-
-		const targetRange = {
-			start: { line: 0, character: 0 },
-			end: { line: 0, character: 0 },
-		}
-
-		const uri = pathToUri(path)
-		this.logDebug(`Resource path path is "${path}" and uri is "${uri}"`)
-
-		return [{
-			targetUri: uri,
-			targetRange: targetRange,
-			targetSelectionRange: targetRange,
-			originSelectionRange: foundNodeByLine.getPositionAsRange()
 		}]
 	}
 

@@ -1,0 +1,97 @@
+import * as NodeFs from 'fs'
+import * as NodePath from 'path'
+import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionParams, Hover, HoverParams, LocationLink } from 'vscode-languageserver';
+import { Logger } from '../common/Logging';
+import { pathToUri } from '../common/util';
+import { ResourceUriNode } from '../fusion/node/ResourceUriNode';
+import { ElementContext } from './ElementContext';
+import { ElementInterface } from './ElementInterface';
+import { CompletionCapability } from '../capabilities/CompletionCapability';
+import { NeosPackage } from '../neos/NeosPackage';
+import { ElementHelper } from './ElementHelper';
+
+export class ResourceUriElement extends Logger implements ElementInterface<ResourceUriNode> {
+	async onDefinition(context: ElementContext<DefinitionParams, ResourceUriNode>): Promise<LocationLink[] | Definition | null | undefined> {
+		const node = context.foundNodeByLine!.getNode()
+		if (!node.canBeFound()) {
+			this.logDebug("ResourceURI cannot be found")
+			return null
+		}
+		const path = context.workspace.neosWorkspace.getResourceUriPath(node.getNamespace(), node.getRelativePath())
+		if (!path || !NodeFs.existsSync(path)) {
+			this.logDebug(`Resource path path is "${path}" with node.namespace "${node.getNamespace()}" and node.relativePath "${node.getRelativePath()}"`)
+			return null
+		}
+
+		const targetRange = {
+			start: { line: 0, character: 0 },
+			end: { line: 0, character: 0 },
+		}
+
+		const uri = pathToUri(path)
+		this.logDebug(`Resource path path is "${path}" and uri is "${uri}"`)
+
+		return [{
+			targetUri: uri,
+			targetRange: targetRange,
+			targetSelectionRange: targetRange,
+			originSelectionRange: context.foundNodeByLine!.getPositionAsRange()
+		}]
+	}
+
+	async onCompletion(context: ElementContext<CompletionParams, ResourceUriNode>): Promise<CompletionItem[] | CompletionList | null | undefined> {
+		const node = context.foundNodeByLine!.getNode()
+
+		const identifierMatch = /resource:\/\/(.*?)\//.exec(node.identifier)
+		if (identifierMatch === null) {
+			return Array.from(context.workspace.neosWorkspace.getPackages().values()).map((neosPackage: NeosPackage) => {
+				return {
+					label: neosPackage.getPackageName(),
+					kind: CompletionItemKind.Module,
+					insertText: neosPackage.getPackageName() + '/',
+					command: CompletionCapability.SuggestCommand
+				}
+			})
+		}
+		const packageName = identifierMatch[1]
+
+		const neosPackage = context.workspace.neosWorkspace.getPackage(packageName)
+		if (!neosPackage) return []
+
+		const nextPath = NodePath.join(neosPackage.path, "Resources", node.getRelativePath())
+		if (!NodeFs.existsSync(nextPath)) return []
+
+		const completions: CompletionItem[] = []
+		const thingsInFolder = NodeFs.readdirSync(nextPath, { withFileTypes: true })
+		for (const thing of thingsInFolder) {
+			if (thing.isFile()) completions.push({
+				label: thing.name,
+				kind: CompletionItemKind.File,
+				insertText: thing.name,
+			})
+
+			if (thing.isDirectory()) completions.push({
+				label: thing.name,
+				kind: CompletionItemKind.Folder,
+				insertText: thing.name + '/',
+				command: CompletionCapability.SuggestCommand
+			})
+		}
+
+		return completions
+	}
+
+	async onHover(context: ElementContext<HoverParams, ResourceUriNode>): Promise<Hover | null | undefined> {
+		const node = context.foundNodeByLine!.getNode()
+
+		if (!node.canBeFound()) return null
+		const path = context.workspace.neosWorkspace.getResourceUriPath(node.getNamespace(), node.getRelativePath())
+		if (!path || !NodeFs.existsSync(path)) return ElementHelper.createHover(`**Could not find Resource**`, context.foundNodeByLine!)
+
+		const basename = NodePath.basename(path)
+		const isImage = (/\.(gif|jpe?g|tiff?|png|webp|bmp|svg|ico|icns)$/i).test(basename)
+
+		if (isImage) return ElementHelper.createHover(`![${basename}](${path})`, context.foundNodeByLine!)
+		return ElementHelper.createHover(`Resource: ${basename}`, context.foundNodeByLine!)
+	}
+}
