@@ -18,24 +18,23 @@ import { LegacyNodeService } from '../common/LegacyNodeService'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { XLIFFService } from '../common/XLIFFService'
 import { findParent, getObjectIdentifier, getPrototypeNameFromNode, pathToUri } from '../common/util'
+import { FlowConfigurationPathPartNode } from '../fusion/FlowConfigurationPathPartNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { ActionUriActionNode } from '../fusion/node/ActionUriActionNode'
 import { ActionUriControllerNode } from '../fusion/node/ActionUriControllerNode'
-import { FlowConfigurationPathPartNode } from '../fusion/FlowConfigurationPathPartNode'
 import { FqcnNode } from '../fusion/node/FqcnNode'
 import { NeosFusionFormActionNode } from '../fusion/node/NeosFusionFormActionNode'
 import { NeosFusionFormControllerNode } from '../fusion/node/NeosFusionFormControllerNode'
 import { PhpClassMethodNode } from '../fusion/node/PhpClassMethodNode'
 import { PhpClassNode } from '../fusion/node/PhpClassNode'
 import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
+import { RoutingActionNode } from '../fusion/node/RoutingActionNode'
+import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
 import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
 import { ClassDefinition } from '../neos/NeosPackageNamespace'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
-import { RoutingActionNode } from '../fusion/node/RoutingActionNode'
-import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
-import { toNamespacedPath } from 'path'
 
 export interface ActionUriDefinition {
 	package: string
@@ -155,16 +154,19 @@ export class DefinitionCapability extends AbstractCapability {
 			if (isObjectNodeInDsl) return null
 
 			const objectStatement = findParent(objectNode, ObjectStatement)
+			if (!objectStatement) return null
 			const prototypeName = LegacyNodeService.findPrototypeName(objectStatement)
+			if (!prototypeName) return null
 
 			for (const property of LegacyNodeService.getInheritedPropertiesByPrototypeName(prototypeName, workspace)) {
 				const firstPropertyPathSegment = property.statement.path.segments[0]
-				if (firstPropertyPathSegment.identifier === objectNode.path[1].value) {
-					return [{
-						uri: property.uri,
-						range: firstPropertyPathSegment.linePositionedNode.getPositionAsRange()
-					}]
-				}
+				if (firstPropertyPathSegment.identifier !== objectNode.path[1].value) continue
+				if (!property.uri) continue
+
+				return [{
+					uri: property.uri,
+					range: firstPropertyPathSegment.linePositionedNode.getPositionAsRange()
+				}]
 			}
 			return null
 		}

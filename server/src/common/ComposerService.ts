@@ -10,7 +10,7 @@ class ComposerService {
 	getSortedPackagePaths(packagesPaths: string[]) {
 		const pseudoRootPackage = {
 			name: "__pseudoRootPackage__",
-			require: {}
+			require: {} as { [key: string]: any }
 		}
 
 		for (const packagePath of packagesPaths) {

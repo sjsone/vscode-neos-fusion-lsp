@@ -16,8 +16,6 @@ import { RenamePrepareCapability } from './capabilities/RenamePrepareCapability'
 import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
-import { RenameCapability } from './capabilities/RenameCapability'
-import { RenamePrepareCapability } from './capabilities/RenamePrepareCapability'
 import { SignatureHelpCapability } from './capabilities/SignatureHelpCapability'
 
 export type FusionDocument = TextDocument

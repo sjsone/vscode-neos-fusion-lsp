@@ -4,7 +4,7 @@ import { FlowConfigurationPathNode } from './FlowConfigurationPathNode'
 
 export class FlowConfigurationPathPartNode extends AbstractNode {
 	protected value: string
-	public parent: FlowConfigurationPathNode
+	public parent!: FlowConfigurationPathNode
 
 	constructor(value: string, position: NodePositionInterface, parent?: AbstractNode | undefined) {
 		super(position, parent)
