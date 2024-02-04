@@ -20,7 +20,6 @@ import { openDocumentationAction } from './actions/OpenDocumentationAction'
 import { replaceDeprecatedQuickFixAction } from './actions/ReplaceDeprecatedQuickFixAction'
 import { AbstractCapability } from './capabilities/AbstractCapability'
 import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
-import { HoverCapability } from './capabilities/HoverCapability'
 import { RenameCapability } from './capabilities/RenameCapability'
 import { RenamePrepareCapability } from './capabilities/RenamePrepareCapability'
 import { AbstractFunctionality } from './common/AbstractFunctionality'
@@ -54,6 +53,7 @@ import { AfxTagElement } from './elements/AfxTagElement'
 import { EelHelperElement } from './elements/EelHelperElement'
 import { FusionPropertyElement } from './elements/FusionPropertyElement'
 import { ControllerActionElement } from './elements/ControllerActionElement'
+import { EelElement } from './elements/EelElement'
 
 
 const CodeActions = [
@@ -91,6 +91,7 @@ export class LanguageServer extends Logger {
 		this.addElement(NodeTypeElement)
 		this.addElement(CommentElement)
 		this.addElement(ControllerActionElement)
+		this.addElement(EelElement)
 		this.addElement(EelHelperElement)
 		this.addElement(FlowConfigurationElement)
 		this.addElement(FqcnElement)
@@ -101,7 +102,6 @@ export class LanguageServer extends Logger {
 		this.addElement(RoutingElement)
 		this.addElement(TranslationElement)
 
-		this.addFunctionalityInstance(HoverCapability)
 		this.addFunctionalityInstance(DocumentSymbolCapability)
 		this.addFunctionalityInstance(RenamePrepareCapability)
 		this.addFunctionalityInstance(RenameCapability)

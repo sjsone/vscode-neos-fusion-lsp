@@ -6,7 +6,6 @@ import {
 } from "vscode-languageserver/node"
 import { LanguageServer } from './LanguageServer'
 import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
-import { HoverCapability } from './capabilities/HoverCapability'
 import { RenameCapability } from './capabilities/RenameCapability'
 import { RenamePrepareCapability } from './capabilities/RenamePrepareCapability'
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
@@ -33,7 +32,7 @@ connection.onDefinition(params => languageserver.runElements("onDefinition", par
 connection.onReferences(params => languageserver.runElements("onReferences", params))
 connection.onCompletion(params => languageserver.runElements("onCompletion", params))
 connection.onCompletionResolve(item => item)
-connection.onHover(params => languageserver.runCapability(HoverCapability, params))
+connection.onHover(params => languageserver.runElements("onHover", params))
 connection.onDocumentSymbol(params => languageserver.runCapability(DocumentSymbolCapability, params))
 connection.onWorkspaceSymbol(params => languageserver.runElements("onWorkspaceSymbol", <any>params))
 connection.onCodeLens(params => languageserver.runElements("onCodeLens", params))

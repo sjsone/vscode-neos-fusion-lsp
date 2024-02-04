@@ -34,7 +34,7 @@ export class ElementHelper {
 	}
 
 	static returnOnFirstResult(method: ElementMethod) {
-		return method === "onSignatureHelp"
+		return method === "onSignatureHelp" || method === "onHover"
 	}
 
 	static createHover(markdown: string, foundNodeByLine: LinePositionedNode<AbstractNode>) {
