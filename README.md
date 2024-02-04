@@ -1,13 +1,13 @@
 
 <h1 align="center">
   <br>
-  <a href="https://github.com/sjsone/vscode-neos-fusion-lsp"><img src="https://raw.githubusercontent.com/sjsone/vscode-neos-fusion-lsp/main/images/logo.png" alt="NEOS Fusion & AFX" width="200"></a>
+  <a href="https://github.com/sjsone/vscode-neos-fusion-lsp"><img src="https://raw.githubusercontent.com/sjsone/vscode-neos-fusion-lsp/main/images/logo.png" alt="Neos Fusion & AFX" width="200"></a>
   <br>
-  NEOS Fusion & AFX Language Server
+  Neos Fusion & AFX Language Server
   <br>
 </h1>
 
-<h4 align="center">A language Server built for the NEOS CMS. Currently only for VSCode.</h4>
+<h4 align="center">A language Server built for the Neos CMS. Currently only for VSCode.</h4>
 
 <p align="center">
   <a href="https://marketplace.visualstudio.com/items?itemName=SimonSchmidt.vscode-neos-fusion-lsp">📦 VSCode Marketplace</a> •

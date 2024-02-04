@@ -27,7 +27,7 @@ class NeosStatusBarItem {
 			}
 
 			const quickPick = window.createQuickPick()
-			quickPick.title = "NEOS Fusion language server actions"
+			quickPick.title = "Neos Fusion language server actions"
 			quickPick.items = [
 				{
 					label: "Language Server",
