@@ -102,7 +102,7 @@ class NeosStatusBarItem {
 		this.eventEmitter.emit(NeosStatusBarItem.ChangedContextEvent, this.selectedContextName)
 		// globe, milestone, squirrel, 🚧 
 		// this.statusBarItem.text = `$(neos-lsp)|${name}`
-		this.statusBarItem.text = `$(neos-lsp)EOS|${name}`
+		this.statusBarItem.text = `$(neos-lsp)|${name}`
 	}
 
 	addListener(eventName: string | symbol, listener: (...args: any[]) => void) {
