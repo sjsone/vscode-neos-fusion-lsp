@@ -3,7 +3,7 @@ import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
-import { Command, CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionParams, InsertTextFormat, LocationLink } from 'vscode-languageserver'
+import { Command, CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionParams, Hover, HoverParams, InsertTextFormat, LocationLink } from 'vscode-languageserver'
 import { ExternalObjectStatement, LegacyNodeService } from '../common/LegacyNodeService'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { NodeService } from '../common/NodeService'
@@ -218,5 +218,13 @@ export class FusionPropertyElement implements ElementInterface<PathSegment | Obj
 		}
 
 		return completions
+	}
+
+	async onHover(context: ElementTextDocumentContext<HoverParams, AbstractNode>): Promise<Hover | null | undefined> {
+		const foundNode = context.foundNodeByLine!
+		const node = foundNode.getNode()
+		if (node instanceof PathSegment) return ElementHelper.createHover(`property **${node.identifier}**`, foundNode)
+
+		return null
 	}
 }
