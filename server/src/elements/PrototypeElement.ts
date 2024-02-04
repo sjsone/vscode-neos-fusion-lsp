@@ -4,17 +4,50 @@ import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjec
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
-import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionLink, DefinitionParams, Hover, HoverParams, Location, LocationLink, ReferenceParams } from 'vscode-languageserver'
+import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionLink, DefinitionParams, Hover, HoverParams, Location, LocationLink, ReferenceParams, SymbolInformation, SymbolKind, WorkspaceSymbol, WorkspaceSymbolParams } from 'vscode-languageserver'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { Logger } from '../common/Logging'
 import { abstractNodeToString, findParent, getPrototypeNameFromNode } from '../common/util'
-import { ElementTextDocumentContext } from './ElementContext'
+import { ElementTextDocumentContext, ElementWorkspacesContext } from './ElementContext'
 import { ElementHelper } from './ElementHelper'
 import { ElementInterface } from './ElementInterface'
+import { WorkspacesCapabilityContext } from '../capabilities/CapabilityContext'
 
 export class PrototypeElement extends Logger implements ElementInterface<FusionObjectValue | PrototypePathSegment> {
 	isResponsible(methodName: keyof ElementInterface<AbstractNode>, node: AbstractNode | undefined): boolean {
 		return node instanceof FusionObjectValue || node instanceof PrototypePathSegment
+	}
+
+	async onWorkspaceSymbol(context: ElementWorkspacesContext<WorkspaceSymbolParams>): Promise<SymbolInformation[] | WorkspaceSymbol[] | null | undefined> {
+		const { workspaces } = <WorkspacesCapabilityContext>context
+
+		const symbols: WorkspaceSymbol[] = []
+		for (const workspace of workspaces) {
+			for (const parsedFile of workspace.parsedFiles) {
+				for (const prototypePathSegment of parsedFile.prototypeCreations) {
+					const node = prototypePathSegment.getNode()
+
+					symbols.push({
+						name: node.identifier,
+						location: { uri: parsedFile.uri, range: prototypePathSegment.getPositionAsRange() },
+						kind: SymbolKind.Class,
+					})
+				}
+
+				const neosPackage = parsedFile.workspace.neosWorkspace.getPackageByUri(parsedFile.uri)
+				for (const prototypePathSegment of parsedFile.prototypeOverwrites) {
+					const node = prototypePathSegment.getNode()
+
+					symbols.push({
+						name: `${node.identifier} [${neosPackage?.getPackageName()}]`,
+						location: { uri: parsedFile.uri, range: prototypePathSegment.getPositionAsRange() },
+						kind: SymbolKind.Constructor,
+					})
+				}
+			}
+		}
+
+		return symbols
 	}
 
 	async onCompletion(context: ElementTextDocumentContext<CompletionParams, any>): Promise<CompletionItem[] | CompletionList | null | undefined> {

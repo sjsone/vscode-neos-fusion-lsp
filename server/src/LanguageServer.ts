@@ -23,7 +23,6 @@ import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapabilit
 import { HoverCapability } from './capabilities/HoverCapability'
 import { RenameCapability } from './capabilities/RenameCapability'
 import { RenamePrepareCapability } from './capabilities/RenamePrepareCapability'
-import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapability'
 import { AbstractFunctionality } from './common/AbstractFunctionality'
 import { ClientCapabilityService } from './common/ClientCapabilityService'
 import { LogService, Logger } from './common/Logging'
@@ -104,7 +103,6 @@ export class LanguageServer extends Logger {
 
 		this.addFunctionalityInstance(HoverCapability)
 		this.addFunctionalityInstance(DocumentSymbolCapability)
-		this.addFunctionalityInstance(WorkspaceSymbolCapability)
 		this.addFunctionalityInstance(RenamePrepareCapability)
 		this.addFunctionalityInstance(RenameCapability)
 
@@ -128,7 +126,7 @@ export class LanguageServer extends Logger {
 
 			for (const element of this.elements) {
 				if (!(method in element)) continue
-				if (!element.isResponsible(method, node)) continue
+				if (node && !element.isResponsible(method, node)) continue
 
 				const result = await element[method]!(<any>context)
 				if (ElementHelper.returnOnFirstResult(method)) return result

@@ -13,9 +13,9 @@ export interface ElementTextDocumentContext<Params, Node extends AbstractNode> {
 	params: Params
 }
 
-export interface ElementWorkspacesContext {
+export interface ElementWorkspacesContext<Params extends WorkspaceSymbolParams = WorkspaceSymbolParams> {
 	workspaces: FusionWorkspace[],
-	params: WorkspaceSymbolParams
+	params: Params
 }
 
 export namespace ElementContext {

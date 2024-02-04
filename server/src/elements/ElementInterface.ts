@@ -33,7 +33,7 @@ import {
 	WorkspaceSymbol,
 	WorkspaceSymbolParams
 } from 'vscode-languageserver'
-import { ElementTextDocumentContext } from './ElementContext'
+import { ElementTextDocumentContext, ElementWorkspacesContext } from './ElementContext'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 
 
@@ -48,7 +48,7 @@ export interface ElementFunctionalityInterface<N extends AbstractNode = Abstract
 	onReferences?(context: ElementTextDocumentContext<ReferenceParams, N>): Promise<Location[] | undefined | null>
 	onDocumentHighlight?(context: ElementTextDocumentContext<DocumentHighlightParams, N>): Promise<DocumentHighlight[] | undefined | null>
 	onDocumentSymbol?(context: ElementTextDocumentContext<DocumentSymbolParams, N>): Promise<SymbolInformation[] | DocumentSymbol[] | undefined | null>
-	onWorkspaceSymbol?(context: ElementTextDocumentContext<WorkspaceSymbolParams, N>): Promise<SymbolInformation[] | WorkspaceSymbol[] | undefined | null>
+	onWorkspaceSymbol?(context: ElementWorkspacesContext): Promise<SymbolInformation[] | WorkspaceSymbol[] | undefined | null>
 	onCodeAction?(context: ElementTextDocumentContext<CodeActionParams, N>): Promise<(Command | CodeAction)[] | undefined | null>
 	onCodeLens?(context: ElementTextDocumentContext<CodeLensParams, N>): Promise<CodeLens[] | undefined | null>
 	onRenameRequest?(context: ElementTextDocumentContext<RenameParams, N>): Promise<WorkspaceEdit | undefined | null>
