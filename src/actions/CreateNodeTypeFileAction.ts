@@ -60,7 +60,7 @@ export const createNodeTypeFileAction = (languageServer: LanguageServer, params:
 }
 
 const getNewFilePath = (packagePath: string, prototypeName: string) => {
-	// TODO: check NEOS Version to better predict the new file path
+	// TODO: check Neos Version to better predict the new file path
 	const nodeTypeFolderPath = NodePath.join(packagePath, "NodeTypes")
 	const configurationFolderPath = NodePath.join(packagePath, "Configuration")
 	const nodeTypeFolderExists = NodeFs.existsSync(nodeTypeFolderPath)
