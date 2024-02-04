@@ -39,14 +39,8 @@ export class HoverCapability extends AbstractCapability {
 
 		if (node instanceof PathSegment)
 			return `property **${node.identifier}**`
-		if (node instanceof PhpClassNode)
-			return `EEL-Helper **${node.identifier}**`
-		if (node instanceof ObjectFunctionPathNode)
-			return `EEL-Function **${node.value}**`
 		if (node instanceof ObjectPathNode)
 			return this.getMarkdownForObjectPath(workspace, <LinePositionedNode<ObjectPathNode>>foundNodeByLine)
-		if (node instanceof PhpClassMethodNode)
-			return this.getMarkdownForEelHelperMethod(<PhpClassMethodNode>node, workspace)
 
 		return null
 	}
@@ -80,29 +74,5 @@ export class HoverCapability extends AbstractCapability {
 		}
 
 		return `EEL **${node.value}**`
-	}
-
-	getMarkdownForEelHelperMethod(node: PhpClassMethodNode, workspace: FusionWorkspace) {
-		const header = `EEL-Helper *${node.eelHelper.identifier}*.**${node.identifier}** \n`
-
-		const eelHelper = workspace.neosWorkspace.getEelHelperTokensByName(node.eelHelper.identifier)
-		if (eelHelper) {
-			const method = eelHelper.methods.find(method => method.valid(node.identifier))
-			if (method) {
-
-				const phpParameters = method.parameters.map(p => `${p.type ?? ''}${p.name}${p.defaultValue ?? ''}`).join(", ")
-
-				return [
-					header,
-					method.description,
-					'```php',
-					`<?php`,
-					`${method.name}(${phpParameters})`,
-					'```'
-				].join('\n')
-			}
-		}
-
-		return header
 	}
 }

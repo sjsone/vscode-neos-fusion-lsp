@@ -1,7 +1,7 @@
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
-import { Definition, DefinitionParams, LocationLink, ParameterInformation, SignatureHelp, SignatureHelpParams } from 'vscode-languageserver'
+import { Definition, DefinitionParams, Hover, HoverParams, LocationLink, ParameterInformation, SignatureHelp, SignatureHelpParams } from 'vscode-languageserver'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { Logger } from '../common/Logging'
 import { FusionFileProcessor } from '../fusion/FusionFileProcessor'
@@ -10,11 +10,13 @@ import { PhpClassMethodNode } from '../fusion/node/PhpClassMethodNode'
 import { PhpClassNode } from '../fusion/node/PhpClassNode'
 import { ElementTextDocumentContext } from './ElementContext'
 import { ElementFunctionalityInterface, ElementInterface } from './ElementInterface'
+import { ElementHelper } from './ElementHelper'
 
 export class EelHelperElement extends Logger implements ElementInterface<ObjectFunctionPathNode | PhpClassMethodNode | PhpClassNode> {
 	isResponsible(methodName: keyof ElementFunctionalityInterface<AbstractNode>, node: AbstractNode | undefined): boolean {
 		if (methodName === "onDefinition") return node instanceof PhpClassMethodNode || node instanceof PhpClassNode
 		if (methodName === "onSignatureHelp") return node instanceof ObjectFunctionPathNode && node.parent instanceof ObjectNode
+		if (methodName === "onHover") return node instanceof PhpClassNode || node instanceof ObjectFunctionPathNode || node instanceof PhpClassMethodNode
 		return false
 	}
 
@@ -89,5 +91,43 @@ export class EelHelperElement extends Logger implements ElementInterface<ObjectF
 		}
 
 		return signatureHelp
+	}
+
+	async onHover(context: ElementTextDocumentContext<HoverParams, AbstractNode>): Promise<Hover | null | undefined> {
+		const foundNodeByLine = context.foundNodeByLine!
+		const node = foundNodeByLine
+
+		if (node instanceof PhpClassNode)
+			return ElementHelper.createHover(`EEL-Helper **${node.identifier}**`, foundNodeByLine)
+		if (node instanceof ObjectFunctionPathNode)
+			return ElementHelper.createHover(`EEL-Function **${node.value}**`, foundNodeByLine)
+		if (node instanceof PhpClassMethodNode)
+			return ElementHelper.createHover(this.getMarkdownForEelHelperMethod(<PhpClassMethodNode>node, context.workspace), foundNodeByLine)
+
+		return null
+	}
+
+	getMarkdownForEelHelperMethod(node: PhpClassMethodNode, workspace: FusionWorkspace) {
+		const header = `EEL-Helper *${node.eelHelper.identifier}*.**${node.identifier}** \n`
+
+		const eelHelper = workspace.neosWorkspace.getEelHelperTokensByName(node.eelHelper.identifier)
+		if (eelHelper) {
+			const method = eelHelper.methods.find(method => method.valid(node.identifier))
+			if (method) {
+
+				const phpParameters = method.parameters.map(p => `${p.type ?? ''}${p.name}${p.defaultValue ?? ''}`).join(", ")
+
+				return [
+					header,
+					method.description,
+					'```php',
+					`<?php`,
+					`${method.name}(${phpParameters})`,
+					'```'
+				].join('\n')
+			}
+		}
+
+		return header
 	}
 }
