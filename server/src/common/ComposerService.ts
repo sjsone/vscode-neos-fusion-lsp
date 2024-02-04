@@ -1,5 +1,6 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
+import { PackageJsonNotFoundError } from '../error/PackageJsonNotFoundError'
 
 class ComposerService {
 	protected parsedComposerJsonByName: { [key: string]: any } = {}
@@ -15,6 +16,10 @@ class ComposerService {
 
 		for (const packagePath of packagesPaths) {
 			const composerJsonPath = NodePath.join(packagePath, "composer.json")
+			if (!NodeFs.existsSync(composerJsonPath)) {
+				throw new PackageJsonNotFoundError(`No "composer.json" found for package "${packagePath}"`)
+			}
+
 			const composerJson = JSON.parse(NodeFs.readFileSync(composerJsonPath).toString())
 			if (composerJson.type === "neos-site") pseudoRootPackage.require[composerJson.name] = "0.0.0"
 			this.parsedComposerJsonByName[composerJson.name] = composerJson
