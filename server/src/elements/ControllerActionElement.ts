@@ -1,13 +1,13 @@
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement';
-import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment';
-import { Definition, DefinitionParams, LocationLink } from 'vscode-languageserver';
-import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService';
-import { LinePositionedNode } from '../common/LinePositionedNode';
-import { ActionUriActionNode } from '../fusion/node/ActionUriActionNode';
-import { ActionUriControllerNode } from '../fusion/node/ActionUriControllerNode';
-import { ElementTextDocumentContext } from './ElementContext';
-import { ElementFunctionalityInterface, ElementInterface } from './ElementInterface';
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
+import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
+import { Definition, DefinitionParams, LocationLink } from 'vscode-languageserver'
+import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService'
+import { LinePositionedNode } from '../common/LinePositionedNode'
+import { ActionUriActionNode } from '../fusion/node/ActionUriActionNode'
+import { ActionUriControllerNode } from '../fusion/node/ActionUriControllerNode'
+import { ElementTextDocumentContext } from './ElementContext'
+import { ElementFunctionalityInterface, ElementInterface } from './ElementInterface'
 
 export interface ActionUriDefinition {
 	package: string
