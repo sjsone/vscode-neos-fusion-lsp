@@ -93,14 +93,14 @@ export class FusionWorkspace extends Logger {
         }
 
         this.neosWorkspace = new NeosWorkspace(this)
-        for (const packagePath of ComposerService.getSortedPackagePaths(packagesPaths)) {
-            try {
+        try {
+            for (const packagePath of ComposerService.getSortedPackagePaths(packagesPaths)) {
                 this.neosWorkspace.addPackage(packagePath)
-            } catch (error) {
-                if (error instanceof PackageJsonNotFoundError) {
-                    this.logError(`No Package.json found for ${packagePath}`)
-                } else throw error
             }
+        } catch (error) {
+            if (error instanceof PackageJsonNotFoundError) {
+                this.logError(error.message)
+            } else throw error
         }
 
         this.neosWorkspace.init(this.selectedFlowContextName)
