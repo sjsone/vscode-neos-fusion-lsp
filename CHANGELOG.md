@@ -7,6 +7,12 @@
 
 ## 🪐🔭 *Upcoming*
 
+## 🧪 0.5.0
+
+- change: changed NEOS to Neos
+- change: show only Neos icon in status bar item
+- fix: catch error when Package has no `composer.json`
+
 ## 🧪 0.4.5
 
 - feature: new NEOS Tab in Sidebar
