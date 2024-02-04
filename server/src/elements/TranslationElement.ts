@@ -1,6 +1,6 @@
 import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionLink, DefinitionParams, Diagnostic, DiagnosticSeverity, Hover, HoverParams, LocationLink, Position, Range } from 'vscode-languageserver'
 import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
-import { ElementContext } from './ElementContext'
+import { ElementTextDocumentContext } from './ElementContext'
 import { ElementInterface } from './ElementInterface'
 import { XLIFFService } from '../common/XLIFFService'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
@@ -14,7 +14,7 @@ export class TranslationElement implements ElementInterface<TranslationShortHand
 		return node instanceof TranslationShortHandNode
 	}
 
-	async onHover(context: ElementContext<HoverParams, TranslationShortHandNode>): Promise<Hover | null | undefined> {
+	async onHover(context: ElementTextDocumentContext<HoverParams, TranslationShortHandNode>): Promise<Hover | null | undefined> {
 		const shortHandIdentifier = XLIFFService.readShortHandIdentifier(context.foundNodeByLine!.getNode().getValue())
 		const translationFiles = await XLIFFService.getMatchingTranslationFiles(context.workspace, shortHandIdentifier)
 
@@ -51,7 +51,7 @@ export class TranslationElement implements ElementInterface<TranslationShortHand
 	}
 
 
-	async onCompletion(context: ElementContext<CompletionParams, TranslationShortHandNode>): Promise<CompletionItem[] | CompletionList | null | undefined> {
+	async onCompletion(context: ElementTextDocumentContext<CompletionParams, TranslationShortHandNode>): Promise<CompletionItem[] | CompletionList | null | undefined> {
 		const node = context.foundNodeByLine!.getNode()
 
 		const shortHandIdentifier = node.getShortHandIdentifier()
@@ -106,7 +106,7 @@ export class TranslationElement implements ElementInterface<TranslationShortHand
 		return []
 	}
 
-	async onDefinition(context: ElementContext<DefinitionParams, TranslationShortHandNode>): Promise<LocationLink[] | Definition | null | undefined> {
+	async onDefinition(context: ElementTextDocumentContext<DefinitionParams, TranslationShortHandNode>): Promise<LocationLink[] | Definition | null | undefined> {
 		const shortHandIdentifier = XLIFFService.readShortHandIdentifier(context.foundNodeByLine!.getNode().getValue())
 		const translationFiles = await XLIFFService.getMatchingTranslationFiles(context.workspace, shortHandIdentifier)
 

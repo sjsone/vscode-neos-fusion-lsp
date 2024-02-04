@@ -1,5 +1,5 @@
 import { DefinitionParams, Definition, LocationLink, Location } from 'vscode-languageserver'
-import { ElementContext } from './ElementContext'
+import { ElementTextDocumentContext } from './ElementContext'
 import { ElementInterface } from './ElementInterface'
 import { ParsedFileCapabilityContext } from '../capabilities/CapabilityContext'
 import { LinePositionedNode } from '../common/LinePositionedNode'
@@ -15,7 +15,7 @@ export class RoutingElement extends Logger implements ElementInterface<RoutingCo
 		return node instanceof RoutingControllerNode || node instanceof RoutingActionNode
 	}
 
-	async onDefinition(context: ElementContext<DefinitionParams, RoutingControllerNode | RoutingActionNode>): Promise<LocationLink[] | Definition | null | undefined> {
+	async onDefinition(context: ElementTextDocumentContext<DefinitionParams, RoutingControllerNode | RoutingActionNode>): Promise<LocationLink[] | Definition | null | undefined> {
 		const foundNodeByLine = context.foundNodeByLine!
 		const node = foundNodeByLine.getNode()
 
@@ -25,7 +25,7 @@ export class RoutingElement extends Logger implements ElementInterface<RoutingCo
 		return null
 	}
 
-	getRoutingControllerNode(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<RoutingControllerNode>, context: ElementContext<DefinitionParams, RoutingControllerNode | RoutingActionNode>): null | LocationLink[] {
+	getRoutingControllerNode(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<RoutingControllerNode>, context: ElementTextDocumentContext<DefinitionParams, RoutingControllerNode | RoutingActionNode>): null | LocationLink[] {
 		const node = foundNodeByLine.getNode()
 
 		const classDefinition = RoutingControllerNode.getClassDefinitionFromRoutingControllerNode(parsedFile, workspace, node)

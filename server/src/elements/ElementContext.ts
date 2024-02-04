@@ -4,19 +4,26 @@ import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { LanguageServer } from '../LanguageServer'
 import { ElementContextParams } from './ElementInterface'
+import { WorkspaceSymbolParams } from 'vscode-languageserver'
 
-
-export interface ElementContext<Params, Node extends AbstractNode> {
+export interface ElementTextDocumentContext<Params, Node extends AbstractNode> {
 	workspace: FusionWorkspace
-	parsedFile?: ParsedFusionFile
+	parsedFile: ParsedFusionFile
 	foundNodeByLine?: LinePositionedNode<Node>,
 	params: Params
 }
+
+export interface ElementWorkspacesContext {
+	workspaces: FusionWorkspace[],
+	params: WorkspaceSymbolParams
+}
+
 export namespace ElementContext {
-	export const createFromParams = <Params extends ElementContextParams>(languageServer: LanguageServer, params: Params): null | ElementContext<Params, AbstractNode> => {
-		if (!('textDocument' in params)) {
-			return null
-		}
+	export const createFromParams = <Params extends ElementContextParams>(languageServer: LanguageServer, params: Params): null | ElementTextDocumentContext<Params, AbstractNode> | ElementWorkspacesContext => {
+		if (!('textDocument' in params)) return {
+			workspaces: languageServer.fusionWorkspaces,
+			params
+		} as ElementWorkspacesContext
 
 		const uri = params.textDocument.uri
 
@@ -32,7 +39,7 @@ export namespace ElementContext {
 			return null
 		}
 
-		const context: ElementContext<Params, AbstractNode> = {
+		const context: ElementTextDocumentContext<Params, AbstractNode> = {
 			workspace,
 			parsedFile,
 			params

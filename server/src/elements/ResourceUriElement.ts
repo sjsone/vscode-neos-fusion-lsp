@@ -6,7 +6,7 @@ import { Logger } from '../common/Logging'
 import { pathToUri } from '../common/util'
 import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
 import { NeosPackage } from '../neos/NeosPackage'
-import { ElementContext } from './ElementContext'
+import { ElementTextDocumentContext } from './ElementContext'
 import { ElementHelper } from './ElementHelper'
 import { ElementInterface } from './ElementInterface'
 
@@ -15,7 +15,7 @@ export class ResourceUriElement extends Logger implements ElementInterface<Resou
 		return node instanceof ResourceUriNode
 	}
 
-	async onDefinition(context: ElementContext<DefinitionParams, ResourceUriNode>): Promise<LocationLink[] | Definition | null | undefined> {
+	async onDefinition(context: ElementTextDocumentContext<DefinitionParams, ResourceUriNode>): Promise<LocationLink[] | Definition | null | undefined> {
 		const node = context.foundNodeByLine!.getNode()
 		if (!node.canBeFound()) {
 			this.logDebug("ResourceURI cannot be found")
@@ -43,7 +43,7 @@ export class ResourceUriElement extends Logger implements ElementInterface<Resou
 		}]
 	}
 
-	async onCompletion(context: ElementContext<CompletionParams, ResourceUriNode>): Promise<CompletionItem[] | CompletionList | null | undefined> {
+	async onCompletion(context: ElementTextDocumentContext<CompletionParams, ResourceUriNode>): Promise<CompletionItem[] | CompletionList | null | undefined> {
 		const node = context.foundNodeByLine!.getNode()
 
 		const identifierMatch = /resource:\/\/(.*?)\//.exec(node.identifier)
@@ -85,7 +85,7 @@ export class ResourceUriElement extends Logger implements ElementInterface<Resou
 		return completions
 	}
 
-	async onHover(context: ElementContext<HoverParams, ResourceUriNode>): Promise<Hover | null | undefined> {
+	async onHover(context: ElementTextDocumentContext<HoverParams, ResourceUriNode>): Promise<Hover | null | undefined> {
 		const node = context.foundNodeByLine!.getNode()
 
 		if (!node.canBeFound()) return null

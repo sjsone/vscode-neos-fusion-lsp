@@ -4,7 +4,7 @@ import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, D
 import * as YAML from 'yaml'
 import { Logger } from '../common/Logging'
 import { FlowConfigurationPathPartNode } from '../fusion/FlowConfigurationPathPartNode'
-import { ElementContext } from './ElementContext'
+import { ElementTextDocumentContext } from './ElementContext'
 import { ElementHelper } from './ElementHelper'
 import { ElementInterface } from './ElementInterface'
 
@@ -13,7 +13,7 @@ export class FlowConfigurationElement extends Logger implements ElementInterface
 		return node instanceof FlowConfigurationPathPartNode
 	}
 
-	async onCompletion(context: ElementContext<CompletionParams, FlowConfigurationPathPartNode>): Promise<CompletionItem[] | CompletionList | null | undefined> {
+	async onCompletion(context: ElementTextDocumentContext<CompletionParams, FlowConfigurationPathPartNode>): Promise<CompletionItem[] | CompletionList | null | undefined> {
 		const partNode = context.foundNodeByLine!
 
 		const completions: CompletionItem[] = []
@@ -54,7 +54,7 @@ export class FlowConfigurationElement extends Logger implements ElementInterface
 		return completions
 	}
 
-	async onHover(context: ElementContext<HoverParams, FlowConfigurationPathPartNode>): Promise<Hover | null | undefined> {
+	async onHover(context: ElementTextDocumentContext<HoverParams, FlowConfigurationPathPartNode>): Promise<Hover | null | undefined> {
 		const partNode = context.foundNodeByLine!.getNode()
 		const node = partNode["parent"]
 
@@ -84,7 +84,7 @@ export class FlowConfigurationElement extends Logger implements ElementInterface
 		return ElementHelper.createHover(markdown, context.foundNodeByLine!)
 	}
 
-	async onDefinition(context: ElementContext<DefinitionParams, FlowConfigurationPathPartNode>): Promise<LocationLink[] | Definition | null | undefined> {
+	async onDefinition(context: ElementTextDocumentContext<DefinitionParams, FlowConfigurationPathPartNode>): Promise<LocationLink[] | Definition | null | undefined> {
 		const partNode = context.foundNodeByLine!.getNode()
 		const node = partNode["parent"]
 

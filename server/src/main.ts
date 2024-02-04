@@ -5,7 +5,6 @@ import {
     createConnection
 } from "vscode-languageserver/node"
 import { LanguageServer } from './LanguageServer'
-import { DefinitionCapability } from './capabilities/DefinitionCapability'
 import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
 import { HoverCapability } from './capabilities/HoverCapability'
 import { RenameCapability } from './capabilities/RenameCapability'

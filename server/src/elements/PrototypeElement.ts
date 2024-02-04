@@ -8,7 +8,7 @@ import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, D
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { Logger } from '../common/Logging'
 import { abstractNodeToString, findParent, getPrototypeNameFromNode } from '../common/util'
-import { ElementContext } from './ElementContext'
+import { ElementTextDocumentContext } from './ElementContext'
 import { ElementHelper } from './ElementHelper'
 import { ElementInterface } from './ElementInterface'
 
@@ -17,7 +17,7 @@ export class PrototypeElement extends Logger implements ElementInterface<FusionO
 		return node instanceof FusionObjectValue || node instanceof PrototypePathSegment
 	}
 
-	async onCompletion(context: ElementContext<CompletionParams, any>): Promise<CompletionItem[] | CompletionList | null | undefined> {
+	async onCompletion(context: ElementTextDocumentContext<CompletionParams, any>): Promise<CompletionItem[] | CompletionList | null | undefined> {
 		const completions: CompletionItem[] = []
 
 		const foundNodes = context.workspace.getNodesByType(PrototypePathSegment)
@@ -35,7 +35,7 @@ export class PrototypeElement extends Logger implements ElementInterface<FusionO
 		return completions
 	}
 
-	async onDefinition(context: ElementContext<DefinitionParams, FusionObjectValue | PrototypePathSegment>): Promise<LocationLink[] | Definition | null | undefined> {
+	async onDefinition(context: ElementTextDocumentContext<DefinitionParams, FusionObjectValue | PrototypePathSegment>): Promise<LocationLink[] | Definition | null | undefined> {
 		const goToPrototypeName = getPrototypeNameFromNode(context.foundNodeByLine!.getNode())
 		if (goToPrototypeName === "") {
 			this.logDebug("No PrototypeName found for this node")
@@ -59,7 +59,7 @@ export class PrototypeElement extends Logger implements ElementInterface<FusionO
 		return locations
 	}
 
-	async onHover(context: ElementContext<HoverParams, FusionObjectValue | PrototypePathSegment>): Promise<Hover | null | undefined> {
+	async onHover(context: ElementTextDocumentContext<HoverParams, FusionObjectValue | PrototypePathSegment>): Promise<Hover | null | undefined> {
 		const prototypeName = getPrototypeNameFromNode(context.foundNodeByLine!.getNode())
 		if (prototypeName === null) return null
 
@@ -102,7 +102,7 @@ export class PrototypeElement extends Logger implements ElementInterface<FusionO
 		}
 	}
 
-	async onReferences(context: ElementContext<ReferenceParams, AbstractNode>): Promise<Location[] | null | undefined> {
+	async onReferences(context: ElementTextDocumentContext<ReferenceParams, AbstractNode>): Promise<Location[] | null | undefined> {
 		const node = context.foundNodeByLine!.getNode()
 		const prototypeName = getPrototypeNameFromNode(node)
 		if (prototypeName!) return null

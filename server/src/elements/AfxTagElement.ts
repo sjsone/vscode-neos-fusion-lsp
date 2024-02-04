@@ -8,7 +8,7 @@ import { LinePositionedNode } from '../common/LinePositionedNode'
 import { findParent, getObjectIdentifier } from '../common/util'
 import { NeosFusionFormActionNode } from '../fusion/node/NeosFusionFormActionNode'
 import { NeosFusionFormControllerNode } from '../fusion/node/NeosFusionFormControllerNode'
-import { ElementContext } from './ElementContext'
+import { ElementTextDocumentContext } from './ElementContext'
 import { ElementFunctionalityInterface, ElementInterface } from './ElementInterface'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
@@ -20,7 +20,7 @@ export class AfxTagElement implements ElementInterface<TagAttributeNode | TagNod
 		return node instanceof TagAttributeNode || node instanceof TagNode
 	}
 
-	async onDefinition(context: ElementContext<DefinitionParams, TagAttributeNode>): Promise<LocationLink[] | Definition | null | undefined> {
+	async onDefinition(context: ElementTextDocumentContext<DefinitionParams, TagAttributeNode>): Promise<LocationLink[] | Definition | null | undefined> {
 		const foundNodeByLine = context.foundNodeByLine!
 		const node = foundNodeByLine.getNode()
 		const tagNode = findParent(node, TagNode)
@@ -64,7 +64,7 @@ export class AfxTagElement implements ElementInterface<TagAttributeNode | TagNod
 		return locationLinks
 	}
 
-	async onCompletion(context: ElementContext<CompletionParams, TagAttributeNode | TagNode>): Promise<CompletionItem[] | CompletionList | null | undefined> {
+	async onCompletion(context: ElementTextDocumentContext<CompletionParams, TagAttributeNode | TagNode>): Promise<CompletionItem[] | CompletionList | null | undefined> {
 		if (context.foundNodeByLine!.getNode() instanceof TagAttributeNode) return this.getTagAttributeNodeCompletions(context.workspace, <LinePositionedNode<TagAttributeNode>>context.foundNodeByLine!)
 		if (context.foundNodeByLine!.getNode() instanceof TagNode) return this.getTagNodeCompletions(context.workspace, <LinePositionedNode<TagNode>>context.foundNodeByLine!)
 		return null

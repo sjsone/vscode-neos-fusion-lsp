@@ -1,4 +1,4 @@
-import { CodeAction, CodeActionParams } from 'vscode-languageserver'
+import { CodeAction, CodeActionParams, UniquenessLevel } from 'vscode-languageserver'
 import {
 	DidChangeConfigurationParams,
 	DidChangeWatchedFilesParams,
@@ -19,7 +19,6 @@ import { createNodeTypeFileAction } from './actions/CreateNodeTypeFileAction'
 import { openDocumentationAction } from './actions/OpenDocumentationAction'
 import { replaceDeprecatedQuickFixAction } from './actions/ReplaceDeprecatedQuickFixAction'
 import { AbstractCapability } from './capabilities/AbstractCapability'
-import { DefinitionCapability } from './capabilities/DefinitionCapability'
 import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
 import { HoverCapability } from './capabilities/HoverCapability'
 import { RenameCapability } from './capabilities/RenameCapability'
@@ -55,6 +54,7 @@ import { ElementHelper } from './elements/ElementHelper'
 import { AfxTagElement } from './elements/AfxTagElement'
 import { EelHelperElement } from './elements/EelHelperElement'
 import { FusionPropertyElement } from './elements/FusionPropertyElement'
+import { ControllerActionElement } from './elements/ControllerActionElement'
 
 
 const CodeActions = [
@@ -91,6 +91,7 @@ export class LanguageServer extends Logger {
 		this.addElement(AfxTagElement)
 		this.addElement(NodeTypeElement)
 		this.addElement(CommentElement)
+		this.addElement(ControllerActionElement)
 		this.addElement(EelHelperElement)
 		this.addElement(FlowConfigurationElement)
 		this.addElement(FqcnElement)
@@ -101,7 +102,6 @@ export class LanguageServer extends Logger {
 		this.addElement(RoutingElement)
 		this.addElement(TranslationElement)
 
-		this.addFunctionalityInstance(DefinitionCapability)
 		this.addFunctionalityInstance(HoverCapability)
 		this.addFunctionalityInstance(DocumentSymbolCapability)
 		this.addFunctionalityInstance(WorkspaceSymbolCapability)
@@ -124,14 +124,15 @@ export class LanguageServer extends Logger {
 			const context = ElementContext.createFromParams(this, params)
 			if (!context) return null
 
-			const node = context.foundNodeByLine?.getNode()
+			const node = "foundNodeByLine" in context ? context.foundNodeByLine?.getNode() : undefined
 
 			for (const element of this.elements) {
 				if (!(method in element)) continue
 				if (!element.isResponsible(method, node)) continue
 
 				const result = await element[method]!(<any>context)
-				if (method === "onSignatureHelp") return result
+				if (ElementHelper.returnOnFirstResult(method)) return result
+
 				if (Array.isArray(result)) results.push(...result)
 				else if (result) results.push(result)
 			}

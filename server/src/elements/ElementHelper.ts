@@ -33,6 +33,10 @@ export class ElementHelper {
 		}
 	}
 
+	static returnOnFirstResult(method: ElementMethod) {
+		return method === "onSignatureHelp"
+	}
+
 	static createHover(markdown: string, foundNodeByLine: LinePositionedNode<AbstractNode>) {
 		return {
 			contents: { kind: "markdown", value: markdown },

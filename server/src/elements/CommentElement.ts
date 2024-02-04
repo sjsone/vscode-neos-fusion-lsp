@@ -1,6 +1,6 @@
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { CompletionParams, CompletionItem, CompletionList, CompletionItemKind, InsertTextMode } from 'vscode-languageserver'
-import { ElementContext } from './ElementContext'
+import { ElementTextDocumentContext } from './ElementContext'
 import { ElementInterface } from './ElementInterface'
 import { SemanticCommentType } from '../common/SemanticCommentService'
 import { Comment } from 'ts-fusion-parser/out/common/Comment'
@@ -10,7 +10,7 @@ export class CommentElement implements ElementInterface<Comment> {
 		return node instanceof Comment
 	}
 
-	async onCompletion(context: ElementContext<CompletionParams, Comment>): Promise<CompletionItem[] | CompletionList | null | undefined> {
+	async onCompletion(context: ElementTextDocumentContext<CompletionParams, Comment>): Promise<CompletionItem[] | CompletionList | null | undefined> {
 		const foundNode = context.foundNodeByLine!
 		const completions: CompletionItem[] = []
 

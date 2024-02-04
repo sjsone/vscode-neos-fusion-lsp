@@ -3,7 +3,7 @@ import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
-import { Command, CompletionItem, CompletionItemKind, CompletionList, CompletionParams, InsertTextFormat } from 'vscode-languageserver'
+import { Command, CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionParams, InsertTextFormat, LocationLink } from 'vscode-languageserver'
 import { ExternalObjectStatement, LegacyNodeService } from '../common/LegacyNodeService'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { NodeService } from '../common/NodeService'
@@ -11,9 +11,10 @@ import { findParent } from '../common/util'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
-import { ElementContext } from './ElementContext'
+import { ElementTextDocumentContext } from './ElementContext'
 import { ElementHelper } from './ElementHelper'
 import { ElementFunctionalityInterface, ElementInterface } from './ElementInterface'
+import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue'
 
 const BuiltInCompletions = {
 	prototypeCompletion: {
@@ -25,14 +26,74 @@ const BuiltInCompletions = {
 }
 
 export class FusionPropertyElement implements ElementInterface<PathSegment | ObjectNode | ObjectPathNode | ObjectStatement> {
-
-
-
 	isResponsible(methodName: keyof ElementFunctionalityInterface<AbstractNode>, node: AbstractNode | undefined): boolean {
+		if (methodName === "onDefinition") return node instanceof PathSegment || node instanceof ObjectPathNode
 		return node instanceof PathSegment || node instanceof ObjectNode || node instanceof ObjectPathNode || node instanceof ObjectStatement
 	}
 
-	async onCompletion(context: ElementContext<CompletionParams, AbstractNode>): Promise<CompletionItem[] | CompletionList | null | undefined> {
+	async onDefinition(context: ElementTextDocumentContext<DefinitionParams, PathSegment | ObjectPathNode>): Promise<LocationLink[] | Definition | null | undefined> {
+		// PathSegment
+		// ObjectPathNode
+
+		const node = <PathSegment | ObjectPathNode>context.foundNodeByLine!.getNode()
+		const objectNode = node.parent
+		if (!(objectNode instanceof ObjectNode)) return null
+
+		const isThisProperty = objectNode.path[0].value === "this"
+		const isPropsProperty = objectNode.path[0].value === "props"
+
+		if ((!isThisProperty && !isPropsProperty) || objectNode.path.length === 1) {
+			// TODO: handle context properties
+			return null
+		}
+
+		if (isThisProperty) {
+			const isObjectNodeInDsl = findParent(node, DslExpressionValue) !== undefined
+			// TODO: handle `this.foo` in AFX
+			if (isObjectNodeInDsl) return null
+
+			const objectStatement = findParent(objectNode, ObjectStatement)
+			if (!objectStatement) return null
+			const prototypeName = LegacyNodeService.findPrototypeName(objectStatement)
+			if (!prototypeName) return null
+
+			for (const property of LegacyNodeService.getInheritedPropertiesByPrototypeName(prototypeName, context.workspace)) {
+				const firstPropertyPathSegment = property.statement.path.segments[0]
+				if (firstPropertyPathSegment.identifier === objectNode.path[1].value) {
+					return [{
+						uri: property.uri!,
+						range: firstPropertyPathSegment.linePositionedNode.getPositionAsRange()
+					}]
+				}
+			}
+			return null
+		}
+
+		const { foundIgnoreComment, foundIgnoreBlockComment } = LegacyNodeService.getSemanticCommentsNodeIsAffectedBy(objectNode, context.parsedFile!)
+		if (foundIgnoreComment) return [{
+			uri: context.parsedFile!.uri,
+			range: foundIgnoreComment.getPositionAsRange()
+		}]
+		if (foundIgnoreBlockComment) return [{
+			uri: context.parsedFile!.uri,
+			range: foundIgnoreBlockComment.getPositionAsRange()
+		}]
+
+		const segment = LegacyNodeService.findPropertyDefinitionSegment(objectNode, context.workspace, true)
+		if (!segment) return null
+
+		if (segment instanceof PathSegment) return [{
+			uri: context.parsedFile!.uri,
+			range: segment.linePositionedNode.getPositionAsRange()
+		}]
+
+		return [{
+			uri: segment.uri!,
+			range: segment.statement.path.segments[0].linePositionedNode.getPositionAsRange()
+		}]
+	}
+
+	async onCompletion(context: ElementTextDocumentContext<CompletionParams, AbstractNode>): Promise<CompletionItem[] | CompletionList | null | undefined> {
 		const foundNode = context.foundNodeByLine!.getNode()
 
 		if (foundNode instanceof PathSegment)
