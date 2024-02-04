@@ -8,13 +8,12 @@ import { FlowConfiguration } from './FlowConfiguration'
 import { EELHelperToken, NeosPackage } from './NeosPackage'
 
 export class NeosWorkspace extends Logger {
-	protected fusionWorkspace: FusionWorkspace
 	protected workspacePath: string
 	public configurationManager: ConfigurationManager
 
 	protected packages: Map<string, NeosPackage> = new Map()
 
-	constructor(fusionWorkspace: FusionWorkspace) {
+	constructor(public fusionWorkspace: FusionWorkspace) {
 		super(fusionWorkspace.name)
 		this.fusionWorkspace = fusionWorkspace
 		this.workspacePath = uriToPath(fusionWorkspace.uri)
