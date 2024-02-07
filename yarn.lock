@@ -14,10 +14,10 @@ strnum@^1.0.5:
   resolved "https://registry.yarnpkg.com/strnum/-/strnum-1.0.5.tgz#5c4e829fe15ad4ff0d20c3db5ac97b73c9b072db"
   integrity sha512-J8bbNyKKXl5qYcR36TIO8W3mVGVHrmmxsd5PAItGkmyzwJvybiw2IVq5nqd0i4LSNSkB/sx9VHllbfFdr9k1JA==
 
-ts-fusion-parser@^0.1.40:
-  version "0.1.40"
-  resolved "https://registry.yarnpkg.com/ts-fusion-parser/-/ts-fusion-parser-0.1.40.tgz#1c0d352a3cf85d2fe30b108a33dcde3df534f536"
-  integrity sha512-SVjP2RLo05k0O//QQz/QDfSjkUejtgThV1j5eqeFyoaNHFZIWlMVi6UoGTLTMcK9qjdwv37YFjWZwmK1SxeDIQ==
+ts-fusion-parser@^0.1.43:
+  version "0.1.43"
+  resolved "https://registry.yarnpkg.com/ts-fusion-parser/-/ts-fusion-parser-0.1.43.tgz#ce9f23c2441d06376d90845c74a988d6c5330ed1"
+  integrity sha512-ZiqkfhnmWMfM8h8Nqgyeys0b1OaVc8y6/f21OeJ9FBB4Mrr9PaNQrdPKE3vEyfhpCFm6je9gAhgbiHDsd14BVQ==
 
 vscode-jsonrpc@8.1.0:
   version "8.1.0"
