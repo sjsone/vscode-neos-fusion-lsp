@@ -1,4 +1,8 @@
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { Comment } from 'ts-fusion-parser/out/common/Comment'
+import { InlineEelNode } from 'ts-fusion-parser/out/dsl/afx/nodes/InlineEelNode'
+import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
+import { TextNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TextNode'
 import { LiteralArrayNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralArrayNode'
 import { BoolValue } from 'ts-fusion-parser/out/fusion/nodes/BoolValue'
 import { CharValue } from 'ts-fusion-parser/out/fusion/nodes/CharValue'
@@ -87,10 +91,13 @@ export class DocumentSymbolCapability extends AbstractCapability {
 		if (this.alreadyParsedPrototypes.includes(node)) return null
 		this.alreadyParsedPrototypes.push(node)
 
-		const range = node.linePositionedNode.getPositionAsRange()
 		const symbols: DocumentSymbol[] = []
+
+		let range = node.linePositionedNode.getPositionAsRange()
+
 		const objectStatement = findParent(node, ObjectStatement)
 		if (objectStatement?.block) {
+			range = objectStatement.block.linePositionedNode.getPositionAsRange()
 			for (const statement of objectStatement.block.statementList.statements) {
 				const symbol = this.createDocumentSymbolFromPositionedNode(statement.linePositionedNode, undefined, SymbolKind.Interface)
 				if (symbol) symbols.push(symbol)
@@ -102,16 +109,21 @@ export class DocumentSymbolCapability extends AbstractCapability {
 
 	protected createDocumentSymbolFromPositionedObjectStatement(node: ObjectStatement): null | DocumentSymbol {
 		const firstSegment = node.path.segments[0]
-		const range = firstSegment.linePositionedNode.getPositionAsRange()
 
 		if (firstSegment instanceof PrototypePathSegment) {
 			return this.createDocumentSymbolFromPositionedNode(firstSegment.linePositionedNode, undefined, SymbolKind.Interface)
 		}
 
+		if (node.operation && node.operation instanceof ValueAssignment && node.operation.pathValue instanceof DslExpressionValue) {
+			return this.createDocumentSymbolForPositionedDslNode(node)
+		}
+
 		if (node.operation && node.operation instanceof ValueUnset) return null
 
+		let range = firstSegment.linePositionedNode.getPositionAsRange()
 		const symbols: DocumentSymbol[] = []
 		if (node.block) {
+			range = node.block.linePositionedNode.getPositionAsRange()
 			for (const statement of node.block.statementList.statements) {
 				const symbol = this.createDocumentSymbolFromPositionedNode(statement.linePositionedNode, undefined, SymbolKind.Interface)
 				if (symbol) symbols.push(symbol)
@@ -120,6 +132,43 @@ export class DocumentSymbolCapability extends AbstractCapability {
 
 		const { detail, kind } = this.getKindAndDetailForObjectStatement(node)
 		return DocumentSymbol.create(getObjectIdentifier(node), detail, kind, range, range, symbols)
+	}
+
+	protected createDocumentSymbolForPositionedDslNode(node: ObjectStatement) {
+		if (!node.operation) return null
+		if (!(node.operation instanceof ValueAssignment)) return null
+		if (!(node.operation.pathValue instanceof DslExpressionValue)) return null
+
+		const dslExpression = node.operation.pathValue
+		const range = dslExpression.linePositionedNode.getPositionAsRange()
+
+		const symbols: DocumentSymbol[] = []
+		for (const htmlNode of dslExpression.htmlNodes) {
+			const symbol = this.createDocumentSymbolFromAFXNode(htmlNode)
+			if (symbol) symbols.push(symbol)
+		}
+
+		const { detail, kind } = this.getKindAndDetailForObjectStatement(node)
+		return DocumentSymbol.create(getObjectIdentifier(node), detail, kind, range, range, symbols)
+	}
+
+	protected createDocumentSymbolFromAFXNode(node: TextNode | InlineEelNode | TagNode | Comment) {
+		const range = node.linePositionedNode.getPositionAsRange()
+
+		if (node instanceof TagNode) {
+			const selfClosingNamePart = node.selfClosing ? ' /' : ''
+			const name = `<${node.name}${selfClosingNamePart}>`
+
+			const symbols: DocumentSymbol[] = []
+			for (const htmlNode of node.content) {
+				const symbol = this.createDocumentSymbolFromAFXNode(htmlNode)
+				if (symbol) symbols.push(symbol)
+			}
+
+			return DocumentSymbol.create(name, undefined, SymbolKind.Field, range, range, symbols)
+		}
+
+		return null
 	}
 
 	protected createDocumentSymbolFromPositionedNode(positionedNode: LinePositionedNode<AbstractNode>, detail = '', kind: SymbolKind = SymbolKind.Class) {
