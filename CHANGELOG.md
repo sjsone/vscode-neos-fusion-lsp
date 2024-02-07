@@ -13,6 +13,10 @@
   - Autocompletion and Hover for the `Configuration.setting()` EEL-Helper
 - Integration of the WIP [`ts-fusion-runtime`](https://www.npmjs.com/package/ts-fusion-runtime) to correctly resolve Fusion properties
 
+## 🚀 0.3.15
+
+- improvement: DocumentSymbols now provide correct ranges to make Sticky Scroll `editor.stickyScroll.enabled` work
+
 ## 🚀 0.3.14
 
 - feature: Additional `$` before an EEL-Expression inside AFX will now be diagnosed
