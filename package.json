@@ -1,7 +1,7 @@
 {
     "name": "vscode-neos-fusion-lsp-server",
     "description": "Neos Fusion Language Server",
-    "version": "0.5.0",
+    "version": "0.5.1",
     "author": "Simon J. Schmidt",
     "license": "MIT",
     "publisher": "SimonSchmidt",
