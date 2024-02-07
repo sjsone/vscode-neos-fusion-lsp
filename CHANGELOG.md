@@ -7,6 +7,10 @@
 
 ## 🪐🔭 *Upcoming*
 
+## 🧪 0.5.1
+
+- merged: 0.3.15
+
 ## 🧪 0.5.0
 
 - change: changed Neos to Neos
