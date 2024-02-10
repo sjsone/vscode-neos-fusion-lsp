@@ -15,6 +15,7 @@ class ComposerService {
 
 		for (const packagePath of packagesPaths) {
 			const composerJsonPath = NodePath.join(packagePath, "composer.json")
+			if (!NodeFs.existsSync(composerJsonPath)) continue
 			const composerJson = JSON.parse(NodeFs.readFileSync(composerJsonPath).toString())
 			if (composerJson.type === "neos-site") pseudoRootPackage.require[composerJson.name] = "0.0.0"
 			this.parsedComposerJsonByName[composerJson.name] = composerJson

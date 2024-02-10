@@ -1,15 +1,15 @@
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { HoverParams, Hover } from 'vscode-languageserver';
-import { ElementTextDocumentContext } from './ElementContext';
-import { ElementFunctionalityInterface, ElementInterface } from './ElementInterface';
-import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode';
-import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode';
-import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement';
-import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment';
-import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment';
-import { LegacyNodeService, ExternalObjectStatement } from '../common/LegacyNodeService';
-import { findParent, abstractNodeToString } from '../common/util';
-import { ElementHelper } from './ElementHelper';
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { HoverParams, Hover } from 'vscode-languageserver'
+import { ElementTextDocumentContext } from './ElementContext'
+import { ElementFunctionalityInterface, ElementInterface } from './ElementInterface'
+import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
+import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
+import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
+import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
+import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
+import { LegacyNodeService, ExternalObjectStatement } from '../common/LegacyNodeService'
+import { findParent, abstractNodeToString } from '../common/util'
+import { ElementHelper } from './ElementHelper'
 
 export class EelElement implements ElementInterface<ObjectPathNode> {
 

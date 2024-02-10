@@ -5,9 +5,6 @@ import {
     createConnection
 } from "vscode-languageserver/node"
 import { LanguageServer } from './LanguageServer'
-import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
-import { RenameCapability } from './capabilities/RenameCapability'
-import { RenamePrepareCapability } from './capabilities/RenamePrepareCapability'
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 
@@ -33,11 +30,11 @@ connection.onReferences(params => languageserver.runElements("onReferences", par
 connection.onCompletion(params => languageserver.runElements("onCompletion", params))
 connection.onCompletionResolve(item => item)
 connection.onHover(params => languageserver.runElements("onHover", params))
-connection.onDocumentSymbol(params => languageserver.runCapability(DocumentSymbolCapability, params))
+connection.onDocumentSymbol(params => languageserver.runElements("onDocumentSymbol", params))
 connection.onWorkspaceSymbol(params => languageserver.runElements("onWorkspaceSymbol", <any>params))
 connection.onCodeLens(params => languageserver.runElements("onCodeLens", params))
-connection.onPrepareRename(params => languageserver.runCapability(RenamePrepareCapability, params))
-connection.onRenameRequest(params => languageserver.runCapability(RenameCapability, params))
+connection.onPrepareRename(params => languageserver.runElements("onPrepareRename", params))
+connection.onRenameRequest(params => languageserver.runElements("onRenameRequest", params))
 connection.onSignatureHelp(params => languageserver.runElements("onSignatureHelp", params))
 connection.onCodeAction(params => languageserver.onCodeAction(params))
 

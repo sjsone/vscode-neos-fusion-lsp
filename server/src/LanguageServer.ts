@@ -1,4 +1,4 @@
-import { CodeAction, CodeActionParams, UniquenessLevel } from 'vscode-languageserver'
+import { CodeAction, CodeActionParams } from 'vscode-languageserver'
 import {
 	DidChangeConfigurationParams,
 	DidChangeWatchedFilesParams,
@@ -18,19 +18,21 @@ import { addFusionNoAutoincludeNeededSemanticCommentAction } from './actions/Add
 import { createNodeTypeFileAction } from './actions/CreateNodeTypeFileAction'
 import { openDocumentationAction } from './actions/OpenDocumentationAction'
 import { replaceDeprecatedQuickFixAction } from './actions/ReplaceDeprecatedQuickFixAction'
-import { AbstractCapability } from './capabilities/AbstractCapability'
-import { DocumentSymbolCapability } from './capabilities/DocumentSymbolCapability'
-import { RenameCapability } from './capabilities/RenameCapability'
-import { RenamePrepareCapability } from './capabilities/RenamePrepareCapability'
 import { AbstractFunctionality } from './common/AbstractFunctionality'
 import { ClientCapabilityService } from './common/ClientCapabilityService'
 import { LogService, Logger } from './common/Logging'
 import { clearLineDataCache, uriToPath } from './common/util'
+import { AfxTagElement } from './elements/AfxTagElement'
 import { CommentElement } from './elements/CommentElement'
+import { ControllerActionElement } from './elements/ControllerActionElement'
+import { EelElement } from './elements/EelElement'
+import { EelHelperElement } from './elements/EelHelperElement'
 import { ElementContext } from './elements/ElementContext'
+import { ElementHelper } from './elements/ElementHelper'
 import { ElementContextParams, ElementInterface, ElementMethod } from './elements/ElementInterface'
 import { FlowConfigurationElement } from './elements/FlowConfigurationElement'
 import { FqcnElement } from './elements/FqcnElement'
+import { FusionPropertyElement } from './elements/FusionPropertyElement'
 import { NodeTypeElement } from './elements/NodeTypeElement'
 import { PrototypeElement } from './elements/PrototypeElement'
 import { ResourceUriElement } from './elements/ResourceUriElement'
@@ -48,12 +50,7 @@ import { AbstractLanguageFeatureParams } from './languageFeatures/LanguageFeatur
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { FusionDocument } from './main'
 import { ParsedYaml } from './neos/FlowConfigurationFile'
-import { ElementHelper } from './elements/ElementHelper'
-import { AfxTagElement } from './elements/AfxTagElement'
-import { EelHelperElement } from './elements/EelHelperElement'
-import { FusionPropertyElement } from './elements/FusionPropertyElement'
-import { ControllerActionElement } from './elements/ControllerActionElement'
-import { EelElement } from './elements/EelElement'
+import { DocumentSymbolsElement } from './elements/DocumentSymbolsElement'
 
 
 const CodeActions = [
@@ -91,6 +88,7 @@ export class LanguageServer extends Logger {
 		this.addElement(NodeTypeElement)
 		this.addElement(CommentElement)
 		this.addElement(ControllerActionElement)
+		this.addElement(DocumentSymbolsElement)
 		this.addElement(EelElement)
 		this.addElement(EelHelperElement)
 		this.addElement(FlowConfigurationElement)
@@ -102,9 +100,6 @@ export class LanguageServer extends Logger {
 		this.addElement(RoutingElement)
 		this.addElement(TranslationElement)
 
-		this.addFunctionalityInstance(DocumentSymbolCapability)
-		this.addFunctionalityInstance(RenamePrepareCapability)
-		this.addFunctionalityInstance(RenameCapability)
 
 		this.addFunctionalityInstance(InlayHintLanguageFeature)
 		this.addFunctionalityInstance(SemanticTokensLanguageFeature)
@@ -151,11 +146,6 @@ export class LanguageServer extends Logger {
 
 	public getFunctionalityInstance<T extends AbstractFunctionality>(type: new (...args: any[]) => T): T | undefined {
 		return <T | undefined>this.functionalityInstances.get(type)
-	}
-
-	public runCapability<T extends AbstractCapability>(type: new (...args: any[]) => T, params: any) {
-		const capability = this.getFunctionalityInstance<T>(type)
-		return capability ? capability.execute(params) : undefined
 	}
 
 	public runLanguageFeature<TT extends AbstractLanguageFeatureParams, T extends AbstractLanguageFeature<TT>>(type: new (...args: any[]) => T, params: any) {

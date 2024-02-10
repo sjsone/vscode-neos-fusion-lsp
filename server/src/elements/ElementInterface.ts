@@ -23,6 +23,8 @@ import {
 	HoverParams,
 	ImplementationParams,
 	Location,
+	PrepareRenameParams,
+	Range,
 	ReferenceParams,
 	RenameParams,
 	SignatureHelp,
@@ -52,6 +54,12 @@ export interface ElementFunctionalityInterface<N extends AbstractNode = Abstract
 	onCodeAction?(context: ElementTextDocumentContext<CodeActionParams, N>): Promise<(Command | CodeAction)[] | undefined | null>
 	onCodeLens?(context: ElementTextDocumentContext<CodeLensParams, N>): Promise<CodeLens[] | undefined | null>
 	onRenameRequest?(context: ElementTextDocumentContext<RenameParams, N>): Promise<WorkspaceEdit | undefined | null>
+	onPrepareRename?(context: ElementTextDocumentContext<PrepareRenameParams, N>): Promise<Range | {
+		range: Range;
+		placeholder: string;
+	} | {
+		defaultBehavior: boolean;
+	} | undefined | null>
 
 }
 

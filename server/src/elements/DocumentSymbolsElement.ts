@@ -1,35 +1,43 @@
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
-import { LiteralArrayNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralArrayNode'
-import { BoolValue } from 'ts-fusion-parser/out/fusion/nodes/BoolValue'
-import { CharValue } from 'ts-fusion-parser/out/fusion/nodes/CharValue'
-import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue'
-import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue'
-import { FloatValue } from 'ts-fusion-parser/out/fusion/nodes/FloatValue'
-import { FusionFile } from 'ts-fusion-parser/out/fusion/nodes/FusionFile'
-import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
-import { IntValue } from 'ts-fusion-parser/out/fusion/nodes/IntValue'
-import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/nodes/MetaPathSegment'
-import { NullValue } from 'ts-fusion-parser/out/fusion/nodes/NullValue'
-import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
-import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
-import { StatementList } from 'ts-fusion-parser/out/fusion/nodes/StatementList'
-import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
-import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
-import { ValueUnset } from 'ts-fusion-parser/out/fusion/nodes/ValueUnset'
-import { DocumentSymbol, SymbolKind } from 'vscode-languageserver'
-import { LinePositionedNode } from '../common/LinePositionedNode'
-import { findParent, getObjectIdentifier } from '../common/util'
-import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
-import { AbstractCapability } from './AbstractCapability'
-import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
+import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue';
+import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment';
+import { Logger } from '../common/Logging'
+import { ElementInterface } from './ElementInterface';
+import { DocumentSymbolParams, DocumentSymbol, SymbolInformation, SymbolKind } from 'vscode-languageserver';
+import { ElementTextDocumentContext } from './ElementContext';
+import { LiteralArrayNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralArrayNode';
+import { BoolValue } from 'ts-fusion-parser/out/fusion/nodes/BoolValue';
+import { CharValue } from 'ts-fusion-parser/out/fusion/nodes/CharValue';
+import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue';
+import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue';
+import { FloatValue } from 'ts-fusion-parser/out/fusion/nodes/FloatValue';
+import { FusionFile } from 'ts-fusion-parser/out/fusion/nodes/FusionFile';
+import { IntValue } from 'ts-fusion-parser/out/fusion/nodes/IntValue';
+import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/nodes/MetaPathSegment';
+import { NullValue } from 'ts-fusion-parser/out/fusion/nodes/NullValue';
+import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement';
+import { StatementList } from 'ts-fusion-parser/out/fusion/nodes/StatementList';
+import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment';
+import { ValueUnset } from 'ts-fusion-parser/out/fusion/nodes/ValueUnset';
+import { LinePositionedNode } from '../common/LinePositionedNode';
+import { findParent, getObjectIdentifier } from '../common/util';
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
+import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue';
+import { Comment } from 'ts-fusion-parser/out/common/Comment';
+import { InlineEelNode } from 'ts-fusion-parser/out/dsl/afx/nodes/InlineEelNode';
+import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode';
+import { TextNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TextNode';
 
-export class DocumentSymbolCapability extends AbstractCapability {
-	protected noPositionedNode = true
 
+export class DocumentSymbolsElement extends Logger implements ElementInterface<FusionObjectValue | PrototypePathSegment> {
 	protected alreadyParsedPrototypes: AbstractNode[] = []
 
-	protected run(context: CapabilityContext<AbstractNode>) {
-		const { parsedFile } = <ParsedFileCapabilityContext<AbstractNode>>context
+	isResponsible(methodName: keyof ElementInterface<AbstractNode>, node: AbstractNode | undefined): boolean {
+		return methodName === "onDocumentSymbol"
+	}
+
+	async onDocumentSymbol(context: ElementTextDocumentContext<DocumentSymbolParams, AbstractNode>): Promise<SymbolInformation[] | DocumentSymbol[] | null | undefined> {
+		const parsedFile = context.parsedFile
 		const symbols = this.getSymbolsFromParsedFile(parsedFile)
 
 		this.alreadyParsedPrototypes = []
@@ -87,10 +95,13 @@ export class DocumentSymbolCapability extends AbstractCapability {
 		if (this.alreadyParsedPrototypes.includes(node)) return null
 		this.alreadyParsedPrototypes.push(node)
 
-		const range = node.linePositionedNode.getPositionAsRange()
 		const symbols: DocumentSymbol[] = []
+
+		let range = node.linePositionedNode.getPositionAsRange()
+
 		const objectStatement = findParent(node, ObjectStatement)
 		if (objectStatement?.block) {
+			range = objectStatement.block.linePositionedNode.getPositionAsRange()
 			for (const statement of objectStatement.block.statementList.statements) {
 				const symbol = this.createDocumentSymbolFromPositionedNode(statement.linePositionedNode, undefined, SymbolKind.Interface)
 				if (symbol) symbols.push(symbol)
@@ -102,16 +113,21 @@ export class DocumentSymbolCapability extends AbstractCapability {
 
 	protected createDocumentSymbolFromPositionedObjectStatement(node: ObjectStatement): null | DocumentSymbol {
 		const firstSegment = node.path.segments[0]
-		const range = firstSegment.linePositionedNode.getPositionAsRange()
 
 		if (firstSegment instanceof PrototypePathSegment) {
 			return this.createDocumentSymbolFromPositionedNode(firstSegment.linePositionedNode, undefined, SymbolKind.Interface)
 		}
 
+		if (node.operation && node.operation instanceof ValueAssignment && node.operation.pathValue instanceof DslExpressionValue) {
+			return this.createDocumentSymbolForPositionedDslNode(node)
+		}
+
 		if (node.operation && node.operation instanceof ValueUnset) return null
 
+		let range = firstSegment.linePositionedNode.getPositionAsRange()
 		const symbols: DocumentSymbol[] = []
 		if (node.block) {
+			range = node.block.linePositionedNode.getPositionAsRange()
 			for (const statement of node.block.statementList.statements) {
 				const symbol = this.createDocumentSymbolFromPositionedNode(statement.linePositionedNode, undefined, SymbolKind.Interface)
 				if (symbol) symbols.push(symbol)
@@ -120,6 +136,43 @@ export class DocumentSymbolCapability extends AbstractCapability {
 
 		const { detail, kind } = this.getKindAndDetailForObjectStatement(node)
 		return DocumentSymbol.create(getObjectIdentifier(node), detail, kind, range, range, symbols)
+	}
+
+	protected createDocumentSymbolForPositionedDslNode(node: ObjectStatement) {
+		if (!node.operation) return null
+		if (!(node.operation instanceof ValueAssignment)) return null
+		if (!(node.operation.pathValue instanceof DslExpressionValue)) return null
+
+		const dslExpression = node.operation.pathValue
+		const range = dslExpression.linePositionedNode.getPositionAsRange()
+
+		const symbols: DocumentSymbol[] = []
+		for (const htmlNode of dslExpression.htmlNodes) {
+			const symbol = this.createDocumentSymbolFromAFXNode(htmlNode)
+			if (symbol) symbols.push(symbol)
+		}
+
+		const { detail, kind } = this.getKindAndDetailForObjectStatement(node)
+		return DocumentSymbol.create(getObjectIdentifier(node), detail, kind, range, range, symbols)
+	}
+
+	protected createDocumentSymbolFromAFXNode(node: TextNode | InlineEelNode | TagNode | Comment) {
+		const range = node.linePositionedNode.getPositionAsRange()
+
+		if (node instanceof TagNode) {
+			const selfClosingNamePart = node.selfClosing ? ' /' : ''
+			const name = `<${node.name}${selfClosingNamePart}>`
+
+			const symbols: DocumentSymbol[] = []
+			for (const htmlNode of node.content) {
+				const symbol = this.createDocumentSymbolFromAFXNode(htmlNode)
+				if (symbol) symbols.push(symbol)
+			}
+
+			return DocumentSymbol.create(name, undefined, SymbolKind.Field, range, range, symbols)
+		}
+
+		return null
 	}
 
 	protected createDocumentSymbolFromPositionedNode(positionedNode: LinePositionedNode<AbstractNode>, detail = '', kind: SymbolKind = SymbolKind.Class) {
@@ -164,5 +217,4 @@ export class DocumentSymbolCapability extends AbstractCapability {
 		if (value.nodes instanceof LiteralArrayNode) return { detail: '${Array}', kind: SymbolKind.Array }
 		return { detail: '${...}', kind: SymbolKind.Variable }
 	}
-
 }

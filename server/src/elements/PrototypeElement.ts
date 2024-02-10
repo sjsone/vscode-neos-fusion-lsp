@@ -5,13 +5,13 @@ import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStateme
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
 import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionLink, DefinitionParams, Hover, HoverParams, Location, LocationLink, ReferenceParams, SymbolInformation, SymbolKind, WorkspaceSymbol, WorkspaceSymbolParams } from 'vscode-languageserver'
+import { WorkspacesCapabilityContext } from '../capabilities/CapabilityContext'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { Logger } from '../common/Logging'
 import { abstractNodeToString, findParent, getPrototypeNameFromNode } from '../common/util'
 import { ElementTextDocumentContext, ElementWorkspacesContext } from './ElementContext'
 import { ElementHelper } from './ElementHelper'
 import { ElementInterface } from './ElementInterface'
-import { WorkspacesCapabilityContext } from '../capabilities/CapabilityContext'
 
 export class PrototypeElement extends Logger implements ElementInterface<FusionObjectValue | PrototypePathSegment> {
 	isResponsible(methodName: keyof ElementInterface<AbstractNode>, node: AbstractNode | undefined): boolean {
