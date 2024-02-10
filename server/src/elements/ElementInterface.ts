@@ -22,21 +22,24 @@ import {
 	Hover,
 	HoverParams,
 	ImplementationParams,
+	InlayHint,
+	InlayHintParams,
 	Location,
 	PrepareRenameParams,
 	Range,
 	ReferenceParams,
 	RenameParams,
+	SemanticTokens,
+	SemanticTokensParams,
 	SignatureHelp,
 	SignatureHelpParams,
 	SymbolInformation,
 	TypeDefinitionParams,
 	WorkspaceEdit,
-	WorkspaceSymbol,
-	WorkspaceSymbolParams
+	WorkspaceSymbol
 } from 'vscode-languageserver'
-import { ElementTextDocumentContext, ElementWorkspacesContext } from './ElementContext'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
+import { ElementTextDocumentContext, ElementWorkspacesContext } from './ElementContext'
 
 
 export interface ElementFunctionalityInterface<N extends AbstractNode = AbstractNode> {
@@ -60,16 +63,21 @@ export interface ElementFunctionalityInterface<N extends AbstractNode = Abstract
 	} | {
 		defaultBehavior: boolean;
 	} | undefined | null>
-
 }
 
-export interface ElementInterface<N extends AbstractNode = AbstractNode> extends ElementFunctionalityInterface {
-	isResponsible(methodName: ElementMethod, node: AbstractNode | undefined): boolean
+export interface ElementLanguageFeatureInterface<N extends AbstractNode = AbstractNode> {
+	onSemanticTokens?(context: ElementTextDocumentContext<SemanticTokensParams, N>): Promise<SemanticTokens>
+	onInlayHint?(context: ElementTextDocumentContext<InlayHintParams, N>): Promise<InlayHint[] | undefined | null>
+}
 
+export interface ElementFunctionalityAndLanguageFeatureInterface<N extends AbstractNode = AbstractNode> extends ElementFunctionalityInterface<N>, ElementLanguageFeatureInterface<N> { }
+
+export interface ElementInterface<N extends AbstractNode = AbstractNode> extends ElementFunctionalityAndLanguageFeatureInterface<N> {
+	isResponsible(methodName: ElementMethod, node: AbstractNode | undefined): boolean
 
 	diagnose?(parsedFusionFile: ParsedFusionFile): Promise<Diagnostic[] | undefined | null>
 }
 
 type ParamTypes<T> = T extends (context: ElementTextDocumentContext<infer P, any>) => Promise<infer R> ? P : never;
-export type ElementContextParams = ParamTypes<ElementFunctionalityInterface[keyof ElementFunctionalityInterface]>;
-export type ElementMethod = keyof ElementFunctionalityInterface
+export type ElementContextParams = ParamTypes<ElementFunctionalityAndLanguageFeatureInterface[keyof ElementFunctionalityAndLanguageFeatureInterface]>;
+export type ElementMethod = (keyof ElementFunctionalityAndLanguageFeatureInterface)

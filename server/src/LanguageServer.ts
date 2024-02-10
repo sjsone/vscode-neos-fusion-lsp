@@ -45,7 +45,6 @@ import { XlfFileChangeHandler } from './fileChangeHandler/XlfFileChangeHandler'
 import { YamlFileChangeHandler } from './fileChangeHandler/YamlFileChangeHandler'
 import { FusionWorkspace } from './fusion/FusionWorkspace'
 import { AbstractLanguageFeature } from './languageFeatures/AbstractLanguageFeature'
-import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 import { AbstractLanguageFeatureParams } from './languageFeatures/LanguageFeatureContext'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { FusionDocument } from './main'
@@ -101,7 +100,6 @@ export class LanguageServer extends Logger {
 		this.addElement(TranslationElement)
 
 
-		this.addFunctionalityInstance(InlayHintLanguageFeature)
 		this.addFunctionalityInstance(SemanticTokensLanguageFeature)
 
 		this.addFunctionalityInstance(FusionFileChangeHandler)

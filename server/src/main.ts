@@ -5,7 +5,6 @@ import {
     createConnection
 } from "vscode-languageserver/node"
 import { LanguageServer } from './LanguageServer'
-import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 
 export type FusionDocument = TextDocument
@@ -39,7 +38,7 @@ connection.onSignatureHelp(params => languageserver.runElements("onSignatureHelp
 connection.onCodeAction(params => languageserver.onCodeAction(params))
 
 connection.languages.semanticTokens.on(params => languageserver.runLanguageFeature(SemanticTokensLanguageFeature, params))
-connection.languages.inlayHint.on(params => languageserver.runLanguageFeature(InlayHintLanguageFeature, params))
+connection.languages.inlayHint.on(params => languageserver.runElements("onInlayHint", params))
 
 
 
