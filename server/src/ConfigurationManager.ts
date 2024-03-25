@@ -37,7 +37,7 @@ export class ConfigurationManager extends Logger {
 
 	addToMergedConfiguration(newConfiguration: ParsedYaml) {
 		try {
-			const mergedConfiguration = <ParsedYaml>mergeObjects(newConfiguration, this.mergedConfiguration)
+			const mergedConfiguration = <ParsedYaml>mergeObjects(<any>newConfiguration, <any>this.mergedConfiguration)
 			this.mergedConfiguration = mergedConfiguration ?? this.mergedConfiguration
 		} catch (error) {
 			// console.log(error)
@@ -125,7 +125,7 @@ export class ConfigurationManager extends Logger {
 		const key = path.shift()
 		if (!key) return undefined
 
-		const value = settingsConfiguration[key]
+		const value = (<any>settingsConfiguration)[key]
 		if (path.length === 0) return value
 		if (value === undefined || value === null) return undefined
 

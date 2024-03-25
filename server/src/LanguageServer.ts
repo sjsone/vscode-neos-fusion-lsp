@@ -12,6 +12,7 @@ import {
 	TextDocuments,
 	_Connection
 } from "vscode-languageserver/node"
+import { ElementService } from './ElementService'
 import { type ExtensionConfiguration } from './ExtensionConfiguration'
 import { addFusionIgnoreSemanticCommentAction } from './actions/AddFusionIgnoreSemanticCommentAction'
 import { addFusionNoAutoincludeNeededSemanticCommentAction } from './actions/AddFusionNoAutoincludeNeededSemanticCommentAction'
@@ -21,15 +22,14 @@ import { replaceDeprecatedQuickFixAction } from './actions/ReplaceDeprecatedQuic
 import { AbstractFunctionality } from './common/AbstractFunctionality'
 import { ClientCapabilityService } from './common/ClientCapabilityService'
 import { LogService, Logger } from './common/Logging'
+import { TokenModifiers, TokenTypes } from './common/SemanticTokenService'
 import { clearLineDataCache, uriToPath } from './common/util'
 import { AfxTagElement } from './elements/AfxTagElement'
 import { CommentElement } from './elements/CommentElement'
 import { ControllerActionElement } from './elements/ControllerActionElement'
+import { DocumentSymbolsElement } from './elements/DocumentSymbolsElement'
 import { EelElement } from './elements/EelElement'
 import { EelHelperElement } from './elements/EelHelperElement'
-import { ElementContext } from './elements/ElementContext'
-import { ElementHelper } from './elements/ElementHelper'
-import { ElementContextParams, ElementInterface, ElementMethod } from './elements/ElementInterface'
 import { FlowConfigurationElement } from './elements/FlowConfigurationElement'
 import { FqcnElement } from './elements/FqcnElement'
 import { FusionPropertyElement } from './elements/FusionPropertyElement'
@@ -49,7 +49,6 @@ import { AbstractLanguageFeatureParams } from './languageFeatures/LanguageFeatur
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { FusionDocument } from './main'
 import { ParsedYaml } from './neos/FlowConfigurationFile'
-import { DocumentSymbolsElement } from './elements/DocumentSymbolsElement'
 
 
 const CodeActions = [
@@ -73,8 +72,8 @@ export class LanguageServer extends Logger {
 	protected documents: TextDocuments<FusionDocument>
 	public fusionWorkspaces: FusionWorkspace[] = []
 	protected clientCapabilityService!: ClientCapabilityService
+	public elementService: ElementService
 
-	protected elements: Set<ElementInterface> = new Set()
 	protected functionalityInstances: Map<new (...args: any[]) => AbstractFunctionality, AbstractFunctionality> = new Map()
 	protected fileChangeHandlerInstances: Map<new (...args: any[]) => AbstractFileChangeHandler, AbstractFileChangeHandler> = new Map()
 
@@ -83,21 +82,23 @@ export class LanguageServer extends Logger {
 		this.connection = connection
 		this.documents = documents
 
-		this.addElement(AfxTagElement)
-		this.addElement(NodeTypeElement)
-		this.addElement(CommentElement)
-		this.addElement(ControllerActionElement)
-		this.addElement(DocumentSymbolsElement)
-		this.addElement(EelElement)
-		this.addElement(EelHelperElement)
-		this.addElement(FlowConfigurationElement)
-		this.addElement(FqcnElement)
-		this.addElement(FusionPropertyElement)
-		this.addElement(NodeTypeElement)
-		this.addElement(PrototypeElement)
-		this.addElement(ResourceUriElement)
-		this.addElement(RoutingElement)
-		this.addElement(TranslationElement)
+		this.elementService = new ElementService(this)
+
+		this.elementService.addElement(AfxTagElement)
+		this.elementService.addElement(NodeTypeElement)
+		this.elementService.addElement(CommentElement)
+		this.elementService.addElement(ControllerActionElement)
+		this.elementService.addElement(DocumentSymbolsElement)
+		this.elementService.addElement(EelElement)
+		this.elementService.addElement(EelHelperElement)
+		this.elementService.addElement(FlowConfigurationElement)
+		this.elementService.addElement(FqcnElement)
+		this.elementService.addElement(FusionPropertyElement)
+		this.elementService.addElement(NodeTypeElement)
+		this.elementService.addElement(PrototypeElement)
+		this.elementService.addElement(ResourceUriElement)
+		this.elementService.addElement(RoutingElement)
+		this.elementService.addElement(TranslationElement)
 
 
 		this.addFunctionalityInstance(SemanticTokensLanguageFeature)
@@ -108,35 +109,7 @@ export class LanguageServer extends Logger {
 		this.addFunctionalityInstance(YamlFileChangeHandler)
 	}
 
-	public async runElements(method: ElementMethod, params: ElementContextParams): Promise<any> {
-		const results: any[] = []
 
-		try {
-			const context = ElementContext.createFromParams(this, params)
-			if (!context) return null
-
-			const node = "foundNodeByLine" in context ? context.foundNodeByLine?.getNode() : undefined
-
-			for (const element of this.elements) {
-				if (!(method in element)) continue
-				if (node && !element.isResponsible(method, node)) continue
-
-				const result = await element[method]!(<any>context)
-				if (ElementHelper.returnOnFirstResult(method)) return result
-
-				if (Array.isArray(result)) results.push(...result)
-				else if (result) results.push(result)
-			}
-		} catch (error) {
-			this.logError(`Error trying to run element ${method}`, error)
-		}
-
-		return results
-	}
-
-	protected addElement(element: new (...args: any[]) => ElementInterface) {
-		this.elements.add(new element())
-	}
 
 	protected addFunctionalityInstance(type: new (...args: any[]) => AbstractFunctionality) {
 		this.functionalityInstances.set(type, new type(this))
@@ -231,8 +204,8 @@ export class LanguageServer extends Logger {
 				workspaceSymbolProvider: true,
 				semanticTokensProvider: {
 					legend: {
-						tokenTypes: Array.from(SemanticTokensLanguageFeature.TokenTypes),
-						tokenModifiers: Array.from(SemanticTokensLanguageFeature.TokenModifiers)
+						tokenTypes: Array.from(TokenTypes),
+						tokenModifiers: Array.from(TokenModifiers)
 					},
 					range: false,
 					full: {

@@ -1,4 +1,3 @@
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { Comment } from 'ts-fusion-parser/out/common/Comment'
 import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttributeNode'
 import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
@@ -14,70 +13,27 @@ import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/Prototyp
 import { StatementList } from 'ts-fusion-parser/out/fusion/nodes/StatementList'
 import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
+import { SemanticTokensParams } from 'vscode-languageserver'
 import { ActionUriPartTypes } from '../common/ActionUriService'
-import { LinePosition, LinePositionedNode } from '../common/LinePositionedNode'
 import { LegacyNodeService } from '../common/LegacyNodeService'
+import { NodeService } from '../common/NodeService'
+import { SemanticCommentService } from '../common/SemanticCommentService'
+import { SemanticTokenConstruct, SemanticTokenService, TokenModifiers, TokenTypes } from '../common/SemanticTokenService'
 import { findParent, getObjectIdentifier } from '../common/util'
 import { ActionUriDefinitionNode } from '../fusion/node/ActionUriDefinitionNode'
+import { FqcnNode } from '../fusion/node/FqcnNode'
 import { NeosFusionFormDefinitionNode } from '../fusion/node/NeosFusionFormDefinitionNode'
 import { PhpClassMethodNode } from '../fusion/node/PhpClassMethodNode'
+import { RoutingActionNode } from '../fusion/node/RoutingActionNode'
+import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
 import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
 import { AbstractLanguageFeature } from './AbstractLanguageFeature'
 import { LanguageFeatureContext } from './LanguageFeatureContext'
-import { FqcnNode } from '../fusion/node/FqcnNode'
-import { NodeService } from '../common/NodeService'
-import { SemanticTokensParams } from 'vscode-languageserver'
-import { RoutingActionNode } from '../fusion/node/RoutingActionNode'
-import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
-import { SemanticCommentService } from '../common/SemanticCommentService'
 
-export interface SemanticTokenConstruct {
-	position: LinePosition
-	length: number,
-	type: string,
-	modifier: string
-}
 
-export type TokenTypes = typeof SemanticTokensLanguageFeature.TokenTypes[number]
-export type TokenModifiers = typeof SemanticTokensLanguageFeature.TokenModifiers[number]
-
-function sortSemanticTokenConstructsByLineAndCharacter(constructs: SemanticTokenConstruct[]) {
-	return constructs.sort((a, b) => {
-		if (a.position.line === b.position.line) return a.position.character - b.position.character
-		return a.position.line - b.position.line
-	})
-}
 
 //TODO: Consolidate with DefinitionCapability::getControllerActionDefinition
 export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<SemanticTokensParams> {
-
-	static TokenTypes = [
-		'namespace', 'type',
-		'class', 'enum',
-		'interface', 'struct',
-		'typeParameter', 'parameter',
-		'variable', 'property',
-		'enumMember', 'event',
-		'function', 'method',
-		'macro', 'keyword',
-		'modifier', 'comment',
-		'string', 'number',
-		'regexp', 'operator',
-		'decorator'
-	] as const
-
-	static TokenModifiers = [
-		'declaration',
-		'definition',
-		'readonly',
-		'static',
-		'deprecated',
-		'abstract',
-		'async',
-		'modification',
-		'documentation',
-		'defaultLibrary'
-	] as const
 
 	protected run(languageFeatureContext: LanguageFeatureContext) {
 		const semanticTokenConstructs: SemanticTokenConstruct[] = []
@@ -98,7 +54,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 		semanticTokenConstructs.push(...this.generateTranslationShortHandTokens(languageFeatureContext))
 
 		return {
-			data: this.generateTokenArray(semanticTokenConstructs)
+			data: SemanticTokenService.generateTokenArray(semanticTokenConstructs)
 		}
 	}
 
@@ -137,14 +93,14 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 	}
 
 	protected * generateRoutingTokens(languageFeatureContext: LanguageFeatureContext) {
-		yield* this.generateForType(RoutingActionNode, languageFeatureContext, node => ({
+		yield* SemanticTokenService.generateForType(RoutingActionNode, languageFeatureContext, node => ({
 			position: node.getBegin(),
 			length: node.getNode().name.length,
 			type: 'method',
 			modifier: 'declaration'
 		}))
 
-		yield* this.generateForType(RoutingControllerNode, languageFeatureContext, node => ({
+		yield* SemanticTokenService.generateForType(RoutingControllerNode, languageFeatureContext, node => ({
 			position: node.getBegin(),
 			length: node.getNode().name.length,
 			type: 'class',
@@ -174,7 +130,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 	}
 
 	protected generateLiteralStringTokens(languageFeatureContext: LanguageFeatureContext) {
-		return this.generateForType(LiteralStringNode, languageFeatureContext, node => {
+		return SemanticTokenService.generateForType(LiteralStringNode, languageFeatureContext, node => {
 			if (findParent(node.getNode(), EelExpressionValue)) return undefined
 			if (node.getNode().translationShortHandNode !== undefined) return undefined
 			return {
@@ -187,7 +143,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 	}
 
 	protected generateLiteralNumberTokens(languageFeatureContext: LanguageFeatureContext) {
-		return this.generateForType(LiteralNumberNode, languageFeatureContext, node => ({
+		return SemanticTokenService.generateForType(LiteralNumberNode, languageFeatureContext, node => ({
 			position: node.getBegin(),
 			length: node.getNode().value.length,
 			type: 'number',
@@ -196,7 +152,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 	}
 
 	protected generateLiteralNullTokens(languageFeatureContext: LanguageFeatureContext) {
-		return this.generateForType(LiteralNullNode, languageFeatureContext, node => ({
+		return SemanticTokenService.generateForType(LiteralNullNode, languageFeatureContext, node => ({
 			position: node.getBegin(),
 			length: node.getNode().value.length,
 			type: 'variable',
@@ -205,7 +161,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 	}
 
 	protected generateObjectPathTokens(languageFeatureContext: LanguageFeatureContext) {
-		return this.generateForType(ObjectPathNode, languageFeatureContext, node => ({
+		return SemanticTokenService.generateForType(ObjectPathNode, languageFeatureContext, node => ({
 			position: node.getBegin(),
 			length: node.getNode().value.length,
 			type: 'property',
@@ -214,7 +170,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 	}
 
 	protected generateFqcnTokens(languageFeatureContext: LanguageFeatureContext) {
-		return this.generateForType(FqcnNode, languageFeatureContext, node => ({
+		return SemanticTokenService.generateForType(FqcnNode, languageFeatureContext, node => ({
 			position: node.getBegin(),
 			length: node.getNode().realLength,
 			type: 'class',
@@ -223,7 +179,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 	}
 
 	protected generatePhpClassMethodTokens(languageFeatureContext: LanguageFeatureContext) {
-		return this.generateForType(PhpClassMethodNode, languageFeatureContext, node => ({
+		return SemanticTokenService.generateForType(PhpClassMethodNode, languageFeatureContext, node => ({
 			position: node.getBegin(),
 			length: node.getNode().identifier.length,
 			type: 'method',
@@ -377,7 +333,7 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 	}
 
 	protected generateTranslationShortHandTokens(languageFeatureContext: LanguageFeatureContext) {
-		return this.generateForType(TranslationShortHandNode, languageFeatureContext, node => ({
+		return SemanticTokenService.generateForType(TranslationShortHandNode, languageFeatureContext, node => ({
 			position: node.getBegin(),
 			length: node.getNode().getValue().length + 2, // quotes
 			type: 'variable',
@@ -385,48 +341,12 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 		}))
 	}
 
-	protected * generateForType<T extends AbstractNode>(type: new (...args: any) => T, languageFeatureContext: LanguageFeatureContext, createConstructCallback: (node: LinePositionedNode<T>) => undefined | SemanticTokenConstruct) {
-		const nodes = languageFeatureContext.parsedFile.getNodesByType(type)
-		if (!nodes) return
 
-		for (const node of nodes) {
-			const value = createConstructCallback(node)
-			if (value) yield value
-		}
-	}
 
-	protected getTypesAndModifier(identifier: string): { type: TokenTypes, modifier: TokenModifiers } {
+	protected getTypesAndModifier(identifier: string): { type: typeof TokenTypes[number], modifier: typeof TokenModifiers[number] } {
 		if (identifier === ActionUriPartTypes.Action) return { type: 'method', modifier: 'declaration' }
 		if (identifier === ActionUriPartTypes.Controller) return { type: 'class', modifier: 'declaration' }
 		if (identifier === ActionUriPartTypes.Package) return { type: 'namespace', modifier: 'declaration' }
 		return { type: 'variable', modifier: 'declaration' }
 	}
-
-	protected generateTokenArray(constructs: SemanticTokenConstruct[]) {
-		const sortedConstructs = sortSemanticTokenConstructsByLineAndCharacter(constructs)
-
-		const tokens: number[] = []
-
-		let lastLine = 0
-		let lastStartChar = 0
-
-		for (const construct of sortedConstructs) {
-			const character = construct.position.character
-			const line = construct.position.line
-
-			const deltaLine = line - lastLine
-			const deltaStartChar = deltaLine === 0 ? character - lastStartChar : character
-
-			const type = SemanticTokensLanguageFeature.TokenTypes.findIndex(type => type === construct.type)
-			const modifier = SemanticTokensLanguageFeature.TokenModifiers.findIndex(modifier => modifier === construct.modifier)
-
-			tokens.push(deltaLine, deltaStartChar, construct.length, type, modifier)
-
-			lastLine = line
-			lastStartChar = character
-		}
-
-		return tokens
-	}
-
 }
