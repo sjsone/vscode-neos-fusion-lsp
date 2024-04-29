@@ -85,8 +85,8 @@ export class NeosPackageNamespace {
 
 			const identifierIndex = rest.substring(lastIndex).indexOf(fullDefinition) + lastIndex
 			const { description } = this.parseMethodComment(identifierIndex, phpFileSource)
-
-			methods.push(new EelHelperMethod(name, description, parameters, {
+			const returnType = undefined
+			methods.push(new EelHelperMethod(name, description, parameters, returnType, {
 				start: getLineNumberOfChar(phpFileSource, identifierIndex, fileUri),
 				end: getLineNumberOfChar(phpFileSource, identifierIndex + fullDefinition.length, fileUri)
 			}))
@@ -152,16 +152,16 @@ export class NeosPackageNamespace {
 		const descriptionParts = []
 		if (reversedDescriptionMatch) {
 			const fullDocBlock = reversedDescriptionMatch[1].split('').reverse().join('')
-			const docLineRegex = /^\s*\* *(@\w+)?(.+)?$/gm
+			// const docLineRegex = /^\s*\* *(@\w+)?(.+)?$/gm
+			const docLineRegex = /^\s*\* ?(@\w+)?(.+)?$/gm
 			let docLineMatch = docLineRegex.exec(fullDocBlock)
 			let runAwayPrevention = 0
-			while (docLineMatch?.[2] && runAwayPrevention++ < 1000) {
-				descriptionParts.push(docLineMatch[2])
+			while (docLineMatch && (!docLineMatch?.[1]) && runAwayPrevention++ < 1000) {
+				descriptionParts.push(docLineMatch[2] ?? "")
 				// docLineMatch[1] => "@return", "@param", ...
 				docLineMatch = docLineRegex.exec(fullDocBlock)
 			}
 		}
-
 		return {
 			description: descriptionParts.join("\n")
 		}
