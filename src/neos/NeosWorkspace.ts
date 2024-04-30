@@ -8,9 +8,9 @@ export class NeosWorkspace extends Logger {
 	protected packages: Map<string, NeosPackage> = new Map()
 
 	constructor(
-		public fusionWorkspace: FusionWorkspace,
-		protected workspacePath: string,
-		name: string
+		public readonly fusionWorkspace: FusionWorkspace,
+		protected readonly workspacePath: string,
+		public readonly name: string
 	) {
 		super(name)
 		this.workspacePath = workspacePath

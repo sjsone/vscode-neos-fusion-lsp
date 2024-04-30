@@ -24,9 +24,6 @@ export interface EELHelperToken {
 }
 
 export class NeosPackage extends Logger {
-	public path: string
-	public neosWorkspace: NeosWorkspace
-
 	public composerJson: any
 
 	public namespaces: Map<string, NeosPackageNamespace> = new Map()
@@ -35,15 +32,13 @@ export class NeosPackage extends Logger {
 
 	protected debug: boolean
 
-	constructor(path: string, neosWorkspace: NeosWorkspace) {
+	constructor(public path: string, public neosWorkspace: NeosWorkspace) {
 		const composerJsonFilePath = NodePath.join(path, "composer.json")
-		if (!NodeFs.existsSync(composerJsonFilePath)) throw new PackageJsonNotFoundError("")
+		if (!NodeFs.existsSync(composerJsonFilePath)) throw new PackageJsonNotFoundError(neosWorkspace, path)
+
 		const composerJson = JSON.parse(NodeFs.readFileSync(composerJsonFilePath).toString())
 
 		super(composerJson.name)
-
-		this.path = path
-		this.neosWorkspace = neosWorkspace
 
 		this.composerJson = composerJson
 

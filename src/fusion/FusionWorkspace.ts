@@ -14,7 +14,11 @@ import { NeosPackage } from '../neos/NeosPackage'
 import { NeosWorkspace } from '../neos/NeosWorkspace'
 import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile'
 import { ParsedFusionFile } from './ParsedFusionFile'
+import { UserPresentableError } from '../error/UserPresentableError'
+import { ControllableError } from '../error/ControllableError'
+import { MessageType } from "vscode-languageserver/node"
 import { PackageJsonNotFoundError } from '../error/PackageJsonNotFoundError'
+import { NoPackagesFoundError } from '../error/NoPackagesFoundError'
 
 export class FusionWorkspace extends Logger {
     public uri: string
@@ -81,9 +85,7 @@ export class FusionWorkspace extends Logger {
             try {
                 this.neosWorkspace.addPackage(packagePath)
             } catch (error) {
-                if (error instanceof PackageJsonNotFoundError) {
-                    this.logError(`No Package.json found for ${packagePath}`)
-                } else throw error
+                this.handleError(<Error>error)
             }
         }
         this.neosWorkspace.initEelHelpers()
@@ -119,8 +121,14 @@ export class FusionWorkspace extends Logger {
 
         this.logInfo(`Successfully parsed ${this.parsedFiles.length} fusion files. `)
 
+        // TODO: TBD-setting "workspace root" to allow for things like `my-project/source/<Packages>` instead of `my-project/<Packages>`
         // TODO: if this.parsedFiles.length === 0 show error message with link to TBD-setting "workspace root"
         // TODO: if no package has a composer.json show error message with link to TBD-setting "workspace root"
+
+        if (this.neosWorkspace.getPackages().size == 0) {
+            this.handleError(new NoPackagesFoundError())
+        }
+
         if (this.filesWithErrors.length > 0) {
             this.logInfo(`  Could not parse ${this.filesWithErrors.length} files due to errors`)
 
@@ -250,5 +258,18 @@ export class FusionWorkspace extends Logger {
         this.parsedFiles = []
         this.filesWithErrors = []
         this.translationFiles = []
+    }
+
+    protected handleError(error: Error) {
+        if (!(error instanceof ControllableError)) throw error
+
+        this.logError(error.message)
+        if (error instanceof UserPresentableError) {
+            if (error instanceof PackageJsonNotFoundError) {
+                if (error.path === this.neosWorkspace["workspacePath"]) return
+            }
+
+            this.languageServer.showMessage(`${error.title} -- ${error.message}`, MessageType.Warning)
+        }
     }
 }
