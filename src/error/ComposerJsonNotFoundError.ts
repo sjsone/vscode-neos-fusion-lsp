@@ -1,7 +1,7 @@
 import type { NeosWorkspace } from '../neos/NeosWorkspace';
 import { UserPresentableError } from './UserPresentableError';
 
-export class PackageJsonNotFoundError extends UserPresentableError {
+export class ComposerJsonNotFoundError extends UserPresentableError {
 	constructor(
 		public readonly neosWorkspace: NeosWorkspace,
 		public readonly path: string
