@@ -17,7 +17,7 @@ import { ParsedFusionFile } from './ParsedFusionFile'
 import { UserPresentableError } from '../error/UserPresentableError'
 import { ControllableError } from '../error/ControllableError'
 import { MessageType } from "vscode-languageserver/node"
-import { PackageJsonNotFoundError } from '../error/PackageJsonNotFoundError'
+import { ComposerJsonNotFoundError } from '../error/ComposerJsonNotFoundError'
 import { NoPackagesFoundError } from '../error/NoPackagesFoundError'
 
 export class FusionWorkspace extends Logger {
@@ -265,7 +265,7 @@ export class FusionWorkspace extends Logger {
 
         this.logError(error.message)
         if (error instanceof UserPresentableError) {
-            if (error instanceof PackageJsonNotFoundError) {
+            if (error instanceof ComposerJsonNotFoundError) {
                 if (error.path === this.neosWorkspace["workspacePath"]) return
             }
 

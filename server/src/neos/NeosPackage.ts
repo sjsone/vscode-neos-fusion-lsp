@@ -6,7 +6,7 @@ import { EelHelperMethod } from '../eel/EelHelperMethod'
 import { FlowConfiguration } from './FlowConfiguration'
 import { NeosPackageNamespace } from './NeosPackageNamespace'
 import { NeosWorkspace } from './NeosWorkspace'
-import { PackageJsonNotFoundError } from '../error/PackageJsonNotFoundError'
+import { ComposerJsonNotFoundError } from '../error/ComposerJsonNotFoundError'
 
 export interface EELHelperToken {
 	name: string,
@@ -34,7 +34,7 @@ export class NeosPackage extends Logger {
 
 	constructor(public path: string, public neosWorkspace: NeosWorkspace) {
 		const composerJsonFilePath = NodePath.join(path, "composer.json")
-		if (!NodeFs.existsSync(composerJsonFilePath)) throw new PackageJsonNotFoundError(neosWorkspace, path)
+		if (!NodeFs.existsSync(composerJsonFilePath)) throw new ComposerJsonNotFoundError(neosWorkspace, path)
 
 		const composerJson = JSON.parse(NodeFs.readFileSync(composerJsonFilePath).toString())
 
