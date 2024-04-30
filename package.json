@@ -1,6 +1,6 @@
 {
     "name": "vscode-neos-fusion-lsp",
-    "displayName": "NEOS Fusion & AFX Language Server",
+    "displayName": "Neos Fusion & AFX Language Server",
     "description": "Language server for Neos Fusion (and AFX)",
     "author": "Simon J. Schmidt",
     "icon": "images/logo.png",
@@ -15,7 +15,7 @@
     ],
     "keywords": [
         "Neos",
-        "NEOS CMS",
+        "Neos CMS",
         "Fusion",
         "AFX",
         "EEL"
@@ -335,6 +335,7 @@
                 }
             }
         ],
+        "configurationDefaults": {},
         "commands": [
             {
                 "command": "neos-fusion-lsp.inspect",
@@ -363,7 +364,7 @@
         ],
         "icons": {
             "neos-lsp": {
-                "description": "NEOS Icon - LSP edition",
+                "description": "Neos Icon - LSP edition",
                 "default": {
                     "fontPath": "icons/icon-font.woff",
                     "fontCharacter": "A"
