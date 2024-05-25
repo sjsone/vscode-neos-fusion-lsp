@@ -5,6 +5,7 @@ import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { Logger } from './Logging'
 import { uriToPath } from './util'
 import * as fastGlob from 'fast-glob'
+import { RootComposerJsonNotFoundError } from '../error/RootComposerJsonNotFoundError'
 
 class ComposerService extends Logger {
 	protected parsedComposerJsonByName: { [key: string]: any } = {}
@@ -24,11 +25,7 @@ class ComposerService extends Logger {
 		console.log("basePath", basePath)
 
 		const rootComposerJsonPath = NodePath.join(basePath, "composer.json")
-		if (!NodeFs.existsSync(rootComposerJsonPath)) {
-			// TODO: show info to user to change folder.root in the settings 
-			this.logError(`Could not find root composer.json in ${rootComposerJsonPath}`)
-			return []
-		}
+		if (!NodeFs.existsSync(rootComposerJsonPath)) throw new RootComposerJsonNotFoundError(rootComposerJsonPath)
 
 		const rootComposerJson = JSON.parse(NodeFs.readFileSync(rootComposerJsonPath).toString())
 		const rootPackage = {
@@ -36,7 +33,6 @@ class ComposerService extends Logger {
 			require: {} as { [key: string]: any }
 		}
 
-		console.log("composerJson", rootComposerJson)
 		for (const potentialPackageFolder of this.findPackagePaths(basePath, rootComposerJson)) {
 			const composerJsonPath = NodePath.join(potentialPackageFolder, "composer.json")
 			if (!NodeFs.existsSync(composerJsonPath)) continue
