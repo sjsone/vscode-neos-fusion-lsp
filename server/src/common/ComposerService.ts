@@ -1,7 +1,6 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { ExtensionConfiguration } from '../ExtensionConfiguration'
-import { PackageJsonNotFoundError } from '../error/PackageJsonNotFoundError'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { Logger } from './Logging'
 import { uriToPath } from './util'
