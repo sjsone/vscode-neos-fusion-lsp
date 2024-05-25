@@ -139,12 +139,8 @@ export class Extension {
 		const sorted = this.getSortedWorkspaceFolders()
 		for (const element of sorted) {
 			let uri = folder.uri.toString()
-			if (uri.charAt(uri.length - 1) !== '/') {
-				uri = uri + '/'
-			}
-			if (uri.startsWith(element)) {
-				return Workspace.getWorkspaceFolder(Uri.parse(element))!
-			}
+			if (!uri.endsWith('/')) uri = uri + '/'
+			if (uri.startsWith(element)) return Workspace.getWorkspaceFolder(Uri.parse(element))!
 		}
 		return folder
 	}
@@ -154,9 +150,14 @@ export class Extension {
 
 		const runOptions = { execArgv: [] as string[] }
 
+		if (process.env.SERVER_INSPECT_BREAK) {
+			console.log("SERVER_INSPECT_BREAK is set.")
+			inspect = true
+		}
+
 		console.log("start in inspect", inspect)
 		if (inspect) {
-			runOptions.execArgv.push(`--inspect-brk=${6011 + this.clients.size}`)
+			runOptions.execArgv.push(`--inspect-brk=${6111}`)
 		}
 		const serverOptions: ServerOptions = {
 			run: { module, transport: TransportKind.ipc, options: runOptions },
