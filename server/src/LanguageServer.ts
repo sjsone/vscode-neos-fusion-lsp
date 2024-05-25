@@ -227,6 +227,10 @@ export class LanguageServer extends Logger {
 		return this.connection.sendNotification("custom/progressNotification/update", { id, payload })
 	}
 
+	public sendRootComposerJsonNotFound(path: string) {
+		return this.connection.sendNotification("custom/error/rootComposerNotFound", { path });
+	}
+
 	public sendProgressNotificationFinish(id: string) {
 		return this.connection.sendNotification("custom/progressNotification/finish", { id })
 	}

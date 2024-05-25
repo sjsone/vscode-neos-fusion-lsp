@@ -194,6 +194,23 @@ export class Extension {
 			}
 		})
 
+		client.onNotification('custom/error/rootComposerNotFound', async ({ path }: { path: string }) => {
+			const changeSettingAction = { title: "Change setting" }
+
+			const result = await Window.showErrorMessage(
+				`No 'composer.json' could be found in ${path}. \nMake sure the correct root path is configured in the extension settings.`,
+				...[changeSettingAction]
+			);
+
+			if (result === undefined) {
+				await this.stopClients()
+				Window.showInformationMessage("Stopped Neos Fusion language server")
+				return
+			}
+
+			if (result === changeSettingAction) commands.executeCommand('workbench.action.openSettings', 'neosFusionLsp.folders.root')
+		})
+
 		client.onNotification('custom/progressNotification/create', ({ id, title }) => progressNotificationService.create(id, title))
 		client.onNotification('custom/progressNotification/update', ({ id, payload }) => progressNotificationService.update(id, payload))
 

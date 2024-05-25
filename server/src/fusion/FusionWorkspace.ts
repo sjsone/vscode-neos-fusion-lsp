@@ -20,6 +20,7 @@ import { NeosWorkspace } from '../neos/NeosWorkspace'
 import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile'
 import { LanguageServerFusionParser } from './LanguageServerFusionParser'
 import { ParsedFusionFile } from './ParsedFusionFile'
+import { RootComposerJsonNotFoundError } from '../error/RootComposerJsonNotFoundError'
 
 export class FusionWorkspace extends Logger {
     public uri: string
@@ -69,11 +70,18 @@ export class FusionWorkspace extends Logger {
         this.languageServer.sendProgressNotificationCreate("fusion_workspace_init", "Fusion")
         this.parsedFusionFileDiagnostics = new ParsedFusionFileDiagnostics(configuration.diagnostics)
 
-        this.initPackagesPaths()
-        this.initPackages()
-        this.initFusionFiles()
+        try {
+            this.initPackagesPaths()
+            this.initPackages()
+            this.initFusionFiles()
+        } catch (error) {
+            if (!(error instanceof RootComposerJsonNotFoundError)) throw error
+            this.languageServer.sendRootComposerJsonNotFound(error.getPath())
+            return
 
-        this.languageServer.sendProgressNotificationFinish("fusion_workspace_init").catch(error => this.logError("Error trying to send progress notification finish", error))
+        } finally {
+            this.languageServer.sendProgressNotificationFinish("fusion_workspace_init").catch(error => this.logError("Error trying to send progress notification finish", error))
+        }
 
         this.processFilesToDiagnose().catch(error => this.logError("Error processing files to diagnose: ", error))
     }
