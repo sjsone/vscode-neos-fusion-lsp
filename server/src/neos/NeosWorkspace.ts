@@ -53,7 +53,8 @@ export class NeosWorkspace extends Logger {
 					this.logError('File not found!', packagePath)
 					this.logError("    Error: ", error)
 				} else {
-					throw error
+					this.logError("    Error: ", error)
+					// throw error
 				}
 			}
 		}

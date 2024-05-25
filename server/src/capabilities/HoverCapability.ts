@@ -47,7 +47,7 @@ export class HoverCapability extends AbstractCapability {
 		this.logVerbose(`FoundNode: ` + node.constructor.name)
 
 		if (node instanceof FlowConfigurationPathPartNode)
-			return this.getMarkdownForFlowConfigurationPathNode(workspace, <FlowConfigurationPathPartNode>node)
+			return this.getMarkdownForFlowConfigurationPathNode(workspace, node)
 		if (node instanceof TranslationShortHandNode)
 			return this.getMarkdownForTranslationShortHandNode(workspace, <LinePositionedNode<TranslationShortHandNode>>foundNodeByLine)
 		if (node instanceof FusionObjectValue)
@@ -63,9 +63,9 @@ export class HoverCapability extends AbstractCapability {
 		if (node instanceof ObjectPathNode)
 			return this.getMarkdownForObjectPath(workspace, <LinePositionedNode<ObjectPathNode>>foundNodeByLine)
 		if (node instanceof PhpClassMethodNode)
-			return this.getMarkdownForEelHelperMethod(<PhpClassMethodNode>node, workspace)
+			return this.getMarkdownForEelHelperMethod(node, workspace)
 		if (node instanceof ResourceUriNode)
-			return this.getMarkdownForResourceUri(<ResourceUriNode>node, workspace)
+			return this.getMarkdownForResourceUri(node, workspace)
 
 		return null
 	}

@@ -12,14 +12,14 @@ import { ComposerService } from '../common/ComposerService'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { LogService, Logger } from '../common/Logging'
 import { TranslationService } from '../common/TranslationService'
-import { getFiles, pathToUri, uriToFsPath, uriToPath } from '../common/util'
+import { getFiles, pathToUri, uriToPath } from '../common/util'
 import { ParsedFusionFileDiagnostics } from '../diagnostics/ParsedFusionFileDiagnostics'
+import { PackageJsonNotFoundError } from '../error/PackageJsonNotFoundError'
 import { NeosPackage } from '../neos/NeosPackage'
 import { NeosWorkspace } from '../neos/NeosWorkspace'
 import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile'
 import { LanguageServerFusionParser } from './LanguageServerFusionParser'
 import { ParsedFusionFile } from './ParsedFusionFile'
-import { PackageJsonNotFoundError } from '../error/PackageJsonNotFoundError'
 
 export class FusionWorkspace extends Logger {
     public uri: string
@@ -68,53 +68,41 @@ export class FusionWorkspace extends Logger {
         this.clear()
         this.languageServer.sendProgressNotificationCreate("fusion_workspace_init", "Fusion")
         this.parsedFusionFileDiagnostics = new ParsedFusionFileDiagnostics(configuration.diagnostics)
-        const workspacePath = uriToPath(this.uri)
 
-        const ignoreFolders = configuration.folders.ignore
-        const packagesRootPaths = configuration.folders.packages.filter(path => NodeFs.existsSync(path))
-        const filteredPackagesRootPaths = packagesRootPaths.filter(packagePath => !ignoreFolders.find(ignoreFolder => packagePath.startsWith(NodePath.join(workspacePath, ignoreFolder))))
+        this.initPackagesPaths()
+        this.initPackages()
+        this.initFusionFiles()
 
-        const packagesPaths: string[] = []
+        this.languageServer.sendProgressNotificationFinish("fusion_workspace_init").catch(error => this.logError("Error trying to send progress notification finish", error))
 
-        for (const filteredPackagesRootPath of filteredPackagesRootPaths) {
-            for (const folder of NodeFs.readdirSync(filteredPackagesRootPath, { withFileTypes: true })) {
-                if (folder.isSymbolicLink() && !configuration.folders.followSymbolicLinks) continue
-                if (!folder.isDirectory()) continue
-                if (folder.name.startsWith(".") && !configuration.folders.includeHiddenDirectories) continue
+        this.processFilesToDiagnose().catch(error => this.logError("Error processing files to diagnose: ", error))
+    }
 
-                packagesPaths.push(NodePath.join(filteredPackagesRootPath, folder.name))
-            }
-        }
-
-        const usingWorkspaceAsPackageFallback = packagesPaths.length === 0 && configuration.folders.workspaceAsPackageFallback
-        if (usingWorkspaceAsPackageFallback) {
-            this.logDebug("fallback to using workspace as package")
-            packagesPaths.push(workspacePath)
-        }
-
+    protected initPackagesPaths() {
+        const packagesPaths = ComposerService.getComposerPackagePaths(this, this.configuration)
+        this.logDebug("packagesPaths", packagesPaths)
         this.neosWorkspace = new NeosWorkspace(this)
+
         try {
-            for (const packagePath of ComposerService.getSortedPackagePaths(packagesPaths)) {
+            for (const packagePath of packagesPaths) {
                 this.neosWorkspace.addPackage(packagePath)
             }
         } catch (error) {
-            if (error instanceof PackageJsonNotFoundError) {
-                this.logError(error.message)
-            } else throw error
+            if (!(error instanceof PackageJsonNotFoundError)) throw error
+            this.logError(error.message)
         }
 
         this.neosWorkspace.init(this.selectedFlowContextName)
         this.languageServer.sendFlowConfiguration(this.neosWorkspace.configurationManager['mergedConfiguration'])
 
-        const incrementPerPackage = 100 / packagesPaths.length
-
+        const incrementPerPackage = 100 / Array.from(packagesPaths).length
         for (const neosPackage of this.neosWorkspace.getPackages().values()) {
             const packagePath = neosPackage.path
             this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
                 message: `Package: ${packagePath}`
             }).catch(error => this.logError("init", error))
 
-            for (const packageFusionFolderPath of configuration.folders.fusion) {
+            for (const packageFusionFolderPath of this.configuration.folders.fusion) {
                 const fusionFolderPath = NodePath.join(packagePath, packageFusionFolderPath)
                 if (!NodeFs.existsSync(fusionFolderPath)) continue
 
@@ -127,9 +115,11 @@ export class FusionWorkspace extends Logger {
 
             this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
                 increment: incrementPerPackage
-            }).catch(error => this.logError("init", error))
+            }).catch(error => this.logError("Error trying to send progress notification update: ", error))
         }
+    }
 
+    protected initPackages() {
         const possibleNeosFusionPackages = this.orderNeosPackages(Array.from(this.neosWorkspace.getPackages().values()))
 
         for (const neosPackage of possibleNeosFusionPackages) {
@@ -143,13 +133,11 @@ export class FusionWorkspace extends Logger {
             }
         }
 
-        this.logVerbose("Root Fusion Paths and order for include", Array.from(this.fusionParser.rootFusionPaths.entries()).map(([neosPackage, rootPaths]) => {
-            return {
-                name: neosPackage.getName(),
-                type: neosPackage["composerJson"]["type"],
-                rootPaths: rootPaths.map(p => p.split("/").slice(-2).join('/'))
-            }
-        }))
+        this.logVerbose("Root Fusion Paths and order for include", Array.from(this.fusionParser.rootFusionPaths.entries()).map(([neosPackage, rootPaths]) => ({
+            name: neosPackage.getName(),
+            type: neosPackage["composerJson"]["type"],
+            rootPaths: rootPaths.map(p => p.split("/").slice(-2).join('/'))
+        })))
 
         FilePatternResolver.addUriProtocolStrategy('nodetypes:', (uri, filePattern, contextPathAndFilename) => {
             if (uri.protocol !== "nodetypes:") return undefined
@@ -160,7 +148,9 @@ export class FusionWorkspace extends Logger {
 
             return NodePath.join(neosPackage["path"], "NodeTypes", uri.pathname)
         })
+    }
 
+    protected initFusionFiles() {
         this.buildMergedArrayTree()
 
         for (const parsedFile of this.parsedFiles) {
@@ -169,8 +159,6 @@ export class FusionWorkspace extends Logger {
 
         this.logInfo(`Successfully parsed ${this.parsedFiles.length} fusion files. `)
 
-        // TODO: if this.parsedFiles.length === 0 show error message with link to TBD-setting "workspace root"
-        // TODO: if no package has a composer.json show error message with link to TBD-setting "workspace root"
         if (this.filesWithErrors.length > 0) {
             this.logInfo(`  Could not parse ${this.filesWithErrors.length} files due to errors`)
 
@@ -181,10 +169,6 @@ export class FusionWorkspace extends Logger {
                 }
             }
         }
-
-        this.languageServer.sendProgressNotificationFinish("fusion_workspace_init").catch(error => this.logError("init", error))
-
-        this.processFilesToDiagnose().catch(error => this.logError("init", error))
     }
 
     protected orderNeosPackages(packages: NeosPackage[]) {
@@ -205,7 +189,6 @@ export class FusionWorkspace extends Logger {
         this.languageServer.sendBusyCreate('parsingFusionMergedArrayTree', {
             busy: true,
         })
-
 
         this.mergedArrayTree = this.fusionParser.parseRootFusionFiles()
         this.logVerbose(`Elapsed time FULL MAT: ${performance.now() - startTimeFullMergedArrayTree} milliseconds`)
