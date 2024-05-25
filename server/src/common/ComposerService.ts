@@ -1,32 +1,54 @@
 import * as NodeFs from "fs"
 import * as NodePath from "path"
+import { ExtensionConfiguration } from '../ExtensionConfiguration'
 import { PackageJsonNotFoundError } from '../error/PackageJsonNotFoundError'
+import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { Logger } from './Logging'
+import { uriToPath } from './util'
+import * as fastGlob from 'fast-glob'
 
-class ComposerService {
+class ComposerService extends Logger {
 	protected parsedComposerJsonByName: { [key: string]: any } = {}
 	protected packagePathByName: { [key: string]: string } = {}
 
 	protected alreadyParsed: string[] = []
 
-	getSortedPackagePaths(packagesPaths: string[]) {
-		const pseudoRootPackage = {
-			name: "__pseudoRootPackage__",
+
+
+	getComposerPackagePaths(workspace: FusionWorkspace, configuration: ExtensionConfiguration): Iterable<string> {
+		const paths: Set<string> = new Set()
+
+		const workspacePath = uriToPath(workspace.uri)
+
+		const basePath = NodePath.join(workspacePath, configuration.folders.root)
+
+		console.log("basePath", basePath)
+
+		const rootComposerJsonPath = NodePath.join(basePath, "composer.json")
+		if (!NodeFs.existsSync(rootComposerJsonPath)) {
+			// TODO: show info to user to change folder.root in the settings 
+			this.logError(`Could not find root composer.json in ${rootComposerJsonPath}`)
+			return []
+		}
+
+		const rootComposerJson = JSON.parse(NodeFs.readFileSync(rootComposerJsonPath).toString())
+		const rootPackage = {
+			name: rootComposerJson.name,
 			require: {} as { [key: string]: any }
 		}
 
-		for (const packagePath of packagesPaths) {
-			const composerJsonPath = NodePath.join(packagePath, "composer.json")
-			if (!NodeFs.existsSync(composerJsonPath)) {
-				throw new PackageJsonNotFoundError(`No "composer.json" found for package "${packagePath}"`)
-			}
+		console.log("composerJson", rootComposerJson)
+		for (const potentialPackageFolder of this.findPackagePaths(basePath, rootComposerJson)) {
+			const composerJsonPath = NodePath.join(potentialPackageFolder, "composer.json")
+			if (!NodeFs.existsSync(composerJsonPath)) continue
 
 			const composerJson = JSON.parse(NodeFs.readFileSync(composerJsonPath).toString())
-			if (composerJson.type === "neos-site") pseudoRootPackage.require[composerJson.name] = "0.0.0"
+			if (composerJson.type === "neos-site") rootPackage.require[composerJson.name] = "0.0.0"
 			this.parsedComposerJsonByName[composerJson.name] = composerJson
-			this.packagePathByName[composerJson.name] = packagePath
+			this.packagePathByName[composerJson.name] = potentialPackageFolder
 		}
 
-		const tree = this.buildRequireTree(pseudoRootPackage)
+		const tree = this.buildRequireTree(rootPackage)
 		const treeLevels = this.buildTreeLevels(tree)
 		const sortedPackagePaths = treeLevels.reduce((list, level) => {
 			for (const name of level) {
@@ -36,7 +58,7 @@ class ComposerService {
 			return list
 		}, [])
 
-		const remaining = packagesPaths.filter(item => !sortedPackagePaths.includes(item))
+		const remaining = Array.from(paths).filter(item => !sortedPackagePaths.includes(item))
 		return remaining.concat(sortedPackagePaths)
 	}
 
@@ -46,6 +68,28 @@ class ComposerService {
 
 		const name = Object.keys(this.packagePathByName)[nameIndex]
 		return this.parsedComposerJsonByName[name]
+	}
+
+	protected * findPackagePaths(basePath: string, rootComposerJson: any) {
+		const packageFolders = fastGlob.sync(NodePath.join(basePath, "./Packages/!(Libraries)/*"), { onlyDirectories: true, deep: 2 })
+
+		for (const packageFolder of packageFolders) {
+			yield packageFolder
+		}
+
+		for (const repositoryName in rootComposerJson.repositories ?? {}) {
+			const repository = rootComposerJson.repositories[repositoryName]
+			if (repository.type !== "path") continue
+			if (typeof repository.url !== "string") continue
+
+			const fullRepositoryUrl = NodePath.join(basePath, repository.url)
+			const potentialPackageFolders = fastGlob.sync(fullRepositoryUrl, { onlyDirectories: true })
+
+			for (const potentialPackageFolder of potentialPackageFolders) {
+				console.log("potentialPackageFolder", potentialPackageFolder)
+				yield potentialPackageFolder
+			}
+		}
 	}
 
 	protected buildTreeLevels(tree: any, treeLevels: any[] = [], currentLevel = 0) {

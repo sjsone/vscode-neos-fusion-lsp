@@ -55,6 +55,7 @@ export interface ExtensionConfigurationDiagnostics {
 export interface ExtensionConfiguration {
     folders: {
         // TODO: workspace root / maybe multiple roots to support multi-workspaces 
+        root: string
         packages: string[],
         fusion: string[],
         ignore: string[],
