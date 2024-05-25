@@ -111,7 +111,7 @@ export class FusionWorkspace extends Logger {
                 }
             }
 
-            this.translationFiles.push(...TranslationService.readTranslationsFromPackage(neosPackage))
+            TranslationService.readTranslationsFromPackage(neosPackage).then(translations => this.translationFiles.push(...translations))
 
             this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
                 increment: incrementPerPackage
