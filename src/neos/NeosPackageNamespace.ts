@@ -2,7 +2,7 @@ import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { getLineNumberOfChar, pathToUri } from '../common/util'
 import { EelHelperMethod } from '../eel/EelHelperMethod'
-import { PhpMethodParameter } from '../eel/PhpMethod'
+import { PhpMethodParameter, PhpTypeWithDescription } from '../eel/PhpMethod'
 
 export interface ClassDefinition {
 	uri: string
@@ -84,12 +84,12 @@ export class NeosPackageNamespace {
 			const parameters = this.parseMethodParameters(rawParameters)
 
 			const identifierIndex = rest.substring(lastIndex).indexOf(fullDefinition) + lastIndex
-			const { description } = this.parseMethodComment(identifierIndex, phpFileSource)
+			const { description, returns } = this.parseMethodComment(identifierIndex, phpFileSource, name === "map")
 
 			methods.push(new EelHelperMethod(name, description, parameters, {
 				start: getLineNumberOfChar(phpFileSource, identifierIndex, fileUri),
 				end: getLineNumberOfChar(phpFileSource, identifierIndex + fullDefinition.length, fileUri)
-			}))
+			}, returns))
 
 			lastIndex = identifierIndex + fullDefinition.length
 			match = methodsRegex.exec(rest)
@@ -144,26 +144,42 @@ export class NeosPackageNamespace {
 		return parameters
 	}
 
-	protected parseMethodComment(offset: number, code: string) {
+	protected parseMethodComment(offset: number, code: string, debug: boolean = false) {
 		const reversed = code.substring(0, offset).split('').reverse().join('')
+
 		const reversedDescriptionRegex = /^\s*\/\*([\s\S]*?)\s*\*\*\//
 		const reversedDescriptionMatch = reversedDescriptionRegex.exec(reversed)
 
+		const typeWithDescriptionRegex = /^(\w+) *(.*)$/
+
 		const descriptionParts = []
+		let returns: PhpTypeWithDescription | undefined = undefined
 		if (reversedDescriptionMatch) {
 			const fullDocBlock = reversedDescriptionMatch[1].split('').reverse().join('')
-			const docLineRegex = /^\s*\* *(@\w+)?(.+)?$/gm
+			if (debug) console.log(fullDocBlock)
+			const docLineRegex = /^\s*\* ?(@\w+)?(.+)?$/gm
 			let docLineMatch = docLineRegex.exec(fullDocBlock)
 			let runAwayPrevention = 0
-			while (docLineMatch?.[2] && runAwayPrevention++ < 1000) {
-				descriptionParts.push(docLineMatch[2])
-				// docLineMatch[1] => "@return", "@param", ...
+			while (docLineMatch && runAwayPrevention++ < 1000) {
+				if (docLineMatch[1] === "@return") {
+					const res = typeWithDescriptionRegex.exec(docLineMatch[2].trim())
+					if (res) returns = {
+						type: res[1] ?? undefined,
+						description: res[2] ?? undefined
+					}
+				} else {
+					const line = docLineMatch[2] ?? "\n";
+					if (debug) console.log(`Line: <${line}>`)
+					descriptionParts.push(line.trim() === "Examples::" ? "Examples:" : line)
+				}
+
 				docLineMatch = docLineRegex.exec(fullDocBlock)
 			}
 		}
 
 		return {
-			description: descriptionParts.join("\n")
+			description: descriptionParts.join("\n"),
+			returns
 		}
 	}
 }
