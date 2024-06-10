@@ -60,12 +60,10 @@ export class Extension {
 		if (workspace.getConfiguration().get("neosFusionLsp.extensions.modify", false)) {
 			const preferenceService = new PreferenceService(this.outputChannel)
 
-			const modifier = (value: string[] | null) => {
-				if (!value) return null
-				if (value.includes("fusion")) {
-					return null
-				}
-				return [...value, "fusion"]
+			const modifier = (activationOnLanguages: string[] | null) => {
+				if (!activationOnLanguages) return null
+				if (activationOnLanguages.includes("fusion")) return null
+				return [...activationOnLanguages, "fusion"]
 			}
 
 			preferenceService.modify({
@@ -247,7 +245,7 @@ export class Extension {
 	protected stopAllRunningInterfaceItems(progressNotificationService?: ProgressNotificationService) {
 		progressNotificationService?.finishAll()
 		for (const id in this.languageStatusBarItems) {
-			if (id in this.languageStatusBarItems) this.languageStatusBarItems[id]!.item.busy = false
+			this.languageStatusBarItems[id]!.item.busy = false
 		}
 	}
 }
