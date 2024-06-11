@@ -6,7 +6,6 @@ import { FlowConfiguration } from './FlowConfiguration'
 import { NeosPackageNamespace } from './NeosPackageNamespace'
 import { NeosWorkspace } from './NeosWorkspace'
 import { ComposerService } from '../common/ComposerService'
-import { PackageJsonNotFoundError } from '../error/PackageJsonNotFoundError'
 
 export interface EELHelperToken {
 	name: string,
@@ -66,9 +65,6 @@ export class NeosPackage extends Logger {
 
 	public initEelHelper() {
 		if (this.configuration.settingsConfiguration === null) return undefined
-
-		// const found = this.configuration.search("Neos.Flow.core")
-		// if (found.length > 1) this.logInfo("Test found", found)
 
 		const defaultNeosFusionContext = this.configuration.get<{ [key: string]: any }>("Neos.Fusion.defaultContext")
 		if (!defaultNeosFusionContext) return undefined
