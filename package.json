@@ -450,11 +450,11 @@
     "devDependencies": {
         "@types/mocha": "^5.2.0",
         "@types/node": "^16.11.7",
-        "@typescript-eslint/eslint-plugin": "^6.19.1",
-        "@typescript-eslint/parser": "^6.19.1",
-        "esbuild": "^0.19.12",
-        "eslint": "^8.56.0",
-        "typescript": "^5.3.3"
+        "@typescript-eslint/eslint-plugin": "^7.13.1",
+        "@typescript-eslint/parser": "^7.13.1",
+        "esbuild": "^0.21.5",
+        "eslint": "^9.5.0",
+        "typescript": "^5.5.2"
     },
     "repository": {
         "type": "git",
