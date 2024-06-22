@@ -16,7 +16,6 @@ import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
 import { ActionUriPartTypes } from '../common/ActionUriService'
 import { LinePosition, LinePositionedNode } from '../common/LinePositionedNode'
-import { LegacyNodeService } from '../common/LegacyNodeService'
 import { findParent, getObjectIdentifier } from '../common/util'
 import { ActionUriDefinitionNode } from '../fusion/node/ActionUriDefinitionNode'
 import { NeosFusionFormDefinitionNode } from '../fusion/node/NeosFusionFormDefinitionNode'
@@ -30,7 +29,6 @@ import { SemanticTokensParams } from 'vscode-languageserver'
 import { RoutingActionNode } from '../fusion/node/RoutingActionNode'
 import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
 import { SemanticCommentService } from '../common/SemanticCommentService'
-import { workerData } from 'worker_threads'
 
 export interface SemanticTokenConstruct {
 	position: LinePosition
