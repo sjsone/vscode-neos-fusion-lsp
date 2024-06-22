@@ -84,7 +84,7 @@ export class NeosPackageNamespace {
 			const parameters = this.parseMethodParameters(rawParameters)
 
 			const identifierIndex = rest.substring(lastIndex).indexOf(fullDefinition) + lastIndex
-			const { description, returns } = this.parseMethodComment(identifierIndex, phpFileSource, name === "map")
+			const { description, returns } = this.parseMethodComment(identifierIndex, phpFileSource)
 
 			methods.push(new EelHelperMethod(name, description, parameters, {
 				start: getLineNumberOfChar(phpFileSource, identifierIndex, fileUri),
