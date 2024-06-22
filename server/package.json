@@ -11,8 +11,8 @@
     "dependencies": {
         "fast-glob": "^3.3.2",
         "fast-xml-parser": "^4.3.3",
-        "ts-fusion-parser": "^0.1.44",
-        "ts-fusion-runtime": "^0.0.45",
+        "ts-fusion-parser": "^0.1.46",
+        "ts-fusion-runtime": "^0.0.46",
         "vscode-languageserver": "^9.0.1",
         "vscode-languageserver-textdocument": "^1.0.11",
         "vscode-uri": "^3.0.8",

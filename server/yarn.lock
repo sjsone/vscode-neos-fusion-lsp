@@ -133,18 +133,18 @@ to-regex-range@^5.0.1:
   dependencies:
     is-number "^7.0.0"
 
-ts-fusion-parser@^0.1.44:
-  version "0.1.44"
-  resolved "https://registry.yarnpkg.com/ts-fusion-parser/-/ts-fusion-parser-0.1.44.tgz#e27340e6ed223eef74a3845e3d9bf7482dedf1e4"
-  integrity sha512-GEicUbycdPs84huXyiJpPhgQ3sjL6aAGRdAFg25eOJvNhGGa9Ed1hZBNPuf1itJur9qj2LwGU+BkxYKIIOuPVA==
+ts-fusion-parser@^0.1.46:
+  version "0.1.46"
+  resolved "https://registry.yarnpkg.com/ts-fusion-parser/-/ts-fusion-parser-0.1.46.tgz#9ed0beeab2c3ca266791fe5be9ad06244c4438a1"
+  integrity sha512-ZTmncROkBaD2bASjVN5PNHBxA86I4u61oCk/B9FcpxNoH+xNXi5nFYD3TKxj5+eRs46akuIuyLMmeo1KrlUCFA==
 
-ts-fusion-runtime@^0.0.45:
-  version "0.0.45"
-  resolved "https://registry.yarnpkg.com/ts-fusion-runtime/-/ts-fusion-runtime-0.0.45.tgz#c5ac8ad0e5af1447fbdf3bbd2964a941de5e2c2d"
-  integrity sha512-Fh2FcrUobHGjx7hbr0nj8uT9skbo25RAYY47eF96oRdNT9BJiNbikrfhaHvXZyyYArIIk55M63wnRGFuMqbGxg==
+ts-fusion-runtime@^0.0.46:
+  version "0.0.46"
+  resolved "https://registry.yarnpkg.com/ts-fusion-runtime/-/ts-fusion-runtime-0.0.46.tgz#e607bb0d7236228c0f480fa3273778de59210d64"
+  integrity sha512-puNAGmL2PxD0xTtFxJXtBPlfE7p7zURhCdaZcX/z5OaaNLp6YyGnANlIiAtGObDr7Z0hfOVn96foWqnGilZFsw==
   dependencies:
     fast-glob "^3.3.2"
-    ts-fusion-parser "^0.1.44"
+    ts-fusion-parser "^0.1.46"
 
 vscode-jsonrpc@8.2.0:
   version "8.2.0"
