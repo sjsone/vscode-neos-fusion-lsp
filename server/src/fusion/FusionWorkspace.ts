@@ -2,7 +2,7 @@ import * as NodeFs from "fs"
 import * as NodePath from "path"
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
 import { FilePatternResolver } from 'ts-fusion-runtime/out/core/FilePatternResolver'
-import { InternalArrayTreePart } from 'ts-fusion-runtime/out/core/MergedArrayTree'
+import { ArrayTreeRoot } from 'ts-fusion-runtime/out/core/MergedArrayTree'
 import { TextDocumentChangeEvent } from 'vscode-languageserver'
 import { TextDocument } from "vscode-languageserver-textdocument"
 import { LoggingLevel, type ExtensionConfiguration } from '../ExtensionConfiguration'
@@ -32,7 +32,7 @@ export class FusionWorkspace extends Logger {
     public neosWorkspace!: NeosWorkspace
 
     public fusionParser: LanguageServerFusionParser
-    public mergedArrayTree: InternalArrayTreePart = {}
+    public mergedArrayTree: ArrayTreeRoot = {}
     public parsedFiles: ParsedFusionFile[] = []
     public filesWithErrors: string[] = []
 
