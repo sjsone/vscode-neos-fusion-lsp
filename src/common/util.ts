@@ -27,6 +27,7 @@ import { Position } from 'vscode-languageserver'
 import { FlowConfigurationPathPartNode } from '../fusion/FlowConfigurationPathPartNode'
 import { RoutingActionNode } from '../fusion/node/RoutingActionNode'
 import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
+import { AbstractPathSegment } from 'ts-fusion-parser/out/fusion/nodes/AbstractPathSegment'
 
 export interface LineDataCacheEntry {
     lineLengths: number[]
@@ -244,6 +245,7 @@ export function getNodeWeight(node: any) {
     if (node instanceof ResourceUriNode) return 160
     if (node instanceof ObjectPathNode) return 150
     if (node instanceof ObjectNode) return 140
+    if (node instanceof AbstractPathSegment) return 110
     if (node instanceof ObjectStatement) return 100
     if (node instanceof RoutingActionNode) return 9
     if (node instanceof RoutingControllerNode) return 8
