@@ -135,6 +135,7 @@ class NodeService {
 		return new ExternalObjectStatement(entryObjectStatement, entryObjectStatement.fileUri ? pathToUri(entryObjectStatement.fileUri) : undefined)
 	}
 
+	// TODO: rename findPropertyDefinitionSegments and/or refactor into different methods or Service/Capabilities 
 	public * findPropertyDefinitionSegments(objectNode: ObjectStatement, workspace?: FusionWorkspace, includeOverwrites = false): Generator<ExternalObjectStatement | AbstractPathSegment, void, unknown> {
 		// console.log("--> findPropertyDefinitionSegments")
 		const objectNodeParent = objectNode.parent
