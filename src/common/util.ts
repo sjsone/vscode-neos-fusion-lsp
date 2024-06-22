@@ -221,8 +221,15 @@ export function abstractNodeToString(node: AbstractEelNode | AbstractNode): stri
     return undefined
 }
 
-export function getObjectIdentifier(objectStatement: ObjectStatement): string {
-    return objectStatement.path.segments.map(segment => `${segment instanceof MetaPathSegment ? '@' : ''}${segment.identifier}`).join(".")
+export function getObjectIdentifier(objectStatement: ObjectStatement, stripIncompletePathSegments = false): string {
+
+    const segmentStrings = []
+
+    for (const segment of objectStatement.path.segments) {
+        if (stripIncompletePathSegments && segment instanceof IncompletePathSegment) continue
+        segmentStrings.push(`${segment instanceof MetaPathSegment ? '@' : ''}${segment.identifier}`)
+    }
+    return segmentStrings.join(".")
 }
 
 export function getNodeWeight(node: any) {
