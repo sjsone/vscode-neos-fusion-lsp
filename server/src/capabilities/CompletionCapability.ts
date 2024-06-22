@@ -52,6 +52,7 @@ export class CompletionCapability extends AbstractCapability {
 		const completions: CompletionItem[] = []
 		if (foundNodeByLine) {
 			const foundNode = foundNodeByLine.getNode()
+			console.log(`Autocompleting: ${foundNode.constructor.name}`)
 			if (foundNode instanceof PathSegment)
 				completions.push(BuiltInCompletions.prototypeCompletion)
 			if (foundNode instanceof TagNode)
@@ -146,10 +147,11 @@ export class CompletionCapability extends AbstractCapability {
 		if (routingActionsCompletions) return routingActionsCompletions
 
 		if (!(node.operation === null || node.operation.position.begin !== node.operation.position.end)) {
-			return []
+			return this.getPropertyDefinitionSegments(node, workspace)
 		}
 
-		return [BuiltInCompletions.prototypeCompletion, ...this.getPropertyDefinitionSegments(node, workspace)]
+		// return [BuiltInCompletions.prototypeCompletion, ...this.getPropertyDefinitionSegments(node, workspace)]
+		return []
 	}
 
 	protected getObjectStatementRoutingActionsCompletions(workspace: FusionWorkspace, parsedFile: ParsedFusionFile, node: ObjectStatement) {
@@ -177,14 +179,11 @@ export class CompletionCapability extends AbstractCapability {
 		return this.getFusionPropertyCompletionsForObjectNode(workspace, objectNode.linePositionedNode)
 	}
 
-	protected getPropertyDefinitionSegments(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace) {
+	protected getPropertyDefinitionSegments(objectNode: ObjectStatement, workspace?: FusionWorkspace) {
 		const completions: CompletionItem[] = []
 
-		for (const segmentOrExternalStatement of LegacyNodeService.findPropertyDefinitionSegments(objectNode, workspace, true)) {
+		for (const segmentOrExternalStatement of NodeService.findPropertyDefinitionSegments(objectNode, workspace, true)) {
 			const segment = segmentOrExternalStatement instanceof ExternalObjectStatement ? segmentOrExternalStatement.statement.path.segments[0] : segmentOrExternalStatement
-			if (!(segment instanceof PathSegment)) continue
-			if (segment.identifier === "renderer" || !segment.identifier) continue
-			if (completions.find(completion => completion.label === segment.identifier)) continue
 			completions.push({
 				label: segment.identifier,
 				kind: CompletionItemKind.Property
