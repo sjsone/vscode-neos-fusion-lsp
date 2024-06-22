@@ -35,6 +35,7 @@ import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNod
 import { ClassDefinition } from '../neos/NeosPackageNamespace'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
+import { NodeService } from '../common/NodeService'
 
 export interface ActionUriDefinition {
 	package: string
@@ -181,16 +182,11 @@ export class DefinitionCapability extends AbstractCapability {
 			range: foundIgnoreBlockComment.getPositionAsRange()
 		}]
 
-		const segment = LegacyNodeService.findPropertyDefinitionSegment(objectNode, workspace, true)
+		const segment = NodeService.findPropertyDefinitionSegment(objectNode, workspace, true)
 		if (!segment) return null
 
-		if (segment instanceof PathSegment) return [{
-			uri: parsedFile.uri,
-			range: segment.linePositionedNode.getPositionAsRange()
-		}]
-
 		return [{
-			uri: segment.uri!,
+			uri: segment.statement.path.segments[0].fileUri,
 			range: segment.statement.path.segments[0].linePositionedNode.getPositionAsRange()
 		}]
 	}
