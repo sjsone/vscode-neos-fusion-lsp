@@ -8,6 +8,8 @@ import { findParent, pathToUri } from './util'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { ExternalObjectStatement } from './LegacyNodeService'
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
+import { AbstractPathSegment } from 'ts-fusion-parser/out/fusion/nodes/AbstractPathSegment'
+import { IncompletePathSegment } from 'ts-fusion-parser/out/fusion/nodes/IncompletePathSegment'
 
 class NodeService {
 
@@ -93,8 +95,8 @@ class NodeService {
 
 		const prototypeConfiguration = workspace.mergedArrayTree?.__prototypes?.[prototypeName]
 		if (!prototypeConfiguration) return false
-		if (prototypeConfiguration['__prototypeObjectName'] === oneOf) return true
-		if (Array.isArray(prototypeConfiguration['__prototypeChain']) && prototypeConfiguration['__prototypeChain'].includes(oneOf)) return true
+		if (prototypeConfiguration.__prototypeObjectName === oneOf) return true
+		if (Array.isArray(prototypeConfiguration.__prototypeChain) && prototypeConfiguration.__prototypeChain.includes(oneOf)) return true
 
 		return false
 	}
@@ -131,6 +133,45 @@ class NodeService {
 		if (!entryObjectStatement) return undefined
 
 		return new ExternalObjectStatement(entryObjectStatement, entryObjectStatement.fileUri ? pathToUri(entryObjectStatement.fileUri) : undefined)
+	}
+
+	public * findPropertyDefinitionSegments(objectNode: ObjectStatement, workspace?: FusionWorkspace, includeOverwrites = false): Generator<ExternalObjectStatement | AbstractPathSegment, void, unknown> {
+		// console.log("--> findPropertyDefinitionSegments")
+		const objectNodeParent = objectNode.parent
+		if (!objectNodeParent) return
+
+		const context = this.getFusionContextUntilNode(objectNodeParent, workspace!, false)
+
+		let relevantContext = context.this
+		let ignoreKey = objectNode.path.segments[0].identifier
+
+		let segments: AbstractPathSegment[] = []
+		const isIncompletePath = objectNode.path.segments.find(segment => segment instanceof IncompletePathSegment) !== undefined
+
+		if (isIncompletePath) {
+			segments = objectNode.path.segments.slice(0, -1)
+		}
+
+		for (const segment of segments) {
+			ignoreKey = segment.identifier
+			if (!(segment.identifier in relevantContext)) break
+
+			relevantContext = relevantContext[segment.identifier]
+		}
+
+		for (const key in relevantContext) {
+			if (key === ignoreKey) continue
+
+			const entry = relevantContext[key]
+			if (!entry?.__node) continue
+
+			const objectStatement = findParent(entry.__node, ObjectStatement)
+			if (!objectStatement) continue
+
+			yield new ExternalObjectStatement(objectStatement, objectStatement.fileUri)
+		}
+
+		// console.log("<-- findPropertyDefinitionSegments")
 	}
 }
 
