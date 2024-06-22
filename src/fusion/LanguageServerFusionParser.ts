@@ -30,7 +30,7 @@ export class LanguageServerFusionParser extends Parser {
 			const fusionFile = this.getFusionFile(NodeFs.readFileSync(file).toString(), file)
 			// const startTimeMergedArrayTree = performance.now();
 			try {
-				mergedArrayTree = this.getMergedArrayTreeVisitor(mergedArrayTree).visitFusionFile(<any>fusionFile)
+				mergedArrayTree = this.getMergedArrayTreeVisitor(mergedArrayTree, file).visitFusionFile(<any>fusionFile)
 				mergedArrayTree.buildPrototypeHierarchy()
 			} catch (error) {
 				if (!(error instanceof Error)) throw new Error(`Caught Non-Error: ${error}`)
