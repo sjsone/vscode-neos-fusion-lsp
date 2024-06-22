@@ -12,7 +12,6 @@ import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/Prototyp
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
 import * as YAML from 'yaml'
 import { LinePositionedNode } from '../common/LinePositionedNode'
-import { ExternalObjectStatement, LegacyNodeService } from '../common/LegacyNodeService'
 import { XLIFFService } from '../common/XLIFFService'
 import { abstractNodeToString, findParent, getPrototypeNameFromNode } from '../common/util'
 import { FlowConfigurationPathPartNode } from '../fusion/FlowConfigurationPathPartNode'
@@ -24,6 +23,7 @@ import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
 import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
+import { NodeService } from '../common/NodeService'
 
 
 export class HoverCapability extends AbstractCapability {
@@ -178,10 +178,9 @@ export class HoverCapability extends AbstractCapability {
 
 		if ((objectNode.path[0].value !== "this" && objectNode.path[0].value !== "props") || objectNode.path.length < 2) return null
 
-		let segment = LegacyNodeService.findPropertyDefinitionSegment(objectNode, workspace, true)
-		if (segment instanceof ExternalObjectStatement) {
-			segment = <PathSegment>segment.statement.path.segments[0]
-		}
+		const externalObjectStatement = NodeService.findPropertyDefinitionSegment(objectNode, workspace, true)
+
+		const segment = <PathSegment>externalObjectStatement?.statement.path.segments[0]
 		if (segment && segment instanceof PathSegment) {
 			const statement = findParent(segment, ObjectStatement)
 			if (!statement) return null
@@ -189,14 +188,12 @@ export class HoverCapability extends AbstractCapability {
 
 			const stringified = abstractNodeToString(statement.operation.pathValue)
 			const name = node.value
-			if (stringified !== undefined) {
-				return [
-					`EEL **${name}**`,
-					'```fusion',
-					`${name} = ${stringified}`,
-					'```'
-				].join('\n')
-			}
+			if (stringified !== undefined) return [
+				`EEL **${name}**`,
+				'```fusion',
+				`${name} = ${stringified}`,
+				'```'
+			].join('\n')
 		}
 
 		return `EEL **${node.value}**`
