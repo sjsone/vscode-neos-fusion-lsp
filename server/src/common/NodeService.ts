@@ -4,7 +4,10 @@ import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { RuntimeConfiguration } from 'ts-fusion-runtime'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { MergedArrayTreeService } from './MergedArrayTreeService'
-import { findParent } from './util'
+import { findParent, pathToUri } from './util'
+import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
+import { ExternalObjectStatement } from './LegacyNodeService'
+import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
 
 class NodeService {
 
@@ -107,6 +110,27 @@ class NodeService {
 				yield { [key]: toApply[key] }
 			}
 		}
+	}
+
+	public findPropertyDefinitionSegment(objectNode: ObjectNode, workspace?: FusionWorkspace, includeOverwrites = false): ExternalObjectStatement | undefined {
+		const context = this.getFusionContextUntilNode(objectNode, workspace!, false)
+
+		let contextEntry = context
+		let pathEntry: ObjectPathNode | undefined = undefined
+		for (const path of objectNode.path) {
+			if (path.value in contextEntry) {
+				contextEntry = contextEntry[path.value]
+				pathEntry = path
+			} else {
+				break
+			}
+		}
+		if (!pathEntry || !contextEntry.__node) return undefined
+
+		const entryObjectStatement = findParent(contextEntry.__node, ObjectStatement)
+		if (!entryObjectStatement) return undefined
+
+		return new ExternalObjectStatement(entryObjectStatement, entryObjectStatement.fileUri ? pathToUri(entryObjectStatement.fileUri) : undefined)
 	}
 }
 
