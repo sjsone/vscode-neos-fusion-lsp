@@ -114,23 +114,33 @@ class NodeService {
 		}
 	}
 
-	public findPropertyDefinitionSegment(objectNode: ObjectNode, workspace?: FusionWorkspace, includeOverwrites = false): ExternalObjectStatement | undefined {
+	public findPropertyDefinitionSegment(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace, includeOverwrites = false): ExternalObjectStatement | undefined {
 		const context = this.getFusionContextUntilNode(objectNode, workspace!, false)
 
+		console.log("context", context)
 		let contextEntry = context
-		let pathEntry: ObjectPathNode | undefined = undefined
-		for (const path of objectNode.path) {
-			if (path.value in contextEntry) {
-				contextEntry = contextEntry[path.value]
-				pathEntry = path
-			} else {
-				break
-			}
+		let pathEntry: ObjectPathNode | AbstractPathSegment | undefined = undefined
+
+		if (objectNode instanceof ObjectNode) for (const path of objectNode.path) {
+			if (!(path.value in contextEntry)) break
+
+			contextEntry = contextEntry[path.value]
+			pathEntry = path
 		}
+		else for (const path of objectNode.path.segments) {
+			if (!(path.identifier in contextEntry)) break
+
+			contextEntry = contextEntry[path.identifier]
+			pathEntry = path
+		}
+
+		console.log("got both", !pathEntry, !contextEntry.__node)
 		if (!pathEntry || !contextEntry.__node) return undefined
+		console.log("got both")
 
 		const entryObjectStatement = findParent(contextEntry.__node, ObjectStatement)
 		if (!entryObjectStatement) return undefined
+
 
 		return new ExternalObjectStatement(entryObjectStatement, entryObjectStatement.fileUri ? pathToUri(entryObjectStatement.fileUri) : undefined)
 	}
