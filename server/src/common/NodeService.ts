@@ -134,6 +134,7 @@ class NodeService {
 			pathEntry = path
 		}
 
+		// CONTINUE: here are both true so undefined gets returned
 		console.log("got both", !pathEntry, !contextEntry.__node)
 		if (!pathEntry || !contextEntry.__node) return undefined
 		console.log("got both")
