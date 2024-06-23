@@ -51,7 +51,7 @@ export class DefinitionCapability extends AbstractCapability {
 
 		const node = foundNodeByLine.getNode()
 
-		this.logDebug(`node type "${foundNodeByLine.getNode().constructor.name}"`)
+		this.logInfo(`node type "${foundNodeByLine.getNode().constructor.name}"`)
 		switch (true) {
 			case node instanceof FlowConfigurationPathPartNode:
 				return this.getConfigurationSettingsDefinitions(workspace, <LinePositionedNode<FlowConfigurationPathPartNode>>foundNodeByLine)
@@ -61,8 +61,9 @@ export class DefinitionCapability extends AbstractCapability {
 			case node instanceof PrototypePathSegment:
 				return this.getPrototypeDefinitions(workspace, foundNodeByLine)
 			case node instanceof PathSegment:
+				return this.getPropertyDefinitions(parsedFile, workspace, <LinePositionedNode<PathSegment>>foundNodeByLine)
 			case node instanceof ObjectPathNode:
-				return this.getPropertyDefinitions(parsedFile, workspace, foundNodeByLine)
+				return this.getPropertyDefinitions(parsedFile, workspace, <LinePositionedNode<ObjectPathNode>>foundNodeByLine)
 			case node instanceof PhpClassMethodNode:
 				return this.getEelHelperMethodDefinitions(workspace, <LinePositionedNode<PhpClassMethodNode>>foundNodeByLine)
 			case node instanceof PhpClassNode:
@@ -136,58 +137,23 @@ export class DefinitionCapability extends AbstractCapability {
 		return locations
 	}
 
-	getPropertyDefinitions(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<AbstractNode>): null | Location[] {
-		const node = <PathSegment | ObjectPathNode>foundNodeByLine.getNode()
-		const objectNode = node.parent
-		if (!(objectNode instanceof ObjectNode)) return null
+	getPropertyDefinitions(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<ObjectPathNode | PathSegment>): null | Location[] {
+		const node = foundNodeByLine.getNode()
 
-		const isThisProperty = objectNode.path[0].value === "this"
-		const isPropsProperty = objectNode.path[0].value === "props"
+		const relevantParentType = node instanceof ObjectPathNode ? ObjectNode : ObjectStatement
 
-		if ((!isThisProperty && !isPropsProperty) || objectNode.path.length === 1) {
-			// TODO: handle context properties
-			return null
-		}
+		const objectNodeOrStatement = findParent(node, relevantParentType)
+		if (!objectNodeOrStatement) return null
+		console.log("found object")
 
-		if (isThisProperty) {
-			const isObjectNodeInDsl = findParent(node, DslExpressionValue) !== undefined
-			// TODO: handle `this.foo` in AFX
-			if (isObjectNodeInDsl) return null
-
-			const objectStatement = findParent(objectNode, ObjectStatement)
-			if (!objectStatement) return null
-			const prototypeName = LegacyNodeService.findPrototypeName(objectStatement)
-			if (!prototypeName) return null
-
-			for (const property of LegacyNodeService.getInheritedPropertiesByPrototypeName(prototypeName, workspace)) {
-				const firstPropertyPathSegment = property.statement.path.segments[0]
-				if (firstPropertyPathSegment.identifier !== objectNode.path[1].value) continue
-				if (!property.uri) continue
-
-				return [{
-					uri: property.uri,
-					range: firstPropertyPathSegment.linePositionedNode.getPositionAsRange()
-				}]
-			}
-			return null
-		}
-
-		const { foundIgnoreComment, foundIgnoreBlockComment } = LegacyNodeService.getSemanticCommentsNodeIsAffectedBy(objectNode, parsedFile)
-		if (foundIgnoreComment) return [{
-			uri: parsedFile.uri,
-			range: foundIgnoreComment.getPositionAsRange()
-		}]
-		if (foundIgnoreBlockComment) return [{
-			uri: parsedFile.uri,
-			range: foundIgnoreBlockComment.getPositionAsRange()
-		}]
-
-		const segment = NodeService.findPropertyDefinitionSegment(objectNode, workspace, true)
+		const segment = NodeService.findPropertyDefinitionSegment(objectNodeOrStatement, workspace, true)
 		if (!segment) return null
+		console.log("got segment")
 
+		const firstSegment = segment.statement.path.segments[0]
 		return [{
-			uri: segment.statement.path.segments[0].fileUri,
-			range: segment.statement.path.segments[0].linePositionedNode.getPositionAsRange()
+			uri: firstSegment.fileUri,
+			range: firstSegment.linePositionedNode.getPositionAsRange()
 		}]
 	}
 
