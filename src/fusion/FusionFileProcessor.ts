@@ -275,7 +275,6 @@ export class FusionFileProcessor extends Logger {
 
 		if (segments[0] instanceof PrototypePathSegment) {
 			this.postProcessors.push(() => {
-				// PERF: use MTA instead of LegacyNodeService to check if it a Plugin
 				const isPlugin = NodeService.isPrototypeOneOf((segments[0] as PrototypePathSegment)?.identifier, "Neos.Neos:Plugin", this.parsedFusionFile.workspace)
 				if (isPlugin) this.processActionUriObjectStatement(objectStatement, text)
 			})
