@@ -283,6 +283,7 @@ export class DefinitionCapability extends AbstractCapability {
 					originSelectionRange
 				})
 
+				// TODO: make it configurable if all definitions should be provided
 				break
 			}
 		}
