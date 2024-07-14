@@ -5,7 +5,6 @@ import { TagAttributeNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagAttribut
 import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
-import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue'
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
@@ -14,7 +13,6 @@ import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignme
 import { Position, Range } from 'vscode-languageserver'
 import { DefinitionLink, Location, LocationLink } from 'vscode-languageserver/node'
 import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService'
-import { LegacyNodeService } from '../common/LegacyNodeService'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { XLIFFService } from '../common/XLIFFService'
 import { findParent, getObjectIdentifier, getPrototypeNameFromNode, pathToUri } from '../common/util'
@@ -265,14 +263,22 @@ export class DefinitionCapability extends AbstractCapability {
 			}
 		}
 
-		for (const property of LegacyNodeService.getInheritedPropertiesByPrototypeName(tagNode.name, workspace, true)) {
-			if (getObjectIdentifier(property.statement) !== node.name) continue
-			if (!property.uri) continue
+		const prototypeFusionContext = NodeService.getFusionContextOfPrototype(tagNode.name, workspace)
+		if (!prototypeFusionContext) return []
+
+		for (const propertyName in prototypeFusionContext) {
+			if (propertyName !== node.name) continue
+
+			const propertyNode = <AbstractNode | undefined>prototypeFusionContext?.[propertyName].__node
+			if (!propertyNode) continue
+
+			const statement = findParent(propertyNode, ObjectStatement)
+			if (!statement) continue
 
 			locationLinks.push({
-				targetUri: property.uri,
-				targetRange: property.statement.linePositionedNode.getPositionAsRange(),
-				targetSelectionRange: property.statement.linePositionedNode.getPositionAsRange(),
+				targetUri: statement.fileUri,
+				targetRange: statement.linePositionedNode.getPositionAsRange(),
+				targetSelectionRange: statement.linePositionedNode.getPositionAsRange(),
 				originSelectionRange
 			})
 		}
