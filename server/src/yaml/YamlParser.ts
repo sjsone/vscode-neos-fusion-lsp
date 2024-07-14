@@ -7,8 +7,8 @@ import { YamlToken, YamlTokenType } from "./YamlToken"
 
 const traverseUpwards = (node: AbstractYamlNode, steps: number) => {
     for (let i = 0; i < steps; i++) {
-        if (node["parent"] === undefined) throw Error(`Trying to get parent but it is undefined: ${JSON.stringify(node)}`)
-        node = node["parent"]!
+        if (node['parent'] === undefined) throw Error(`Trying to get parent but it is undefined: ${JSON.stringify(node)}`)
+        node = node['parent']!
     }
     return node
 }

@@ -301,7 +301,7 @@ export class DefinitionCapability extends AbstractCapability {
 
 	getConfigurationSettingsDefinitions(workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<FlowConfigurationPathPartNode>) {
 		const partNode = foundNodeByLine.getNode()
-		const node = partNode["parent"]
+		const node = partNode.parent
 
 		const partIndex = node["path"].indexOf(partNode)
 		if (partIndex === -1) return []

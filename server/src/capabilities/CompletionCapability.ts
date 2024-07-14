@@ -11,10 +11,9 @@ import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStateme
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { Command, CompletionItem, CompletionItemKind, InsertTextFormat, InsertTextMode } from 'vscode-languageserver/node'
-import { ExternalObjectStatement } from '../common/LegacyNodeService'
 import { LinePositionedNode } from '../common/LinePositionedNode'
-import { NodeService } from '../common/NodeService'
-import { findParent, getObjectIdentifier } from '../common/util'
+import { NodeService, ExternalObjectStatement } from '../common/NodeService'
+import { findParent } from '../common/util'
 import { FlowConfigurationPathPartNode } from '../fusion/FlowConfigurationPathPartNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
@@ -220,7 +219,7 @@ export class CompletionCapability extends AbstractCapability {
 
 	protected getFlowConfigurationCompletions(fusionWorkspace: FusionWorkspace, partNode: LinePositionedNode<FlowConfigurationPathPartNode>): CompletionItem[] {
 		const completions: CompletionItem[] = []
-		const node = partNode.getNode()["parent"]
+		const node = partNode.getNode().parent
 		const partIndex = node["path"].indexOf(partNode.getNode())
 		if (partIndex === -1) return []
 

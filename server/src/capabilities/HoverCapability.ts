@@ -87,7 +87,7 @@ export class HoverCapability extends AbstractCapability {
 	}
 
 	getMarkdownForFlowConfigurationPathNode(workspace: FusionWorkspace, partNode: FlowConfigurationPathPartNode) {
-		const node = partNode["parent"]
+		const node = partNode.parent
 
 		const partIndex = node["path"].indexOf(partNode)
 		if (partIndex === -1) return []
