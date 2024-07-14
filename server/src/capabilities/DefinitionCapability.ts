@@ -363,6 +363,4 @@ export class DefinitionCapability extends AbstractCapability {
 
 		return null
 	}
-
-
 }
