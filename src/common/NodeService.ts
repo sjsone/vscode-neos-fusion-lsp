@@ -171,11 +171,12 @@ class NodeService {
 			pathEntry = path
 		}
 
-		if (debug) console.log("got both", !pathEntry, !contextEntry.__nodes[0])
-		if (!pathEntry || !contextEntry.__nodes[0]) return undefined
-		if (debug) console.log("got both")
+		if (!pathEntry) return undefined
 
-		const entryObjectStatement = findParent(contextEntry.__nodes[0], ObjectStatement)
+		const firstNode = contextEntry.__nodes?.[0]
+		if (!firstNode) return undefined
+
+		const entryObjectStatement = findParent(firstNode, ObjectStatement)
 		if (!entryObjectStatement) return undefined
 
 
