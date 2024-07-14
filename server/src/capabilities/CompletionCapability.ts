@@ -11,7 +11,7 @@ import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStateme
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { Command, CompletionItem, CompletionItemKind, InsertTextFormat, InsertTextMode } from 'vscode-languageserver/node'
-import { ExternalObjectStatement, LegacyNodeService } from '../common/LegacyNodeService'
+import { ExternalObjectStatement } from '../common/LegacyNodeService'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { NodeService } from '../common/NodeService'
 import { findParent, getObjectIdentifier } from '../common/util'
@@ -126,15 +126,20 @@ export class CompletionCapability extends AbstractCapability {
 		if (attributeNode.value) return completions
 
 		const tagNode = findParent(attributeNode, TagNode)
-		if (tagNode !== undefined) {
-			const labels: string[] = []
-			for (const statement of LegacyNodeService.getInheritedPropertiesByPrototypeName(tagNode.name, workspace)) {
-				const label = getObjectIdentifier(statement.statement)
-				if (!labels.includes(label)) labels.push(label)
-			}
+		if (!tagNode) return completions
 
-			for (const label of labels) completions.push({ label, kind: CompletionItemKind.Property })
+		const labels: string[] = []
+
+		const prototypeFusionContext = NodeService.getFusionContextOfPrototype(tagNode.name, workspace)
+		if (!prototypeFusionContext) return completions
+
+		for (const propertyName in prototypeFusionContext) {
+			if (propertyName.startsWith("__")) continue
+
+			if (!labels.includes(propertyName)) labels.push(propertyName)
 		}
+
+		for (const label of labels) completions.push({ label, kind: CompletionItemKind.Property })
 
 		return completions
 	}
