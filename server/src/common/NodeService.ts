@@ -43,6 +43,11 @@ class NodeService {
 		})
 	}
 
+	public getFusionContextOfPrototype(prototypeName: string, workspace: FusionWorkspace) {
+		const runtimeConfiguration = new RuntimeConfiguration(workspace.mergedArrayTree)
+		return runtimeConfiguration.forPath(`/<${prototypeName}>`)
+	}
+
 	public getFusionContextUntilNode(node: AbstractNode, workspace: FusionWorkspace, debug = false) {
 		// const startTimePathResolving = performance.now()
 
