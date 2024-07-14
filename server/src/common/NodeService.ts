@@ -9,6 +9,7 @@ import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
 import { AbstractPathSegment } from 'ts-fusion-parser/out/fusion/nodes/AbstractPathSegment'
 import { IncompletePathSegment } from 'ts-fusion-parser/out/fusion/nodes/IncompletePathSegment'
+import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue'
 
 export class ExternalObjectStatement {
 	constructor(
@@ -140,8 +141,10 @@ class NodeService {
 
 	protected * getAppliedValues(apply: { [key: string]: any }, finalFusionContext: { [key: string]: any }) {
 		for (const toApply of Object.values(apply)) {
-			// TODO: run EEL-Expression or at least handle things like `@apply.baseAttributes = ${props.baseAttributes}` 
-			if (toApply['__eelExpression'] === "props") yield finalFusionContext[toApply['__eelExpression']]
+			console.log("toApply", toApply)
+
+			const appliedValueFromEelExpression = this.getAppliedValueFromEelExpression(toApply, finalFusionContext)
+			if (appliedValueFromEelExpression) yield appliedValueFromEelExpression
 
 			const valueToApplyIsDataStructure = toApply.__objectType === 'Neos.Fusion:DataStructure' || !!toApply.__prototypeChain?.includes('Neos.Fusion:DataStructure')
 			if (valueToApplyIsDataStructure) for (const key in toApply) {
@@ -149,6 +152,28 @@ class NodeService {
 				yield { [key]: toApply[key] }
 			}
 		}
+	}
+
+	protected getAppliedValueFromEelExpression(toApply: any, finalFusionContext: { [key: string]: any }) {
+		// TODO: run EEL-Expression
+		if (toApply['__eelExpression'] === "props") return finalFusionContext[toApply['__eelExpression']]
+
+		const toApplyEelExpressionValue = toApply.__nodes?.[0]
+		if (!(toApplyEelExpressionValue instanceof EelExpressionValue)) return undefined
+
+		const objectNode = toApplyEelExpressionValue.nodes
+		if (!(objectNode instanceof ObjectNode)) return undefined
+
+		let currentFusionContext = finalFusionContext
+		for (const pathPart of objectNode.path) {
+			if (!(pathPart instanceof ObjectPathNode)) return undefined
+			if (pathPart.incomplete) return undefined
+
+			if (!(pathPart.value in currentFusionContext)) return undefined
+			currentFusionContext = currentFusionContext[pathPart.value]
+		}
+
+		return currentFusionContext
 	}
 
 	public findPropertyDefinitionSegment(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace, includeOverwrites = false, debug = false): ExternalObjectStatement | undefined {
