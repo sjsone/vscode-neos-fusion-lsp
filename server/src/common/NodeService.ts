@@ -171,11 +171,11 @@ class NodeService {
 			pathEntry = path
 		}
 
-		if (debug) console.log("got both", !pathEntry, !contextEntry.__node)
-		if (!pathEntry || !contextEntry.__node) return undefined
+		if (debug) console.log("got both", !pathEntry, !contextEntry.__nodes[0])
+		if (!pathEntry || !contextEntry.__nodes[0]) return undefined
 		if (debug) console.log("got both")
 
-		const entryObjectStatement = findParent(contextEntry.__node, ObjectStatement)
+		const entryObjectStatement = findParent(contextEntry.__nodes[0], ObjectStatement)
 		if (!entryObjectStatement) return undefined
 
 
@@ -211,12 +211,14 @@ class NodeService {
 			if (key === ignoreKey) continue
 
 			const entry = relevantContext[key]
-			if (!entry?.__node) continue
+			if (!entry?.__nodes) continue
 
-			const objectStatement = findParent(entry.__node, ObjectStatement)
-			if (!objectStatement) continue
+			for (const node of entry.__nodes) {
+				const objectStatement = findParent(node, ObjectStatement)
+				if (!objectStatement) continue
 
-			yield new ExternalObjectStatement(objectStatement, objectStatement.fileUri)
+				yield new ExternalObjectStatement(objectStatement, objectStatement.fileUri)
+			}
 		}
 
 		// console.log("<-- findPropertyDefinitionSegments")

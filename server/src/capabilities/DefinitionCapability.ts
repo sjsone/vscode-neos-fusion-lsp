@@ -269,19 +269,25 @@ export class DefinitionCapability extends AbstractCapability {
 		for (const propertyName in prototypeFusionContext) {
 			if (propertyName !== node.name) continue
 
-			const propertyNode = <AbstractNode | undefined>prototypeFusionContext?.[propertyName].__node
-			if (!propertyNode) continue
+			const nodes: undefined | Array<AbstractNode> = prototypeFusionContext?.[propertyName].__nodes
+			if (!nodes) continue
 
-			const statement = findParent(propertyNode, ObjectStatement)
-			if (!statement) continue
+			for (const node of nodes) {
+				const statement = findParent(node, ObjectStatement)
+				if (!statement) continue
 
-			locationLinks.push({
-				targetUri: statement.fileUri,
-				targetRange: statement.linePositionedNode.getPositionAsRange(),
-				targetSelectionRange: statement.linePositionedNode.getPositionAsRange(),
-				originSelectionRange
-			})
+				locationLinks.unshift({
+					targetUri: statement.fileUri,
+					targetRange: statement.linePositionedNode.getPositionAsRange(),
+					targetSelectionRange: statement.linePositionedNode.getPositionAsRange(),
+					originSelectionRange
+				})
+
+				break
+			}
 		}
+
+		locationLinks.forEach(l => console.log(l.targetUri));
 
 		const foundNodes = parsedFile.getNodesByPosition(context.params.position)
 		if (!foundNodes) return locationLinks
