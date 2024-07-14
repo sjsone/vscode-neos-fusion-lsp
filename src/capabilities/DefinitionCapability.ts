@@ -137,18 +137,17 @@ export class DefinitionCapability extends AbstractCapability {
 		return locations
 	}
 
-	getPropertyDefinitions(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<ObjectPathNode | PathSegment>): null | Location[] {
+	getPropertyDefinitions(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<ObjectPathNode | PathSegment>, debug = false): null | Location[] {
 		const node = foundNodeByLine.getNode()
 
 		const relevantParentType = node instanceof ObjectPathNode ? ObjectNode : ObjectStatement
 
 		const objectNodeOrStatement = findParent(node, relevantParentType)
 		if (!objectNodeOrStatement) return null
-		console.log("found object")
-
-		const segment = NodeService.findPropertyDefinitionSegment(objectNodeOrStatement, workspace, true)
+		// console.log("found object")
+		const segment = NodeService.findPropertyDefinitionSegment(objectNodeOrStatement, workspace, true, false)
 		if (!segment) return null
-		console.log("got segment")
+		// console.log("got segment")
 
 		const firstSegment = segment.statement.path.segments[0]
 		return [{

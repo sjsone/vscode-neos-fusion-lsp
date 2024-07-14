@@ -13,22 +13,47 @@ import { IncompletePathSegment } from 'ts-fusion-parser/out/fusion/nodes/Incompl
 
 class NodeService {
 
-	public getFusionContextUntilNode(node: AbstractNode, workspace: FusionWorkspace, debug = false) {
-		const startTimePathResolving = performance.now()
-
+	public getFusionConfigurationListUntilNode(node: AbstractNode, workspace: FusionWorkspace, debug = false) {
 		const baseNode = node instanceof PathSegment ? findParent(node, ObjectStatement)!["parent"] : node
 
-		if (debug) console.log("before buildPathForNode")
+		// if (debug) console.log("-->> before buildPathForNode")
 		const pathForNode = MergedArrayTreeService.buildPathForNode(baseNode!)
-		if (debug) console.log("pathForNode", pathForNode)
+		// if (debug) console.log("-->> pathForNode", pathForNode)
+		// if (debug) {
+		// 	const test = workspace.mergedArrayTree.__prototypes!["Neos.Fusion:Component"]?.__meta?.context
+		// 	console.log("-->> workspace.mergedArrayTree Fusion Component context", test ? Object.keys(test) : undefined)
+		// }
 		const runtimeConfiguration = new RuntimeConfiguration(workspace.mergedArrayTree)
 		// if (debug) console.log("runtimeConfiguration", runtimeConfiguration['fusionConfiguration']['__prototypes']['Otter.Demo:Molecule.Hero'])
 
-		const relevantTree = pathForNode.map((pathPart, index) => ({
-			pathPart,
-			configuration: runtimeConfiguration.forPath(pathForNode.slice(0, index + 1).join('/'))
-		}))
-		if (debug) console.log("relevantTree", relevantTree)
+		return pathForNode.map((pathPart, index) => {
+			const path = pathForNode.slice(0, index + 1).join('/');
+			// if (debug) console.log(`-->>   pathPart: ${pathPart} / path: ${path}`)
+			if (debug) runtimeConfiguration["debug"] = true
+			const configuration = runtimeConfiguration.forPath(path)
+			if (debug) runtimeConfiguration["debug"] = false
+			// if (debug) {
+			// 	const test = configuration?.__meta?.context
+			// 	console.log(`-->>   configuration meta context`, test ? Object.keys(test) : undefined)
+			// }
+			return {
+				pathPart,
+				configuration
+			}
+		})
+	}
+
+	public getFusionContextUntilNode(node: AbstractNode, workspace: FusionWorkspace, debug = false) {
+		// const startTimePathResolving = performance.now()
+
+		const relevantTree = this.getFusionConfigurationListUntilNode(node, workspace, debug)
+
+		if (debug) {
+			// console.log("relevantTree: ", relevantTree)
+			// for (const entry of relevantTree) {
+			// 	console.log(`  ${entry.pathPart} -> `, entry.configuration)
+			// }
+		}
 
 		// console.log(`Elapsed time relevantTree: ${performance.now() - startTimePathResolving} milliseconds`);
 
@@ -49,6 +74,7 @@ class NodeService {
 
 			if (partConfiguration.__meta) {
 				if (partConfiguration.__meta.context && typeof partConfiguration.__meta.context === "object") {
+					// if (debug) console.log(`partConfiguration due to __meta.context::<${relevantTreePart.pathPart}>`, partConfiguration)
 					for (const contextKey in partConfiguration.__meta.context) {
 						finalFusionContext[contextKey] = partConfiguration.__meta.context[contextKey]
 					}
@@ -114,10 +140,10 @@ class NodeService {
 		}
 	}
 
-	public findPropertyDefinitionSegment(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace, includeOverwrites = false): ExternalObjectStatement | undefined {
-		const context = this.getFusionContextUntilNode(objectNode, workspace!, false)
+	public findPropertyDefinitionSegment(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace, includeOverwrites = false, debug = false): ExternalObjectStatement | undefined {
+		const context = this.getFusionContextUntilNode(objectNode, workspace!, debug)
 
-		console.log("context", context)
+		if (debug) console.log("context", context)
 		let contextEntry = context
 		let pathEntry: ObjectPathNode | AbstractPathSegment | undefined = undefined
 
@@ -134,10 +160,9 @@ class NodeService {
 			pathEntry = path
 		}
 
-		// CONTINUE: here are both true so undefined gets returned
-		console.log("got both", !pathEntry, !contextEntry.__node)
+		if (debug) console.log("got both", !pathEntry, !contextEntry.__node)
 		if (!pathEntry || !contextEntry.__node) return undefined
-		console.log("got both")
+		if (debug) console.log("got both")
 
 		const entryObjectStatement = findParent(contextEntry.__node, ObjectStatement)
 		if (!entryObjectStatement) return undefined
