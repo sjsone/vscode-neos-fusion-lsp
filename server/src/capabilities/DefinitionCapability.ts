@@ -49,7 +49,7 @@ export class DefinitionCapability extends AbstractCapability {
 
 		const node = foundNodeByLine.getNode()
 
-		this.logInfo(`node type "${foundNodeByLine.getNode().constructor.name}"`)
+		this.logVerbose(`node type "${foundNodeByLine.getNode().constructor.name}"`)
 		switch (true) {
 			case node instanceof FlowConfigurationPathPartNode:
 				return this.getConfigurationSettingsDefinitions(workspace, <LinePositionedNode<FlowConfigurationPathPartNode>>foundNodeByLine)
