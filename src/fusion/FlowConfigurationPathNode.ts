@@ -10,7 +10,7 @@ export class FlowConfigurationPathNode extends AbstractNode {
 		super(position, parent)
 
 		this.path = path
-		for (const part of path) part["parent"] = this
+		for (const part of path) part.parent = this
 	}
 
 	static FromLiteralStringNode(literalStringNode: LiteralStringNode) {

@@ -6,15 +6,21 @@ import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { MergedArrayTreeService } from './MergedArrayTreeService'
 import { findParent, pathToUri } from './util'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
-import { ExternalObjectStatement } from './LegacyNodeService'
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
 import { AbstractPathSegment } from 'ts-fusion-parser/out/fusion/nodes/AbstractPathSegment'
 import { IncompletePathSegment } from 'ts-fusion-parser/out/fusion/nodes/IncompletePathSegment'
 
+export class ExternalObjectStatement {
+	constructor(
+		public statement: ObjectStatement,
+		public uri?: string
+	) { }
+}
+
 class NodeService {
 
 	public getFusionConfigurationListUntilNode(node: AbstractNode, workspace: FusionWorkspace, debug = false) {
-		const baseNode = node instanceof PathSegment ? findParent(node, ObjectStatement)!["parent"] : node
+		const baseNode = node instanceof PathSegment ? findParent(node, ObjectStatement)!.parent : node
 
 		// if (debug) console.log("-->> before buildPathForNode")
 		const pathForNode = MergedArrayTreeService.buildPathForNode(baseNode!)

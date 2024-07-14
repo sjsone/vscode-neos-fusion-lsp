@@ -13,14 +13,14 @@ class MergedArrayTreeService {
 		let foundNode: AbstractNode | undefined = node
 		do {
 			nodePath.unshift(...this.abstractNodeToMergedArrayTreePath(foundNode))
-			foundNode = foundNode["parent"]
+			foundNode = foundNode.parent
 		} while (foundNode)
 		return nodePath
 	}
 
 	protected *abstractNodeToMergedArrayTreePath(node: AbstractNode): Generator<string> {
 		if (node instanceof ObjectPathNode) {
-			const objectNode = <ObjectNode>node["parent"]
+			const objectNode = <ObjectNode>node.parent
 			const elements = objectNode.path.slice(0, objectNode.path.indexOf(node) + 1)
 			// console.log("elements", elements)
 			// yield elements.map(pathNode => pathNode["value"]).join("/")
