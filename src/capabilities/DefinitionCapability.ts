@@ -99,13 +99,7 @@ export class DefinitionCapability extends AbstractCapability {
 				Position.create(position.line, position.character + transUnit.id.length + 5)
 			)
 
-			locations.push({
-				targetUri: translationFile.uri,
-				targetRange: range,
-				targetSelectionRange: range,
-				originSelectionRange: foundNodeByLine.getPositionAsRange()
-			})
-
+			locations.push(LocationLink.create(translationFile.uri, range, range, foundNodeByLine.getPositionAsRange()))
 		}
 		return locations
 
@@ -123,12 +117,12 @@ export class DefinitionCapability extends AbstractCapability {
 		for (const otherParsedFile of workspace.parsedFiles) {
 			for (const otherNode of [...otherParsedFile.prototypeCreations, ...otherParsedFile.prototypeOverwrites]) {
 				if (otherNode.getNode().identifier !== goToPrototypeName) continue
-				locations.push({
-					targetUri: otherParsedFile.uri,
-					targetRange: otherNode.getPositionAsRange(),
-					targetSelectionRange: otherNode.getPositionAsRange(),
-					originSelectionRange: foundNodeByLine.getPositionAsRange()
-				})
+				locations.push(LocationLink.create(
+					otherParsedFile.uri,
+					otherNode.getPositionAsRange(),
+					otherNode.getPositionAsRange(),
+					foundNodeByLine.getPositionAsRange()
+				))
 			}
 		}
 
