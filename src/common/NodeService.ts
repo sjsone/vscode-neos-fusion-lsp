@@ -141,7 +141,7 @@ class NodeService {
 
 	protected * getAppliedValues(apply: { [key: string]: any }, finalFusionContext: { [key: string]: any }) {
 		for (const toApply of Object.values(apply)) {
-			console.log("toApply", toApply)
+			// console.log("toApply", toApply)
 
 			const appliedValueFromEelExpression = this.getAppliedValueFromEelExpression(toApply, finalFusionContext)
 			if (appliedValueFromEelExpression) yield appliedValueFromEelExpression
