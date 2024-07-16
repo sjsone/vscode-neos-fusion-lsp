@@ -41,6 +41,7 @@ class ComposerService extends Logger {
 			if (composerJson.type === "neos-site") rootPackage.require[composerJson.name] = "0.0.0"
 			this.parsedComposerJsonByName[composerJson.name] = composerJson
 			this.packagePathByName[composerJson.name] = potentialPackageFolder
+			this.logVerbose(`Read composer.json for ${composerJson.name}`)
 		}
 
 		const tree = this.buildRequireTree(rootPackage)
@@ -81,7 +82,7 @@ class ComposerService extends Logger {
 			const potentialPackageFolders = fastGlob.sync(fullRepositoryUrl, { onlyDirectories: true })
 
 			for (const potentialPackageFolder of potentialPackageFolders) {
-				console.log("potentialPackageFolder", potentialPackageFolder)
+				this.logVerbose("potentialPackageFolder", potentialPackageFolder)
 				yield potentialPackageFolder
 			}
 		}
