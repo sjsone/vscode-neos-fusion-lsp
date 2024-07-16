@@ -94,7 +94,7 @@ export class FusionWorkspace extends Logger {
         await this.languageServer.sendProgressNotificationFinish("init_diagnose_files")
 
         const endInMS = (process.hrtime.bigint() - begin) / 1000000n;
-        console.log(`---> Diagnostics took: ${endInMS}ms`)
+        this.logInfo(`Initial diagnostics took: ${endInMS}ms`)
     }
 
     protected async initPackagesPaths() {
