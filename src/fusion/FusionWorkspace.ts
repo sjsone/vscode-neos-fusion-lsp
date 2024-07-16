@@ -235,6 +235,7 @@ export class FusionWorkspace extends Logger {
         this.mergedArrayTree = this.fusionParser.parseRootFusionFiles()
         this.fusionRuntimeConfiguration = new RuntimeConfiguration(this.mergedArrayTree)
         this.fusionRuntimeConfigurationCache = {}
+        this.logDebug("Cleared 'fusionRuntimeConfigurationCache'")
         // console.log("buildMergedArrayTree component @context", this.mergedArrayTree["__prototypes"]?.["Neos.Fusion:Component"]?.["__meta"]?.["context"])
         this.logVerbose(`Elapsed time FULL MAT: ${performance.now() - startTimeFullMergedArrayTree} milliseconds`)
         this.languageServer.sendBusyDispose('parsingFusionMergedArrayTree')
