@@ -108,7 +108,7 @@ export class FusionWorkspace extends Logger {
             const packagePath = neosPackage.path
             this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
                 message: `Package: ${packagePath}`
-            }).catch(error => this.logError("init", error))
+            }).catch(error => this.logError(`Error trying to send progress notification for package ${packagePath}`, error))
 
             for (const packageFusionFolderPath of this.configuration.folders.fusion) {
                 const fusionFolderPath = NodePath.join(packagePath, packageFusionFolderPath)
@@ -141,11 +141,15 @@ export class FusionWorkspace extends Logger {
             }
         }
 
-        this.logVerbose("Root Fusion Paths and order for include", Array.from(this.fusionParser.rootFusionPaths.entries()).map(([neosPackage, rootPaths]) => ({
+        this.logInfo("Root Fusion Paths and order for include: ")
+        const pathsAndOrder = Array.from(this.fusionParser.rootFusionPaths.entries()).map(([neosPackage, rootPaths]) => ({
             name: neosPackage.getName(),
             type: neosPackage["composerJson"]["type"],
             rootPaths: rootPaths.map(p => p.split("/").slice(-2).join('/'))
-        })))
+        }))
+        for (const entry of pathsAndOrder) {
+            this.logInfo(`    ${entry.name}[${entry.type}]: `, entry.rootPaths)
+        }
 
         FilePatternResolver.addUriProtocolStrategy('nodetypes:', (uri, filePattern, contextPathAndFilename) => {
             if (uri.protocol !== "nodetypes:") return undefined
