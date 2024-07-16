@@ -19,30 +19,16 @@ export class ExternalObjectStatement {
 }
 
 class NodeService {
-
 	public getFusionConfigurationListUntilNode(node: AbstractNode, workspace: FusionWorkspace, debug = false) {
 		const baseNode = node instanceof PathSegment ? findParent(node, ObjectStatement)!.parent : node
-
-		// if (debug) console.log("-->> before buildPathForNode")
 		const pathForNode = MergedArrayTreeService.buildPathForNode(baseNode!)
-		// if (debug) console.log("-->> pathForNode", pathForNode)
-		// if (debug) {
-		// 	const test = workspace.mergedArrayTree.__prototypes!["Neos.Fusion:Component"]?.__meta?.context
-		// 	console.log("-->> workspace.mergedArrayTree Fusion Component context", test ? Object.keys(test) : undefined)
-		// }
-		const runtimeConfiguration = new RuntimeConfiguration(workspace.mergedArrayTree)
-		// if (debug) console.log("runtimeConfiguration", runtimeConfiguration['fusionConfiguration']['__prototypes']['Otter.Demo:Molecule.Hero'])
-
 		return pathForNode.map((pathPart, index) => {
 			const path = pathForNode.slice(0, index + 1).join('/');
 			// if (debug) console.log(`-->>   pathPart: ${pathPart} / path: ${path}`)
-			if (debug) runtimeConfiguration["debug"] = true
-			const configuration = runtimeConfiguration.forPath(path)
-			if (debug) runtimeConfiguration["debug"] = false
-			// if (debug) {
-			// 	const test = configuration?.__meta?.context
-			// 	console.log(`-->>   configuration meta context`, test ? Object.keys(test) : undefined)
-			// }
+			if (debug) workspace.fusionRuntimeConfiguration["debug"] = true
+			const configuration = workspace.fusionRuntimeConfiguration.forPath(path)
+			if (debug) workspace.fusionRuntimeConfiguration["debug"] = false
+
 			return {
 				pathPart,
 				configuration
@@ -51,24 +37,11 @@ class NodeService {
 	}
 
 	public getFusionContextOfPrototype(prototypeName: string, workspace: FusionWorkspace) {
-		const runtimeConfiguration = new RuntimeConfiguration(workspace.mergedArrayTree)
-		return runtimeConfiguration.forPath(`/<${prototypeName}>`)
+		return workspace.fusionRuntimeConfiguration.forPath(`/<${prototypeName}>`)
 	}
 
 	public getFusionContextUntilNode(node: AbstractNode, workspace: FusionWorkspace, debug = false) {
-		// const startTimePathResolving = performance.now()
-
 		const relevantTree = this.getFusionConfigurationListUntilNode(node, workspace, debug)
-
-		if (debug) {
-			// console.log("relevantTree: ", relevantTree)
-			// for (const entry of relevantTree) {
-			// 	console.log(`  ${entry.pathPart} -> `, entry.configuration)
-			// }
-		}
-
-		// console.log(`Elapsed time relevantTree: ${performance.now() - startTimePathResolving} milliseconds`);
-
 
 		// TODO: prefill fusion context with the correct values (from controller?, EEL-Helper?)
 		const finalFusionContext = {} as { [key: string]: any }
@@ -248,6 +221,13 @@ class NodeService {
 		}
 
 		// console.log("<-- findPropertyDefinitionSegments")
+	}
+
+	protected forPath(path: string, workspace: FusionWorkspace): { [key: string]: any } {
+		if (!workspace.fusionRuntimeConfigurationCache[path]) {
+			workspace.fusionRuntimeConfigurationCache[path] = workspace.fusionRuntimeConfiguration.forPath(path)
+		}
+		return workspace.fusionRuntimeConfigurationCache[path]
 	}
 }
 
