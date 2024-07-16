@@ -26,7 +26,7 @@ class NodeService {
 			const path = pathForNode.slice(0, index + 1).join('/');
 			// if (debug) console.log(`-->>   pathPart: ${pathPart} / path: ${path}`)
 			if (debug) workspace.fusionRuntimeConfiguration["debug"] = true
-			const configuration = workspace.fusionRuntimeConfiguration.forPath(path)
+			const configuration = this.forPath(path, workspace)
 			if (debug) workspace.fusionRuntimeConfiguration["debug"] = false
 
 			return {
