@@ -21,6 +21,7 @@ import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile'
 import { LanguageServerFusionParser } from './LanguageServerFusionParser'
 import { ParsedFusionFile } from './ParsedFusionFile'
 import { RootComposerJsonNotFoundError } from '../error/RootComposerJsonNotFoundError'
+import { RuntimeConfiguration } from 'ts-fusion-runtime'
 
 export class FusionWorkspace extends Logger {
     public uri: string
@@ -33,6 +34,8 @@ export class FusionWorkspace extends Logger {
 
     public fusionParser: LanguageServerFusionParser
     public mergedArrayTree: ArrayTreeRoot = {}
+    public fusionRuntimeConfiguration: RuntimeConfiguration = new RuntimeConfiguration({})
+    public fusionRuntimeConfigurationCache: { [key: string]: any } = {}
     public parsedFiles: ParsedFusionFile[] = []
     public filesWithErrors: string[] = []
 
@@ -80,6 +83,8 @@ export class FusionWorkspace extends Logger {
 
         }
 
+        const begin = process.hrtime.bigint()
+
         await this.languageServer.sendProgressNotificationCreate("init_diagnose_files", `diagnosing ${this.filesToDiagnose.length} files`)
         try {
             await this.processFilesToDiagnose(true)
@@ -87,6 +92,9 @@ export class FusionWorkspace extends Logger {
             this.logError("Error processing files to diagnose: ", error)
         }
         await this.languageServer.sendProgressNotificationFinish("init_diagnose_files")
+
+        const endInMS = (process.hrtime.bigint() - begin) / 1000000n;
+        console.log(`---> Diagnostics took: ${endInMS}ms`)
     }
 
     protected async initPackagesPaths() {
@@ -225,6 +233,8 @@ export class FusionWorkspace extends Logger {
         })
 
         this.mergedArrayTree = this.fusionParser.parseRootFusionFiles()
+        this.fusionRuntimeConfiguration = new RuntimeConfiguration(this.mergedArrayTree)
+        this.fusionRuntimeConfigurationCache = {}
         // console.log("buildMergedArrayTree component @context", this.mergedArrayTree["__prototypes"]?.["Neos.Fusion:Component"]?.["__meta"]?.["context"])
         this.logVerbose(`Elapsed time FULL MAT: ${performance.now() - startTimeFullMergedArrayTree} milliseconds`)
         this.languageServer.sendBusyDispose('parsingFusionMergedArrayTree')
