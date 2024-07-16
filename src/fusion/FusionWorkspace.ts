@@ -63,30 +63,27 @@ export class FusionWorkspace extends Logger {
         return this.uri
     }
 
-    init(configuration: ExtensionConfiguration) {
-        // TODO: split init method
+    public async init(configuration: ExtensionConfiguration) {
         this.configuration = configuration
         this.clear()
-        this.languageServer.sendProgressNotificationCreate("fusion_workspace_init", "Fusion")
         this.parsedFusionFileDiagnostics = new ParsedFusionFileDiagnostics(configuration.diagnostics)
 
         try {
-            this.initPackagesPaths()
-            this.initPackages()
-            this.initFusionFiles()
+            await this.initPackagesPaths()
+            await this.initPackages()
+            await this.initFusionFiles()
+            await this.initTranslations()
         } catch (error) {
             if (!(error instanceof RootComposerJsonNotFoundError)) throw error
             this.languageServer.sendRootComposerJsonNotFound(error.getPath())
             return
 
-        } finally {
-            this.languageServer.sendProgressNotificationFinish("fusion_workspace_init").catch(error => this.logError("Error trying to send progress notification finish", error))
         }
 
         this.processFilesToDiagnose().catch(error => this.logError("Error processing files to diagnose: ", error))
     }
 
-    protected initPackagesPaths() {
+    protected async initPackagesPaths() {
         const packagesPaths = ComposerService.getComposerPackagePaths(this, this.configuration)
         this.logDebug("packagesPaths", packagesPaths)
         this.neosWorkspace = new NeosWorkspace(this)
@@ -101,12 +98,12 @@ export class FusionWorkspace extends Logger {
         }
 
         this.neosWorkspace.init(this.selectedFlowContextName)
-        this.languageServer.sendFlowConfiguration(this.neosWorkspace.configurationManager['mergedConfiguration'])
+        await this.languageServer.sendFlowConfiguration(this.neosWorkspace.configurationManager['mergedConfiguration'])
 
         const incrementPerPackage = 100 / Array.from(packagesPaths).length
         for (const neosPackage of this.neosWorkspace.getPackages().values()) {
             const packagePath = neosPackage.path
-            this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
+            await this.languageServer.sendProgressNotificationUpdate("init_packages_paths", {
                 message: `Package: ${packagePath}`
             }).catch(error => this.logError(`Error trying to send progress notification for package ${packagePath}`, error))
 
@@ -119,15 +116,15 @@ export class FusionWorkspace extends Logger {
                 }
             }
 
-            TranslationService.readTranslationsFromPackage(neosPackage).then(translations => this.translationFiles.push(...translations))
-
-            this.languageServer.sendProgressNotificationUpdate("fusion_workspace_init", {
+            await this.languageServer.sendProgressNotificationUpdate("init_packages_paths", {
                 increment: incrementPerPackage
             }).catch(error => this.logError("Error trying to send progress notification update: ", error))
         }
+
+        await this.languageServer.sendProgressNotificationFinish("init_packages_paths")
     }
 
-    protected initPackages() {
+    protected async initPackages() {
         const possibleNeosFusionPackages = this.orderNeosPackages(Array.from(this.neosWorkspace.getPackages().values()))
 
         for (const neosPackage of possibleNeosFusionPackages) {
@@ -162,12 +159,19 @@ export class FusionWorkspace extends Logger {
         })
     }
 
-    protected initFusionFiles() {
+    protected async initFusionFiles() {
+        await this.languageServer.sendProgressNotificationCreate("init_fusion_files_buildMergedArrayTree", "Building MergedArrayTree")
         this.buildMergedArrayTree()
+        await this.languageServer.sendProgressNotificationFinish("init_fusion_files_buildMergedArrayTree")
 
+        await this.languageServer.sendProgressNotificationCreate("init_fusion_files_post_processing", "Post processing fusion files")
+        const increment = 100 / this.parsedFiles.length
         for (const parsedFile of this.parsedFiles) {
             parsedFile.runPostProcessing()
+            await this.languageServer.sendProgressNotificationUpdate("init_fusion_files_post_processing", { increment })
+
         }
+        await this.languageServer.sendProgressNotificationFinish("init_fusion_files_post_processing")
 
         this.logInfo(`Successfully parsed ${this.parsedFiles.length} fusion files. `)
 
@@ -181,6 +185,18 @@ export class FusionWorkspace extends Logger {
                 }
             }
         }
+    }
+
+    protected async initTranslations() {
+        await this.languageServer.sendProgressNotificationCreate("init_translations", "initializing translations")
+        const packages = Array.from(this.neosWorkspace.getPackages().values())
+        const increment = 100 / packages.length
+        for (const neosPackage of packages) {
+            const translations = await TranslationService.readTranslationsFromPackage(neosPackage)
+            this.translationFiles.push(...translations)
+            await this.languageServer.sendProgressNotificationUpdate("init_translations", { increment })
+        }
+        await this.languageServer.sendProgressNotificationFinish("init_translations")
     }
 
     protected orderNeosPackages(packages: NeosPackage[]) {

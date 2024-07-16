@@ -259,7 +259,7 @@ export class LanguageServer extends Logger {
 
 		this.logVerbose("Configuration: " + JSON.stringify(configuration))
 		for (const fusionWorkspace of this.fusionWorkspaces) {
-			fusionWorkspace.init(configuration)
+			await fusionWorkspace.init(configuration)
 		}
 
 		clearLineDataCache()
