@@ -80,7 +80,13 @@ export class FusionWorkspace extends Logger {
 
         }
 
-        this.processFilesToDiagnose().catch(error => this.logError("Error processing files to diagnose: ", error))
+        await this.languageServer.sendProgressNotificationCreate("init_diagnose_files", `diagnosing ${this.filesToDiagnose.length} files`)
+        try {
+            await this.processFilesToDiagnose(true)
+        } catch (error) {
+            this.logError("Error processing files to diagnose: ", error)
+        }
+        await this.languageServer.sendProgressNotificationFinish("init_diagnose_files")
     }
 
     protected async initPackagesPaths() {
@@ -323,17 +329,22 @@ export class FusionWorkspace extends Logger {
         return this.processFilesToDiagnose()
     }
 
-    protected async processFilesToDiagnose() {
+    protected async processFilesToDiagnose(timeEachFileDiagnostic: boolean = false) {
         const randomDiagnoseRun = Math.round(Math.random() * 100)
         this.logDebug(`<${randomDiagnoseRun}> Will diagnose ${this.filesToDiagnose.length} files`)
         this.languageServer.sendBusyCreate('diagnostics')
-        await Promise.all(this.filesToDiagnose.map(async parsedFile => {
+
+        for (const parsedFile of this.filesToDiagnose) {
+            // const begin = process.hrtime.bigint()
             const diagnostics = await this.parsedFusionFileDiagnostics.diagnose(parsedFile)
+            // const end = process.hrtime.bigint() - begin
             if (diagnostics) await this.languageServer.sendDiagnostics({
                 uri: parsedFile.uri,
                 diagnostics
             })
-        }))
+            // const endAsMicroseconds = end / 1000n
+            // if (endAsMicroseconds > 1000) this.logInfo(`Diagnose took ${endAsMicroseconds} microseconds: ${parsedFile.uri}`)
+        }
 
         this.logDebug(`<${randomDiagnoseRun}>...finished`)
         this.languageServer.sendBusyDispose('diagnostics')
