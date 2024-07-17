@@ -10,6 +10,7 @@ import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNod
 import { AbstractPathSegment } from 'ts-fusion-parser/out/fusion/nodes/AbstractPathSegment'
 import { IncompletePathSegment } from 'ts-fusion-parser/out/fusion/nodes/IncompletePathSegment'
 import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue'
+import { Logger } from './Logging'
 
 export class ExternalObjectStatement {
 	constructor(
@@ -18,7 +19,7 @@ export class ExternalObjectStatement {
 	) { }
 }
 
-class NodeService {
+class NodeService extends Logger {
 	public getFusionConfigurationListUntilNode(node: AbstractNode, workspace: FusionWorkspace, debug = false) {
 		const baseNode = node instanceof PathSegment ? findParent(node, ObjectStatement)!.parent : node
 		const pathForNode = MergedArrayTreeService.buildPathForNode(baseNode!)
