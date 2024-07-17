@@ -2,8 +2,12 @@ out
 node_modules
 client/server
 .DS_Store
+
+# Packages
 *.vsix
 *.zip
-*.cpuprofile
 
+# Debugging
+*.cpuprofile
+*.heapprofile
 yarn-error.log
