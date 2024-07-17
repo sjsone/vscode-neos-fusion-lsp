@@ -25,9 +25,8 @@ class NodeService extends Logger {
 		const pathForNode = MergedArrayTreeService.buildPathForNode(baseNode!)
 		return pathForNode.map((pathPart, index) => {
 			const path = pathForNode.slice(0, index + 1).join('/');
-			// if (debug) console.log(`-->>   pathPart: ${pathPart} / path: ${path}`)
 			if (debug) workspace.fusionRuntimeConfiguration["debug"] = true
-			const configuration = this.forPath(path, workspace)
+			const configuration = workspace.fusionRuntimeConfiguration.forPath(path)
 			if (debug) workspace.fusionRuntimeConfiguration["debug"] = false
 
 			return {
@@ -223,16 +222,7 @@ class NodeService extends Logger {
 
 		// console.log("<-- findPropertyDefinitionSegments")
 	}
-
-	protected forPath(path: string, workspace: FusionWorkspace): { [key: string]: any } {
-		if (!workspace.fusionRuntimeConfigurationCache[path]) {
-			workspace.fusionRuntimeConfigurationCache[path] = workspace.fusionRuntimeConfiguration.forPath(path)
-		}
-		return workspace.fusionRuntimeConfigurationCache[path]
-	}
 }
-
 
 const nodeService = new NodeService
 export { nodeService as NodeService, NodeService as NodeServiceClass }
-
