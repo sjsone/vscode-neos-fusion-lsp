@@ -8,13 +8,12 @@ import { FlowConfiguration } from './FlowConfiguration'
 import { EELHelperToken, NeosPackage } from './NeosPackage'
 
 export class NeosWorkspace extends Logger {
-	public fusionWorkspace: FusionWorkspace
 	protected workspacePath: string
 	public configurationManager: ConfigurationManager
 
 	protected packages: Map<string, NeosPackage> = new Map()
 
-	constructor(fusionWorkspace: FusionWorkspace) {
+	constructor(public fusionWorkspace: FusionWorkspace) {
 		super(fusionWorkspace.name)
 		this.fusionWorkspace = fusionWorkspace
 		this.workspacePath = uriToPath(fusionWorkspace.uri)
@@ -54,7 +53,8 @@ export class NeosWorkspace extends Logger {
 					this.logError('File not found!', packagePath)
 					this.logError("    Error: ", error)
 				} else {
-					throw error
+					this.logError("    Error: ", error)
+					// throw error
 				}
 			}
 		}

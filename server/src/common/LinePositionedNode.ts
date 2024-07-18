@@ -34,6 +34,7 @@ export class LinePositionedNode<T extends AbstractNode> {
 			const begin = node.position.begin ?? (node.position).begin
 			this.start = getLineNumberOfChar(text, begin, textUri)
 			this.end = getLineNumberOfChar(text, node.position.end, textUri)
+			this.node.fileUri = textUri
 		}
 	}
 

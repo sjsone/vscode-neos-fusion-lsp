@@ -1,6 +1,6 @@
 {
     "name": "vscode-neos-fusion-lsp",
-    "displayName": "NEOS Fusion & AFX Language Server",
+    "displayName": "Neos Fusion & AFX Language Server",
     "description": "Language server for Neos Fusion (and AFX)",
     "author": "Simon J. Schmidt",
     "icon": "images/logo.png",
@@ -9,13 +9,13 @@
         "theme": "dark"
     },
     "license": "AGPL-3.0-or-later",
-    "version": "0.4.5",
+    "version": "0.5.13",
     "categories": [
         "Programming Languages"
     ],
     "keywords": [
         "Neos",
-        "NEOS CMS",
+        "Neos CMS",
         "Fusion",
         "AFX",
         "EEL"
@@ -47,8 +47,15 @@
                 "order": 1,
                 "title": "Folders",
                 "properties": {
-                    "neosFusionLsp.folders.packages": {
+                    "neosFusionLsp.folders.root": {
                         "order": 1,
+                        "scope": "window",
+                        "type": "string",
+                        "default": "./",
+                        "description": "The folder where the root 'composer.json' lays in"
+                    },
+                    "neosFusionLsp.folders.packages": {
+                        "order": 2,
                         "scope": "window",
                         "type": "array",
                         "items": {
@@ -67,21 +74,21 @@
                         "description": "Folders with packages"
                     },
                     "neosFusionLsp.folders.workspaceAsPackageFallback": {
-                        "order": 2,
+                        "order": 3,
                         "scope": "window",
                         "type": "boolean",
                         "default": true,
                         "description": "If no packages folders can be found, treat the workspace as a package"
                     },
                     "neosFusionLsp.folders.projectConfiguration": {
-                        "order": 3,
+                        "order": 4,
                         "scope": "window",
                         "type": "string",
                         "default": "Configuration",
                         "description": "Path to the base Configuration folder in the Project"
                     },
                     "neosFusionLsp.folders.fusion": {
-                        "order": 4,
+                        "order": 5,
                         "scope": "window",
                         "type": "array",
                         "items": {
@@ -98,7 +105,7 @@
                         "description": "Fusion Folder inside Package"
                     },
                     "neosFusionLsp.folders.ignore": {
-                        "order": 5,
+                        "order": 6,
                         "scope": "window",
                         "type": "array",
                         "items": {
@@ -111,14 +118,14 @@
                         "description": "Folders to ignore"
                     },
                     "neosFusionLsp.folders.followSymbolicLinks": {
-                        "order": 6,
+                        "order": 7,
                         "scope": "window",
                         "type": "boolean",
                         "default": false,
                         "description": "Should a symbolic link be followed while searching for packages?"
                     },
                     "neosFusionLsp.folders.includeHiddenDirectories": {
-                        "order": 7,
+                        "order": 8,
                         "scope": "window",
                         "type": "boolean",
                         "default": false,
@@ -395,7 +402,7 @@
         ],
         "icons": {
             "neos-lsp": {
-                "description": "NEOS Icon - LSP edition",
+                "description": "Neos Icon - LSP edition",
                 "default": {
                     "fontPath": "icons/icon-font.woff",
                     "fontCharacter": "A"
@@ -406,7 +413,7 @@
             "activitybar": [
                 {
                     "id": "neos",
-                    "title": "NEOS",
+                    "title": "Neos",
                     "icon": "icons/view_container-neos.svg"
                 }
             ]
@@ -443,11 +450,11 @@
     "devDependencies": {
         "@types/mocha": "^5.2.0",
         "@types/node": "^16.11.7",
-        "@typescript-eslint/eslint-plugin": "^6.19.1",
-        "@typescript-eslint/parser": "^6.19.1",
-        "esbuild": "^0.19.12",
-        "eslint": "^8.56.0",
-        "typescript": "^5.3.3"
+        "@typescript-eslint/eslint-plugin": "^7.13.1",
+        "@typescript-eslint/parser": "^7.13.1",
+        "esbuild": "^0.21.5",
+        "eslint": "^9.5.0",
+        "typescript": "^5.5.2"
     },
     "repository": {
         "type": "git",

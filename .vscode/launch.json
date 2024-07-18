@@ -34,11 +34,11 @@
 			"preLaunchTask": "npm: compile-without-minify"
 		},
 		{
-			"name": "Attach to Server 6011",
+			"name": "Attach to Server 6111",
 			"type": "node",
 			"request": "attach",
 			"address": "localhost",
-			"port": 6011,
+			"port": 6111,
 			"sourceMaps": true,
 			"outFiles": [
 				"${workspaceRoot}/server/out/**/*.js"
@@ -50,9 +50,8 @@
 			"name": "Launch client and debug server",
 			"configurations": [
 				"Launch Client for server debugging",
-				"Attach to Server 6011"
+				"Attach to Server 6111"
 			],
-			
 		}
 	]
 }

@@ -15,10 +15,7 @@ import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
 import { SemanticTokensParams } from 'vscode-languageserver'
 import { ActionUriPartTypes } from '../common/ActionUriService'
-import { LegacyNodeService } from '../common/LegacyNodeService'
-import { NodeService } from '../common/NodeService'
-import { SemanticCommentService } from '../common/SemanticCommentService'
-import { SemanticTokenConstruct, SemanticTokenService, TokenModifiers, TokenTypes } from '../common/SemanticTokenService'
+import { LinePosition, LinePositionedNode } from '../common/LinePositionedNode'
 import { findParent, getObjectIdentifier } from '../common/util'
 import { ActionUriDefinitionNode } from '../fusion/node/ActionUriDefinitionNode'
 import { FqcnNode } from '../fusion/node/FqcnNode'
@@ -227,6 +224,9 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 	}
 
 	protected generateTagAttributeTokens(languageFeatureContext: LanguageFeatureContext) {
+		const workspace = languageFeatureContext.workspace
+		if (!workspace.mergedArrayTree.__prototypes) return []
+
 		const tagAttributeNodes = languageFeatureContext.parsedFile.getNodesByType(TagAttributeNode)
 		if (!tagAttributeNodes) return []
 
@@ -235,19 +235,18 @@ export class SemanticTokensLanguageFeature extends AbstractLanguageFeature<Seman
 		for (const tagAttributeNode of tagAttributeNodes) {
 			const tagNode = findParent(tagAttributeNode.getNode(), TagNode)
 			if (tagNode === undefined) continue
+			if (!tagNode.name.includes(":")) continue
+			if (!(tagNode.name in workspace.mergedArrayTree.__prototypes)) continue
 
-			for (const statement of LegacyNodeService.getInheritedPropertiesByPrototypeName(tagNode.name, languageFeatureContext.workspace, true)) {
-				const identifier = getObjectIdentifier(statement.statement)
-
-				if (tagAttributeNode.getNode().name === identifier) {
-					semanticTokenConstructs.push({
-						position: tagAttributeNode.getBegin(),
-						length: identifier.length,
-						type: 'property',
-						modifier: 'definition'
-					})
-					break
-				}
+			for (const propertyName in workspace.mergedArrayTree.__prototypes[tagNode.name]) {
+				if (tagAttributeNode.getNode().name !== propertyName) continue
+				semanticTokenConstructs.push({
+					position: tagAttributeNode.getBegin(),
+					length: propertyName.length,
+					type: 'property',
+					modifier: 'definition'
+				})
+				break
 			}
 		}
 

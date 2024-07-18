@@ -60,12 +60,10 @@ export class Extension {
 		if (workspace.getConfiguration().get("neosFusionLsp.extensions.modify", false)) {
 			const preferenceService = new PreferenceService(this.outputChannel)
 
-			const modifier = (value: string[] | null) => {
-				if (!value) return null
-				if (value.includes("fusion")) {
-					return null
-				}
-				return [...value, "fusion"]
+			const modifier = (activationOnLanguages: string[] | null) => {
+				if (!activationOnLanguages) return null
+				if (activationOnLanguages.includes("fusion")) return null
+				return [...activationOnLanguages, "fusion"]
 			}
 
 			preferenceService.modify({
@@ -139,12 +137,8 @@ export class Extension {
 		const sorted = this.getSortedWorkspaceFolders()
 		for (const element of sorted) {
 			let uri = folder.uri.toString()
-			if (uri.charAt(uri.length - 1) !== '/') {
-				uri = uri + '/'
-			}
-			if (uri.startsWith(element)) {
-				return Workspace.getWorkspaceFolder(Uri.parse(element))!
-			}
+			if (!uri.endsWith('/')) uri = uri + '/'
+			if (uri.startsWith(element)) return Workspace.getWorkspaceFolder(Uri.parse(element))!
 		}
 		return folder
 	}
@@ -154,9 +148,14 @@ export class Extension {
 
 		const runOptions = { execArgv: [] as string[] }
 
+		if (process.env.SERVER_INSPECT_BREAK) {
+			console.log("SERVER_INSPECT_BREAK is set.")
+			inspect = true
+		}
+
 		console.log("start in inspect", inspect)
 		if (inspect) {
-			runOptions.execArgv.push(`--inspect-brk=${6011 + this.clients.size}`)
+			runOptions.execArgv.push(`--inspect-brk=${6111}`)
 		}
 		const serverOptions: ServerOptions = {
 			run: { module, transport: TransportKind.ipc, options: runOptions },
@@ -191,6 +190,23 @@ export class Extension {
 			if (id in this.languageStatusBarItems) {
 				this.languageStatusBarItems[id]!.item.busy = true
 			}
+		})
+
+		client.onNotification('custom/error/rootComposerNotFound', async ({ path }: { path: string }) => {
+			const changeSettingAction = { title: "Change setting" }
+
+			const result = await Window.showErrorMessage(
+				`No 'composer.json' could be found in ${path}. \nMake sure the correct root path is configured in the extension settings.`,
+				...[changeSettingAction]
+			);
+
+			if (result === undefined) {
+				await this.stopClients()
+				Window.showInformationMessage("Stopped Neos Fusion language server")
+				return
+			}
+
+			if (result === changeSettingAction) commands.executeCommand('workbench.action.openSettings', 'neosFusionLsp.folders.root')
 		})
 
 		client.onNotification('custom/progressNotification/create', ({ id, title }) => progressNotificationService.create(id, title))
@@ -229,7 +245,7 @@ export class Extension {
 	protected stopAllRunningInterfaceItems(progressNotificationService?: ProgressNotificationService) {
 		progressNotificationService?.finishAll()
 		for (const id in this.languageStatusBarItems) {
-			if (id in this.languageStatusBarItems) this.languageStatusBarItems[id]!.item.busy = false
+			this.languageStatusBarItems[id]!.item.busy = false
 		}
 	}
 }

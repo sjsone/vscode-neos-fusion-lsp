@@ -1,4 +1,5 @@
 import * as NodeFs from 'fs'
+import * as NodePath from 'path'
 import { FusionParserOptions } from 'ts-fusion-parser'
 import { FusionFile } from 'ts-fusion-parser/out/fusion/nodes/FusionFile'
 import { Parser } from 'ts-fusion-runtime'
@@ -30,7 +31,7 @@ export class LanguageServerFusionParser extends Parser {
 			const fusionFile = this.getFusionFile(NodeFs.readFileSync(file).toString(), file)
 			// const startTimeMergedArrayTree = performance.now();
 			try {
-				mergedArrayTree = this.getMergedArrayTreeVisitor(mergedArrayTree).visitFusionFile(<any>fusionFile)
+				mergedArrayTree = this.getMergedArrayTreeVisitor(mergedArrayTree, file).visitFusionFile(<any>fusionFile)
 				mergedArrayTree.buildPrototypeHierarchy()
 			} catch (error) {
 				if (!(error instanceof Error)) throw new Error(`Caught Non-Error: ${error}`)
@@ -57,6 +58,7 @@ export class LanguageServerFusionParser extends Parser {
 
 	protected getFusionFile(sourceCode: string, contextPathAndFilename: string | undefined, options?: FusionParserOptions): FusionFile {
 		if (!contextPathAndFilename) return super.getFusionFile(sourceCode, contextPathAndFilename, options)
+		// console.log(`-> ${NodePath.basename(contextPathAndFilename ?? "")}`)
 		return this.getParsedFusionFile(contextPathAndFilename, sourceCode).fusionFile
 	}
 }

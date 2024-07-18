@@ -5,6 +5,7 @@ import { LiteralNumberNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralNum
 import { LiteralStringNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralStringNode'
 import { ObjectFunctionPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectFunctionPathNode'
 import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
+import { IncompletePathSegment } from 'ts-fusion-parser/out/fusion/nodes/IncompletePathSegment';
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
 import { OperationNode } from 'ts-fusion-parser/out/dsl/eel/nodes/OperationNode'
 import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue'
@@ -26,6 +27,7 @@ import { Position } from 'vscode-languageserver'
 import { FlowConfigurationPathPartNode } from '../fusion/FlowConfigurationPathPartNode'
 import { RoutingActionNode } from '../fusion/node/RoutingActionNode'
 import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
+import { AbstractPathSegment } from 'ts-fusion-parser/out/fusion/nodes/AbstractPathSegment'
 
 export interface LineDataCacheEntry {
     lineLengths: number[]
@@ -221,8 +223,15 @@ export function abstractNodeToString(node: AbstractEelNode | AbstractNode): stri
     return undefined
 }
 
-export function getObjectIdentifier(objectStatement: ObjectStatement): string {
-    return objectStatement.path.segments.map(segment => `${segment instanceof MetaPathSegment ? '@' : ''}${segment.identifier}`).join(".")
+export function getObjectIdentifier(objectStatement: ObjectStatement, stripIncompletePathSegments = false): string {
+
+    const segmentStrings = []
+
+    for (const segment of objectStatement.path.segments) {
+        if (stripIncompletePathSegments && segment instanceof IncompletePathSegment) continue
+        segmentStrings.push(`${segment instanceof MetaPathSegment ? '@' : ''}${segment.identifier}`)
+    }
+    return segmentStrings.join(".")
 }
 
 export function getNodeWeight(node: any) {
@@ -236,6 +245,7 @@ export function getNodeWeight(node: any) {
     if (node instanceof ResourceUriNode) return 160
     if (node instanceof ObjectPathNode) return 150
     if (node instanceof ObjectNode) return 140
+    if (node instanceof AbstractPathSegment) return 110
     if (node instanceof ObjectStatement) return 100
     if (node instanceof RoutingActionNode) return 9
     if (node instanceof RoutingControllerNode) return 8

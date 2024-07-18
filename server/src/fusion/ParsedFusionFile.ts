@@ -31,7 +31,8 @@ const afxParserOptions: AfxParserOptions = {
 const fusionParserOptions: FusionParserOptions = {
 	afxParserOptions,
 	eelParserOptions,
-	ignoreErrors: true
+	ignoreErrors: true,
+	allowIncompleteObjectStatements: true
 }
 
 export interface RouteDefinition {

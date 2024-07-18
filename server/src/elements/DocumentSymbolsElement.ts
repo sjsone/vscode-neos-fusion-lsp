@@ -1,33 +1,31 @@
-import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode';
-import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue';
-import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment';
-import { Logger } from '../common/Logging'
-import { ElementInterface } from './ElementInterface';
-import { DocumentSymbolParams, DocumentSymbol, SymbolInformation, SymbolKind } from 'vscode-languageserver';
-import { ElementTextDocumentContext } from './ElementContext';
-import { LiteralArrayNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralArrayNode';
-import { BoolValue } from 'ts-fusion-parser/out/fusion/nodes/BoolValue';
-import { CharValue } from 'ts-fusion-parser/out/fusion/nodes/CharValue';
-import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue';
-import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue';
-import { FloatValue } from 'ts-fusion-parser/out/fusion/nodes/FloatValue';
-import { FusionFile } from 'ts-fusion-parser/out/fusion/nodes/FusionFile';
-import { IntValue } from 'ts-fusion-parser/out/fusion/nodes/IntValue';
-import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/nodes/MetaPathSegment';
-import { NullValue } from 'ts-fusion-parser/out/fusion/nodes/NullValue';
-import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement';
-import { StatementList } from 'ts-fusion-parser/out/fusion/nodes/StatementList';
-import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment';
-import { ValueUnset } from 'ts-fusion-parser/out/fusion/nodes/ValueUnset';
-import { LinePositionedNode } from '../common/LinePositionedNode';
-import { findParent, getObjectIdentifier } from '../common/util';
-import { ParsedFusionFile } from '../fusion/ParsedFusionFile';
-import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue';
-import { Comment } from 'ts-fusion-parser/out/common/Comment';
-import { InlineEelNode } from 'ts-fusion-parser/out/dsl/afx/nodes/InlineEelNode';
-import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode';
-import { TextNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TextNode';
-
+import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
+import { Comment } from 'ts-fusion-parser/out/common/Comment'
+import { InlineEelNode } from 'ts-fusion-parser/out/dsl/afx/nodes/InlineEelNode'
+import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
+import { TextNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TextNode'
+import { LiteralArrayNode } from 'ts-fusion-parser/out/dsl/eel/nodes/LiteralArrayNode'
+import { BoolValue } from 'ts-fusion-parser/out/fusion/nodes/BoolValue'
+import { CharValue } from 'ts-fusion-parser/out/fusion/nodes/CharValue'
+import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue'
+import { EelExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/EelExpressionValue'
+import { FloatValue } from 'ts-fusion-parser/out/fusion/nodes/FloatValue'
+import { FusionFile } from 'ts-fusion-parser/out/fusion/nodes/FusionFile'
+import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
+import { IntValue } from 'ts-fusion-parser/out/fusion/nodes/IntValue'
+import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/nodes/MetaPathSegment'
+import { NullValue } from 'ts-fusion-parser/out/fusion/nodes/NullValue'
+import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
+import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
+import { StatementList } from 'ts-fusion-parser/out/fusion/nodes/StatementList'
+import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
+import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
+import { ValueUnset } from 'ts-fusion-parser/out/fusion/nodes/ValueUnset'
+import { DocumentSymbol, SymbolKind } from 'vscode-languageserver'
+import { LinePositionedNode } from '../common/LinePositionedNode'
+import { findParent, getObjectIdentifier } from '../common/util'
+import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
+import { AbstractCapability } from './AbstractCapability'
+import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 
 export class DocumentSymbolsElement extends Logger implements ElementInterface<FusionObjectValue | PrototypePathSegment> {
 	protected alreadyParsedPrototypes: AbstractNode[] = []

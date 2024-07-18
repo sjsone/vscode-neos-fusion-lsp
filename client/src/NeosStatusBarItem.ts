@@ -27,7 +27,7 @@ class NeosStatusBarItem {
 			}
 
 			const quickPick = window.createQuickPick()
-			quickPick.title = "NEOS Fusion language server actions"
+			quickPick.title = "Neos Fusion language server actions"
 			quickPick.items = [
 				{
 					label: "Language Server",
@@ -102,7 +102,7 @@ class NeosStatusBarItem {
 		this.eventEmitter.emit(NeosStatusBarItem.ChangedContextEvent, this.selectedContextName)
 		// globe, milestone, squirrel, 🚧 
 		// this.statusBarItem.text = `$(neos-lsp)|${name}`
-		this.statusBarItem.text = `$(neos-lsp)EOS|${name}`
+		this.statusBarItem.text = `$(neos-lsp)|${name}`
 	}
 
 	addListener(eventName: string | symbol, listener: (...args: any[]) => void) {

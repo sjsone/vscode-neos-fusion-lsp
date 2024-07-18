@@ -6,6 +6,7 @@ import {
 } from "vscode-languageserver/node"
 import { LanguageServer } from './LanguageServer'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
+import { SignatureHelpCapability } from './capabilities/SignatureHelpCapability'
 
 export type FusionDocument = TextDocument
 

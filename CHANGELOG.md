@@ -7,10 +7,20 @@
 
 ## 🪐🔭 *Upcoming*
 
+## 🧪 0.5.1
+
+- merged: 0.3.15
+
+## 🧪 0.5.0
+
+- change: changed Neos to Neos
+- change: show only Neos icon in status bar item
+- fix: catch error when Package has no `composer.json`
+
 ## 🧪 0.4.5
 
-- feature: new NEOS Tab in Sidebar
-- feature: NEOS-Status bar item with new CommandMenu (to left hand side in the bottom status bar)
+- feature: new Neos Tab in Sidebar
+- feature: Neos-Status bar item with new CommandMenu (to left hand side in the bottom status bar)
 - feature: Completion- and Hover-Capabilities for the `Configuration.setting()` EEL-Helper
 - feature: Parameter hints are shown when EEL-Helpers are completed
 - fix: close all Notifications when server is closing
@@ -25,10 +35,14 @@ The MergedArrayTree has already been put to use in the Diagnostic and Completion
 
 ### 🧪 Configuration and `FLOW_CONTEXT`
 
-Another big feature is everything connected to the Configuration. It is now possible to not only change the used `FLOW_CONTEXT` but to also view the Configuration in the new NEOS-ViewContainer.
+Another big feature is everything connected to the Configuration. It is now possible to not only change the used `FLOW_CONTEXT` but to also view the Configuration in the new Neos-ViewContainer.
 
 > [!WARNING]
 > This is still experimental.
+
+## 🚀 0.3.15
+
+- improvement: DocumentSymbols now provide correct ranges to make Sticky Scroll `editor.stickyScroll.enabled` work
 
 ## 🚀 0.3.14
 
