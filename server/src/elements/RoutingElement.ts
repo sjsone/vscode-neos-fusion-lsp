@@ -1,7 +1,7 @@
 import { DefinitionParams, Definition, LocationLink, Location } from 'vscode-languageserver'
 import { ElementTextDocumentContext } from './ElementContext'
 import { ElementInterface } from './ElementInterface'
-import { ParsedFileCapabilityContext } from '../capabilities/CapabilityContext'
+// import { ParsedFileCapabilityContext } from '../capabilities/CapabilityContext'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
@@ -20,7 +20,7 @@ export class RoutingElement extends Logger implements ElementInterface<RoutingCo
 		const node = foundNodeByLine.getNode()
 
 		if (node instanceof RoutingControllerNode) return this.getRoutingControllerNode(context.parsedFile!, context.workspace, foundNodeByLine, context)
-		if (node instanceof RoutingActionNode) return this.getRoutingActionNode(context.parsedFile!, context.workspace, <LinePositionedNode<RoutingActionNode>>foundNodeByLine, <ParsedFileCapabilityContext<RoutingActionNode>>context)
+		if (node instanceof RoutingActionNode) return this.getRoutingActionNode(context.parsedFile!, context.workspace, <LinePositionedNode<RoutingActionNode>>foundNodeByLine)
 
 		return null
 	}
@@ -39,7 +39,7 @@ export class RoutingElement extends Logger implements ElementInterface<RoutingCo
 		}]
 	}
 
-	getRoutingActionNode(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<RoutingActionNode>, context: ParsedFileCapabilityContext<RoutingActionNode>): null | Location {
+	getRoutingActionNode(parsedFile: ParsedFusionFile, workspace: FusionWorkspace, foundNodeByLine: LinePositionedNode<RoutingActionNode>): null | Location {
 		const node = foundNodeByLine.getNode()
 
 		const classDefinition = RoutingControllerNode.getClassDefinitionFromRoutingControllerNode(parsedFile, workspace, node.parent)

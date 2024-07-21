@@ -5,7 +5,6 @@ import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStateme
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
 import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionLink, DefinitionParams, Hover, HoverParams, Location, LocationLink, ReferenceParams, SymbolInformation, SymbolKind, WorkspaceSymbol, WorkspaceSymbolParams } from 'vscode-languageserver'
-import { WorkspacesCapabilityContext } from '../capabilities/CapabilityContext'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { Logger } from '../common/Logging'
 import { abstractNodeToString, findParent, getPrototypeNameFromNode } from '../common/util'
@@ -19,7 +18,7 @@ export class PrototypeElement extends Logger implements ElementInterface<FusionO
 	}
 
 	async onWorkspaceSymbol(context: ElementWorkspacesContext<WorkspaceSymbolParams>): Promise<SymbolInformation[] | WorkspaceSymbol[] | null | undefined> {
-		const { workspaces } = <WorkspacesCapabilityContext>context
+		const { workspaces } = context
 
 		const symbols: WorkspaceSymbol[] = []
 		for (const workspace of workspaces) {

@@ -4,6 +4,7 @@ import { TagNode } from 'ts-fusion-parser/out/dsl/afx/nodes/TagNode'
 import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionParams, InsertTextMode, LocationLink } from 'vscode-languageserver'
 import { ActionUriPartTypes, ActionUriService } from '../common/ActionUriService'
 import { LegacyNodeService } from '../common/LegacyNodeService'
+import { NodeService } from '../common/NodeService'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { findParent, getObjectIdentifier } from '../common/util'
 import { NeosFusionFormActionNode } from '../fusion/node/NeosFusionFormActionNode'
@@ -36,17 +37,17 @@ export class AfxTagElement implements ElementInterface<TagAttributeNode | TagNod
 			}
 		}
 
-		for (const property of LegacyNodeService.getInheritedPropertiesByPrototypeName(tagNode.name, context.workspace, true)) {
-			if (getObjectIdentifier(property.statement) !== node.name) continue
-			if (!property.uri) continue
+		// for (const property of NodeService.getInheritedPropertiesByPrototypeName(tagNode.name, context.workspace, true)) {
+		// 	if (getObjectIdentifier(property.statement) !== node.name) continue
+		// 	if (!property.uri) continue
 
-			locationLinks.push({
-				targetUri: property.uri,
-				targetRange: property.statement.linePositionedNode.getPositionAsRange(),
-				targetSelectionRange: property.statement.linePositionedNode.getPositionAsRange(),
-				originSelectionRange
-			})
-		}
+		// 	locationLinks.push({
+		// 		targetUri: property.uri,
+		// 		targetRange: property.statement.linePositionedNode.getPositionAsRange(),
+		// 		targetSelectionRange: property.statement.linePositionedNode.getPositionAsRange(),
+		// 		originSelectionRange
+		// 	})
+		// }
 
 		const foundNodes = context.parsedFile?.getNodesByPosition(context.params.position)
 		if (!foundNodes) return locationLinks
@@ -115,10 +116,10 @@ export class AfxTagElement implements ElementInterface<TagAttributeNode | TagNod
 		const tagNode = findParent(attributeNode, TagNode)
 		if (tagNode !== undefined) {
 			const labels: string[] = []
-			for (const statement of LegacyNodeService.getInheritedPropertiesByPrototypeName(tagNode.name, workspace)) {
-				const label = getObjectIdentifier(statement.statement)
-				if (!labels.includes(label)) labels.push(label)
-			}
+			// for (const statement of LegacyNodeService.getInheritedPropertiesByPrototypeName(tagNode.name, workspace)) {
+			// 	const label = getObjectIdentifier(statement.statement)
+			// 	if (!labels.includes(label)) labels.push(label)
+			// }
 
 			for (const label of labels) completions.push({ label, kind: CompletionItemKind.Property })
 		}

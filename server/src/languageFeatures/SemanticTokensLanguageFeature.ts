@@ -26,6 +26,9 @@ import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
 import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
 import { AbstractLanguageFeature } from './AbstractLanguageFeature'
 import { LanguageFeatureContext } from './LanguageFeatureContext'
+import { NodeService } from '../common/NodeService'
+import { SemanticCommentService } from '../common/SemanticCommentService'
+import { SemanticTokenConstruct, SemanticTokenService, TokenTypes, TokenModifiers } from '../common/SemanticTokenService'
 
 
 

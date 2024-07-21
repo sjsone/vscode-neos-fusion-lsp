@@ -3,8 +3,8 @@ import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
 import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
-import { Command, CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionParams, Hover, HoverParams, InsertTextFormat, LocationLink } from 'vscode-languageserver'
-import { ExternalObjectStatement, LegacyNodeService } from '../common/LegacyNodeService'
+import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionParams, Hover, HoverParams, InsertTextFormat, LocationLink } from 'vscode-languageserver'
+import { LegacyNodeService } from '../common/LegacyNodeService'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { NodeService } from '../common/NodeService'
 import { findParent } from '../common/util'
@@ -14,7 +14,6 @@ import { RoutingControllerNode } from '../fusion/node/RoutingControllerNode'
 import { ElementTextDocumentContext } from './ElementContext'
 import { ElementHelper } from './ElementHelper'
 import { ElementFunctionalityInterface, ElementInterface } from './ElementInterface'
-import { DslExpressionValue } from 'ts-fusion-parser/out/fusion/nodes/DslExpressionValue'
 
 const BuiltInCompletions = {
 	prototypeCompletion: {
@@ -47,50 +46,53 @@ export class FusionPropertyElement implements ElementInterface<PathSegment | Obj
 			return null
 		}
 
-		if (isThisProperty) {
-			const isObjectNodeInDsl = findParent(node, DslExpressionValue) !== undefined
-			// TODO: handle `this.foo` in AFX
-			if (isObjectNodeInDsl) return null
+		// TODO: make FusionProperty Element on definition work
+		return null
 
-			const objectStatement = findParent(objectNode, ObjectStatement)
-			if (!objectStatement) return null
-			const prototypeName = LegacyNodeService.findPrototypeName(objectStatement)
-			if (!prototypeName) return null
+		// if (isThisProperty) {
+		// 	const isObjectNodeInDsl = findParent(node, DslExpressionValue) !== undefined
+		// 	// TODO: handle `this.foo` in AFX
+		// 	if (isObjectNodeInDsl) return null
 
-			for (const property of LegacyNodeService.getInheritedPropertiesByPrototypeName(prototypeName, context.workspace)) {
-				const firstPropertyPathSegment = property.statement.path.segments[0]
-				if (firstPropertyPathSegment.identifier === objectNode.path[1].value) {
-					return [{
-						uri: property.uri!,
-						range: firstPropertyPathSegment.linePositionedNode.getPositionAsRange()
-					}]
-				}
-			}
-			return null
-		}
+		// 	const objectStatement = findParent(objectNode, ObjectStatement)
+		// 	if (!objectStatement) return null
+		// 	const prototypeName = LegacyNodeService.findPrototypeName(objectStatement)
+		// 	if (!prototypeName) return null
 
-		const { foundIgnoreComment, foundIgnoreBlockComment } = LegacyNodeService.getSemanticCommentsNodeIsAffectedBy(objectNode, context.parsedFile!)
-		if (foundIgnoreComment) return [{
-			uri: context.parsedFile!.uri,
-			range: foundIgnoreComment.getPositionAsRange()
-		}]
-		if (foundIgnoreBlockComment) return [{
-			uri: context.parsedFile!.uri,
-			range: foundIgnoreBlockComment.getPositionAsRange()
-		}]
+		// 	for (const property of LegacyNodeService.getInheritedPropertiesByPrototypeName(prototypeName, context.workspace)) {
+		// 		const firstPropertyPathSegment = property.statement.path.segments[0]
+		// 		if (firstPropertyPathSegment.identifier === objectNode.path[1].value) {
+		// 			return [{
+		// 				uri: property.uri!,
+		// 				range: firstPropertyPathSegment.linePositionedNode.getPositionAsRange()
+		// 			}]
+		// 		}
+		// 	}
+		// 	return null
+		// }
 
-		const segment = LegacyNodeService.findPropertyDefinitionSegment(objectNode, context.workspace, true)
-		if (!segment) return null
+		// const { foundIgnoreComment, foundIgnoreBlockComment } = LegacyNodeService.getSemanticCommentsNodeIsAffectedBy(objectNode, context.parsedFile!)
+		// if (foundIgnoreComment) return [{
+		// 	uri: context.parsedFile!.uri,
+		// 	range: foundIgnoreComment.getPositionAsRange()
+		// }]
+		// if (foundIgnoreBlockComment) return [{
+		// 	uri: context.parsedFile!.uri,
+		// 	range: foundIgnoreBlockComment.getPositionAsRange()
+		// }]
 
-		if (segment instanceof PathSegment) return [{
-			uri: context.parsedFile!.uri,
-			range: segment.linePositionedNode.getPositionAsRange()
-		}]
+		// const segment = LegacyNodeService.findPropertyDefinitionSegment(objectNode, context.workspace, true)
+		// if (!segment) return null
 
-		return [{
-			uri: segment.uri!,
-			range: segment.statement.path.segments[0].linePositionedNode.getPositionAsRange()
-		}]
+		// if (segment instanceof PathSegment) return [{
+		// 	uri: context.parsedFile!.uri,
+		// 	range: segment.linePositionedNode.getPositionAsRange()
+		// }]
+
+		// return [{
+		// 	uri: segment.uri!,
+		// 	range: segment.statement.path.segments[0].linePositionedNode.getPositionAsRange()
+		// }]
 	}
 
 	async onCompletion(context: ElementTextDocumentContext<CompletionParams, AbstractNode>): Promise<CompletionItem[] | CompletionList | null | undefined> {
@@ -150,16 +152,16 @@ export class FusionPropertyElement implements ElementInterface<PathSegment | Obj
 	protected getPropertyDefinitionSegments(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace) {
 		const completions: CompletionItem[] = []
 
-		for (const segmentOrExternalStatement of LegacyNodeService.findPropertyDefinitionSegments(objectNode, workspace, true)) {
-			const segment = segmentOrExternalStatement instanceof ExternalObjectStatement ? segmentOrExternalStatement.statement.path.segments[0] : segmentOrExternalStatement
-			if (!(segment instanceof PathSegment)) continue
-			if (segment.identifier === "renderer" || !segment.identifier) continue
-			if (completions.find(completion => completion.label === segment.identifier)) continue
-			completions.push({
-				label: segment.identifier,
-				kind: CompletionItemKind.Property
-			})
-		}
+		// for (const segmentOrExternalStatement of LegacyNodeService.findPropertyDefinitionSegments(objectNode, workspace, true)) {
+		// 	const segment = segmentOrExternalStatement instanceof ExternalObjectStatement ? segmentOrExternalStatement.statement.path.segments[0] : segmentOrExternalStatement
+		// 	if (!(segment instanceof PathSegment)) continue
+		// 	if (segment.identifier === "renderer" || !segment.identifier) continue
+		// 	if (completions.find(completion => completion.label === segment.identifier)) continue
+		// 	completions.push({
+		// 		label: segment.identifier,
+		// 		kind: CompletionItemKind.Property
+		// 	})
+		// }
 
 		return completions
 	}

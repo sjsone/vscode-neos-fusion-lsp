@@ -3,7 +3,6 @@ import { CodeLens, CodeLensParams, Position, Range, SymbolInformation, SymbolKin
 import { ElementInterface } from './ElementInterface'
 import { NodeTypeService } from '../common/NodeTypeService'
 import { ElementTextDocumentContext, ElementWorkspacesContext } from './ElementContext'
-import { WorkspacesCapabilityContext } from '../capabilities/CapabilityContext'
 
 export class NodeTypeElement implements ElementInterface {
 	isResponsible(methodName: keyof ElementInterface<AbstractNode>, node: AbstractNode | undefined): boolean {
@@ -11,7 +10,7 @@ export class NodeTypeElement implements ElementInterface {
 	}
 
 	async onWorkspaceSymbol(context: ElementWorkspacesContext<WorkspaceSymbolParams>): Promise<SymbolInformation[] | WorkspaceSymbol[] | null | undefined> {
-		const { workspaces } = <WorkspacesCapabilityContext>context
+		const { workspaces } = context
 
 		const symbols: WorkspaceSymbol[] = []
 		for (const workspace of workspaces) {

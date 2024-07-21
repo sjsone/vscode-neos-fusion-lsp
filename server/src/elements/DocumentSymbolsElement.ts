@@ -20,12 +20,15 @@ import { StatementList } from 'ts-fusion-parser/out/fusion/nodes/StatementList'
 import { StringValue } from 'ts-fusion-parser/out/fusion/nodes/StringValue'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
 import { ValueUnset } from 'ts-fusion-parser/out/fusion/nodes/ValueUnset'
-import { DocumentSymbol, SymbolKind } from 'vscode-languageserver'
+import { DocumentSymbol, DocumentSymbolParams, SymbolInformation, SymbolKind } from 'vscode-languageserver'
 import { LinePositionedNode } from '../common/LinePositionedNode'
 import { findParent, getObjectIdentifier } from '../common/util'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
-import { AbstractCapability } from './AbstractCapability'
-import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
+import { Logger } from '../common/Logging'
+import { ElementTextDocumentContext } from './ElementContext'
+import { ElementInterface } from './ElementInterface'
+// import { AbstractCapability } from './AbstractCapability'
+// import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 
 export class DocumentSymbolsElement extends Logger implements ElementInterface<FusionObjectValue | PrototypePathSegment> {
 	protected alreadyParsedPrototypes: AbstractNode[] = []
