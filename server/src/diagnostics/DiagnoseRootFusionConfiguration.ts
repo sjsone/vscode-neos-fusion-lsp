@@ -22,8 +22,11 @@ export function diagnoseRootFusionConfiguration(parsedFusionFile: ParsedFusionFi
 
 	if (neosPackage.composerJson?.type === 'neos-site') return []
 
+	const packageName = neosPackage.getPackageName()
+	if (!packageName) return []
+
 	// TODO: Check not only in Package configuration but in the merged configuration ('neos_context' branch)
-	const isInAutoInclude = neosPackage.configuration.get(["Neos", "Neos", "fusion", "autoInclude", neosPackage.getPackageName()]) === true
+	const isInAutoInclude = neosPackage.configuration.get(["Neos", "Neos", "fusion", "autoInclude", packageName]) === true
 	if (isInAutoInclude) return []
 
 	if (noAutoincludeNeeded(parsedFusionFile)) return []
@@ -31,7 +34,7 @@ export function diagnoseRootFusionConfiguration(parsedFusionFile: ParsedFusionFi
 	return [{
 		range: Range.create(Position.create(0, 0), Position.create(0, 1)),
 		severity: DiagnosticSeverity.Warning,
-		message: `To include this file add the configuration "Neos.Neos.fusion.autoInclude.'${neosPackage.getPackageName()}': true" `,
+		message: `To include this file add the configuration "Neos.Neos.fusion.autoInclude.'${packageName}': true" `,
 		data: {
 			quickAction: 'notAutoincludeNeeded',
 			commentType: 'fusion'

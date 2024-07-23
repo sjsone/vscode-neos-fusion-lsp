@@ -48,15 +48,21 @@ export class ResourceUriElement extends Logger implements ElementInterface<Resou
 
 		const identifierMatch = /resource:\/\/(.*?)\//.exec(node.identifier)
 		if (identifierMatch === null) {
-			return Array.from(context.workspace.neosWorkspace.getPackages().values()).map((neosPackage: NeosPackage) => {
-				return {
-					label: neosPackage.getPackageName(),
+			const completions = []
+			for (const neosPackage of context.workspace.neosWorkspace.getPackages().values()) {
+				const packageName = neosPackage.getPackageName()
+				if (!packageName) continue
+
+				completions.push({
+					label: packageName,
 					kind: CompletionItemKind.Module,
-					insertText: neosPackage.getPackageName() + '/',
+					insertText: packageName + '/',
 					command: ElementHelper.SuggestCommand
-				}
-			})
+				})
+			}
+			return completions
 		}
+
 		const packageName = identifierMatch[1]
 
 		const neosPackage = context.workspace.neosWorkspace.getPackage(packageName)

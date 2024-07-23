@@ -170,7 +170,11 @@ class ActionUriService extends Logger {
 				this.log("  Could not resolve Package for current file")
 				return actionUriDefinition
 			}
-			actionUriDefinition.package = neosPackage.getPackageName()
+
+			const packageName = neosPackage.getPackageName()
+			if (!packageName) return actionUriDefinition
+
+			actionUriDefinition.package = packageName
 		}
 		return actionUriDefinition
 	}

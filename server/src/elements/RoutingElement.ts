@@ -16,11 +16,13 @@ export class RoutingElement extends Logger implements ElementInterface<RoutingCo
 	}
 
 	async onDefinition(context: ElementTextDocumentContext<DefinitionParams, RoutingControllerNode | RoutingActionNode>): Promise<LocationLink[] | Definition | null | undefined> {
-		const foundNodeByLine = context.foundNodeByLine!
+		if (!context.foundNodeByLine) return null
+
+		const foundNodeByLine = context.foundNodeByLine
 		const node = foundNodeByLine.getNode()
 
-		if (node instanceof RoutingControllerNode) return this.getRoutingControllerNode(context.parsedFile!, context.workspace, foundNodeByLine, context)
-		if (node instanceof RoutingActionNode) return this.getRoutingActionNode(context.parsedFile!, context.workspace, <LinePositionedNode<RoutingActionNode>>foundNodeByLine)
+		if (node instanceof RoutingControllerNode) return this.getRoutingControllerNode(context.parsedFile, context.workspace, foundNodeByLine, context)
+		if (node instanceof RoutingActionNode) return this.getRoutingActionNode(context.parsedFile, context.workspace, <LinePositionedNode<RoutingActionNode>>foundNodeByLine)
 
 		return null
 	}

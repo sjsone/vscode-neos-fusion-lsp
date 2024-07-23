@@ -27,8 +27,6 @@ import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
 import { Logger } from '../common/Logging'
 import { ElementTextDocumentContext } from './ElementContext'
 import { ElementInterface } from './ElementInterface'
-// import { AbstractCapability } from './AbstractCapability'
-// import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 
 export class DocumentSymbolsElement extends Logger implements ElementInterface<FusionObjectValue | PrototypePathSegment> {
 	protected alreadyParsedPrototypes: AbstractNode[] = []

@@ -13,6 +13,7 @@ import { ElementTextDocumentContext } from './ElementContext'
 import { ElementFunctionalityInterface, ElementInterface } from './ElementInterface'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
+import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 
 export class AfxTagElement implements ElementInterface<TagAttributeNode | TagNode> {
 
@@ -22,13 +23,15 @@ export class AfxTagElement implements ElementInterface<TagAttributeNode | TagNod
 	}
 
 	async onDefinition(context: ElementTextDocumentContext<DefinitionParams, TagAttributeNode>): Promise<LocationLink[] | Definition | null | undefined> {
-		const foundNodeByLine = context.foundNodeByLine!
-		const node = foundNodeByLine.getNode()
+		// TODO: move into something like getAfxTagAttributeDefinition()
+		if (!context.foundNodeByLine) return []
+
+		const node = context.foundNodeByLine.getNode()
 		const tagNode = findParent(node, TagNode)
 		if (!tagNode) return []
 
 		const locationLinks: LocationLink[] = []
-		const nodePositionBegin = foundNodeByLine.getBegin()
+		const nodePositionBegin = context.foundNodeByLine.getBegin()
 		const originSelectionRange = {
 			start: nodePositionBegin,
 			end: {
@@ -37,19 +40,34 @@ export class AfxTagElement implements ElementInterface<TagAttributeNode | TagNod
 			}
 		}
 
-		// for (const property of NodeService.getInheritedPropertiesByPrototypeName(tagNode.name, context.workspace, true)) {
-		// 	if (getObjectIdentifier(property.statement) !== node.name) continue
-		// 	if (!property.uri) continue
+		const prototypeFusionContext = NodeService.getFusionContextOfPrototype(tagNode.name, context.workspace)
+		if (!prototypeFusionContext) return []
 
-		// 	locationLinks.push({
-		// 		targetUri: property.uri,
-		// 		targetRange: property.statement.linePositionedNode.getPositionAsRange(),
-		// 		targetSelectionRange: property.statement.linePositionedNode.getPositionAsRange(),
-		// 		originSelectionRange
-		// 	})
-		// }
+		for (const propertyName in prototypeFusionContext) {
+			if (propertyName !== node.name) continue
 
-		const foundNodes = context.parsedFile?.getNodesByPosition(context.params.position)
+			const nodes: undefined | Array<AbstractNode> = prototypeFusionContext?.[propertyName].__nodes
+			if (!nodes) continue
+
+			for (const node of nodes) {
+				const statement = findParent(node, ObjectStatement)
+				if (!statement) continue
+
+				locationLinks.unshift({
+					targetUri: statement.fileUri,
+					targetRange: statement.linePositionedNode.getPositionAsRange(),
+					targetSelectionRange: statement.linePositionedNode.getPositionAsRange(),
+					originSelectionRange
+				})
+
+				// TODO: make it configurable if all definitions should be provided
+				break
+			}
+		}
+
+		locationLinks.forEach(l => console.log(l.targetUri));
+
+		const foundNodes = context.parsedFile.getNodesByPosition(context.params.position)
 		if (!foundNodes) return locationLinks
 
 		const neosFusionFormPartNode = <LinePositionedNode<NeosFusionFormActionNode | NeosFusionFormControllerNode>>foundNodes.find(positionedNode => (positionedNode.getNode() instanceof NeosFusionFormActionNode || positionedNode.getNode() instanceof NeosFusionFormControllerNode))
@@ -58,7 +76,7 @@ export class AfxTagElement implements ElementInterface<TagAttributeNode | TagNod
 
 			const definitionTargetName = neosFusionFormPartNode.getNode() instanceof NeosFusionFormActionNode ? ActionUriPartTypes.Action : ActionUriPartTypes.Controller
 
-			const resolvedDefinition = ActionUriService.resolveFusionFormDefinitionNode(node, neosFusionFormDefinitionNode, definitionTargetName, context.workspace, context.parsedFile!)
+			const resolvedDefinition = ActionUriService.resolveFusionFormDefinitionNode(node, neosFusionFormDefinitionNode, definitionTargetName, context.workspace, context.parsedFile)
 			if (resolvedDefinition) locationLinks.push(...resolvedDefinition)
 		}
 

@@ -31,7 +31,7 @@ export class NodeTypeElement implements ElementInterface {
 	}
 
 	async onCodeLens(context: ElementTextDocumentContext<CodeLensParams, AbstractNode>): Promise<CodeLens[] | null | undefined> {
-		return NodeTypeService.getNodeTypeDefinitionsFromFusionFile(context.workspace, context.parsedFile!).map(definition => ({
+		return NodeTypeService.getNodeTypeDefinitionsFromFusionFile(context.workspace, context.parsedFile).map(definition => ({
 			range: definition.creation.getPositionAsRange(),
 			command: {
 				title: "NodeType Definition",

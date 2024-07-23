@@ -7,9 +7,9 @@ import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNod
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
-import { LegacyNodeService } from '../common/LegacyNodeService'
 import { findParent, abstractNodeToString } from '../common/util'
 import { ElementHelper } from './ElementHelper'
+import { NodeService } from '../common/NodeService'
 
 export class EelElement implements ElementInterface<ObjectPathNode> {
 
@@ -18,38 +18,39 @@ export class EelElement implements ElementInterface<ObjectPathNode> {
 	}
 
 	async onHover(context: ElementTextDocumentContext<HoverParams, ObjectPathNode>): Promise<Hover | null | undefined> {
-		const foundNodeByLine = context.foundNodeByLine!
-		const node = foundNodeByLine.getNode()
+		if (!context.foundNodeByLine) return null
 
+		const node = context.foundNodeByLine.getNode()
 		const objectNode = node.parent
 		if (!(objectNode instanceof ObjectNode)) return null
 
+		// TODO: check if this conditions are still necessary 
 		if ((objectNode.path[0].value !== "this" && objectNode.path[0].value !== "props") || objectNode.path.length < 2) return null
 
 
-		// TODO: EEL-Element onHover
-		// let segment = LegacyNodeService.findPropertyDefinitionSegment(objectNode, context.workspace, true)
-		// if (segment instanceof ExternalObjectStatement) {
-		// 	segment = <PathSegment>segment.statement.path.segments[0]
-		// }
-		// if (segment && segment instanceof PathSegment) {
-		// 	const statement = findParent(segment, ObjectStatement)
-		// 	if (!statement) return null
-		// 	if (!(statement.operation instanceof ValueAssignment)) return null
+		const externalObjectStatement = NodeService.findPropertyDefinitionSegment(objectNode, context.workspace, true)
 
-		// 	const stringified = abstractNodeToString(statement.operation.pathValue)
-		// 	const name = node.value
-		// 	if (stringified !== undefined) {
-		// 		return ElementHelper.createHover([
-		// 			`EEL **${name}**`,
-		// 			'```fusion',
-		// 			`${name} = ${stringified}`,
-		// 			'```'
-		// 		].join('\n'), foundNodeByLine)
-		// 	}
-		// }
+		const segment = <PathSegment>externalObjectStatement?.statement.path.segments[0]
+		if (segment && segment instanceof PathSegment) {
+			const statement = findParent(segment, ObjectStatement)
+			if (!statement) return null
+			if (!(statement.operation instanceof ValueAssignment)) return null
 
-		return ElementHelper.createHover(`EEL **${node.value}**`, foundNodeByLine)
+			const stringified = abstractNodeToString(statement.operation.pathValue)
+			const name = node.value
+
+			// TODO: fix that sometimes "stringified === '${undefined}"
+			if (stringified !== undefined) return ElementHelper.createHover(
+				[
+					`EEL **${name}**`,
+					'```fusion',
+					`${name} = ${stringified}`,
+					'```'
+				].join('\n'),
+				context.foundNodeByLine
+			)
+		}
+
+		return ElementHelper.createHover(`EEL **${node.value}**`, context.foundNodeByLine)
 	}
-
 }

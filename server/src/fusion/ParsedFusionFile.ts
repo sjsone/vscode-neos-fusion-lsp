@@ -208,6 +208,7 @@ export class ParsedFusionFile extends Logger {
 		const controllerPathSegments = controllerObjectStatement.path.segments
 
 		const { packageName, controllerName } = this.extractPackageAndControllerNameFromFusionRoute(controllerPathSegments)
+		if (!packageName) return
 
 		const routeIdentifier = packageName + '_' + controllerName
 

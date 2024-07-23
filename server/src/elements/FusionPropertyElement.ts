@@ -4,9 +4,8 @@ import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNod
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
 import { CompletionItem, CompletionItemKind, CompletionList, CompletionParams, Definition, DefinitionParams, Hover, HoverParams, InsertTextFormat, LocationLink } from 'vscode-languageserver'
-import { LegacyNodeService } from '../common/LegacyNodeService'
 import { LinePositionedNode } from '../common/LinePositionedNode'
-import { NodeService } from '../common/NodeService'
+import { ExternalObjectStatement, NodeService } from '../common/NodeService'
 import { findParent } from '../common/util'
 import { FusionWorkspace } from '../fusion/FusionWorkspace'
 import { ParsedFusionFile } from '../fusion/ParsedFusionFile'
@@ -34,65 +33,23 @@ export class FusionPropertyElement implements ElementInterface<PathSegment | Obj
 		// PathSegment
 		// ObjectPathNode
 
-		const node = <PathSegment | ObjectPathNode>context.foundNodeByLine!.getNode()
-		const objectNode = node.parent
-		if (!(objectNode instanceof ObjectNode)) return null
+		if (!context.foundNodeByLine) return undefined
 
-		const isThisProperty = objectNode.path[0].value === "this"
-		const isPropsProperty = objectNode.path[0].value === "props"
+		const node = context.foundNodeByLine.getNode()
 
-		if ((!isThisProperty && !isPropsProperty) || objectNode.path.length === 1) {
-			// TODO: handle context properties
-			return null
-		}
+		const relevantParentType = node instanceof ObjectPathNode ? ObjectNode : ObjectStatement
 
-		// TODO: make FusionProperty Element on definition work
-		return null
+		const objectNodeOrStatement = findParent(node, relevantParentType)
+		if (!objectNodeOrStatement) return null
 
-		// if (isThisProperty) {
-		// 	const isObjectNodeInDsl = findParent(node, DslExpressionValue) !== undefined
-		// 	// TODO: handle `this.foo` in AFX
-		// 	if (isObjectNodeInDsl) return null
+		const segment = NodeService.findPropertyDefinitionSegment(objectNodeOrStatement, context.workspace, true, false)
+		if (!segment) return null
 
-		// 	const objectStatement = findParent(objectNode, ObjectStatement)
-		// 	if (!objectStatement) return null
-		// 	const prototypeName = LegacyNodeService.findPrototypeName(objectStatement)
-		// 	if (!prototypeName) return null
-
-		// 	for (const property of LegacyNodeService.getInheritedPropertiesByPrototypeName(prototypeName, context.workspace)) {
-		// 		const firstPropertyPathSegment = property.statement.path.segments[0]
-		// 		if (firstPropertyPathSegment.identifier === objectNode.path[1].value) {
-		// 			return [{
-		// 				uri: property.uri!,
-		// 				range: firstPropertyPathSegment.linePositionedNode.getPositionAsRange()
-		// 			}]
-		// 		}
-		// 	}
-		// 	return null
-		// }
-
-		// const { foundIgnoreComment, foundIgnoreBlockComment } = LegacyNodeService.getSemanticCommentsNodeIsAffectedBy(objectNode, context.parsedFile!)
-		// if (foundIgnoreComment) return [{
-		// 	uri: context.parsedFile!.uri,
-		// 	range: foundIgnoreComment.getPositionAsRange()
-		// }]
-		// if (foundIgnoreBlockComment) return [{
-		// 	uri: context.parsedFile!.uri,
-		// 	range: foundIgnoreBlockComment.getPositionAsRange()
-		// }]
-
-		// const segment = LegacyNodeService.findPropertyDefinitionSegment(objectNode, context.workspace, true)
-		// if (!segment) return null
-
-		// if (segment instanceof PathSegment) return [{
-		// 	uri: context.parsedFile!.uri,
-		// 	range: segment.linePositionedNode.getPositionAsRange()
-		// }]
-
-		// return [{
-		// 	uri: segment.uri!,
-		// 	range: segment.statement.path.segments[0].linePositionedNode.getPositionAsRange()
-		// }]
+		const firstSegment = segment.statement.path.segments[0]
+		return [{
+			uri: firstSegment.fileUri,
+			range: firstSegment.linePositionedNode.getPositionAsRange()
+		}]
 	}
 
 	async onCompletion(context: ElementTextDocumentContext<CompletionParams, AbstractNode>): Promise<CompletionItem[] | CompletionList | null | undefined> {
@@ -101,7 +58,7 @@ export class FusionPropertyElement implements ElementInterface<PathSegment | Obj
 		if (foundNode instanceof PathSegment)
 			return [BuiltInCompletions.prototypeCompletion]
 		if (foundNode instanceof ObjectStatement)
-			return this.getObjectStatementCompletions(context.workspace, context.parsedFile!, <LinePositionedNode<ObjectStatement>>context.foundNodeByLine!)
+			return this.getObjectStatementCompletions(context.workspace, context.parsedFile, <LinePositionedNode<ObjectStatement>>context.foundNodeByLine!)
 		if (foundNode instanceof ObjectNode)
 			return this.getFusionPropertyCompletionsForObjectNode(context.workspace, <LinePositionedNode<ObjectNode>>context.foundNodeByLine!)
 		if (foundNode instanceof ObjectPathNode)
@@ -117,11 +74,9 @@ export class FusionPropertyElement implements ElementInterface<PathSegment | Obj
 		const routingActionsCompletions = this.getObjectStatementRoutingActionsCompletions(workspace, parsedFile, node)
 		if (routingActionsCompletions) return routingActionsCompletions
 
-		if (!(node.operation === null || node.operation.position.begin !== node.operation.position.end)) {
-			return []
-		}
+		if (node.operation !== null && node.operation.position.begin === node.operation.position.end) return []
 
-		return [BuiltInCompletions.prototypeCompletion, ...this.getPropertyDefinitionSegments(node, workspace)]
+		return this.getPropertyDefinitionSegments(node, workspace)
 	}
 
 	protected getObjectStatementRoutingActionsCompletions(workspace: FusionWorkspace, parsedFile: ParsedFusionFile, node: ObjectStatement) {
@@ -149,19 +104,16 @@ export class FusionPropertyElement implements ElementInterface<PathSegment | Obj
 		return this.getFusionPropertyCompletionsForObjectNode(workspace, objectNode.linePositionedNode)
 	}
 
-	protected getPropertyDefinitionSegments(objectNode: ObjectNode | ObjectStatement, workspace?: FusionWorkspace) {
+	protected getPropertyDefinitionSegments(objectNode: ObjectStatement, workspace?: FusionWorkspace) {
 		const completions: CompletionItem[] = []
 
-		// for (const segmentOrExternalStatement of LegacyNodeService.findPropertyDefinitionSegments(objectNode, workspace, true)) {
-		// 	const segment = segmentOrExternalStatement instanceof ExternalObjectStatement ? segmentOrExternalStatement.statement.path.segments[0] : segmentOrExternalStatement
-		// 	if (!(segment instanceof PathSegment)) continue
-		// 	if (segment.identifier === "renderer" || !segment.identifier) continue
-		// 	if (completions.find(completion => completion.label === segment.identifier)) continue
-		// 	completions.push({
-		// 		label: segment.identifier,
-		// 		kind: CompletionItemKind.Property
-		// 	})
-		// }
+		for (const segmentOrExternalStatement of NodeService.findPropertyDefinitionSegments(objectNode, workspace, true)) {
+			const segment = segmentOrExternalStatement instanceof ExternalObjectStatement ? segmentOrExternalStatement.statement.path.segments[0] : segmentOrExternalStatement
+			completions.push({
+				label: segment.identifier,
+				kind: CompletionItemKind.Property
+			})
+		}
 
 		return completions
 	}
