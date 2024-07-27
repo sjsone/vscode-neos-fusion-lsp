@@ -22,9 +22,10 @@ class ComposerService extends Logger {
 
 		const basePath = NodePath.join(workspacePath, configuration.folders.root)
 
-		console.log("basePath", basePath)
+		this.logInfo("basePath", basePath)
 
 		const rootComposerJsonPath = NodePath.join(basePath, "composer.json")
+		this.logInfo(`Root composer.json: ${rootComposerJsonPath}`)
 		if (!NodeFs.existsSync(rootComposerJsonPath)) throw new RootComposerJsonNotFoundError(rootComposerJsonPath)
 
 		const rootComposerJson = JSON.parse(NodeFs.readFileSync(rootComposerJsonPath).toString())
@@ -32,16 +33,18 @@ class ComposerService extends Logger {
 			name: rootComposerJson.name,
 			require: {} as { [key: string]: any }
 		}
+		this.logInfo(`Root package ${rootComposerJson.name}`)
 
 		for (const potentialPackageFolder of this.findPackagePaths(basePath, rootComposerJson)) {
 			const composerJsonPath = NodePath.join(potentialPackageFolder, "composer.json")
+			this.logInfo(`Trying: ${composerJsonPath}`)
 			if (!NodeFs.existsSync(composerJsonPath)) continue
 
 			const composerJson = JSON.parse(NodeFs.readFileSync(composerJsonPath).toString())
 			if (composerJson.type === "neos-site") rootPackage.require[composerJson.name] = "0.0.0"
 			this.parsedComposerJsonByName[composerJson.name] = composerJson
 			this.packagePathByName[composerJson.name] = potentialPackageFolder
-			this.logVerbose(`Read composer.json for ${composerJson.name}`)
+			this.logInfo(`Read composer.json for ${composerJson.name}`)
 		}
 
 		const tree = this.buildRequireTree(rootPackage)
@@ -68,8 +71,14 @@ class ComposerService extends Logger {
 
 	protected * findPackagePaths(basePath: string, rootComposerJson: any) {
 		const packageFolders = fastGlob.sync(NodePath.join(basePath, "./Packages/!(Libraries)/*"), { onlyDirectories: true, deep: 2 })
-
 		for (const packageFolder of packageFolders) {
+			const stats = NodeFs.lstatSync(packageFolder)
+			if (!stats) continue
+			if (stats.isSymbolicLink()) {
+				this.logInfo("Ignoring Symlink", packageFolder)
+				continue
+			}
+
 			yield packageFolder
 		}
 
@@ -81,8 +90,10 @@ class ComposerService extends Logger {
 			const fullRepositoryUrl = NodePath.join(basePath, repository.url)
 			const potentialPackageFolders = fastGlob.sync(fullRepositoryUrl, { onlyDirectories: true })
 
+			this.logInfo(`<${repositoryName}> RepositoryURL`, fullRepositoryUrl)
+
 			for (const potentialPackageFolder of potentialPackageFolders) {
-				this.logVerbose("potentialPackageFolder", potentialPackageFolder)
+				this.logInfo(`<${repositoryName}> potentialPackageFolder`, potentialPackageFolder)
 				yield potentialPackageFolder
 			}
 		}
