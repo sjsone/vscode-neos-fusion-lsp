@@ -87,10 +87,13 @@ class ComposerService extends Logger {
 			if (repository.type !== "path") continue
 			if (typeof repository.url !== "string") continue
 
-			const fullRepositoryUrl = NodePath.join(basePath, repository.url)
-			const potentialPackageFolders = fastGlob.sync(fullRepositoryUrl, { onlyDirectories: true })
 
+
+			const fullRepositoryUrl = NodePath.join(basePath, repository.url)
 			this.logInfo(`<${repositoryName}> RepositoryURL`, fullRepositoryUrl)
+
+			const potentialPackageFolders = fastGlob.sync(fullRepositoryUrl, { onlyDirectories: true, globstar: false })
+
 
 			for (const potentialPackageFolder of potentialPackageFolders) {
 				this.logInfo(`<${repositoryName}> potentialPackageFolder`, potentialPackageFolder)
