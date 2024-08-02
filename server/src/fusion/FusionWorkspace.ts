@@ -141,6 +141,7 @@ export class FusionWorkspace extends Logger {
     protected async initPackages() {
         const possibleNeosFusionPackages = this.orderNeosPackages(Array.from(this.neosWorkspace.getPackages().values()))
 
+        this.logInfo("Root Fusion Paths and order for include: ")
         for (const neosPackage of possibleNeosFusionPackages) {
             // TODO: introduce something like a "FusionRootContext" for each root file and associate ParsedFusionFiles with these "FusionRootContexts"
             const packageFusionRootPaths = this.configuration.code.fusion.rootFiles ?? []
@@ -149,17 +150,9 @@ export class FusionWorkspace extends Logger {
 
             if (existingFusionRootPaths.length > 0) {
                 this.fusionParser.rootFusionPaths.set(neosPackage, existingFusionRootPaths)
+                const rootPaths = existingFusionRootPaths.map(p => p.split("/").slice(-2).join('/'))
+                this.logInfo(`    ${neosPackage.getName()}[${neosPackage["composerJson"]["type"]}]: `, rootPaths)
             }
-        }
-
-        this.logInfo("Root Fusion Paths and order for include: ")
-        const pathsAndOrder = Array.from(this.fusionParser.rootFusionPaths.entries()).map(([neosPackage, rootPaths]) => ({
-            name: neosPackage.getName(),
-            type: neosPackage["composerJson"]["type"],
-            rootPaths: rootPaths.map(p => p.split("/").slice(-2).join('/'))
-        }))
-        for (const entry of pathsAndOrder) {
-            this.logInfo(`    ${entry.name}[${entry.type}]: `, entry.rootPaths)
         }
 
         FilePatternResolver.addUriProtocolStrategy('nodetypes:', (uri, filePattern, contextPathAndFilename) => {
