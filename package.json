@@ -34,7 +34,7 @@
     ],
     "main": "./client/out/main.js",
     "extensionDependencies": [
-        "networkteam.neos-fusion"
+        "SimonSchmidt.vscode-neos-fusion-grammar"
     ],
     "extensionPack": [
         "formulahendry.auto-rename-tag",
