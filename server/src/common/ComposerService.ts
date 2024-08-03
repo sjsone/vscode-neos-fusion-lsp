@@ -22,7 +22,7 @@ class ComposerService extends Logger {
 
 		const basePath = NodePath.join(workspacePath, configuration.folders.root)
 
-		this.logInfo("basePath", basePath)
+		this.logDebug("basePath", basePath)
 
 		const rootComposerJsonPath = NodePath.join(basePath, "composer.json")
 		this.logInfo(`Root composer.json: ${rootComposerJsonPath}`)
@@ -37,7 +37,7 @@ class ComposerService extends Logger {
 
 		for (const potentialPackageFolder of this.findPackagePaths(basePath, rootComposerJson)) {
 			const composerJsonPath = NodePath.join(potentialPackageFolder, "composer.json")
-			this.logInfo(`Trying: ${composerJsonPath}`)
+			this.logDebug(`Trying: ${composerJsonPath}`)
 			if (!NodeFs.existsSync(composerJsonPath)) continue
 
 			const composerJson = JSON.parse(NodeFs.readFileSync(composerJsonPath).toString())
@@ -75,7 +75,7 @@ class ComposerService extends Logger {
 			const stats = NodeFs.lstatSync(packageFolder)
 			if (!stats) continue
 			if (stats.isSymbolicLink()) {
-				this.logInfo("Ignoring Symlink", packageFolder)
+				this.logDebug("Ignoring Symlink", packageFolder)
 				continue
 			}
 
@@ -90,13 +90,13 @@ class ComposerService extends Logger {
 
 
 			const fullRepositoryUrl = NodePath.join(basePath, repository.url)
-			this.logInfo(`<${repositoryName}> RepositoryURL`, fullRepositoryUrl)
+			this.logDebug(`<${repositoryName}> RepositoryURL`, fullRepositoryUrl)
 
 			const potentialPackageFolders = fastGlob.sync(fullRepositoryUrl, { onlyDirectories: true, globstar: false })
 
 
 			for (const potentialPackageFolder of potentialPackageFolders) {
-				this.logInfo(`<${repositoryName}> potentialPackageFolder`, potentialPackageFolder)
+				this.logDebug(`<${repositoryName}> potentialPackageFolder`, potentialPackageFolder)
 				yield potentialPackageFolder
 			}
 		}
