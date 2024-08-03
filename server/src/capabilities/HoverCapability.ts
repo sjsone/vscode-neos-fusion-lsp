@@ -24,6 +24,7 @@ import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNod
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
 import { NodeService } from '../common/NodeService'
+import { PropertyDocumentationDefinition } from 'ts-fusion-parser/out/fusion/nodes/PropertyDocumentationDefinition'
 
 
 export class HoverCapability extends AbstractCapability {
@@ -77,12 +78,18 @@ export class HoverCapability extends AbstractCapability {
 		const otherObjectStatement = findParent(prototypeNode, ObjectStatement)
 		if (!otherObjectStatement?.block) return
 
-		for (const statement of <ObjectStatement[]>otherObjectStatement.block.statementList.statements) {
-			let statementName = statement.path.segments.map(abstractNodeToString).filter(Boolean).join(".")
-			if (statement.operation instanceof ValueAssignment) {
-				statementName += ` = ${abstractNodeToString(statement.operation.pathValue)}`
+		for (const statement of otherObjectStatement.block.statementList.statements) {
+			if (statement instanceof ObjectStatement) {
+				let statementName = statement.path.segments.map(abstractNodeToString).filter(Boolean).join(".")
+				if (statement.operation instanceof ValueAssignment) {
+					statementName += ` = ${abstractNodeToString(statement.operation.pathValue)}`
+				}
+				yield statementName
+				continue
 			}
-			yield statementName
+			if (statement instanceof PropertyDocumentationDefinition) {
+				yield `/// ${statement.type} ${statement.text}`
+			}
 		}
 	}
 
