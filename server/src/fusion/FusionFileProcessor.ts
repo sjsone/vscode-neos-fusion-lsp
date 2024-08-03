@@ -380,7 +380,6 @@ export class FusionFileProcessor extends Logger {
 	}
 
 	protected processPropertyDocumentationDefinition(node: PropertyDocumentationDefinition, text: string) {
-		console.log("///", node.type, node.text)
 		const FusionObjectNameRegex = /[A-Z][0-9a-zA-Z.]+(?::[0-9a-zA-Z.]+)+/gm
 
 		const type = node.type;
