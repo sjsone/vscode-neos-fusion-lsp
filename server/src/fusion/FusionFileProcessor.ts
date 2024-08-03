@@ -38,6 +38,7 @@ import { RoutingControllerNode } from './node/RoutingControllerNode'
 import { RoutingActionNode } from './node/RoutingActionNode'
 import { FlowConfigurationPathNode } from './FlowConfigurationPathNode'
 import { OperationNode } from 'ts-fusion-parser/out/dsl/eel/nodes/OperationNode'
+import { PropertyDocumentationDefinition } from 'ts-fusion-parser/out/fusion/nodes/PropertyDocumentationDefinition'
 
 type PostProcess = () => void
 export class FusionFileProcessor extends Logger {
@@ -58,6 +59,7 @@ export class FusionFileProcessor extends Logger {
 				if (node instanceof ObjectStatement) this.processObjectStatement(node, text)
 				if (node instanceof FusionObjectValue) this.processFusionObjectValue(node, text)
 				if (node instanceof LiteralStringNode) this.processLiteralStringNode(node, text)
+				if (node instanceof PropertyDocumentationDefinition) this.processPropertyDocumentationDefinition(node, text)
 				this.parsedFusionFile.addNode(node, text)
 			}
 		}
@@ -374,6 +376,31 @@ export class FusionFileProcessor extends Logger {
 					this.parsedFusionFile.addNode(prototypePath, text)
 				}
 			}
+		}
+	}
+
+	protected processPropertyDocumentationDefinition(node: PropertyDocumentationDefinition, text: string) {
+		console.log("///", node.type, node.text)
+		const FusionObjectNameRegex = /[A-Z][0-9a-zA-Z.]+(?::[0-9a-zA-Z.]+)+/gm
+
+		const type = node.type;
+		let m = FusionObjectNameRegex.exec(type)
+		let runAwayPrevention = 0;
+		while (m && runAwayPrevention++ < 100) {
+			const prototypeName = m[0]
+
+			const begin = node.position.begin + '/// '.length + m.index
+			const position = {
+				begin,
+				end: begin + prototypeName.length
+			}
+
+			const prototypePath = new PrototypePathSegment(prototypeName, position)
+			if (!prototypePath) continue
+			prototypePath.parent = node
+			this.parsedFusionFile.addNode(prototypePath, text)
+
+			m = FusionObjectNameRegex.exec(type)
 		}
 	}
 
