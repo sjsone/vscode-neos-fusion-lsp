@@ -1,6 +1,6 @@
 import { FileChangeType, FileEvent } from 'vscode-languageserver'
-import { AbstractFileChangeHandler } from './AbstractFileChangeHandler'
 import { uriToPath } from '../common/util'
+import { AbstractFileChangeHandler } from './AbstractFileChangeHandler'
 
 export class FusionFileChangeHandler extends AbstractFileChangeHandler {
 	canHandleFileEvent(fileEvent: FileEvent): boolean {
@@ -17,8 +17,10 @@ export class FusionFileChangeHandler extends AbstractFileChangeHandler {
 		const neosPackage = workspace.neosWorkspace.getPackageByUri(fileEvent.uri)
 		if (!neosPackage) return
 
+		workspace.initPackageRootFusionFiles(neosPackage)
+
 		workspace.addParsedFileFromPath(uriToPath(fileEvent.uri), neosPackage)
-		workspace.buildMergedArrayTree()
+		workspace.buildMergedArrayTree("FusionFileChangeHandler created")
 		this.logDebug(`Added new ParsedFusionFile ${fileEvent.uri}`)
 	}
 
@@ -34,6 +36,16 @@ export class FusionFileChangeHandler extends AbstractFileChangeHandler {
 			return
 		}
 		workspace.removeParsedFile(fileEvent.uri)
-		workspace.buildMergedArrayTree()
+
+		const filePath = uriToPath(fileEvent.uri)
+		const neosPackage = workspace.neosWorkspace.getPackageByUri(fileEvent.uri)
+		if (neosPackage) {
+			const rootFusionPaths = workspace.fusionParser.rootFusionPaths.get(neosPackage)
+			if (rootFusionPaths?.includes(filePath)) {
+				workspace.fusionParser.rootFusionPaths.set(neosPackage, rootFusionPaths.filter(p => p !== filePath))
+			}
+		}
+
+		workspace.buildMergedArrayTree("FusionFileChangeHandler deleted")
 	}
 }
