@@ -143,16 +143,7 @@ export class FusionWorkspace extends Logger {
 
         this.logInfo("Root Fusion Paths and order for include: ")
         for (const neosPackage of possibleNeosFusionPackages) {
-            // TODO: introduce something like a "FusionRootContext" for each root file and associate ParsedFusionFiles with these "FusionRootContexts"
-            const packageFusionRootPaths = this.configuration.code.fusion.rootFiles ?? []
-
-            const existingFusionRootPaths = packageFusionRootPaths.map(path => neosPackage.getResourceUriPath(path)).filter(path => NodeFs.existsSync(path))
-
-            if (existingFusionRootPaths.length > 0) {
-                this.fusionParser.rootFusionPaths.set(neosPackage, existingFusionRootPaths)
-                const rootPaths = existingFusionRootPaths.map(p => p.split("/").slice(-2).join('/'))
-                this.logInfo(`    ${neosPackage.getName()}[${neosPackage["composerJson"]["type"]}]: `, rootPaths)
-            }
+            this.initPackageRootFusionFiles(neosPackage)
         }
 
         FilePatternResolver.addUriProtocolStrategy('nodetypes:', (uri, filePattern, contextPathAndFilename) => {
@@ -164,6 +155,22 @@ export class FusionWorkspace extends Logger {
 
             return NodePath.join(neosPackage["path"], "NodeTypes", uri.pathname)
         })
+    }
+
+    public initPackageRootFusionFiles(neosPackage: NeosPackage) {
+        // TODO: introduce something like a "FusionRootContext" for each root file and associate ParsedFusionFiles with these "FusionRootContexts"
+        const possibleFusionRootPaths = this.configuration.code.fusion.rootFiles ?? []
+
+        const existingFusionRootPaths = possibleFusionRootPaths.map(path => neosPackage.getResourceUriPath(path)).filter(path => NodeFs.existsSync(path))
+
+        const alreadyHadFoundFusionRootPaths = (this.fusionParser.rootFusionPaths.get(neosPackage) ?? []).length > 0
+        const fusionRootPathsExist = existingFusionRootPaths.length > 0
+
+        if (fusionRootPathsExist || alreadyHadFoundFusionRootPaths) {
+            this.fusionParser.rootFusionPaths.set(neosPackage, existingFusionRootPaths)
+            const rootPaths = existingFusionRootPaths.map(p => p.split("/").slice(-2).join('/'))
+            this.logInfo(`    ${neosPackage.getName()}[${neosPackage["composerJson"]["type"]}]: `, rootPaths)
+        }
     }
 
     protected async initFusionFiles() {
@@ -219,7 +226,8 @@ export class FusionWorkspace extends Logger {
         })
     }
 
-    buildMergedArrayTree() {
+    buildMergedArrayTree(reason: string | undefined = undefined) {
+        if (reason) console.log("buildMergedArrayTree because", reason)
         const startTimeFullMergedArrayTree = performance.now()
         this.languageServer.sendBusyCreate('parsingFusionMergedArrayTree', {
             busy: true,
@@ -283,7 +291,7 @@ export class FusionWorkspace extends Logger {
         const file = this.getParsedFileByUri(change.document.uri)
         if (file === undefined) return
         this.initParsedFile(file, change.document.getText())
-        this.buildMergedArrayTree()
+        this.buildMergedArrayTree("updateFileByChange")
         file.runPostProcessing()
 
         if (this.configuration.diagnostics.alwaysDiagnoseChangedFile && !this.filesToDiagnose.includes(file)) {
