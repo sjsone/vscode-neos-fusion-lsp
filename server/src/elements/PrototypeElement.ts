@@ -11,6 +11,7 @@ import { abstractNodeToString, findParent, getPrototypeNameFromNode } from '../c
 import { ElementTextDocumentContext, ElementWorkspacesContext } from './ElementContext'
 import { ElementHelper } from './ElementHelper'
 import { ElementInterface } from './ElementInterface'
+import { PropertyDocumentationDefinition } from 'ts-fusion-parser/out/fusion/nodes/PropertyDocumentationDefinition'
 
 export class PrototypeElement extends Logger implements ElementInterface<FusionObjectValue | PrototypePathSegment> {
 	isResponsible(methodName: keyof ElementInterface<AbstractNode>, node: AbstractNode | undefined): boolean {
@@ -125,12 +126,18 @@ export class PrototypeElement extends Logger implements ElementInterface<FusionO
 		const otherObjectStatement = findParent(prototypeNode, ObjectStatement)
 		if (!otherObjectStatement?.block) return
 
-		for (const statement of <ObjectStatement[]>otherObjectStatement.block.statementList.statements) {
-			let statementName = statement.path.segments.map(abstractNodeToString).filter(Boolean).join(".")
-			if (statement.operation instanceof ValueAssignment) {
-				statementName += ` = ${abstractNodeToString(statement.operation.pathValue)}`
+		for (const statement of otherObjectStatement.block.statementList.statements) {
+			if (statement instanceof ObjectStatement) {
+				let statementName = statement.path.segments.map(abstractNodeToString).filter(Boolean).join(".")
+				if (statement.operation instanceof ValueAssignment) {
+					statementName += ` = ${abstractNodeToString(statement.operation.pathValue)}`
+				}
+				yield statementName
+				continue
 			}
-			yield statementName
+			if (statement instanceof PropertyDocumentationDefinition) {
+				yield `/// ${statement.type} ${statement.text}`
+			}
 		}
 	}
 
