@@ -26,6 +26,10 @@ export class Logger {
 		console.log(`[${level.padStart(7, " ")}] <${(new Date()).toISOString()}> [${name}]`, ...things)
 	}
 
+	static RenameLogger(logger: Logger, loggerLogName: string) {
+		logger.loggerLogName = loggerLogName
+	}
+
 	constructor(suffix: string | undefined = undefined) {
 		this.loggerLogName = this.constructor.name
 		if (suffix) this.loggerLogName += "|" + suffix
