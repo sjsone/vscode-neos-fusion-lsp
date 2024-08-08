@@ -136,7 +136,7 @@ export class LanguageServer extends Logger {
 	}
 
 	public onInitialize(params: InitializeParams): InitializeResult {
-		this.logVerbose("onInitialize")
+		this.logVerbose("onInitialize", params)
 
 		for (const workspaceFolder of params.workspaceFolders ?? []) {
 			const fusionWorkspace = new FusionWorkspace(workspaceFolder.name, workspaceFolder.uri, this)
@@ -244,7 +244,8 @@ export class LanguageServer extends Logger {
 	}
 
 	public async onDidChangeConfiguration(params: DidChangeConfigurationParams) {
-		const configuration: ExtensionConfiguration = params.settings.neosFusionLsp
+		this.logInfo("onDidChangeConfiguration")
+
 		Object.freeze(configuration)
 
 		await this.sendBusyCreate('reload', {
