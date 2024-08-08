@@ -45,14 +45,23 @@ function buildIncrementsFromCommandLineArguments(commandLineArguments, version) 
 }
 
 const commandLineArguments = parseCommandLineArguments({
+	'--current': Boolean,
 	'--pre': Boolean,
 	'--patch': Boolean,
 	'--minor': Boolean,
 	'--major': Boolean
 })
 
-const versions = []
-for (const path of ['./package.json', './server/package.json', './client/package.json']) {
-	versions.push(updatePackageVersion(path, commandLineArguments))
+const packagePaths = ['./package.json', './server/package.json', './client/package.json']
+if (commandLineArguments["--current"] === true) {
+	const packageData = JSON.parse(NodeFs.readFileSync(packagePaths[0]).toString())
+	console.log(packageData.version)
+	process.exit()
+
+} else {
+	const versions = []
+	for (const path of packagePaths) {
+		versions.push(updatePackageVersion(path, commandLineArguments))
+	}
+	if (versions[0]) console.log(versions[0])
 }
-if (versions[0]) console.log(versions[0])
