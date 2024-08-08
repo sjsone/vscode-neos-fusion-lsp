@@ -54,25 +54,6 @@
                         "default": "./",
                         "description": "The folder where the root 'composer.json' lays in"
                     },
-                    "neosFusionLsp.folders.packages": {
-                        "order": 2,
-                        "scope": "window",
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "title": "Folder path"
-                        },
-                        "default": [
-                            "DistributionPackages",
-                            "Packages/Application",
-                            "Packages/Framework",
-                            "Packages/Plugins",
-                            "Packages/Sites",
-                            "Packages/Neos",
-                            "Packages/Carbon"
-                        ],
-                        "description": "Folders with packages"
-                    },
                     "neosFusionLsp.folders.workspaceAsPackageFallback": {
                         "order": 3,
                         "scope": "window",
