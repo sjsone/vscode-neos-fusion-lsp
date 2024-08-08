@@ -174,7 +174,7 @@ export class LanguageServer extends Logger {
 				},
 				textDocumentSync: {
 					// TODO: Make `params.initializationOptions` optional by defining some kind of default
-					openClose: params.initializationOptions.textDocumentSync.openClose,
+					openClose: params?.initializationOptions?.textDocumentSync?.openClose ?? true,
 					change: TextDocumentSyncKind.Full
 				},
 				codeActionProvider: true,
@@ -244,9 +244,9 @@ export class LanguageServer extends Logger {
 	}
 
 	public async onDidChangeConfiguration(params: DidChangeConfigurationParams) {
-		this.logInfo("onDidChangeConfiguration")
-
+		const configuration: ExtensionConfiguration = params.settings.neosFusionLsp
 		Object.freeze(configuration)
+		this.logInfo("Configuration: " + JSON.stringify(configuration))
 
 		await this.sendBusyCreate('reload', {
 			busy: true,
@@ -258,7 +258,6 @@ export class LanguageServer extends Logger {
 
 		LogService.setLogLevel(configuration.logging.level)
 
-		this.logVerbose("Configuration: " + JSON.stringify(configuration))
 		for (const fusionWorkspace of this.fusionWorkspaces) {
 			await fusionWorkspace.init(configuration)
 		}
