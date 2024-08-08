@@ -7,6 +7,8 @@ export class YamlFileChangeHandler extends AbstractFileChangeHandler {
 	protected rerunAgain: boolean = false
 	protected running: boolean = false
 
+	protected debounceTimeout: any = undefined
+
 	constructor(languageServer: LanguageServer) {
 		super(languageServer)
 	}
@@ -28,8 +30,8 @@ export class YamlFileChangeHandler extends AbstractFileChangeHandler {
 		return this.handleNodeTypeFileChanged()
 	}
 
-	protected async handleNodeTypeFileChanged(reason: string = "none") {
-		this.logInfo("|handleNodeTypeFileChanged", reason)
+	protected async handleNodeTypeFileChanged() {
+		this.logInfo("|handleNodeTypeFileChanged")
 		if (!this.running) {
 			this.logInfo("  Ignored but will rerun again...")
 			this.rerunAgain = true
