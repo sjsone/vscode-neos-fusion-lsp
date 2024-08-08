@@ -321,19 +321,6 @@
                         "editPresentation": "singlelineText",
                         "markdownDescription": "RegEx which detects if NodeType is abstract.\nThis enables the 'Create Abstract NodeType File'",
                         "default": "(?:A|a)bstract"
-                    },
-                    "neosFusionLsp.code.fusion.rootFiles": {
-                        "type": "array",
-                        "markdownDescription": "Which Fusion files should be used as an entrypoint to build the *MergedArrayTree*. \n\n  The paths are relative for each Package",
-                        "items": {
-                            "type": "string",
-                            "title": "Root.fusion path"
-                        },
-                        "default": [
-                            "/Private/Fusion/Root.fusion",
-                            "/Private/FusionModules/Root.fusion",
-                            "/Private/FusionPlugins/Root.fusion"
-                        ]
                     }
                 }
             },
