@@ -225,6 +225,14 @@ export class Extension {
 		this.clients.set(folder.uri.toString(), client)
 
 		client.onDidChangeState((event) => {
+			const stateToString = (state: any) => {
+				if (state === State.Starting) return "Starting"
+				if (state === State.Running) return "Running"
+				if (state === State.Stopped) return "Stopped"
+				return "Unknown-" + state
+			}
+
+			console.log("CHANGED STATE: ", stateToString(event.oldState), "->", stateToString(event.newState))
 			if (event.oldState === State.Running && event.newState === State.Stopped) {
 				this.stopAllRunningInterfaceItems(progressNotificationService)
 			}
