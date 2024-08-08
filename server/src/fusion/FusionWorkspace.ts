@@ -261,6 +261,16 @@ export class FusionWorkspace extends Logger {
         }
     }
 
+    protected isFileInIgnoredDiagnosticsFolder(parsedFile: ParsedFusionFile): boolean {
+        const filePath = uriToPath(parsedFile.uri)
+        const workspacePath = NodePath.resolve(uriToPath(this.uri), this.configuration.folders.root)
+        const foundIgnoredFolder = this.configuration.diagnostics.ignore.folders.find(path => {
+            const ignoredFolderPath = NodePath.resolve(workspacePath, path)
+            return filePath.startsWith(ignoredFolderPath)
+        })
+        return foundIgnoredFolder !== undefined
+    }
+
     initParsedFile(parsedFile: ParsedFusionFile, text?: string) {
         if (this.filesWithErrors.includes(parsedFile.uri)) return false
 
@@ -271,10 +281,8 @@ export class FusionWorkspace extends Logger {
                 return false
             }
 
-            const filePath = uriToPath(parsedFile.uri)
-            const inIgnoredFolder = this.configuration.diagnostics.ignore.folders.find(path => filePath.startsWith(NodePath.resolve(uriToPath(this.uri), path)))
-
-            if (this.configuration.diagnostics.enabled && inIgnoredFolder === undefined) {
+            const ignoreDiagnosticsForFile = this.isFileInIgnoredDiagnosticsFolder(parsedFile)
+            if (this.configuration.diagnostics.enabled && !ignoreDiagnosticsForFile) {
                 this.filesToDiagnose.push(parsedFile)
             }
 
@@ -334,9 +342,7 @@ export class FusionWorkspace extends Logger {
 
     public async diagnoseAllFusionFiles() {
         this.filesToDiagnose = this.parsedFiles.filter(parsedFile => {
-            const filePath = uriToPath(parsedFile.uri)
-            const inIgnoredFolder = this.configuration.diagnostics.ignore.folders.find(path => filePath.startsWith(NodePath.resolve(uriToPath(this.uri), path)))
-            return inIgnoredFolder === undefined
+            return !this.isFileInIgnoredDiagnosticsFolder(parsedFile)
         })
         return this.processFilesToDiagnose()
     }
