@@ -159,9 +159,9 @@ export class FusionWorkspace extends Logger {
 
     public initPackageRootFusionFiles(neosPackage: NeosPackage) {
         // TODO: introduce something like a "FusionRootContext" for each root file and associate ParsedFusionFiles with these "FusionRootContexts"
-        const possibleFusionRootPaths = this.configuration.code.fusion.rootFiles ?? []
+        const possibleFusionRootPaths = this.configuration.folders.fusion.map(path => NodePath.join(path, "Root.fusion"))
 
-        const existingFusionRootPaths = possibleFusionRootPaths.map(path => neosPackage.getResourceUriPath(path)).filter(path => NodeFs.existsSync(path))
+        const existingFusionRootPaths = possibleFusionRootPaths.map(path => NodePath.join(neosPackage.path, path)).filter(path => NodeFs.existsSync(path))
 
         const alreadyHadFoundFusionRootPaths = (this.fusionParser.rootFusionPaths.get(neosPackage) ?? []).length > 0
         const fusionRootPathsExist = existingFusionRootPaths.length > 0
