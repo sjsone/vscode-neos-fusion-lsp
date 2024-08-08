@@ -8,10 +8,12 @@ import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNod
 import { FusionObjectValue } from 'ts-fusion-parser/out/fusion/nodes/FusionObjectValue'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
 import { PathSegment } from 'ts-fusion-parser/out/fusion/nodes/PathSegment'
+import { PropertyDocumentationDefinition } from 'ts-fusion-parser/out/fusion/nodes/PropertyDocumentationDefinition'
 import { PrototypePathSegment } from 'ts-fusion-parser/out/fusion/nodes/PrototypePathSegment'
 import { ValueAssignment } from 'ts-fusion-parser/out/fusion/nodes/ValueAssignment'
 import * as YAML from 'yaml'
 import { LinePositionedNode } from '../common/LinePositionedNode'
+import { NodeService } from '../common/NodeService'
 import { XLIFFService } from '../common/XLIFFService'
 import { abstractNodeToString, findParent, getPrototypeNameFromNode } from '../common/util'
 import { FlowConfigurationPathPartNode } from '../fusion/FlowConfigurationPathPartNode'
@@ -23,8 +25,6 @@ import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
 import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
-import { NodeService } from '../common/NodeService'
-import { PropertyDocumentationDefinition } from 'ts-fusion-parser/out/fusion/nodes/PropertyDocumentationDefinition'
 
 
 export class HoverCapability extends AbstractCapability {

@@ -51,7 +51,7 @@ export class CompletionCapability extends AbstractCapability {
 		const completions: CompletionItem[] = []
 		if (foundNodeByLine) {
 			const foundNode = foundNodeByLine.getNode()
-			console.log(`Autocompleting: ${foundNode.constructor.name}`)
+			this.logDebug(`Autocompleting: ${foundNode.constructor.name}`)
 			if (foundNode instanceof PathSegment)
 				completions.push(BuiltInCompletions.prototypeCompletion)
 			if (foundNode instanceof TagNode)
