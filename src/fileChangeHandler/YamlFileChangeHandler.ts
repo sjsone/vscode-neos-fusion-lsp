@@ -1,7 +1,16 @@
 import { FileEvent } from 'vscode-languageserver'
 import { AbstractFileChangeHandler } from './AbstractFileChangeHandler'
+import { LanguageServer } from '../LanguageServer'
 
 export class YamlFileChangeHandler extends AbstractFileChangeHandler {
+
+	protected rerunAgain: boolean = false
+	protected running: boolean = false
+
+	constructor(languageServer: LanguageServer) {
+		super(languageServer)
+	}
+
 	canHandleFileEvent(fileEvent: FileEvent): boolean {
 		// TODO: check if yaml file is relevant (FlowConfiguration.responsibleFor(fileEvent.uri) ?)
 		return fileEvent.uri.endsWith(".yaml")
@@ -19,7 +28,27 @@ export class YamlFileChangeHandler extends AbstractFileChangeHandler {
 		return this.handleNodeTypeFileChanged()
 	}
 
-	protected async handleNodeTypeFileChanged() {
+	protected async handleNodeTypeFileChanged(reason: string = "none") {
+		this.logInfo("|handleNodeTypeFileChanged", reason)
+		if (!this.running) {
+			this.logInfo("  Ignored but will rerun again...")
+			this.rerunAgain = true
+			return
+		}
+
+		await this.rebuildConfiguration()
+		this.logInfo("  Build configuration")
+		if (this.rerunAgain) {
+			this.logInfo("  will rerun")
+			await this.rebuildConfiguration()
+			this.rerunAgain = false
+		}
+
+		this.logInfo("  will finish")
+		this.running = false
+	}
+
+	protected async rebuildConfiguration() {
 		for (const fusionWorkspace of this.languageServer.fusionWorkspaces) {
 			for (const neosPackage of fusionWorkspace.neosWorkspace.getPackages().values()) {
 				neosPackage.readConfiguration()
@@ -28,6 +57,7 @@ export class YamlFileChangeHandler extends AbstractFileChangeHandler {
 			fusionWorkspace.neosWorkspace.configurationManager.rebuildConfiguration()
 			fusionWorkspace.languageServer.sendFlowConfiguration(fusionWorkspace.neosWorkspace.configurationManager['mergedConfiguration'])
 		}
-		await Promise.all(this.languageServer.fusionWorkspaces.map(workspace => workspace.diagnoseAllFusionFiles()))
+
+		return Promise.all(this.languageServer.fusionWorkspaces.map(workspace => workspace.diagnoseAllFusionFiles()))
 	}
 }
