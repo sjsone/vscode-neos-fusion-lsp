@@ -72,7 +72,8 @@ export class LanguageServerFusionParser extends Parser {
 		const parsedFile = this.fusionWorkspace.getParsedFileByContextPathAndFilename(sanitizedContextPathAndFilename)
 		// if (!parsedFile) throw Error(`TODO: handle unknown but expected ParsedFusionFile: ${contextPathAndFilename}/${sanitizedContextPathAndFilename} // \n ${sourceCode}`)
 		if (!parsedFile) return {
-			fusionFile: new NonExistingFusionFile(contextPathAndFilename)
+			fusionFile: new NonExistingFusionFile(contextPathAndFilename),
+			ignoredErrorsByParser: [] as Error[]
 		}
 
 		return parsedFile
