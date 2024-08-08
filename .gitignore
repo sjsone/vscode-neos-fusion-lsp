@@ -11,3 +11,4 @@ client/server
 *.cpuprofile
 *.heapprofile
 yarn-error.log
+*.log
