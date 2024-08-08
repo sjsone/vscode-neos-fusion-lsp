@@ -7,19 +7,35 @@ import { MergedArrayTree } from 'ts-fusion-runtime/out/core/MergedArrayTree'
 import { NeosPackage } from '../neos/NeosPackage'
 import { FusionWorkspace } from './FusionWorkspace'
 import { ParserError } from 'ts-fusion-parser/out/common/ParserError'
+import { Logger, LogService } from '../common/Logging'
+import { NonExistingFusionFile } from './NonExistingFusionFile'
+import { ParsedFusionFile } from './ParsedFusionFile'
 
 export class LanguageServerFusionParser extends Parser {
 
 	public rootFusionPaths: Map<NeosPackage, string[]> = new Map
 
+	protected logger = new Logger()
+
 	constructor(
 		protected fusionWorkspace: FusionWorkspace
 	) {
 		super()
+		Logger.RenameLogger(this.logger, "LanguageServerFusionParser")
 	}
 
 	public parseRootFusionFiles() {
-		const files = [...this.rootFusionPaths.values()].reduce((carry, rootPaths) => [...carry, ...rootPaths], [])
+		const files = [...this.rootFusionPaths.values()].reduce((carry, rootPaths) => {
+			for (const rootPath of rootPaths) {
+				if (!NodeFs.existsSync(rootPath)) {
+					this.logger.logError(`Root path ${rootPath} configured but does not exist. Will ignore...`)
+					continue
+				}
+				carry.push(rootPath)
+			}
+
+			return carry
+		}, [])
 
 		return this.parseFiles(files)
 	}
@@ -28,6 +44,10 @@ export class LanguageServerFusionParser extends Parser {
 		let mergedArrayTree = new MergedArrayTree(mergedArrayTreeUntilNow)
 
 		for (const file of files) {
+			if (!NodeFs.existsSync(file)) {
+				this.logger.logError(`Fusion file ${file} does not exist. Will ignore...`)
+				continue
+			}
 			const fusionFile = this.getFusionFile(NodeFs.readFileSync(file).toString(), file)
 			// const startTimeMergedArrayTree = performance.now();
 			try {
@@ -50,7 +70,10 @@ export class LanguageServerFusionParser extends Parser {
 		const sanitizedContextPathAndFilename = contextPathAndFilename.replace(":", "%3A")
 
 		const parsedFile = this.fusionWorkspace.getParsedFileByContextPathAndFilename(sanitizedContextPathAndFilename)
-		if (!parsedFile) throw Error(`TODO: handle unknown but expected ParsedFusionFile: ${contextPathAndFilename}/${sanitizedContextPathAndFilename} // \n ${sourceCode}`)
+		// if (!parsedFile) throw Error(`TODO: handle unknown but expected ParsedFusionFile: ${contextPathAndFilename}/${sanitizedContextPathAndFilename} // \n ${sourceCode}`)
+		if (!parsedFile) return {
+			fusionFile: new NonExistingFusionFile(contextPathAndFilename)
+		}
 
 		return parsedFile
 	}
