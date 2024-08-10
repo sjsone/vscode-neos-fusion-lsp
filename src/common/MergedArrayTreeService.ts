@@ -1,7 +1,4 @@
-import path = require('path')
 import { AbstractNode } from 'ts-fusion-parser/out/common/AbstractNode'
-import { ObjectNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectNode'
-import { ObjectPathNode } from 'ts-fusion-parser/out/dsl/eel/nodes/ObjectPathNode'
 import { MetaPathSegment } from 'ts-fusion-parser/out/fusion/nodes/MetaPathSegment'
 import { ObjectPath } from 'ts-fusion-parser/out/fusion/nodes/ObjectPath'
 import { ObjectStatement } from 'ts-fusion-parser/out/fusion/nodes/ObjectStatement'
