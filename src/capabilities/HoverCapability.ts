@@ -25,6 +25,8 @@ import { ResourceUriNode } from '../fusion/node/ResourceUriNode'
 import { TranslationShortHandNode } from '../fusion/node/TranslationShortHandNode'
 import { AbstractCapability } from './AbstractCapability'
 import { CapabilityContext, ParsedFileCapabilityContext } from './CapabilityContext'
+import { Nodes } from 'ts-fusion-parser'
+import { MergedArrayTreeService } from '../common/MergedArrayTreeService'
 
 
 export class HoverCapability extends AbstractCapability {
@@ -56,7 +58,7 @@ export class HoverCapability extends AbstractCapability {
 		if (node instanceof PrototypePathSegment)
 			return this.getMarkdownForPrototypeName(workspace, <FusionObjectValue | PrototypePathSegment>node)
 		if (node instanceof PathSegment)
-			return `property **${node.identifier}**`
+			return this.getMarkdownForPathSegment(node, workspace)
 		if (node instanceof PhpClassNode)
 			return `EEL-Helper **${node.identifier}**`
 		if (node instanceof ObjectFunctionPathNode)
@@ -240,5 +242,44 @@ export class HoverCapability extends AbstractCapability {
 
 		if (isImage) return `![${basename}](${path})`
 		return `Resource: ${basename}`
+	}
+
+	getMarkdownForPathSegment(node: PathSegment, workspace: FusionWorkspace) {
+		// console.log("Hovering", node.identifier)
+		const objectStatement = findParent(node, ObjectStatement)
+		if (!objectStatement) return null
+
+		const pathForNode = MergedArrayTreeService.buildPathForNode(node).slice(1)
+		// console.log("pathForNode", pathForNode)
+
+		const configurationList = NodeService.getFusionConfigurationListUntilNode(node, workspace)
+		const configuration = configurationList[0]?.configuration
+		if (!configuration) return null
+
+		let relevantConfiguration = configuration
+		for (const part of pathForNode) {
+			if (!(part in relevantConfiguration)) return null
+			relevantConfiguration = relevantConfiguration[part]
+		}
+
+		const relevantNodes = relevantConfiguration?.__nodes as Array<AbstractNode>
+		if (!relevantNodes) return null
+
+		for (const relevantNode of relevantNodes) {
+			const relevantObjectStatement = findParent(relevantNode, ObjectStatement)
+			if (!relevantObjectStatement) continue
+			const documentationDefinition = relevantObjectStatement.documentationDefinition
+			if (!documentationDefinition) continue
+
+			return [
+				documentationDefinition.text,
+				"```fusion",
+				`/// ${documentationDefinition.type}`,
+				"```"
+			].join("\n")
+		}
+
+
+		return null
 	}
 }

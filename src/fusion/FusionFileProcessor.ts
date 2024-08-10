@@ -40,6 +40,12 @@ import { FlowConfigurationPathNode } from './FlowConfigurationPathNode'
 import { OperationNode } from 'ts-fusion-parser/out/dsl/eel/nodes/OperationNode'
 import { PropertyDocumentationDefinition } from 'ts-fusion-parser/out/fusion/nodes/PropertyDocumentationDefinition'
 
+declare module 'ts-fusion-parser/out/fusion/nodes/ObjectStatement' {
+	interface ObjectStatement {
+		documentationDefinition: PropertyDocumentationDefinition | undefined;
+	}
+}
+
 type PostProcess = () => void
 export class FusionFileProcessor extends Logger {
 	protected parsedFusionFile: ParsedFusionFile
@@ -381,6 +387,11 @@ export class FusionFileProcessor extends Logger {
 
 	protected processPropertyDocumentationDefinition(node: PropertyDocumentationDefinition, text: string) {
 		const FusionObjectNameRegex = /[A-Z][0-9a-zA-Z.]+(?::[0-9a-zA-Z.]+)+/gm
+
+		const nextStatement = node.findNextStatement()
+		if (nextStatement) {
+			nextStatement.documentationDefinition = node
+		}
 
 		const type = node.type;
 		let m = FusionObjectNameRegex.exec(type)
