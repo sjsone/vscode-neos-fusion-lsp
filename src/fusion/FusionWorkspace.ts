@@ -227,7 +227,7 @@ export class FusionWorkspace extends Logger {
     }
 
     buildMergedArrayTree(reason: string | undefined = undefined) {
-        if (reason) console.log("buildMergedArrayTree because", reason)
+        // if (reason) console.log("buildMergedArrayTree because", reason)
         const startTimeFullMergedArrayTree = performance.now()
         this.languageServer.sendBusyCreate('parsingFusionMergedArrayTree', {
             busy: true,
