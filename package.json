@@ -12,7 +12,7 @@
         "fast-glob": "^3.3.2",
         "fast-xml-parser": "^4.3.3",
         "ts-fusion-parser": "^0.2.2",
-        "ts-fusion-runtime": "^0.2.2",
+        "ts-fusion-runtime": "^0.2.5",
         "vscode-languageserver": "^9.0.1",
         "vscode-languageserver-textdocument": "^1.0.11",
         "vscode-uri": "^3.0.8",
