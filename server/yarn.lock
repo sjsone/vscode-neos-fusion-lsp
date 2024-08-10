@@ -138,10 +138,10 @@ ts-fusion-parser@^0.2.2:
   resolved "https://registry.yarnpkg.com/ts-fusion-parser/-/ts-fusion-parser-0.2.2.tgz#55cf91e005f8dcae78a431b06063a3e5edc68831"
   integrity sha512-dB7XUUnk4OP5eixa8nhRkNJSCVO8cm4RnDD/zFgLvTnz4/eucUjtxdEug92GzFcoOv+L9/f5I9LI7RC/h0wKjg==
 
-ts-fusion-runtime@^0.2.2:
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/ts-fusion-runtime/-/ts-fusion-runtime-0.2.2.tgz#95d16d294a1d972fe449459bfd1f18fda794fa95"
-  integrity sha512-wTO5ZvqgJ+oBEnuRFi0Na3OiBylYj4DfAUI2GwrmWn1Ooj5hQ7imiC3f6lLZAKOk1xVcyFS5oa8JNYfLZo9+Gg==
+ts-fusion-runtime@^0.2.5:
+  version "0.2.5"
+  resolved "https://registry.yarnpkg.com/ts-fusion-runtime/-/ts-fusion-runtime-0.2.5.tgz#985cc33913804ef1390386119a9269a0508489e9"
+  integrity sha512-VAJ5vtVzRWExiUhtIGJbowbOuPNGZrnP7seZf2cN0DKJJuq24rRqDWAWhfIrlk/e3yef0jy+GydiXUmrzRErJw==
   dependencies:
     fast-glob "^3.3.2"
     ts-fusion-parser "^0.2.2"
