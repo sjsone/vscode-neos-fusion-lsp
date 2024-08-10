@@ -25,10 +25,7 @@ class NodeService extends Logger {
 		const pathForNode = MergedArrayTreeService.buildPathForNode(baseNode!)
 		return pathForNode.map((pathPart, index) => {
 			const path = pathForNode.slice(0, index + 1).join('/');
-			if (debug) workspace.fusionRuntimeConfiguration["debug"] = true
 			const configuration = workspace.fusionRuntimeConfiguration.forPath(path)
-			if (debug) workspace.fusionRuntimeConfiguration["debug"] = false
-
 			return {
 				pathPart,
 				configuration
