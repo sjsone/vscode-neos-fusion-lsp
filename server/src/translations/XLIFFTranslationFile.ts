@@ -21,10 +21,18 @@ export interface TransUnit {
 	target?: string
 }
 
+export interface XLIFFData {
+	file: {
+		body: {
+			["trans-unit"]: XLIFFTransUnit
+		}
+	}
+}
+
 export class XLIFFTranslationFile extends Logger {
 	protected static XMLParser = new XMLParser({ ignoreAttributes: false })
 	protected sourcePath: string
-	protected data: any
+	protected data!: { xliff: XLIFFData }
 	public readonly uri: string
 
 	public transUnits: Map<string, TransUnit> = new Map

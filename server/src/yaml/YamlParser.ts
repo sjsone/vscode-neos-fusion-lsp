@@ -71,8 +71,8 @@ export class YamlParser {
             if (this.isStringToken(firstItem)) {
                 if (line[1].type !== YamlTokenType.Colon) {
                     continue
-                    console.log("Line", line)
-                    throw new Error("Expected next token to be Colon")
+                    // console.log("Line", line)
+                    // throw new Error("Expected next token to be Colon")
                 }
 
                 if (line.length === 2 || (line.length === 3 && (line[2].type === YamlTokenType.Alias || line[2].type === YamlTokenType.Anchor))) {
