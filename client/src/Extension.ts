@@ -144,9 +144,12 @@ export class Extension {
 	}
 
 	public startClient(folder: WorkspaceFolder, inspect = false) {
-		const module = this.context!.asAbsolutePath(path.join('server', 'out', 'main.js'))
+		const mainJsPath = this.context!.asAbsolutePath(path.join('server', 'out', 'main.js'))
 
 		const runOptions = { execArgv: [] as string[] }
+		const runArgs: Array<string> = [
+			"--client=vscode"
+		]
 
 		if (process.env.SERVER_INSPECT_BREAK) {
 			console.log("SERVER_INSPECT_BREAK is set.")
@@ -158,8 +161,8 @@ export class Extension {
 			runOptions.execArgv.push(`--inspect-brk=${6111}`)
 		}
 		const serverOptions: ServerOptions = {
-			run: { module, transport: TransportKind.ipc, options: runOptions },
-			debug: { module, transport: TransportKind.ipc, options: runOptions }
+			run: { module: mainJsPath, transport: TransportKind.ipc, options: runOptions, args: runArgs },
+			debug: { module: mainJsPath, transport: TransportKind.ipc, options: runOptions, args: runArgs }
 		}
 		const documentSelector = [{ scheme: 'file', language: 'fusion', pattern: `${folder.uri.fsPath}/**/*` }]
 		const clientOptions: LanguageClientOptions = {

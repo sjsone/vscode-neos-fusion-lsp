@@ -45,6 +45,7 @@ import { FusionDocument } from './main'
 import { ParsedYaml } from './neos/FlowConfigurationFile'
 import { AbstractLanguageFeatureParams } from './languageFeatures/LanguageFeatureContext'
 import { SignatureHelpCapability } from './capabilities/SignatureHelpCapability'
+import { Client } from './client/Client'
 
 
 const CodeActions = [
@@ -64,16 +65,17 @@ const FileChangeHandlerTypes: Array<new (...args: any[]) => AbstractFileChangeHa
 
 export class LanguageServer extends Logger {
 
-	protected connection: _Connection
-	protected documents: TextDocuments<FusionDocument>
 	public fusionWorkspaces: FusionWorkspace[] = []
 	protected clientCapabilityService!: ClientCapabilityService
 
 	protected functionalityInstances: Map<new (...args: any[]) => AbstractFunctionality, AbstractFunctionality> = new Map()
 	protected fileChangeHandlerInstances: Map<new (...args: any[]) => AbstractFileChangeHandler, AbstractFileChangeHandler> = new Map()
 
-	constructor(connection: _Connection, documents: TextDocuments<FusionDocument>) {
+	constructor(protected connection: _Connection, protected documents: TextDocuments<FusionDocument>, public client: Client) {
 		super()
+
+		this.logInfo("Client: " + this.client.getInfo())
+
 		this.connection = connection
 		this.documents = documents
 
