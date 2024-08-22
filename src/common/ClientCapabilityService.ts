@@ -2,7 +2,7 @@ import { ClientCapabilities } from 'vscode-languageserver'
 
 export class ClientCapabilityService {
 	constructor(
-		protected clientCapabilities: ClientCapabilities
+		public clientCapabilities: ClientCapabilities
 	) { }
 
 	get(path: string) {

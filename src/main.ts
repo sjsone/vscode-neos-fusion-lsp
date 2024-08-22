@@ -17,6 +17,8 @@ import { WorkspaceSymbolCapability } from './capabilities/WorkspaceSymbolCapabil
 import { InlayHintLanguageFeature } from './languageFeatures/InlayHintLanguageFeature'
 import { SemanticTokensLanguageFeature } from './languageFeatures/SemanticTokensLanguageFeature'
 import { SignatureHelpCapability } from './capabilities/SignatureHelpCapability'
+import { GenericClient } from './client/GenericClient'
+import { resolveClient } from './ClientBuilding'
 
 export type FusionDocument = TextDocument
 
@@ -25,7 +27,8 @@ export type FusionDocument = TextDocument
 const connection = createConnection(ProposedFeatures.all)
 const documents: TextDocuments<FusionDocument> = new TextDocuments(TextDocument)
 
-const languageserver = new LanguageServer(connection, documents)
+const client = resolveClient()
+const languageserver = new LanguageServer(connection, documents, client)
 
 
 connection.onInitialize(params => languageserver.onInitialize(params))
