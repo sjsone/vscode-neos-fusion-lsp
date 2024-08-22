@@ -72,9 +72,9 @@ export class FlowConfigurationFile extends Logger {
 	public getValueByPath(path: string[]) {
 		if (!this.parsedYaml) return undefined
 
-		let pointer = this.parsedYaml
+		let pointer: ParsedYaml = this.parsedYaml
 		for (const part of path) {
-			pointer = (<any>pointer)[part]
+			pointer = (<{ [key: string]: ParsedYaml }><unknown>pointer)[part]
 			if (pointer === undefined) return undefined
 		}
 		return pointer

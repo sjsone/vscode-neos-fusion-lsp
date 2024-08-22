@@ -22,11 +22,24 @@ export interface EELHelperToken {
 	methods: EelHelperMethod[]
 }
 
+interface ComposerJson {
+	name: string
+	type: string
+	autoload?: {
+		["psr-4"]?: { [key: string]: string }
+	}
+	extra?: {
+		neos?: {
+			["package-key"]: string
+		}
+	}
+}
+
 export class NeosPackage extends Logger {
 	public path: string
 	public neosWorkspace: NeosWorkspace
 
-	public composerJson: any
+	public composerJson: ComposerJson
 
 	public namespaces: Map<string, NeosPackageNamespace> = new Map()
 	public configuration!: FlowConfiguration
