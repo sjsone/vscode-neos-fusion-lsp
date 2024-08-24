@@ -1,5 +1,6 @@
 import { Client } from './client/Client'
 import { GenericClient } from './client/GenericClient'
+import { IntelliJClient } from './client/IntelliJClient'
 import { VSCodeClient } from './client/VSCodeClient'
 
 const defaultClient = () => new GenericClient
@@ -7,6 +8,7 @@ const defaultClient = () => new GenericClient
 const resolveClientByName = (clientName: string) => {
 	switch (clientName.toLowerCase()) {
 		case "vscode": return new VSCodeClient
+		case "intellij": return new IntelliJClient
 		default: return defaultClient()
 	}
 }

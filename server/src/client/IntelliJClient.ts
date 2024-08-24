@@ -6,7 +6,7 @@ import * as NodeFs from "fs"
 const ConfigurationFileName = ".fusion_ls.json"
 
 class ConfigurationFileError extends Error {
-	public title: string
+	public title!: string
 }
 
 class ConfigurationFileNotExistingError extends ConfigurationFileError {
