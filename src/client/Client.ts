@@ -1,4 +1,4 @@
-import { ClientCapabilities, DidChangeConfigurationParams } from 'vscode-languageserver'
+import { ClientCapabilities, DidChangeConfigurationParams, InitializeParams } from 'vscode-languageserver'
 import { LanguageServer } from '../LanguageServer'
 import { ExtensionConfiguration } from '../ExtensionConfiguration'
 import { Logger, LogService } from '../common/Logging'
@@ -10,9 +10,14 @@ export abstract class Client extends Logger {
 
 	constructor() {
 		super()
+		this.reconfigureLogger()
 	}
 
-	onInitialize() {
+	onInitialize(params: InitializeParams) {
+		// stub
+	}
+
+	protected reconfigureLogger() {
 		// stub
 	}
 

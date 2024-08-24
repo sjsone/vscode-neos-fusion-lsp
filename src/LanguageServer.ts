@@ -169,7 +169,7 @@ export class LanguageServer extends Logger {
 			return contexts.map(context => ({ context, selected: selectedContext === context }))
 		})
 
-		this.client.onInitialize()
+		this.client.onInitialize(params)
 
 		return {
 			capabilities: {
