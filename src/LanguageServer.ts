@@ -74,6 +74,8 @@ export class LanguageServer extends Logger {
 	constructor(protected connection: _Connection, protected documents: TextDocuments<FusionDocument>, public client: Client) {
 		super()
 
+		Client.SetLanguageServer(this.client, this)
+
 		this.logInfo("Client: " + this.client.getInfo())
 
 		this.connection = connection
@@ -167,6 +169,8 @@ export class LanguageServer extends Logger {
 			return contexts.map(context => ({ context, selected: selectedContext === context }))
 		})
 
+		this.client.onInitialize()
+
 		return {
 			capabilities: {
 				inlayHintProvider: true,
@@ -246,27 +250,7 @@ export class LanguageServer extends Logger {
 	}
 
 	public async onDidChangeConfiguration(params: DidChangeConfigurationParams) {
-		const configuration: ExtensionConfiguration = params.settings.neosFusionLsp
-		Object.freeze(configuration)
-		this.logInfo("Configuration: " + JSON.stringify(configuration))
-
-		await this.sendBusyCreate('reload', {
-			busy: true,
-			text: "$(rocket)",
-			detail: "initializing language server",
-			name: "initializing",
-			severity: 1 // Warning
-		})
-
-		LogService.setLogLevel(configuration.logging.level)
-
-		for (const fusionWorkspace of this.fusionWorkspaces) {
-			await fusionWorkspace.init(configuration)
-		}
-
-		clearLineDataCache()
-
-		await this.sendBusyDispose('reload')
+		return this.client.onDidChangeConfiguration(params)
 	}
 
 	public async onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams) {
