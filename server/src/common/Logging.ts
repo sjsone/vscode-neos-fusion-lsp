@@ -18,12 +18,24 @@ class LogService {
 const logServiceInstance = new LogService()
 export { logServiceInstance as LogService, LogService as LogServiceClass }
 
+type LoggingBackend = (level: string, name: string, ...things: any[]) => void
+
+const loggingBackendConsole: LoggingBackend = (level: string, name: string, ...things: any[]) => {
+	console.log(`[${level.padStart(7, " ")}] <${(new Date()).toISOString()}> [${name}]`, ...things)
+}
+
+let loggingBackend: LoggingBackend = loggingBackendConsole
+
 export class Logger {
 	private loggerLogName: string
 	private loggingEnabled = true
 
+	static SetLoggingBackend(newLoggingBackend: LoggingBackend) {
+		loggingBackend = newLoggingBackend
+	}
+
 	static LogNameAndLevel = (level: string, name: string, ...things: any[]) => {
-		console.log(`[${level.padStart(7, " ")}] <${(new Date()).toISOString()}> [${name}]`, ...things)
+		loggingBackend(level, name, things)
 	}
 
 	static RenameLogger(logger: Logger, loggerLogName: string) {
