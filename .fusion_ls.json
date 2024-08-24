@@ -1,0 +1,82 @@
+{
+	"folders": {
+		"root": "./",
+		"workspaceAsPackageFallback": true,
+		"projectConfiguration": "Configuration",
+		"fusion": [
+			"Resources/Private/Fusion",
+			"Resources/Private/FusionModule",
+			"Resources/Private/FusionModules",
+			"Resources/Private/FusionPlugins",
+			"NodeTypes"
+		],
+		"ignore": [
+			"Packages/Libraries"
+		],
+		"followSymbolicLinks": false,
+		"includeHiddenDirectories": false
+	},
+	"diagnostics": {
+		"enabled": true,
+		"enabledDiagnostics": {
+			"FusionProperties": true,
+			"ResourceUris": true,
+			"TagNames": true,
+			"EelHelperArguments": true,
+			"PrototypeNames": true,
+			"EmptyEel": true,
+			"ActionUri": true,
+			"NodeTypeDefinitions": true,
+			"NonParsedFusion": true,
+			"RootFusionConfiguration": true,
+			"TranslationShortHand": true,
+			"ParserError": true,
+			"AfxWithDollarEel": true,
+			"DuplicateStatements": true
+		},
+		"ignoreNodeTypes": [
+			"Neos.Neos:Plugin"
+		],
+		"levels": {
+			"deprecations": "hint"
+		},
+		"ignore": {
+			"folders": [
+				"Packages/"
+			]
+		},
+		"alwaysDiagnoseChangedFile": false
+	},
+	"inlayHint": {
+		"depth": "literal"
+	},
+	"extensions": {
+		"modify": true
+	},
+	"code": {
+		"deprecations": {
+			"fusion": {
+				"prototypes": {
+					"Neos.Fusion:Array": "Neos.Fusion:Join",
+					"Neos.Fusion:Collection": "Neos.Fusion:Loop",
+					"Neos.Fusion:RawCollection": "Neos.Fusion:Map",
+					"Neos.Fusion:RawArray": "Neos.Fusion:DataStructure",
+					"Neos.Fusion:UriBuilder": "Neos.Fusion:ActionUri"
+				}
+			}
+		},
+		"actions": {
+			"createNodeTypeConfiguration": {
+				"template": "{nodeTypeName}:\n  properties:",
+				"detectAbstractRegEx": "(?:A|a)bstract"
+			}
+		}
+	},
+	"logging": {
+		"level": "info",
+		"inspect": false
+	},
+	"experimental": {
+		"fusionParserCaching": false
+	}
+}
