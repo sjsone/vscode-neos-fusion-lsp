@@ -12,7 +12,7 @@ const resolveClientByName = (clientName: string) => {
 }
 
 export const resolveClient = (): Client => {
-	const argName = "client"
+	const argName = "--client"
 	for (let i = 2; i < process.argv.length; i++) {
 		const arg = process.argv[i];
 		if (arg === argName && i + 1 < process.argv.length) {
