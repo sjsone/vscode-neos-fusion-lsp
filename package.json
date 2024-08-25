@@ -25,8 +25,7 @@
         "vscode": "^1.70.0"
     },
     "activationEvents": [
-        "workspaceContains:**/*.fusion",
-        "onView:neosConfiguration"
+        "workspaceContains:**/*.fusion"
     ],
     "extensionKind": [
         "workspace",
@@ -405,10 +404,10 @@
     },
     "scripts": {
         "vscode:prepublish": "yarn run compile",
-        "compile": "cd client && yarn run esbuild && cd ../server && yarn run esbuild && cd ..",
-        "compile-without-minify": "cd client && yarn run esbuild && cd ../server && yarn run esbuild-without-minify && cd ..",
+        "compile": "cd client && yarn run esbuild && cd ../server && yarn run build:base && cd ..",
+        "compile-without-minify": "cd client && yarn run esbuild && cd ../server && yarn run build:no-minify && cd ..",
         "watch-client": "cd client && yarn run esbuild-watch",
-        "watch-server": "cd server && yarn run esbuild-watch",
+        "watch-server": "cd server && yarn run watch",
         "lint": "eslint ./client/src ./server/src --ext .ts",
         "lint-fix": "eslint --fix ./client/src ./server/src --ext .ts",
         "project:clone-server": "[[ -d server ]] || git clone -b $(git rev-parse --abbrev-ref HEAD) git@github.com:sjsone/neos-fusion-ls.git server",
