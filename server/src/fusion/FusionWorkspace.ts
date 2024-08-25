@@ -102,18 +102,18 @@ export class FusionWorkspace extends Logger {
     }
 
     protected async initPackagesPaths() {
+        const workspacePath = uriToPath(this.uri)
         const packagesPaths = ComposerService.getComposerPackagePaths(this, this.configuration)
         this.logDebug("packagesPaths", packagesPaths)
-        this.neosWorkspace = new NeosWorkspace(this)
+        this.neosWorkspace = new NeosWorkspace(this, workspacePath, this.name)
 
         try {
             for (const packagePath of packagesPaths) {
                 this.neosWorkspace.addPackage(packagePath)
             }
         } catch (error) {
-            if (error instanceof PackageJsonNotFoundError) {
-                this.logError(`No Package.json found for ${packagePath}`)
-            } else throw error
+            if (!(error instanceof ComposerJsonNotFoundError)) throw error
+            this.logError(error.message)
         }
 
         this.neosWorkspace.init(this.selectedFlowContextName)
