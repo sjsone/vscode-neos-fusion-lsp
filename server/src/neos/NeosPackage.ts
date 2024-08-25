@@ -1,4 +1,5 @@
 import * as NodePath from "path"
+import * as NodeFs from "fs"
 import { LinePosition } from '../common/LinePositionedNode'
 import { Logger } from '../common/Logging'
 import { EelHelperMethod } from '../eel/EelHelperMethod'

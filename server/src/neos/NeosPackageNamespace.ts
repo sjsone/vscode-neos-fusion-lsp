@@ -85,7 +85,6 @@ export class NeosPackageNamespace {
 
 			const identifierIndex = rest.substring(lastIndex).indexOf(fullDefinition) + lastIndex
 			const { description, returns } = this.parseMethodComment(identifierIndex, phpFileSource)
-
 			methods.push(new EelHelperMethod(name, description, parameters, {
 				start: getLineNumberOfChar(phpFileSource, identifierIndex, fileUri),
 				end: getLineNumberOfChar(phpFileSource, identifierIndex + fullDefinition.length, fileUri)
@@ -176,7 +175,6 @@ export class NeosPackageNamespace {
 				docLineMatch = docLineRegex.exec(fullDocBlock)
 			}
 		}
-
 		return {
 			description: descriptionParts.join("\n"),
 			returns

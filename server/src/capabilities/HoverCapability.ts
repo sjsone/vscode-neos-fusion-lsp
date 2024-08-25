@@ -212,28 +212,34 @@ export class HoverCapability extends AbstractCapability {
 		const header = `EEL-Helper *${node.eelHelper.identifier}*.**${node.identifier}** \n`
 
 		const eelHelper = workspace.neosWorkspace.getEelHelperTokensByName(node.eelHelper.identifier)
-		if (eelHelper) {
-			const method = eelHelper.methods.find(method => method.valid(node.identifier))
-			if (method) {
+		if (!eelHelper) return header
 
-				const phpParameters = method.parameters.map(p => `${p.type ?? ''}${p.name}${p.defaultValue ?? ''}`).join(", ")
+		const method = eelHelper.methods.find(method => method.valid(node.identifier))
+		if (!method) return header
 
-				return [
-					header,
-					method.description,
-					'```php',
-					`<?php`,
-					`${method.name}(${phpParameters})`,
-					'```'
-				].join('\n')
-			}
+		const phpParameters = method.parameters.map(p => `${p.type ?? ''}${p.name}${p.defaultValue ?? ''}`).join(", ")
+
+		const descriptionParts: string[] = []
+		if (method.description) {
+			descriptionParts.push('##### Description:')
+			descriptionParts.push(method.description?.replace("Example::", '##### Example:'))
 		}
 
-		return header
+		return [
+			`#### \`${node.eelHelper.identifier}.${node.identifier} \``,
+			...descriptionParts,
+			'##### Signature:',
+			'```php',
+			`<?php`,
+			`${method.name}(${phpParameters})${method.returnType ? ': ' + method.returnType : ''}`,
+			`?>`,
+			'```'
+		].join('\n')
 	}
 
 	getMarkdownForResourceUri(node: ResourceUriNode, workspace: FusionWorkspace) {
 		if (!node.canBeFound()) return null
+
 		const path = workspace.neosWorkspace.getResourceUriPath(node.getNamespace(), node.getRelativePath())
 		if (!path || !NodeFs.existsSync(path)) return `**Could not find Resource**`
 

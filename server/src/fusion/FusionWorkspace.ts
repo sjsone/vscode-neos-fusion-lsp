@@ -14,12 +14,16 @@ import { LogService, Logger } from '../common/Logging'
 import { TranslationService } from '../common/TranslationService'
 import { getFiles, pathToUri, uriToPath } from '../common/util'
 import { ParsedFusionFileDiagnostics } from '../diagnostics/ParsedFusionFileDiagnostics'
-import { PackageJsonNotFoundError } from '../error/PackageJsonNotFoundError'
 import { NeosPackage } from '../neos/NeosPackage'
 import { NeosWorkspace } from '../neos/NeosWorkspace'
 import { XLIFFTranslationFile } from '../translations/XLIFFTranslationFile'
 import { LanguageServerFusionParser } from './LanguageServerFusionParser'
 import { ParsedFusionFile } from './ParsedFusionFile'
+import { UserPresentableError } from '../error/UserPresentableError'
+import { ControllableError } from '../error/ControllableError'
+import { MessageType } from "vscode-languageserver/node"
+import { ComposerJsonNotFoundError } from '../error/ComposerJsonNotFoundError'
+import { NoPackagesFoundError } from '../error/NoPackagesFoundError'
 import { RootComposerJsonNotFoundError } from '../error/RootComposerJsonNotFoundError'
 import { RuntimeConfiguration } from 'ts-fusion-runtime'
 
@@ -107,8 +111,9 @@ export class FusionWorkspace extends Logger {
                 this.neosWorkspace.addPackage(packagePath)
             }
         } catch (error) {
-            if (!(error instanceof PackageJsonNotFoundError)) throw error
-            this.logError(error.message)
+            if (error instanceof PackageJsonNotFoundError) {
+                this.logError(`No Package.json found for ${packagePath}`)
+            } else throw error
         }
 
         this.neosWorkspace.init(this.selectedFlowContextName)
@@ -188,6 +193,12 @@ export class FusionWorkspace extends Logger {
         await this.languageServer.sendProgressNotificationFinish("init_fusion_files_post_processing")
 
         this.logInfo(`Successfully parsed ${this.parsedFiles.length} fusion files. `)
+
+        // TODO: TBD-setting "workspace root" to allow for things like `my-project/source/<Packages>` instead of `my-project/<Packages>`
+
+        if (this.neosWorkspace.getPackages().size == 0) {
+            this.handleError(new NoPackagesFoundError())
+        }
 
         if (this.filesWithErrors.length > 0) {
             this.logInfo(`  Could not parse ${this.filesWithErrors.length} files due to errors`)
@@ -374,5 +385,18 @@ export class FusionWorkspace extends Logger {
         this.parsedFiles = []
         this.filesWithErrors = []
         this.translationFiles = []
+    }
+
+    protected handleError(error: Error) {
+        if (!(error instanceof ControllableError)) throw error
+
+        this.logError(error.message)
+        if (error instanceof UserPresentableError) {
+            if (error instanceof ComposerJsonNotFoundError) {
+                if (error.path === this.neosWorkspace["workspacePath"]) return
+            }
+
+            this.languageServer.showMessage(`${error.title} -- ${error.message}`, MessageType.Warning)
+        }
     }
 }
