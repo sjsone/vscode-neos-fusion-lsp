@@ -6,4 +6,5 @@ client/server
 *.zip
 *.cpuprofile
 
+server/
 yarn-error.log
