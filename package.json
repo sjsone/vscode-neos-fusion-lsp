@@ -1,7 +1,6 @@
 {
     "name": "vscode-neos-fusion-lsp",
     "displayName": "Neos Fusion & AFX Language Server",
-    "displayName": "Neos Fusion & AFX Language Server",
     "description": "Language server for Neos Fusion (and AFX)",
     "author": "Simon J. Schmidt",
     "icon": "images/logo.png",
@@ -373,7 +372,6 @@
         ],
         "icons": {
             "neos-lsp": {
-                "description": "Neos Icon - LSP edition",
                 "description": "Neos Icon - LSP edition",
                 "default": {
                     "fontPath": "icons/icon-font.woff",
