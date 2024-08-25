@@ -10,5 +10,6 @@ client/server
 # Debugging
 *.cpuprofile
 *.heapprofile
+server/
 yarn-error.log
 *.log
