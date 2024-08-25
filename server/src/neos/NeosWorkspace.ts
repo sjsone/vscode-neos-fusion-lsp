@@ -19,6 +19,28 @@ export class NeosWorkspace extends Logger {
 	) {
 		super(name)
 		this.workspacePath = workspacePath
+		this.configurationManager = new ConfigurationManager(this)
+	}
+
+	init(selectedFlowContextName?: string) {
+		this.initConfiguration(selectedFlowContextName)
+		this.initEelHelpers()
+	}
+
+	initEelHelpers() {
+		for (const neosPackage of this.packages.values()) {
+			neosPackage.initEelHelper()
+		}
+	}
+
+	initConfiguration(selectedFlowContextName?: string) {
+		this.configurationManager.buildConfiguration(selectedFlowContextName)
+		const fusionWorkspacePath = uriToPath(this.fusionWorkspace.uri)
+		if (NodeFs.existsSync(NodePath.join(fusionWorkspacePath, 'Configuration'))) {
+			const configuration = FlowConfiguration.ForPath(this, fusionWorkspacePath)
+			const settings = configuration["settingsConfiguration"]
+			if (settings) this.configurationManager.addToMergedConfiguration(settings)
+		}
 	}
 
 	addPackage(packagePath: string) {
