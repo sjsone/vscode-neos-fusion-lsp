@@ -3,11 +3,12 @@
     "description": "Neos Fusion Language Server Client for VSCode",
     "author": "Simon J. Schmidt",
     "license": "MIT",
-    "version": "0.6.1",
+    "version": "0.6.3",
     "publisher": "SimonSchmidt",
     "engines": {
         "vscode": "^1.52.0"
     },
+    "type": "commonjs",
     "scripts": {
         "esbuild-base": "esbuild ./src/main.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
         "esbuild": "yarn run esbuild-base --minify",
