@@ -32,7 +32,7 @@
         "ui"
     ],
     "main": "./client/out/main.js",
-    "type": "module",
+    "type": "commonjs",
     "extensionDependencies": [
         "SimonSchmidt.vscode-neos-fusion-grammar"
     ],
