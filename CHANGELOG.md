@@ -7,6 +7,10 @@
 
 ## 🪐🔭 *Upcoming*
 
+## 🧪 0.6.5
+
+- fix: incomplete XLIFF file crashing the server
+
 ## 🧪 0.6.1
 
 - TBD
