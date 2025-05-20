@@ -7,6 +7,10 @@
 
 ## 🪐🔭 *Upcoming*
 
+## 🧪 0.6.7
+
+- fix: false positive diagnostics for `I18n.translate()` and `Translate.translate()`
+
 ## 🧪 0.6.5
 
 - fix: incomplete XLIFF file crashing the server
