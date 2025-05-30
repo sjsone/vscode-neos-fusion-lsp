@@ -374,8 +374,8 @@
     },
     "scripts": {
         "vscode:prepublish": "yarn run compile",
-        "compile": "cd client && yarn run esbuild && cd ../server && yarn run esbuild && cd ..",
-        "compile-without-minify": "cd client && yarn run esbuild && cd ../server && yarn run esbuild-without-minify && cd ..",
+        "compile": "cd client && yarn run esbuild && cd ../server && yarn run build:minify && cd ..",
+        "compile-without-minify": "cd client && yarn run esbuild && cd ../server && yarn run build:no-minify && cd ..",
         "watch-client": "cd client && yarn run esbuild-watch",
         "watch-server": "cd server && yarn run esbuild-watch",
         "lint": "eslint ./client/src ./server/src --ext .ts",
