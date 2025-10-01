@@ -34,7 +34,7 @@ export class Extension {
 	protected context: ExtensionContext | undefined = undefined
 	protected flowConfigurationModel = new FlowConfigurationTreeModel
 
-	protected languageStatusBarItems: { [name: string]: undefined | AbstractLanguageStatusBarItem } = { reload: undefined }
+	protected languageStatusBarItems: { [name: string]: AbstractLanguageStatusBarItem | undefined } = { reload: undefined }
 
 	constructor() {
 		this.outputChannel = Window.createOutputChannel('Neos Fusion LSP')
@@ -46,8 +46,12 @@ export class Extension {
 
 	protected createLanguageStatusItems() {
 		for (const itemConstructor of [Reload, Diagnostics]) {
-			const statusItem = new itemConstructor()
-			this.languageStatusBarItems[statusItem.getName()] = statusItem
+			try {
+				const statusItem = new itemConstructor()
+				this.languageStatusBarItems[statusItem.getName()] = statusItem
+			} catch (error) {
+				console.error(`Failed to create language status item: ${itemConstructor.name}`, error)
+			}
 		}
 	}
 
@@ -138,7 +142,12 @@ export class Extension {
 		for (const element of sorted) {
 			let uri = folder.uri.toString()
 			if (!uri.endsWith('/')) uri = uri + '/'
-			if (uri.startsWith(element)) return Workspace.getWorkspaceFolder(Uri.parse(element))!
+			if (uri.startsWith(element)) {
+				const workspaceFolder = Workspace.getWorkspaceFolder(Uri.parse(element))
+				if (workspaceFolder) {
+					return workspaceFolder
+				}
+			}
 		}
 		return folder
 	}
@@ -152,11 +161,15 @@ export class Extension {
 		]
 
 		if (process.env.SERVER_INSPECT_BREAK) {
-			console.log("SERVER_INSPECT_BREAK is set.")
+			if (process.env.NODE_ENV === 'development') {
+				console.log("SERVER_INSPECT_BREAK is set.")
+			}
 			inspect = true
 		}
 
-		console.log("start in inspect", inspect)
+		if (process.env.NODE_ENV === 'development') {
+			console.log("start in inspect", inspect)
+		}
 		if (inspect) {
 			runOptions.execArgv.push(`--inspect-brk=${6111}`)
 		}
@@ -175,8 +188,7 @@ export class Extension {
 				fileEvents: [
 					workspace.createFileSystemWatcher('**/*.php'),
 					workspace.createFileSystemWatcher('**/*.yaml'),
-					workspace.createFileSystemWatcher('**/*.fusion'),
-					workspace.createFileSystemWatcher('**/*.yaml')
+					workspace.createFileSystemWatcher('**/*.fusion')
 				]
 			},
 			initializationOptions: {
@@ -190,7 +202,7 @@ export class Extension {
 		const client = new LanguageClient('vscode-neos-fusion-lsp', 'LSP For Neos Fusion (and AFX)', serverOptions, clientOptions)
 
 		client.onNotification('custom/busy/create', ({ id, configuration }) => {
-			if (id in this.languageStatusBarItems) {
+			if (id in this.languageStatusBarItems && this.languageStatusBarItems[id]) {
 				this.languageStatusBarItems[id]!.item.busy = true
 			}
 		})
@@ -216,7 +228,7 @@ export class Extension {
 		client.onNotification('custom/progressNotification/update', ({ id, payload }) => progressNotificationService.update(id, payload))
 
 		client.onNotification('custom/busy/dispose', ({ id }) => {
-			if (id in this.languageStatusBarItems) {
+			if (id in this.languageStatusBarItems && this.languageStatusBarItems[id]) {
 				this.languageStatusBarItems[id]!.item.busy = false
 			}
 		})
@@ -235,7 +247,9 @@ export class Extension {
 				return "Unknown-" + state
 			}
 
+			if (process.env.NODE_ENV === 'development') {
 			console.log("CHANGED STATE: ", stateToString(event.oldState), "->", stateToString(event.newState))
+		}
 			if (event.oldState === State.Running && event.newState === State.Stopped) {
 				this.stopAllRunningInterfaceItems(progressNotificationService)
 			}
@@ -256,7 +270,9 @@ export class Extension {
 	protected stopAllRunningInterfaceItems(progressNotificationService?: ProgressNotificationService) {
 		progressNotificationService?.finishAll()
 		for (const id in this.languageStatusBarItems) {
-			this.languageStatusBarItems[id]!.item.busy = false
+			if (this.languageStatusBarItems[id]) {
+				this.languageStatusBarItems[id]!.item.busy = false
+			}
 		}
 	}
 }

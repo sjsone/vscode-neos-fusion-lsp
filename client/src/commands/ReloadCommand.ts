@@ -10,11 +10,16 @@ export class ReloadCommand extends AbstractCommand {
 		await this.extension.stopClients()
 
 		for (const uri of uris) {
-			const folder = Workspace.getWorkspaceFolder(Uri.file(uri.replace("file://", "")))
-			if (!folder) continue
+			try {
+				const filePath = uri.replace(/^file:\/\//, '')
+				const folder = Workspace.getWorkspaceFolder(Uri.file(filePath))
+				if (!folder) continue
 
-			const outerMostWorkspaceFolder = this.extension.getOuterMostWorkspaceFolder(folder)
-			this.startClient(outerMostWorkspaceFolder)
+				const outerMostWorkspaceFolder = this.extension.getOuterMostWorkspaceFolder(folder)
+				this.startClient(outerMostWorkspaceFolder)
+			} catch (error) {
+				console.error(`Failed to reload client for uri: ${uri}`, error)
+			}
 		}
 	}
 

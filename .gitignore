@@ -2,7 +2,7 @@ out
 node_modules
 client/server
 .DS_Store
-
+CLAUDE.md
 # Packages
 *.vsix
 *.zip

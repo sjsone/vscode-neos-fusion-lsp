@@ -73,7 +73,7 @@ export class ConfigurationTreeProvider implements TreeDataProvider<NeosConfigura
 		if (typeof data === "string") return `"${data}"`
 		if (typeof data === "number") return `${data}`
 		if (Array.isArray(data)) return '<Array>'
-		if(typeof data === "object" && Object.keys(data).length === 0) return 'empty'
+		if (typeof data === "object" && Object.keys(data).length === 0) return 'empty'
 
 		return undefined
 	}
@@ -92,6 +92,9 @@ export class ConfigurationTreeProvider implements TreeDataProvider<NeosConfigura
 	protected getDataFromPath(path: string[] = []) {
 		let subData = this.flowConfigurationModel.getData()
 		for (const part of path) {
+			if (typeof subData !== 'object' || subData === null) {
+				return undefined
+			}
 			subData = subData[part]
 			if (subData === undefined) break
 		}
@@ -100,7 +103,7 @@ export class ConfigurationTreeProvider implements TreeDataProvider<NeosConfigura
 
 	getChildren(element?: NeosConfigurationNode): ProviderResult<NeosConfigurationNode[]> {
 		if (element) {
-			return Object.keys(this.getDataFromPath(element.path)).map(key => ({ path: [...element.path, key] }))
+			return Object.keys(this.getDataFromPath(element.path) ?? {}).map(key => ({ path: [...element.path, key] }))
 		} else {
 			return Object.keys(this.flowConfigurationModel.getData()).map(key => ({ path: [key] }))
 		}

@@ -108,6 +108,19 @@ class NeosStatusBarItem {
 	addListener(eventName: string | symbol, listener: (...args: any[]) => void) {
 		this.eventEmitter.addListener(eventName, listener)
 	}
+
+	removeListener(eventName: string | symbol, listener: (...args: any[]) => void) {
+		this.eventEmitter.removeListener(eventName, listener)
+	}
+
+	removeAllListeners(eventName?: string | symbol) {
+		this.eventEmitter.removeAllListeners(eventName)
+	}
+
+	dispose() {
+		this.eventEmitter.removeAllListeners()
+		this.statusBarItem.dispose()
+	}
 }
 
 const neosStatusBarItem = new NeosStatusBarItem

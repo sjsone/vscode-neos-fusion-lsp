@@ -32,10 +32,10 @@ export class PreferenceService {
 		const configuration = workspace.getConfiguration()
 		const target = ConfigurationTarget.Global
 		const overrideInLanguage = false
-		const preference = <T>configuration.get(modification.path, null)
+		const preference = configuration.get<T>(modification.path)
 
-		if (preference !== null || modification.allowNull) {
-			const newPreference = modification.modifier(preference)
+		if (preference !== undefined || modification.allowNull) {
+			const newPreference = modification.modifier(preference as any)
 			if (newPreference !== null || modification.allowNull) {
 				configuration.update(modification.path, newPreference, target, overrideInLanguage)
 			}
