@@ -20,11 +20,13 @@ import { ProgressNotificationService } from './ProgressNotificationService'
 import { AbstractCommandConstructor } from './commands/AbstractCommand'
 import { InspectCommand } from './commands/InspectCommand'
 import { PutContentIntoClipboard } from './commands/PutContentIntoClipboard'
+import { RefreshPrototypesCommand } from './commands/RefreshPrototypesCommand'
 import { ReloadCommand } from './commands/ReloadCommand'
 import { AbstractLanguageStatusBarItem } from './languageStatusBarItems/AbstractLanguageStatusBarItem'
 import { Diagnostics } from './languageStatusBarItems/Diagnostics'
 import { Reload } from './languageStatusBarItems/Reload'
 import { ConfigurationTreeProvider, FlowConfigurationTreeModel } from './views/ConfigurationTreeProvider'
+import { PrototypeTreeProvider } from './views/PrototypeTreeProvider'
 
 
 export class Extension {
@@ -92,10 +94,14 @@ export class Extension {
 		this.registerCommand(InspectCommand)
 		this.registerCommand(ReloadCommand)
 		this.registerCommand(PutContentIntoClipboard)
+		this.registerCommand(RefreshPrototypesCommand)
 
 		Window.createTreeView('neosConfiguration', {
 			treeDataProvider: new ConfigurationTreeProvider(this.flowConfigurationModel),
 		})
+
+		// We'll create the prototype tree view after the client is ready
+		// This will be handled in startClient when the client is available
 	}
 
 	protected onDidOpenTextDocument(document: TextDocument) {
@@ -238,6 +244,17 @@ export class Extension {
 
 		client.start()
 		this.clients.set(folder.uri.toString(), client)
+
+		// Register the prototype tree view
+		const prototypeTreeProvider = new PrototypeTreeProvider(client)
+		Window.createTreeView('neosPrototypes', {
+			treeDataProvider: prototypeTreeProvider,
+		})
+
+		// Wait a bit for the server to be fully initialized before refreshing
+		setTimeout(() => {
+			prototypeTreeProvider.refresh()
+		}, 2000)
 
 		client.onDidChangeState((event) => {
 			const stateToString = (state: any) => {

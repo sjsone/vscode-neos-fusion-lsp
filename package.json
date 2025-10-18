@@ -351,6 +351,10 @@
             {
                 "command": "neos-fusion-lsp.reload",
                 "title": "Fusion: Reload Neos Fusion LSP "
+            },
+            {
+                "command": "neos-fusion-lsp.refreshPrototypes",
+                "title": "Fusion: Refresh Prototype Tree"
             }
         ],
         "languages": [
@@ -392,6 +396,10 @@
                 {
                     "id": "neosConfiguration",
                     "name": "🧪-Experimental-🧪 Configuration"
+                },
+                {
+                    "id": "neosPrototypes",
+                    "name": "Prototypes"
                 }
             ]
         },
@@ -399,6 +407,10 @@
             {
                 "view": "neosConfiguration",
                 "contents": "No Configuration loaded.\nOpen any file to start the Language Server"
+            },
+            {
+                "view": "neosPrototypes",
+                "contents": "No prototypes loaded yet.\n\nMake sure you have:\n- A Neos project open\n- Fusion files in your project\n- The Language Server running\n\nThe view will refresh automatically."
             }
         ]
     },

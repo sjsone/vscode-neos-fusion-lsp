@@ -9,8 +9,6 @@ class NeosStatusBarItem {
 	protected eventEmitter = new EventEmitter
 
 	init({ subscriptions }: ExtensionContext, client: LanguageClient, outputChannel: OutputChannel) {
-		this.statusBarItem.backgroundColor = '#26224C'
-		this.statusBarItem.color = '#00ADEE'
 		this.updateText("Development")
 
 		const showStatusBarActionsQuickPickCommandId = 'fusion-lsp.showStatusBarActionsQuickPick'
