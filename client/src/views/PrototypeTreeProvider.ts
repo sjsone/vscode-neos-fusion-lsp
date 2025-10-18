@@ -11,9 +11,9 @@ import {
 
 export interface PrototypeTreeNode {
 	name: string
-	type: 'namespace' | 'prototype'
+	type: 'namespace' | 'prototype' | 'package'
 	location?: { uri: string; range: any }
-	prototypeType?: 'creation' | 'overwrite'
+	prototypeType?: 'creation'
 	children?: PrototypeTreeNode[]
 }
 
@@ -31,7 +31,13 @@ export class PrototypeTreeProvider implements TreeDataProvider<PrototypeTreeNode
 	public async refresh() {
 		this.log("Refreshing prototype data...")
 
-		await this.loadPrototypeData()
+		try {
+			await this.loadPrototypeData()
+		} catch (error) {
+			this.log("error", error)
+		}
+
+
 		this.onDidChangeTreeDataEventEmitter.fire(undefined)
 	}
 
@@ -76,11 +82,14 @@ export class PrototypeTreeProvider implements TreeDataProvider<PrototypeTreeNode
 	getTreeItem(element: PrototypeTreeNode): TreeItem | Thenable<TreeItem> {
 		const treeItem = new TreeItem(element.name)
 
-		if (element.type === 'namespace') {
+		const isNamespace = element.type === 'namespace'
+		const isPackage = element.type === 'package'
+		if (isNamespace || isPackage) {
 			treeItem.collapsibleState = element.children && element.children.length > 0
 				? TreeItemCollapsibleState.Collapsed
 				: TreeItemCollapsibleState.None
-			treeItem.iconPath = ThemeIcon.Folder
+			treeItem.iconPath = isNamespace ? ThemeIcon.Folder : new ThemeIcon("symbol-package")
+
 			treeItem.description = `${this.countPrototypes(element.children || [])} prototypes`
 		} else {
 			treeItem.collapsibleState = TreeItemCollapsibleState.None
@@ -101,12 +110,10 @@ export class PrototypeTreeProvider implements TreeDataProvider<PrototypeTreeNode
 		return treeItem
 	}
 
-	protected getPrototypeIcon(prototypeType?: 'creation' | 'overwrite'): ThemeIcon {
+	protected getPrototypeIcon(prototypeType?: 'creation'): ThemeIcon {
 		switch (prototypeType) {
 			case 'creation':
 				return new ThemeIcon('symbol-class')
-			case 'overwrite':
-				return new ThemeIcon('symbol-constructor')
 			default:
 				return new ThemeIcon('symbol-misc')
 		}
