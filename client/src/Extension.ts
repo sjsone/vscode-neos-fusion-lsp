@@ -20,10 +20,12 @@ import { ProgressNotificationService } from './ProgressNotificationService'
 import { AbstractCommandConstructor } from './commands/AbstractCommand'
 import { InspectCommand } from './commands/InspectCommand'
 import { PutContentIntoClipboard } from './commands/PutContentIntoClipboard'
+import { RebuildWorkspacesConfigurationCommand } from './commands/RebuildWorkspacesConfigurationCommand'
 import { RefreshPrototypesCommand } from './commands/RefreshPrototypesCommand'
 import { ReloadCommand } from './commands/ReloadCommand'
 import { AbstractLanguageStatusBarItem } from './languageStatusBarItems/AbstractLanguageStatusBarItem'
 import { Diagnostics } from './languageStatusBarItems/Diagnostics'
+import { RebuildConfiguration } from './languageStatusBarItems/RebuildConfiguration'
 import { Reload } from './languageStatusBarItems/Reload'
 import { ConfigurationTreeProvider, FlowConfigurationTreeModel } from './views/ConfigurationTreeProvider'
 import { PrototypeTreeProvider } from './views/PrototypeTreeProvider'
@@ -47,7 +49,7 @@ export class Extension {
 	}
 
 	protected createLanguageStatusItems() {
-		for (const itemConstructor of [Reload, Diagnostics]) {
+		for (const itemConstructor of [Reload, Diagnostics, RebuildConfiguration]) {
 			try {
 				const statusItem = new itemConstructor()
 				this.languageStatusBarItems[statusItem.getName()] = statusItem
@@ -93,6 +95,7 @@ export class Extension {
 
 		this.registerCommand(InspectCommand)
 		this.registerCommand(ReloadCommand)
+		this.registerCommand(RebuildWorkspacesConfigurationCommand)
 		this.registerCommand(PutContentIntoClipboard)
 		this.registerCommand(RefreshPrototypesCommand)
 
@@ -265,8 +268,8 @@ export class Extension {
 			}
 
 			if (process.env.NODE_ENV === 'development') {
-			console.log("CHANGED STATE: ", stateToString(event.oldState), "->", stateToString(event.newState))
-		}
+				console.log("CHANGED STATE: ", stateToString(event.oldState), "->", stateToString(event.newState))
+			}
 			if (event.oldState === State.Running && event.newState === State.Stopped) {
 				this.stopAllRunningInterfaceItems(progressNotificationService)
 			}

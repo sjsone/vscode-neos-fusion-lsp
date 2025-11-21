@@ -355,6 +355,10 @@
             {
                 "command": "neos-fusion-lsp.refreshPrototypes",
                 "title": "Fusion: Refresh Prototype Tree"
+            },
+            {
+                "command": "neos-fusion-lsp.rebuildWorkspacesConfiguration",
+                "title": "Fusion: Rebuild Workspaces Configuration"
             }
         ],
         "languages": [
@@ -395,7 +399,7 @@
             "neos": [
                 {
                     "id": "neosConfiguration",
-                    "name": "🧪-Experimental-🧪 Configuration"
+                    "name": "Configuration"
                 },
                 {
                     "id": "neosPrototypes",
