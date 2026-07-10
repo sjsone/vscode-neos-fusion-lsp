@@ -435,10 +435,10 @@
         "create-major-release": "VERSION=\"$(node utility.js --major)\"; git tag -a \"v${VERSION}\" -m \"Version ${VERSION}\"; git push origin \"v${VERSION}\"; git commit -a -m \" Version ${VERSION}\"; git push origin; "
     },
     "devDependencies": {
-        "@types/mocha": "^5.2.0",
-        "@types/node": "^20",
-        "esbuild": "^0.23.1",
-        "typescript": "^5.5.4"
+        "@types/mocha": "^10.0.10",
+        "@types/node": "^26.1.1",
+        "esbuild": "^0.28.1",
+        "typescript": "^7.0.2"
     },
     "repository": {
         "type": "git",
@@ -449,6 +449,6 @@
     },
     "homepage": "https://github.com/sjsone/vscode-neos-fusion-lsp#readme",
     "dependencies": {
-        "vscode-languageclient": "^9.0.1"
+        "vscode-languageclient": "^10.0.0"
     }
 }
