@@ -3,6 +3,7 @@ node_modules
 client/server
 .DS_Store
 CLAUDE.md
+AGENTS.md
 # Packages
 *.vsix
 *.zip
