@@ -7,6 +7,12 @@
 
 ## 🪐🔭 *Upcoming*
 
+## 🧪 0.6.9
+
+- feature: `@position` support added
+- fix: `composer.json` handling
+- fix: Fusion file change/removal handling
+
 ## 🧪 0.6.7
 
 - fix: false positive diagnostics for `I18n.translate()` and `Translate.translate()`
