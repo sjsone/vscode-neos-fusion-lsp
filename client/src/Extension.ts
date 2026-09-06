@@ -2,6 +2,7 @@ import * as path from 'path'
 import {
 	ExtensionContext,
 	OutputChannel,
+	RelativePattern,
 	TextDocument,
 	Uri,
 	window as Window,
@@ -195,10 +196,10 @@ export class Extension {
 			synchronize: {
 				configurationSection: 'neosFusionLsp',
 				fileEvents: [
-					workspace.createFileSystemWatcher('**/*.php'),
-					workspace.createFileSystemWatcher('**/*.yaml'),
-					workspace.createFileSystemWatcher('**/*.fusion'),
-					workspace.createFileSystemWatcher('**/composer.json')
+					workspace.createFileSystemWatcher(new RelativePattern(folder, '**/*.php')),
+					workspace.createFileSystemWatcher(new RelativePattern(folder, '**/*.yaml')),
+					workspace.createFileSystemWatcher(new RelativePattern(folder, '**/*.fusion')),
+					workspace.createFileSystemWatcher(new RelativePattern(folder, '**/composer.json'))
 				]
 			},
 			initializationOptions: {
