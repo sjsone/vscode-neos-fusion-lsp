@@ -144,7 +144,7 @@ In this example everything in `props.user` will be ignored but `props.noProperty
 
 ```javascript
 // @fusion-ignore[props.user]
-test = ${props.user.notExisitingProperty && props.noProperty}
+test = ${props.user.nonExistingProperty && props.noProperty}
 ```
 
 ### `@fusion-ignore-block`
