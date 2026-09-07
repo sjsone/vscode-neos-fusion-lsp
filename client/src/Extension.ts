@@ -198,7 +198,9 @@ export class Extension {
 				fileEvents: [
 					workspace.createFileSystemWatcher(new RelativePattern(folder, '**/*.php')),
 					workspace.createFileSystemWatcher(new RelativePattern(folder, '**/*.yaml')),
+					workspace.createFileSystemWatcher(new RelativePattern(folder, '**/*.yml')),
 					workspace.createFileSystemWatcher(new RelativePattern(folder, '**/*.fusion')),
+					workspace.createFileSystemWatcher(new RelativePattern(folder, '**/*.xlf')),
 					workspace.createFileSystemWatcher(new RelativePattern(folder, '**/composer.json'))
 				]
 			},
